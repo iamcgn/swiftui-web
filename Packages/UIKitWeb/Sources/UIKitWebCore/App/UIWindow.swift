@@ -7,7 +7,7 @@ import Foundation
 // The window, the screen and the application: what the scene owns and the app touches first.
 
 /// The backdrop for the app's user interface and the object that dispatches events to views.
-@MainActor
+@preconcurrency @MainActor
 open class UIWindow: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -132,7 +132,7 @@ public final class UIScreen {
 }
 
 /// The centralized point of control and coordination for apps.
-@MainActor
+@preconcurrency @MainActor
 public final class UIApplication: UIResponder {
     public static let shared = UIApplication()
 
@@ -211,7 +211,7 @@ public final class UIApplication: UIResponder {
 }
 
 /// The methods the app object calls on its delegate.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIApplicationDelegate: AnyObject {
     #if !canImport(ObjectiveC)
     /// Without an Objective-C runtime the launch cannot instantiate the delegate class by

@@ -5,7 +5,7 @@
 import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A control for selecting a single value from a continuous range of values.
-@MainActor
+@preconcurrency @MainActor
 open class UISlider: UIControl {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -130,7 +130,7 @@ open class UISlider: UIControl {
 
 /// A horizontal control that consists of multiple segments, each segment functioning as a
 /// discrete button.
-@MainActor
+@preconcurrency @MainActor
 open class UISegmentedControl: UIControl {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -349,7 +349,7 @@ open class UISegmentedControl: UIControl {
 }
 
 /// A control for incrementing or decrementing a value.
-@MainActor
+@preconcurrency @MainActor
 open class UIStepper: UIControl {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -474,7 +474,7 @@ open class UIStepper: UIControl {
 }
 
 /// A view that depicts the progress of a task over time.
-@MainActor
+@preconcurrency @MainActor
 open class UIProgressView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -531,7 +531,7 @@ open class UIProgressView: UIView {
 }
 
 /// A view that shows that a task is in progress.
-@MainActor
+@preconcurrency @MainActor
 open class UIActivityIndicatorView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -623,7 +623,7 @@ open class UIActivityIndicatorView: UIView {
 /// A spinning indicator the scene advances (`UIKitScene.spinners`).
 /// A view the scene's frame loop advances while it animates (activity indicators, animated
 /// image views).
-@MainActor
+@preconcurrency @MainActor
 protocol ClockAnimating: AnyObject {
     var isAnimating: Bool { get }
     func advance(elapsed: Double)
@@ -637,7 +637,7 @@ struct WeakActivityIndicator {
 
 /// A control that displays a horizontal series of dots, each of which corresponds to a page in
 /// the app's document or other data-model entity.
-@MainActor
+@preconcurrency @MainActor
 open class UIPageControl: UIControl {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }

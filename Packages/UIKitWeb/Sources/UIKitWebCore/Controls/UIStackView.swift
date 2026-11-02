@@ -4,7 +4,7 @@
 import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A streamlined interface for laying out a collection of views in either a column or a row.
-@MainActor
+@preconcurrency @MainActor
 open class UIStackView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }

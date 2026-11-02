@@ -8,14 +8,14 @@ import Foundation
 #endif
 
 /// The methods a picker view's data source implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIPickerViewDataSource: AnyObject {
     func numberOfComponents(in pickerView: UIPickerView) -> Int
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int
 }
 
 /// The methods a picker view's delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIPickerViewDelegate: AnyObject {
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String?
     func pickerView(_ pickerView: UIPickerView, attributedTitleForRow row: Int, forComponent component: Int) -> NSAttributedString?
@@ -36,7 +36,7 @@ extension UIPickerViewDelegate {
 }
 
 /// A view that uses a spinning-wheel or slot-machine metaphor to show one or more sets of values.
-@MainActor
+@preconcurrency @MainActor
 open class UIPickerView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }

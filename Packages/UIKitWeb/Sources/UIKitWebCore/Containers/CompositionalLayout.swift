@@ -66,7 +66,7 @@ public struct NSCollectionLayoutEdgeSpacing: Sendable {
 }
 
 /// An item: a cell, or (as a group) a container of items.
-@MainActor
+@preconcurrency @MainActor
 open class NSCollectionLayoutItem {
     public let layoutSize: NSCollectionLayoutSize
     open var contentInsets = NSDirectionalEdgeInsets.zero
@@ -92,7 +92,7 @@ public struct NSDirectionalRectEdge: OptionSet, Sendable {
 
 /// Where a supplementary item attaches: the edges it aligns to (the middle where an axis has
 /// none) and an offset, in points or in fractions of the supplementary item's own size.
-@MainActor
+@preconcurrency @MainActor
 open class NSCollectionLayoutAnchor {
     public let edges: NSDirectionalRectEdge
     public let offset: CGPoint
@@ -128,7 +128,7 @@ open class NSCollectionLayoutAnchor {
 /// A supplementary item anchored to an item (a badge at a corner): its container anchor names
 /// the point on the item, its item anchor the point on itself that lands there (the same edges
 /// when nil, so the item sits inside the corner).
-@MainActor
+@preconcurrency @MainActor
 open class NSCollectionLayoutSupplementaryItem {
     public let layoutSize: NSCollectionLayoutSize
     public let elementKind: String
@@ -166,7 +166,7 @@ open class NSCollectionLayoutSupplementaryItem {
 }
 
 /// A group: items along an axis, repeating to fill the group's size.
-@MainActor
+@preconcurrency @MainActor
 open class NSCollectionLayoutGroup: NSCollectionLayoutItem {
     public enum Axis: Sendable { case horizontal, vertical }
     let axis: Axis
@@ -202,7 +202,7 @@ open class NSCollectionLayoutGroup: NSCollectionLayoutItem {
 }
 
 /// A supplementary item at a section's (or the layout's) edge.
-@MainActor
+@preconcurrency @MainActor
 open class NSCollectionLayoutBoundarySupplementaryItem: NSCollectionLayoutSupplementaryItem {
     public let alignment: NSRectAlignment
     open var pinToVisibleBounds = false
@@ -217,7 +217,7 @@ public enum NSRectAlignment: Int, Sendable { case none = 0, top, topLeading, lea
 
 /// A decoration behind a section: a view of a kind registered with the layout, filling the
 /// section's frame inside the item's content insets.
-@MainActor
+@preconcurrency @MainActor
 open class NSCollectionLayoutDecorationItem {
     public let elementKind: String
     open var contentInsets = NSDirectionalEdgeInsets.zero
@@ -227,7 +227,7 @@ open class NSCollectionLayoutDecorationItem {
 }
 
 /// A section: its group repeated along the layout's scroll direction until the items run out.
-@MainActor
+@preconcurrency @MainActor
 open class NSCollectionLayoutSection {
     public enum OrthogonalScrollingBehavior: Int, Sendable { case none = 0, continuous, continuousGroupLeadingBoundary, paging, groupPaging, groupPagingCentered }
     let group: NSCollectionLayoutGroup
@@ -252,7 +252,7 @@ public protocol NSCollectionLayoutEnvironment {
 }
 
 /// An item in view as the invalidation handler sees it: its layout attributes to change.
-@MainActor
+@preconcurrency @MainActor
 public protocol NSCollectionLayoutVisibleItem: AnyObject {
     var alpha: CGFloat { get set }
     var zIndex: Int { get set }
@@ -295,7 +295,7 @@ public final class UICollectionViewCompositionalLayoutConfiguration {
 }
 
 /// A layout object that lets you combine items in highly adaptive and flexible visual arrangements.
-@MainActor
+@preconcurrency @MainActor
 open class UICollectionViewCompositionalLayout: UICollectionViewLayout {
     public typealias SectionProvider = (Int, any NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection?
     private let sectionProvider: SectionProvider

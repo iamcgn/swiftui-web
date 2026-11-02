@@ -5,7 +5,7 @@
 
 /// A relationship between two user interface objects that must be satisfied by the
 /// constraint-based layout system.
-@MainActor
+@preconcurrency @MainActor
 public final class NSLayoutConstraint {
     public enum Axis: Int, Sendable {
         case horizontal = 0, vertical = 1
@@ -131,7 +131,7 @@ public final class NSLayoutConstraint {
 }
 
 /// The visual format grammar, as Apple documents it: `(H|V:)? (|<connection>)? <view> (<connection> <view>)* (<connection> |)?`.
-@MainActor
+@preconcurrency @MainActor
 struct VisualFormatParser {
     struct Fault: Error, CustomStringConvertible {
         let description: String
@@ -371,7 +371,7 @@ struct VisualFormatParser {
 // MARK: - Anchors
 
 /// A factory class for creating layout constraint objects using a fluent API.
-@MainActor
+@preconcurrency @MainActor
 open class NSLayoutAnchor<AnchorType: AnyObject> {
     let item: AnyObject
     let attribute: NSLayoutConstraint.Attribute
@@ -398,7 +398,7 @@ open class NSLayoutAnchor<AnchorType: AnyObject> {
 let systemSpacing: CGFloat = 8
 
 /// A factory class for creating horizontal layout constraint objects using a fluent API.
-@MainActor
+@preconcurrency @MainActor
 public final class NSLayoutXAxisAnchor: NSLayoutAnchor<NSLayoutXAxisAnchor> {
     public func constraint(equalToSystemSpacingAfter anchor: NSLayoutXAxisAnchor, multiplier: CGFloat) -> NSLayoutConstraint {
         make(.equal, to: anchor, constant: systemSpacing * multiplier)
@@ -412,7 +412,7 @@ public final class NSLayoutXAxisAnchor: NSLayoutAnchor<NSLayoutXAxisAnchor> {
 }
 
 /// A factory class for creating vertical layout constraint objects using a fluent API.
-@MainActor
+@preconcurrency @MainActor
 public final class NSLayoutYAxisAnchor: NSLayoutAnchor<NSLayoutYAxisAnchor> {
     public func constraint(equalToSystemSpacingBelow anchor: NSLayoutYAxisAnchor, multiplier: CGFloat) -> NSLayoutConstraint {
         make(.equal, to: anchor, constant: systemSpacing * multiplier)
@@ -426,7 +426,7 @@ public final class NSLayoutYAxisAnchor: NSLayoutAnchor<NSLayoutYAxisAnchor> {
 }
 
 /// A factory class for creating size-based layout constraint objects using a fluent API.
-@MainActor
+@preconcurrency @MainActor
 public final class NSLayoutDimension: NSLayoutAnchor<NSLayoutDimension> {
     public func constraint(equalToConstant c: CGFloat) -> NSLayoutConstraint { make(.equal, to: nil, constant: c) }
     public func constraint(greaterThanOrEqualToConstant c: CGFloat) -> NSLayoutConstraint { make(.greaterThanOrEqual, to: nil, constant: c) }
@@ -442,7 +442,7 @@ public final class NSLayoutDimension: NSLayoutAnchor<NSLayoutDimension> {
 // MARK: - Layout guides
 
 /// A rectangular area that can interact with Auto Layout.
-@MainActor
+@preconcurrency @MainActor
 open class UILayoutGuide {
     public private(set) weak var owningView: UIView?
     public var identifier = ""

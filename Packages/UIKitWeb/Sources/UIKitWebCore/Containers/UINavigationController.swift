@@ -6,7 +6,7 @@ import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A container view controller that defines a stack-based scheme for navigating hierarchical
 /// content.
-@MainActor
+@preconcurrency @MainActor
 open class UINavigationController: UIViewController {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -446,7 +446,7 @@ open class UINavigationController: UIViewController {
 }
 
 /// The methods a navigation controller's delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UINavigationControllerDelegate: AnyObject {
     func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool)
     func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool)
@@ -463,7 +463,7 @@ extension UINavigationControllerDelegate {
 }
 
 /// Navigational controls in a bar along the top of the screen.
-@MainActor
+@preconcurrency @MainActor
 open class UINavigationBar: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -616,7 +616,7 @@ open class UINavigationBar: UIView {
 }
 
 /// A bar's appearance (accepted; the iOS 26 bar is drawn as measured).
-@MainActor
+@preconcurrency @MainActor
 public final class UINavigationBarAppearance {
     public var backgroundColor: UIColor?
     public var titleTextAttributes: [String: Any] = [:]
@@ -630,7 +630,7 @@ public final class UINavigationBarAppearance {
 
 /// A glass platter in a bar (uikit/nav/items): a near-white capsule with a faint shadow holding
 /// a 17 pt medium title 12 in, a 23 × 22 image, or the back chevron.
-@MainActor
+@preconcurrency @MainActor
 final class BarPlatterButton: UIControl {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }

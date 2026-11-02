@@ -54,7 +54,7 @@ public struct CALayerCornerCurve: Hashable, Sendable, RawRepresentable {
 
 /// An object that manages image-based content and allows you to perform animations on that
 /// content.
-@MainActor
+@preconcurrency @MainActor
 open class CALayer {
     // MARK: Geometry
 
@@ -328,7 +328,7 @@ open class CALayer {
 }
 
 /// A layer that draws a path.
-@MainActor
+@preconcurrency @MainActor
 open class CAShapeLayer: CALayer {
     /// The path in the layer's coordinates (a WebGraphics `Path`; `UIBezierPath.cgPath` gives one).
     open var path: Path? { didSet { setNeedsDisplay() } }
@@ -368,7 +368,7 @@ public struct CAGradientLayerType: Hashable, Sendable, RawRepresentable {
 /// A layer that draws a colour gradient over its bounds: axial between `startPoint` and
 /// `endPoint` (unit coordinates), radial as the ellipse centred on the start whose radii reach
 /// the end point, conic around the start beginning in the end point's direction.
-@MainActor
+@preconcurrency @MainActor
 open class CAGradientLayer: CALayer {
     open var colors: [CGColor]? { didSet { setNeedsDisplay() } }
     /// The stops' positions (0…1), as doubles: a literal array works on both platforms.
@@ -437,7 +437,7 @@ public struct CATextLayerTruncationMode: Hashable, Sendable, RawRepresentable {
 
 /// A layer that draws a string from its top edge in Helvetica (Core Animation's default
 /// font), wrapped when asked, aligned by `alignmentMode`.
-@MainActor
+@preconcurrency @MainActor
 open class CATextLayer: CALayer {
     open var string: Any? { didSet { setNeedsDisplay() } }
     /// A `UIFont` or a font name; nil draws Helvetica at `fontSize`.

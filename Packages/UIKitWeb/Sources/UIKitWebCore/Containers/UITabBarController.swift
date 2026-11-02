@@ -10,7 +10,7 @@ import Foundation
 
 /// A container view controller that manages a multiselection interface, where the selection
 /// determines which child view controller to display.
-@MainActor
+@preconcurrency @MainActor
 open class UITabBarController: UIViewController {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -142,7 +142,7 @@ open class UITabBarController: UIViewController {
 }
 
 /// The methods a tab bar controller's delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UITabBarControllerDelegate: AnyObject {
     func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool
     func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController)
@@ -155,7 +155,7 @@ extension UITabBarControllerDelegate {
 
 /// A control that displays one or more buttons in a tab bar for selecting between different
 /// subtasks, views, or modes in an app.
-@MainActor
+@preconcurrency @MainActor
 open class UITabBar: UIView {
     /// The band at the bottom (uikit/tabs/basic: 83 with no home indicator).
     static let barHeight: CGFloat = 83
@@ -241,7 +241,7 @@ open class UITabBar: UIView {
 }
 
 /// The methods a tab bar's delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UITabBarDelegate: AnyObject {
     func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem)
 }
@@ -251,7 +251,7 @@ extension UITabBarDelegate {
 }
 
 /// A tab bar's appearance (accepted).
-@MainActor
+@preconcurrency @MainActor
 public final class UITabBarAppearance {
     public var backgroundColor: UIColor?
     public init() {}
@@ -262,7 +262,7 @@ public final class UITabBarAppearance {
 
 /// One tab: a 94 × 54 button with the item's symbol 28 tall at 5.5 and its 10 pt title at 35,
 /// a grey lens behind the selected one (uikit/tabs/basic).
-@MainActor
+@preconcurrency @MainActor
 final class TabButton: UIControl {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }
@@ -344,7 +344,7 @@ final class TabButton: UIControl {
 
 /// The More tab's list: a row per overflowing controller, its tab item's image and title; a
 /// tap pushes the controller onto the More navigation stack.
-@MainActor
+@preconcurrency @MainActor
 public final class _MoreListController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }

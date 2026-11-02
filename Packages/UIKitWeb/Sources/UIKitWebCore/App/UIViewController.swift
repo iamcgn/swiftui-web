@@ -3,7 +3,7 @@
 import WebFoundation   // NSCoder, for init?(coder:)
 
 /// An object that manages a view hierarchy for your UIKit app.
-@MainActor
+@preconcurrency @MainActor
 open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObservable {
     /// Focus moved to or from a view of this controller (Events/Keyboard.swift).
     open func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {}

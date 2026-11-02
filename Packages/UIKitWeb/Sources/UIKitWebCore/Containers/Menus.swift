@@ -7,7 +7,7 @@
 import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A container for grouping related menu elements.
-@MainActor
+@preconcurrency @MainActor
 public final class UIMenu: UIMenuElement {
     public struct Identifier: Hashable, Sendable, RawRepresentable {
         public let rawValue: String
@@ -109,7 +109,7 @@ public final class UIMenu: UIMenuElement {
 
 /// A menu element whose children a provider supplies when the menu is shown (the provider's
 /// completion is expected at once; a later one shows nothing).
-@MainActor
+@preconcurrency @MainActor
 public final class UIDeferredMenuElement: UIMenuElement {
     public typealias Provider = (@escaping ([UIMenuElement]) -> Void) -> Void
     let provider: Provider
@@ -143,7 +143,7 @@ public final class UIDeferredMenuElement: UIMenuElement {
 // MARK: - Presentation
 
 /// Opens menu cards and edit menus over the window and closes them.
-@MainActor
+@preconcurrency @MainActor
 enum MenuPresenter {
     static let longPressDuration = 0.5
 
@@ -216,7 +216,7 @@ extension UIViewController {
 
 /// The controller behind a menu card (presented with the custom style; the container lays it
 /// out beside its source through `layoutPanel`).
-@MainActor
+@preconcurrency @MainActor
 final class MenuPanelController: UIViewController {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }
@@ -304,7 +304,7 @@ final class MenuPanelController: UIViewController {
 /// separators between rows and an 8 pt gap between inline sections, a 32 pt header for a
 /// titled menu, submenu rows with a chevron that open the submenu in place, check marks for
 /// `on` states, red destructive and dimmed disabled rows; the edit menu as a row of pills.
-@MainActor
+@preconcurrency @MainActor
 final class MenuPanelView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }
@@ -567,7 +567,7 @@ final class MenuPanelView: UIView {
 // MARK: - Context menus
 
 /// Describes the menu a context menu interaction shows and its preview.
-@MainActor
+@preconcurrency @MainActor
 public final class UIContextMenuConfiguration {
     public typealias ActionProvider = ([UIMenuElement]) -> UIMenu?
     public typealias PreviewProvider = () -> UIViewController?
@@ -588,7 +588,7 @@ public final class UIContextMenuConfiguration {
 public protocol NSCopying: AnyObject {}
 
 /// An interaction that shows a context menu after a long press on its view.
-@MainActor
+@preconcurrency @MainActor
 public final class UIContextMenuInteraction: UIInteraction {
     public private(set) weak var view: UIView?
     public weak var delegate: (any UIContextMenuInteractionDelegate)?
@@ -624,7 +624,7 @@ public final class UIContextMenuInteraction: UIInteraction {
     }
 }
 
-@MainActor
+@preconcurrency @MainActor
 public protocol UIContextMenuInteractionDelegate: AnyObject {
     func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration?
     func contextMenuInteraction(_ interaction: UIContextMenuInteraction, willDisplayMenuFor configuration: UIContextMenuConfiguration, animator: Any?)
@@ -641,7 +641,7 @@ extension UIContextMenuInteractionDelegate {
 // MARK: - Edit menus
 
 /// Where an edit menu is shown.
-@MainActor
+@preconcurrency @MainActor
 public final class UIEditMenuConfiguration {
     public let identifier: AnyHashable
     public let sourcePoint: CGPoint
@@ -656,7 +656,7 @@ public final class UIEditMenuConfiguration {
 }
 
 /// An interaction that shows an edit menu (a bar of actions) above a point in its view.
-@MainActor
+@preconcurrency @MainActor
 public final class UIEditMenuInteraction: UIInteraction {
     public private(set) weak var view: UIView?
     public weak var delegate: (any UIEditMenuInteractionDelegate)?
@@ -702,7 +702,7 @@ public final class UIEditMenuInteraction: UIInteraction {
     public func updateVisibleMenuPosition(animated: Bool) { presented?.presentationContainer?.setNeedsLayout() }
 }
 
-@MainActor
+@preconcurrency @MainActor
 public protocol UIEditMenuInteractionDelegate: AnyObject {
     func editMenuInteraction(_ interaction: UIEditMenuInteraction, menuFor configuration: UIEditMenuConfiguration, suggestedActions: [UIMenuElement]) -> UIMenu?
     func editMenuInteraction(_ interaction: UIEditMenuInteraction, targetRectFor configuration: UIEditMenuConfiguration) -> CGRect

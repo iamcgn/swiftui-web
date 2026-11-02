@@ -5,7 +5,7 @@
 import WebFoundation   // NSCoder, for init?(coder:)
 
 /// An object that manages the content for a rectangular area on the screen.
-@MainActor
+@preconcurrency @MainActor
 open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
     /// The layer class this view creates (`CALayer` unless overridden).
     open class var layerClass: AnyClass { CALayer.self }

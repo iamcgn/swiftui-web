@@ -5,7 +5,7 @@
 // view out (Containers/UIAlertController.swift).
 
 /// The delegate of an adaptive presentation (dismissal callbacks and the adapted style).
-@MainActor
+@preconcurrency @MainActor
 public protocol UIAdaptivePresentationControllerDelegate: AnyObject {
     func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle
     func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle
@@ -36,7 +36,7 @@ extension UIPresentationController {
 }
 
 /// A sheet's detents, grabber and corners.
-@MainActor
+@preconcurrency @MainActor
 open class UISheetPresentationController: UIPresentationController {
     /// A height a sheet rests at.
     public struct Detent: Hashable, Sendable {
@@ -92,7 +92,7 @@ open class UISheetPresentationController: UIPresentationController {
     }
 }
 
-@MainActor
+@preconcurrency @MainActor
 public protocol UISheetPresentationControllerDelegate: UIAdaptivePresentationControllerDelegate {
     func sheetPresentationControllerDidChangeSelectedDetentIdentifier(_ sheetPresentationController: UISheetPresentationController)
 }
@@ -114,7 +114,7 @@ public struct UIPopoverArrowDirection: OptionSet, Sendable {
 }
 
 /// A popover's source and arrow.
-@MainActor
+@preconcurrency @MainActor
 open class UIPopoverPresentationController: UIPresentationController {
     open weak var sourceView: UIView? { didSet { presentedViewController.presentationContainer?.setNeedsLayout() } }
     open var sourceRect = CGRect.null { didSet { presentedViewController.presentationContainer?.setNeedsLayout() } }
@@ -147,7 +147,7 @@ open class UIPopoverPresentationController: UIPresentationController {
     }
 }
 
-@MainActor
+@preconcurrency @MainActor
 public protocol UIPopoverPresentationControllerDelegate: UIAdaptivePresentationControllerDelegate {
     func prepareForPopoverPresentation(_ popoverPresentationController: UIPopoverPresentationController)
     func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool

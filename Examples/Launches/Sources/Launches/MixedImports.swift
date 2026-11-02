@@ -19,6 +19,8 @@ enum MixedImports {
         let save: (UIImage, Any?, Selector?, UnsafeMutableRawPointer?) -> Void = UIImageWriteToSavedPhotosAlbum
         _ = save
         _ = image
+        // UIKit called from nonisolated code runs too (NonisolatedUIKit.swift).
+        _ = NonisolatedUIKit.placeholder(in: UIView())
         return "\(copySelector) \(Int(bounds.width)) \(Bundle.main.localizations.joined(separator: ","))"
     }
 }

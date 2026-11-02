@@ -2,7 +2,7 @@
 // finger) and delivers it through gesture recognizers, then the responder chain.
 
 /// An object that describes a single user interaction with your app.
-@MainActor
+@preconcurrency @MainActor
 open class UIEvent {
     public enum EventType: Int, Sendable {
         case touches = 0, motion, remoteControl, presses, scroll = 10, hover, transform
@@ -36,7 +36,7 @@ open class UIEvent {
 }
 
 /// An object representing the location, size, movement, and force of a touch.
-@MainActor
+@preconcurrency @MainActor
 public final class UITouch: Hashable {
     public enum Phase: Int, Sendable {
         case began = 0, moved, stationary, ended, cancelled, regionEntered, regionMoved, regionExited
@@ -86,7 +86,7 @@ public final class UITouch: Hashable {
 }
 
 /// A key press from the host's keyboard (Events/Keyboard.swift sends them down the responder chain).
-@MainActor
+@preconcurrency @MainActor
 public final class UIPress: Hashable {
     public enum Phase: Int, Sendable { case began = 0, changed, stationary, ended, cancelled }
     public let phase: Phase
@@ -119,7 +119,7 @@ public struct UIKeyModifierFlags: OptionSet, Sendable {
     public static let command = UIKeyModifierFlags(rawValue: 1 << 20)
 }
 
-@MainActor
+@preconcurrency @MainActor
 public final class UIPressesEvent: UIEvent {
     public let allPresses: Set<UIPress>
     init(presses: Set<UIPress>, timestamp: Double) {

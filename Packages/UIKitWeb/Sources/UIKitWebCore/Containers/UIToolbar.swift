@@ -6,7 +6,7 @@
 import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A control that displays one or more buttons along the bottom edge of your interface.
-@MainActor
+@preconcurrency @MainActor
 open class UIToolbar: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -175,7 +175,7 @@ extension UIToolbar {
 }
 
 /// The appearance of a toolbar (accepted; the iOS 26 bar draws no background of its own).
-@MainActor
+@preconcurrency @MainActor
 public final class UIToolbarAppearance {
     public var backgroundColor: UIColor?
     public var shadowColor: UIColor?

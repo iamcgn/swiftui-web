@@ -12,7 +12,7 @@ import WebFoundation   // Foundation everywhere, and the Selector stand-in where
 /// A menu element whose action is a selector sent down the responder chain (UIKit's
 /// `UICommand`). Selectors are real with the Objective-C runtime (decision 0023) and names
 /// without it, where only the closure form of `UIKeyCommand` can run.
-@MainActor
+@preconcurrency @MainActor
 open class UICommand: UIMenuElement {
     public let action: Selector?
     public var propertyList: Any?
@@ -56,7 +56,7 @@ open class UICommand: UIMenuElement {
 /// A key combination a responder handles (`UIResponder.keyCommands`), with a selector sent
 /// down the responder chain as on iOS, or a closure (this package's form for builds without a
 /// runtime).
-@MainActor
+@preconcurrency @MainActor
 public final class UIKeyCommand: UICommand {
     public let input: String
     public let modifierFlags: UIKeyModifierFlags
@@ -137,7 +137,7 @@ extension UIKey {
 // MARK: - The focus system
 
 /// Something keyboard focus can land on (views that `canBecomeFocused`).
-@MainActor
+@preconcurrency @MainActor
 public protocol UIFocusItem: AnyObject {
     var canBecomeFocused: Bool { get }
     var isFocused: Bool { get }
@@ -147,7 +147,7 @@ public protocol UIFocusItem: AnyObject {
 public protocol UIFocusEnvironment: AnyObject {}
 
 /// The views whose focus changed in an update.
-@MainActor
+@preconcurrency @MainActor
 public final class UIFocusUpdateContext {
     public let previouslyFocusedItem: (any UIFocusItem)?
     public let nextFocusedItem: (any UIFocusItem)?
@@ -175,7 +175,7 @@ public struct UIFocusHeading: OptionSet, Sendable {
 }
 
 /// Animations a focus update runs (none here; the API is accepted).
-@MainActor
+@preconcurrency @MainActor
 public final class UIFocusAnimationCoordinator {
     public func addCoordinatedAnimations(_ animations: (() -> Void)?, completion: (() -> Void)? = nil) {
         animations?()
@@ -184,7 +184,7 @@ public final class UIFocusAnimationCoordinator {
 }
 
 /// The keyboard focus of the host's window scene.
-@MainActor
+@preconcurrency @MainActor
 public final class UIFocusSystem {
     public static func focusSystem(for environment: any UIFocusEnvironment) -> UIFocusSystem? { UIKitScene.shared.focusSystem }
 

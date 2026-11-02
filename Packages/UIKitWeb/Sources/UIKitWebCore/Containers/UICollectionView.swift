@@ -10,7 +10,7 @@ import Foundation
 #endif
 
 /// The layout attributes of one element in a collection view.
-@MainActor
+@preconcurrency @MainActor
 open class UICollectionViewLayoutAttributes {
     /// A list row's place in its section and the list's appearance (Containers/ListLayout.swift).
     var listPosition: (first: Bool, last: Bool)?
@@ -93,7 +93,7 @@ open class UICollectionViewLayoutAttributes {
 extension UICollectionViewLayoutAttributes: NSCollectionLayoutVisibleItem {}
 
 /// One change of a batch update as a layout hears of it.
-@MainActor
+@preconcurrency @MainActor
 public final class UICollectionViewUpdateItem {
     public enum Action: Int, Sendable { case insert = 0, delete, reload, move, none }
     public let indexPathBeforeUpdate: IndexPath?
@@ -107,7 +107,7 @@ public final class UICollectionViewUpdateItem {
 }
 
 /// An abstract base class for generating layout information for a collection view.
-@MainActor
+@preconcurrency @MainActor
 open class UICollectionViewLayout {
     public internal(set) weak var collectionView: UICollectionView?
 
@@ -162,7 +162,7 @@ open class UICollectionViewLayout {
 }
 
 /// The methods a flow layout's delegate implements to size items and space sections.
-@MainActor
+@preconcurrency @MainActor
 public protocol UICollectionViewDelegateFlowLayout: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets
@@ -195,7 +195,7 @@ extension UICollectionViewDelegateFlowLayout {
 
 /// A layout object that organizes items into a grid with optional header and footer views for
 /// each section.
-@MainActor
+@preconcurrency @MainActor
 open class UICollectionViewFlowLayout: UICollectionViewLayout {
     public enum ScrollDirection: Int, Sendable { case vertical = 0, horizontal }
     public static let automaticSize = CGSize(width: -1, height: -1)
@@ -349,7 +349,7 @@ open class UICollectionViewFlowLayout: UICollectionViewLayout {
 }
 
 /// A view that can be reused in a collection view.
-@MainActor
+@preconcurrency @MainActor
 open class UICollectionReusableView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -388,7 +388,7 @@ open class UICollectionReusableView: UIView {
 }
 
 /// A single data item when that item is within the collection view's visible bounds.
-@MainActor
+@preconcurrency @MainActor
 open class UICollectionViewCell: UICollectionReusableView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -482,7 +482,7 @@ open class UICollectionViewCell: UICollectionReusableView {
 }
 
 /// The methods adopted by the object you use to manage data and provide cells for a collection view.
-@MainActor
+@preconcurrency @MainActor
 public protocol UICollectionViewDataSource: AnyObject {
     func numberOfSections(in collectionView: UICollectionView) -> Int
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int
@@ -503,7 +503,7 @@ extension UICollectionViewDataSource {
 
 /// The methods adopted by the object you use to manage user interactions with items in a
 /// collection view.
-@MainActor
+@preconcurrency @MainActor
 public protocol UICollectionViewDelegate: UIScrollViewDelegate {
     func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath)
@@ -522,7 +522,7 @@ extension UICollectionViewDelegate {
 
 /// An object that manages an ordered collection of data items and presents them using
 /// customizable layouts.
-@MainActor
+@preconcurrency @MainActor
 open class UICollectionView: UIScrollView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -1231,7 +1231,7 @@ open class UICollectionView: UIScrollView {
 /// The scroll view an orthogonally scrolling section's cells live in: horizontal, without
 /// indicators, telling the collection view when it moves so the cells in view update, and
 /// snapping to groups for the group paging behaviours.
-@MainActor
+@preconcurrency @MainActor
 final class OrthogonalScrollView: UIScrollView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }
@@ -1286,7 +1286,7 @@ final class OrthogonalScrollView: UIScrollView {
 }
 
 /// A data source whose sections can be outlines (the diffable data source).
-@MainActor
+@preconcurrency @MainActor
 protocol _OutlineToggling: AnyObject {
     func toggleOutlineItem(at indexPath: IndexPath) -> Bool
 }

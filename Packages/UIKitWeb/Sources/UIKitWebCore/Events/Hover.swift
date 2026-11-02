@@ -7,7 +7,7 @@
 
 /// A continuous gesture recognizer that follows the pointer while it is over the view, with no
 /// press: `began` on entry, `changed` on every move inside, `ended` on exit.
-@MainActor
+@preconcurrency @MainActor
 open class UIHoverGestureRecognizer: UIGestureRecognizer {
     /// The pointer's position in window coordinates.
     private var hoverLocation = CGPoint.zero
@@ -34,7 +34,7 @@ open class UIHoverGestureRecognizer: UIGestureRecognizer {
 }
 
 /// The requirements for an interaction a view holds (`UIView.addInteraction`).
-@MainActor
+@preconcurrency @MainActor
 public protocol UIInteraction: AnyObject {
     var view: UIView? { get }
     func willMove(to view: UIView?)
@@ -57,14 +57,14 @@ public struct UIPointerRegion: Sendable {
 }
 
 /// A view the pointer's effect targets (the interaction's view here; no snapshot is taken).
-@MainActor
+@preconcurrency @MainActor
 public final class UITargetedPreview {
     public let view: UIView
     public init(view: UIView) { self.view = view }
 }
 
 /// How the pointer changes over a view.
-@MainActor
+@preconcurrency @MainActor
 public enum UIPointerEffect {
     case automatic(UITargetedPreview)
     case highlight(UITargetedPreview)
@@ -83,7 +83,7 @@ public enum UIPointerShape: Sendable {
 }
 
 /// The pointer's look over a view: an effect, a shape, or the system pointer, or hidden.
-@MainActor
+@preconcurrency @MainActor
 public final class UIPointerStyle {
     public let effect: UIPointerEffect?
     public let shape: UIPointerShape?
@@ -133,7 +133,7 @@ public struct UIPointerAccessory: Sendable {
 }
 
 /// The methods a pointer interaction's delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIPointerInteractionDelegate: AnyObject {
     func pointerInteraction(_ interaction: UIPointerInteraction, regionFor request: UIPointerRegionRequest, defaultRegion: UIPointerRegion) -> UIPointerRegion?
     func pointerInteraction(_ interaction: UIPointerInteraction, styleFor region: UIPointerRegion) -> UIPointerStyle?
@@ -155,7 +155,7 @@ public struct UIPointerRegionRequest: Sendable {
 }
 
 /// Animations alongside a pointer entering or leaving a region (run at once here).
-@MainActor
+@preconcurrency @MainActor
 public protocol UIPointerInteractionAnimating: AnyObject {
     func addAnimations(_ animations: @escaping () -> Void)
     func addCompletion(_ completion: @escaping (Bool) -> Void)
@@ -167,7 +167,7 @@ final class ImmediatePointerAnimator: UIPointerInteractionAnimating {
 }
 
 /// An interaction that changes the pointer's look over its view.
-@MainActor
+@preconcurrency @MainActor
 public final class UIPointerInteraction: UIInteraction {
     public weak var delegate: (any UIPointerInteractionDelegate)?
     public var isEnabled = true
@@ -203,7 +203,7 @@ public final class UIPointerInteraction: UIInteraction {
 
 /// Routes press-less pointer moves to the hover recognizers and pointer interactions of the
 /// views under the pointer: one router per window scene, one per hosted tree.
-@MainActor
+@preconcurrency @MainActor
 final class HoverRouter {
     /// The views under the pointer, from the hit view up to the window.
     private var hoveredViews: [UIView] = []

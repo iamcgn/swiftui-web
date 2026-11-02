@@ -49,7 +49,7 @@ public struct CAMediaTimingFillMode: Hashable, Sendable, RawRepresentable {
 }
 
 /// The methods an animation's delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol CAAnimationDelegate: AnyObject {
     func animationDidStart(_ anim: CAAnimation)
     func animationDidStop(_ anim: CAAnimation, finished flag: Bool)
@@ -61,7 +61,7 @@ extension CAAnimationDelegate {
 }
 
 /// The abstract superclass for animations.
-@MainActor
+@preconcurrency @MainActor
 open class CAAnimation {
     open var duration: Double = 0.25
     open var beginTime: Double = 0
@@ -101,7 +101,7 @@ open class CAAnimation {
 }
 
 /// An animation of one of a layer's properties, named by key path.
-@MainActor
+@preconcurrency @MainActor
 open class CAPropertyAnimation: CAAnimation {
     public let keyPath: String?
     open var isAdditive = false
@@ -114,7 +114,7 @@ open class CAPropertyAnimation: CAAnimation {
 }
 
 /// An animation from one value to another.
-@MainActor
+@preconcurrency @MainActor
 open class CABasicAnimation: CAPropertyAnimation {
     open var fromValue: Any?
     open var toValue: Any?
@@ -140,7 +140,7 @@ open class CABasicAnimation: CAPropertyAnimation {
 /// An animation through a series of values at `keyTimes` (evenly spread without any),
 /// interpolated piecewise (`calculationMode` linear and cubic; discrete holds each value);
 /// `path` is stored.
-@MainActor
+@preconcurrency @MainActor
 open class CAKeyframeAnimation: CAPropertyAnimation {
     open var values: [Any]?
     open var keyTimes: [Double]?
@@ -167,7 +167,7 @@ open class CAKeyframeAnimation: CAPropertyAnimation {
 
 /// Several animations played together over the group's duration: each child runs in its own
 /// window (its `beginTime` and `duration` as fractions of the group's), with its own curve.
-@MainActor
+@preconcurrency @MainActor
 open class CAAnimationGroup: CAAnimation {
     open var animations: [CAAnimation]?
 
@@ -346,7 +346,7 @@ extension CALayer {
 /// with the transaction's duration (0.25 s by default) unless actions are disabled; the
 /// completion block runs when they end. Changes outside any transaction join an implicit one
 /// the scene commits at its next frame, as Core Animation commits at the end of the run loop.
-@MainActor
+@preconcurrency @MainActor
 public enum CATransaction {
     final class Transaction {
         var duration: Double = 0.25

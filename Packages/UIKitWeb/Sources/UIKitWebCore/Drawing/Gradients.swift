@@ -89,11 +89,10 @@ public final class UIGraphicsGradient: @unchecked Sendable {
     }
 }
 
-@MainActor
 extension UIGraphicsRecordingContext {
     /// Paints the gradient along the line from `start` to `end` over the current clip: the band
     /// between the perpendiculars through the two points, extended past either by the options.
-    public func drawLinearGradient(_ gradient: UIGraphicsGradient, start: CGPoint, end: CGPoint, options: CGGradientDrawingOptions) {
+    @preconcurrency @MainActor public func drawLinearGradient(_ gradient: UIGraphicsGradient, start: CGPoint, end: CGPoint, options: CGGradientDrawingOptions) {
         let dx = end.x - start.x, dy = end.y - start.y
         let length = (dx * dx + dy * dy).squareRoot()
         guard length > 0, !gradient.stops.isEmpty else { return }
@@ -117,7 +116,7 @@ extension UIGraphicsRecordingContext {
 
     /// Paints the gradient between the two circles over the current clip: inside the end
     /// circle and outside the start circle unless the options extend it.
-    public func drawRadialGradient(_ gradient: UIGraphicsGradient, startCenter: CGPoint, startRadius: CGFloat, endCenter: CGPoint, endRadius: CGFloat, options: CGGradientDrawingOptions) {
+    @preconcurrency @MainActor public func drawRadialGradient(_ gradient: UIGraphicsGradient, startCenter: CGPoint, startRadius: CGFloat, endCenter: CGPoint, endRadius: CGFloat, options: CGGradientDrawingOptions) {
         guard !gradient.stops.isEmpty else { return }
         func circle(_ center: CGPoint, _ radius: CGFloat) -> CGRect {
             CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)
@@ -145,7 +144,7 @@ extension UIGraphicsRecordingContext {
     }
 
     /// Records a gradient fill of `region` (user space) with the context's alpha and shadow.
-    private func paintGradient(_ gradient: UIGraphicsGradient, kind: DisplayGradient.Kind, region: Path, evenOdd: Bool) {
+    @preconcurrency @MainActor private func paintGradient(_ gradient: UIGraphicsGradient, kind: DisplayGradient.Kind, region: Path, evenOdd: Bool) {
         let alpha = Double(currentAlpha)
         let stops = alpha < 1 ? gradient.stops.map { DisplayGradient.Stop(location: $0.location, color: $0.color.multiplyingAlpha(by: alpha)) } : gradient.stops
         let absolute = region.applying(ctm)

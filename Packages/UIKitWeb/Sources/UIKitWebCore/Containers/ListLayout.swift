@@ -82,7 +82,7 @@ extension UICollectionViewCompositionalLayout {
 
 /// The layout `list(using:)` makes: full-width rows, the inset grouped appearance's cards 16 in,
 /// 35 above each section (uikit/collection/list), rows as tall as their list content.
-@MainActor
+@preconcurrency @MainActor
 final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
     let listConfiguration: UICollectionLayoutListConfiguration
     private var rows: [IndexPath: UICollectionViewLayoutAttributes] = [:]
@@ -274,7 +274,7 @@ final class UICollectionViewListLayout: UICollectionViewCompositionalLayout {
 }
 
 /// A collection view cell that provides list features and default styling.
-@MainActor
+@preconcurrency @MainActor
 open class UICollectionViewListCell: UICollectionViewCell {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }

@@ -99,20 +99,20 @@ public final class UIGraphicsImageRenderer {
 @MainActor private var imageContexts: [(recorder: UIGraphicsRecordingContext, size: CGSize)] = []
 
 /// Makes a recording context of `size` the current one until `UIGraphicsEndImageContext`.
-@MainActor public func UIGraphicsBeginImageContextWithOptions(_ size: CGSize, _ opaque: Bool, _ scale: CGFloat) {
+@preconcurrency @MainActor public func UIGraphicsBeginImageContextWithOptions(_ size: CGSize, _ opaque: Bool, _ scale: CGFloat) {
     let recorder = UIGraphicsRecordingContext(origin: .zero, scale: scale == 0 ? UIScreen.main.scale : scale)
     imageContexts.append((recorder, size))
     UIGraphicsPushContext(recorder)
 }
-@MainActor public func UIGraphicsBeginImageContext(_ size: CGSize) { UIGraphicsBeginImageContextWithOptions(size, false, 1) }
+@preconcurrency @MainActor public func UIGraphicsBeginImageContext(_ size: CGSize) { UIGraphicsBeginImageContextWithOptions(size, false, 1) }
 
 /// What the current image context has recorded so far, or nil outside one.
-@MainActor public func UIGraphicsGetImageFromCurrentImageContext() -> UIImage? {
+@preconcurrency @MainActor public func UIGraphicsGetImageFromCurrentImageContext() -> UIImage? {
     guard let current = imageContexts.last, UIGraphicsGetCurrentContext() === current.recorder else { return nil }
     return UIImage(drawing: UIImageDrawing(commands: current.recorder.commands, size: current.size, scale: current.recorder.scale))
 }
 
-@MainActor public func UIGraphicsEndImageContext() {
+@preconcurrency @MainActor public func UIGraphicsEndImageContext() {
     guard let current = imageContexts.popLast() else { return }
     if UIGraphicsGetCurrentContext() === current.recorder { UIGraphicsPopContext() }
     current.recorder.finish()

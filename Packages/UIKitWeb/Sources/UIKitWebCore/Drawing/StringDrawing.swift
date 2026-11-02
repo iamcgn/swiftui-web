@@ -259,42 +259,40 @@ struct StringDrawingStyle {
 
 #if os(WASI) && !canImport(ObjectiveC)
 /// `(text as NSString).draw(...)`: the same drawing and measuring as the string's.
-@MainActor
 extension NSString {
-    public func draw(at point: CGPoint, withAttributes attributes: [NSAttributedString.Key: Any]? = nil) {
+    @preconcurrency @MainActor public func draw(at point: CGPoint, withAttributes attributes: [NSAttributedString.Key: Any]? = nil) {
         string.draw(at: point, withAttributes: attributes)
     }
-    public func draw(in rect: CGRect, withAttributes attributes: [NSAttributedString.Key: Any]? = nil) {
+    @preconcurrency @MainActor public func draw(in rect: CGRect, withAttributes attributes: [NSAttributedString.Key: Any]? = nil) {
         string.draw(in: rect, withAttributes: attributes)
     }
-    public func size(withAttributes attributes: [NSAttributedString.Key: Any]? = nil) -> CGSize {
+    @preconcurrency @MainActor public func size(withAttributes attributes: [NSAttributedString.Key: Any]? = nil) -> CGSize {
         string.size(withAttributes: attributes)
     }
-    public func boundingRect(with size: CGSize, options: NSStringDrawingOptions = [], attributes: [NSAttributedString.Key: Any]? = nil, context: NSStringDrawingContext? = nil) -> CGRect {
+    @preconcurrency @MainActor public func boundingRect(with size: CGSize, options: NSStringDrawingOptions = [], attributes: [NSAttributedString.Key: Any]? = nil, context: NSStringDrawingContext? = nil) -> CGRect {
         string.boundingRect(with: size, options: options, attributes: attributes, context: context)
     }
 }
 #endif
 
-@MainActor
 extension StringProtocol {
     /// Draws the string with its top-left corner at `point`, unwrapped (line breaks only at newlines).
-    public func draw(at point: CGPoint, withAttributes attributes: [NSAttributedString.Key: Any]? = nil) {
+    @preconcurrency @MainActor public func draw(at point: CGPoint, withAttributes attributes: [NSAttributedString.Key: Any]? = nil) {
         UIGraphicsGetCurrentContext()?.drawString(String(self), style: StringDrawingStyle(attributes), at: point, width: nil, height: nil)
     }
 
     /// Draws the string wrapped in `rect`, the lines that fit its height only.
-    public func draw(in rect: CGRect, withAttributes attributes: [NSAttributedString.Key: Any]? = nil) {
+    @preconcurrency @MainActor public func draw(in rect: CGRect, withAttributes attributes: [NSAttributedString.Key: Any]? = nil) {
         UIGraphicsGetCurrentContext()?.drawString(String(self), style: StringDrawingStyle(attributes), at: rect.origin, width: rect.width, height: rect.height)
     }
 
     /// The string's unwrapped size in the attributes' font.
-    public func size(withAttributes attributes: [NSAttributedString.Key: Any]? = nil) -> CGSize {
+    @preconcurrency @MainActor public func size(withAttributes attributes: [NSAttributedString.Key: Any]? = nil) -> CGSize {
         UIGraphicsRecordingContext.measure(String(self), style: StringDrawingStyle(attributes), width: nil)
     }
 
     /// The string's bounding rectangle wrapped to `size.width` (the height ignored).
-    public func boundingRect(with size: CGSize, options: NSStringDrawingOptions = [], attributes: [NSAttributedString.Key: Any]? = nil, context: NSStringDrawingContext? = nil) -> CGRect {
+    @preconcurrency @MainActor public func boundingRect(with size: CGSize, options: NSStringDrawingOptions = [], attributes: [NSAttributedString.Key: Any]? = nil, context: NSStringDrawingContext? = nil) -> CGRect {
         let width = size.width > 0 && size.width.isFinite ? size.width : nil
         return CGRect(origin: .zero, size: UIGraphicsRecordingContext.measure(String(self), style: StringDrawingStyle(attributes), width: width))
     }
@@ -313,42 +311,39 @@ public final class NSStringDrawingContext {
     public init() {}
 }
 
-@MainActor
 extension NSAttributedString {
-    public func draw(at point: CGPoint) {
+    @preconcurrency @MainActor public func draw(at point: CGPoint) {
         UIGraphicsGetCurrentContext()?.drawString(string, style: StringDrawingStyle(self), at: point, width: nil, height: nil)
     }
-    public func draw(in rect: CGRect) {
+    @preconcurrency @MainActor public func draw(in rect: CGRect) {
         UIGraphicsGetCurrentContext()?.drawString(string, style: StringDrawingStyle(self), at: rect.origin, width: rect.width, height: rect.height)
     }
-    public func size() -> CGSize {
+    @preconcurrency @MainActor public func size() -> CGSize {
         UIGraphicsRecordingContext.measure(string, style: StringDrawingStyle(self), width: nil)
     }
-    public func boundingRect(with size: CGSize, options: NSStringDrawingOptions = [], context: NSStringDrawingContext? = nil) -> CGRect {
+    @preconcurrency @MainActor public func boundingRect(with size: CGSize, options: NSStringDrawingOptions = [], context: NSStringDrawingContext? = nil) -> CGRect {
         let width = size.width > 0 && size.width.isFinite ? size.width : nil
         return CGRect(origin: .zero, size: UIGraphicsRecordingContext.measure(string, style: StringDrawingStyle(self), width: width))
     }
 }
 
-@MainActor
 extension UIImage {
     /// Draws the image at its own size with its top-left corner at `point`.
-    public func draw(at point: CGPoint) { draw(in: CGRect(origin: point, size: size)) }
-    public func draw(at point: CGPoint, blendMode: CGBlendMode, alpha: CGFloat) { draw(in: CGRect(origin: point, size: size), blendMode: blendMode, alpha: alpha) }
+    @preconcurrency @MainActor public func draw(at point: CGPoint) { draw(in: CGRect(origin: point, size: size)) }
+    @preconcurrency @MainActor public func draw(at point: CGPoint, blendMode: CGBlendMode, alpha: CGFloat) { draw(in: CGRect(origin: point, size: size), blendMode: blendMode, alpha: alpha) }
     /// Draws the image scaled into `rect`.
-    public func draw(in rect: CGRect) { UIGraphicsGetCurrentContext()?.drawImage(self, in: rect, alpha: 1) }
+    @preconcurrency @MainActor public func draw(in rect: CGRect) { UIGraphicsGetCurrentContext()?.drawImage(self, in: rect, alpha: 1) }
     /// Draws the image scaled into `rect`, composited with `blendMode` at `alpha`.
-    public func draw(in rect: CGRect, blendMode: CGBlendMode, alpha: CGFloat) {
+    @preconcurrency @MainActor public func draw(in rect: CGRect, blendMode: CGBlendMode, alpha: CGFloat) {
         guard let context = UIGraphicsGetCurrentContext() else { return }
         context.withBlendMode(blendMode) { context.drawImage(self, in: rect, alpha: alpha) }
     }
 }
 
-@MainActor
 extension UIGraphicsRecordingContext {
     /// The string's laid-out size: the engine's width (unbounded, or wrapped to `width`) and
     /// the tallest font's line pitch per line.
-    static func measure(_ string: String, style: StringDrawingStyle, width: CGFloat?) -> CGSize {
+    @preconcurrency @MainActor static func measure(_ string: String, style: StringDrawingStyle, width: CGFloat?) -> CGSize {
         guard !string.isEmpty else { return .zero }
         let runs = style.styledRuns(for: string)
         let layout = UIKitScene.shared.textEngine.layout(runs.map { StyledRun($0.text, font: $0.font.resolved) }, options: TextLayoutOptions(), width: width)
@@ -361,7 +356,7 @@ extension UIGraphicsRecordingContext {
     /// Lays the string out (unbounded, or wrapped to `width`) and records its lines from `origin`,
     /// aligned within `width`, dropping the lines past `height`; each fragment in its run's font
     /// and colour, with the run's underline and strikethrough (uikit/draw/rest).
-    func drawString(_ string: String, style: StringDrawingStyle, at origin: CGPoint, width: CGFloat?, height: CGFloat?) {
+    @preconcurrency @MainActor func drawString(_ string: String, style: StringDrawingStyle, at origin: CGPoint, width: CGFloat?, height: CGFloat?) {
         guard !string.isEmpty else { return }
         let runs = style.styledRuns(for: string)
         let font = runs.map(\.font).max { $0.lineHeight < $1.lineHeight } ?? style.font
@@ -409,7 +404,7 @@ extension UIGraphicsRecordingContext {
 
     /// Records the image scaled into `rect`: a symbol through the symbol painter, a catalog
     /// image as an image draw, an image context's recording replayed.
-    func drawImage(_ image: UIImage, in rect: CGRect, alpha: CGFloat) {
+    @preconcurrency @MainActor func drawImage(_ image: UIImage, in rect: CGRect, alpha: CGFloat) {
         let style = UITraitCollection.current.userInterfaceStyle
         let tint: RGBA? = image.renderingMode == .alwaysTemplate || (image.renderingMode == .automatic && image.isSystemSymbol)
             ? (image.tint ?? UIColor.label).rgba(for: style) : image.tint?.rgba(for: style)

@@ -3,7 +3,7 @@
 // scales between categories.
 
 /// Scales fonts and values for a text style across the content size categories.
-@MainActor
+@preconcurrency @MainActor
 public final class UIFontMetrics {
     public let textStyle: UIFont.TextStyle
     public init(forTextStyle textStyle: UIFont.TextStyle) { self.textStyle = textStyle }

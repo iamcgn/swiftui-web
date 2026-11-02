@@ -12,7 +12,7 @@ import Foundation
 #endif
 
 /// An object that represents one instance of the app's UI.
-@MainActor
+@preconcurrency @MainActor
 open class UIScene: UIResponder {
     public let session: UISceneSession
     public weak var delegate: (any UISceneDelegate)?
@@ -44,7 +44,7 @@ open class UIScene: UIResponder {
 }
 
 /// A scene that manages one or more windows.
-@MainActor
+@preconcurrency @MainActor
 open class UIWindowScene: UIScene {
     public var screen: UIScreen { UIScreen.main }
     /// The windows attached to the scene (every window of the host).
@@ -111,7 +111,7 @@ public struct UISceneSizeRestrictions: Sendable {
 }
 
 /// The scene delegate's callbacks (every one optional).
-@MainActor
+@preconcurrency @MainActor
 public protocol UISceneDelegate: AnyObject {
     init()
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions)
@@ -135,7 +135,7 @@ extension UISceneDelegate {
 
 /// A window scene's delegate keeps the scene's window (optional, as UIKit's: a delegate that
 /// declares none keeps it on the scene, decision 0021).
-@MainActor
+@preconcurrency @MainActor
 public protocol UIWindowSceneDelegate: UISceneDelegate {
     var window: UIWindow? { get set }
 }

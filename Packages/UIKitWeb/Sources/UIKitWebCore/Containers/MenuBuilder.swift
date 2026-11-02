@@ -5,7 +5,7 @@
 import WebFoundation   // Foundation everywhere, and the Selector stand-in where ObjectiveC is absent
 
 /// The object that builds the app's menus.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIMenuBuilder {
     var system: UIMenuSystem { get }
     func menu(for identifier: UIMenu.Identifier) -> UIMenu?
@@ -21,7 +21,7 @@ public protocol UIMenuBuilder {
 }
 
 /// A menu system: the main menu bar's, or the context menus'.
-@MainActor
+@preconcurrency @MainActor
 public final class UIMenuSystem {
     public static let main = UIMenuSystem(name: "main")
     public static let context = UIMenuSystem(name: "context")
@@ -67,7 +67,7 @@ public final class UIMenuSystem {
 }
 
 /// The main menu's builder: a tree of the standard menus the delegate edits.
-@MainActor
+@preconcurrency @MainActor
 final class MainMenuBuilder: UIMenuBuilder {
     let system: UIMenuSystem
     private(set) var root: UIMenu

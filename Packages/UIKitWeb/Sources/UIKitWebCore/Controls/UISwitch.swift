@@ -4,7 +4,7 @@
 import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A control that offers a binary choice, such as on/off.
-@MainActor
+@preconcurrency @MainActor
 open class UISwitch: UIControl {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }

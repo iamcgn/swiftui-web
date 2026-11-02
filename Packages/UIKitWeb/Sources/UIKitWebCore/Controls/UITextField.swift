@@ -11,7 +11,7 @@ import Foundation
 #endif
 
 /// The methods a text field's delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UITextFieldDelegate: AnyObject {
     func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool
     func textFieldDidBeginEditing(_ textField: UITextField)
@@ -33,7 +33,7 @@ extension UITextFieldDelegate {
 }
 
 /// An object that displays an editable text area in your interface.
-@MainActor
+@preconcurrency @MainActor
 open class UITextField: UIControl {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }

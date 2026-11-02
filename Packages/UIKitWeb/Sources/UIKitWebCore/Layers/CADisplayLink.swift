@@ -8,7 +8,7 @@
 public typealias CAFrameRateRange = CADisplayLink.FrameRateRange
 
 /// A timer object that lets your app synchronize its drawing to the refresh rate of the display.
-@MainActor
+@preconcurrency @MainActor
 public final class CADisplayLink {
     public struct FrameRateRange: Equatable, Sendable {
         public var minimum: Float

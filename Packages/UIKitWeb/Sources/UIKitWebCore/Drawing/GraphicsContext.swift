@@ -7,7 +7,7 @@
 /// A graphics context recording into the display list: the current transform, colours, line
 /// style and alpha form a state the `saveGState`/`restoreGState` stack keeps, paths are built in
 /// user space and painted through the current transform.
-@MainActor
+@preconcurrency @MainActor
 public final class UIGraphicsRecordingContext {
     private struct State {
         var fill = RGBA(red: 0, green: 0, blue: 0, alpha: 1)
@@ -336,35 +336,34 @@ public final class UIGraphicsRecordingContext {
 @MainActor private var contextStack: [UIGraphicsRecordingContext] = []
 
 /// The current graphics context: the one a `draw(_:)` is running in, else nil.
-@MainActor public func UIGraphicsGetCurrentContext() -> UIGraphicsRecordingContext? { contextStack.last }
+@preconcurrency @MainActor public func UIGraphicsGetCurrentContext() -> UIGraphicsRecordingContext? { contextStack.last }
 
-@MainActor public func UIGraphicsPushContext(_ context: UIGraphicsRecordingContext) { contextStack.append(context) }
-@MainActor public func UIGraphicsPopContext() { _ = contextStack.popLast() }
+@preconcurrency @MainActor public func UIGraphicsPushContext(_ context: UIGraphicsRecordingContext) { contextStack.append(context) }
+@preconcurrency @MainActor public func UIGraphicsPopContext() { _ = contextStack.popLast() }
 
 /// Fills `rect` with the current fill colour, composited normally whatever blend mode the
 /// context has (uikit/draw/rest: UIKit's `UIRectFill` is `UIRectFillUsingBlendMode(_:.normal)`).
-@MainActor public func UIRectFill(_ rect: CGRect) { UIRectFillUsingBlendMode(rect, .normal) }
+@preconcurrency @MainActor public func UIRectFill(_ rect: CGRect) { UIRectFillUsingBlendMode(rect, .normal) }
 /// Fills `rect` with the current fill colour in `blendMode`.
-@MainActor public func UIRectFillUsingBlendMode(_ rect: CGRect, _ blendMode: CGBlendMode) {
+@preconcurrency @MainActor public func UIRectFillUsingBlendMode(_ rect: CGRect, _ blendMode: CGBlendMode) {
     guard let context = UIGraphicsGetCurrentContext() else { return }
     context.withBlendMode(blendMode) { context.fill(rect) }
 }
 /// Strokes a 1 pt frame inside `rect` with the current stroke colour, composited normally.
-@MainActor public func UIRectFrame(_ rect: CGRect) { UIRectFrameUsingBlendMode(rect, .normal) }
-@MainActor public func UIRectFrameUsingBlendMode(_ rect: CGRect, _ blendMode: CGBlendMode) {
+@preconcurrency @MainActor public func UIRectFrame(_ rect: CGRect) { UIRectFrameUsingBlendMode(rect, .normal) }
+@preconcurrency @MainActor public func UIRectFrameUsingBlendMode(_ rect: CGRect, _ blendMode: CGBlendMode) {
     guard let context = UIGraphicsGetCurrentContext() else { return }
     context.withBlendMode(blendMode) { context.stroke(rect.insetBy(dx: 0.5, dy: 0.5), width: 1) }
 }
-@MainActor public func UIRectClip(_ rect: CGRect) { UIGraphicsGetCurrentContext()?.clip(to: rect) }
+@preconcurrency @MainActor public func UIRectClip(_ rect: CGRect) { UIGraphicsGetCurrentContext()?.clip(to: rect) }
 
-@MainActor
 extension UIColor {
     /// Sets this colour as the current context's fill colour.
-    public func setFill() { UIGraphicsGetCurrentContext()?.setFillColor(rgba(for: UITraitCollection.current.userInterfaceStyle).cgColor) }
+    @preconcurrency @MainActor public func setFill() { UIGraphicsGetCurrentContext()?.setFillColor(rgba(for: UITraitCollection.current.userInterfaceStyle).cgColor) }
     /// Sets this colour as the current context's stroke colour.
-    public func setStroke() { UIGraphicsGetCurrentContext()?.setStrokeColor(rgba(for: UITraitCollection.current.userInterfaceStyle).cgColor) }
+    @preconcurrency @MainActor public func setStroke() { UIGraphicsGetCurrentContext()?.setStrokeColor(rgba(for: UITraitCollection.current.userInterfaceStyle).cgColor) }
     /// Sets this colour as both.
-    public func set() { setFill(); setStroke() }
+    @preconcurrency @MainActor public func set() { setFill(); setStroke() }
 }
 
 extension UIView {

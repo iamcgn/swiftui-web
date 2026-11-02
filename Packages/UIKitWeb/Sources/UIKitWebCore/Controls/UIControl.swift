@@ -3,7 +3,7 @@
 // the closure form iOS 14 added) and `addTarget(_:action:for:)` takes a closure.
 
 /// An item in a menu: an action, a submenu or a deferred element (Containers/Menus.swift).
-@MainActor
+@preconcurrency @MainActor
 open class UIMenuElement: Hashable {
     public var title: String
     public var image: UIImage?
@@ -20,7 +20,7 @@ open class UIMenuElement: Hashable {
 }
 
 /// A menu element that performs its action in a closure.
-@MainActor
+@preconcurrency @MainActor
 public final class UIAction: UIMenuElement {
     public typealias Handler = (UIAction) -> Void
 
@@ -69,7 +69,7 @@ public final class UIAction: UIMenuElement {
 
 /// The base class for controls, which are visual elements that convey a specific action or
 /// intention in response to user interactions.
-@MainActor
+@preconcurrency @MainActor
 open class UIControl: UIView {
     public struct Event: OptionSet, Sendable {
         public let rawValue: UInt

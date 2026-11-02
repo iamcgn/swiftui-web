@@ -11,7 +11,7 @@ import SwiftUI
 import WebKit
 
 /// An object that provides a visible standard interface for browsing the web.
-@MainActor
+@preconcurrency @MainActor
 open class SFSafariViewController: UIViewController {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -106,7 +106,7 @@ extension SFSafariViewController.DismissButtonStyle {
 }
 
 /// Methods a delegate implements to react to the user's actions.
-@MainActor
+@preconcurrency @MainActor
 public protocol SFSafariViewControllerDelegate: AnyObject {
     func safariViewControllerDidFinish(_ controller: SFSafariViewController)
     func safariViewController(_ controller: SFSafariViewController, didCompleteInitialLoad didLoadSuccessfully: Bool)

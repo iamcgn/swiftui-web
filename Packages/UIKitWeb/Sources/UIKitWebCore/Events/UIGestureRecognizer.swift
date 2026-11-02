@@ -9,7 +9,7 @@ public enum UIGestureRecognizerState: Int, Sendable {
 }
 
 /// The base class for gesture recognizers.
-@MainActor
+@preconcurrency @MainActor
 open class UIGestureRecognizer {
     public typealias State = UIGestureRecognizerState
 
@@ -158,7 +158,7 @@ struct WeakRecognizer {
 }
 
 /// Fine-tuning of gesture recognition.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIGestureRecognizerDelegate: AnyObject {
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool
@@ -176,7 +176,7 @@ extension UIGestureRecognizerDelegate {
 }
 
 /// A discrete gesture recognizer that interprets single or multiple taps.
-@MainActor
+@preconcurrency @MainActor
 open class UITapGestureRecognizer: UIGestureRecognizer {
     open var numberOfTapsRequired = 1
     open var numberOfTouchesRequired = 1
@@ -214,7 +214,7 @@ open class UITapGestureRecognizer: UIGestureRecognizer {
 }
 
 /// A discrete gesture recognizer that interprets long presses.
-@MainActor
+@preconcurrency @MainActor
 open class UILongPressGestureRecognizer: UIGestureRecognizer {
     open var minimumPressDuration: Double = 0.5
     open var allowableMovement: CGFloat = 10
@@ -260,7 +260,7 @@ open class UILongPressGestureRecognizer: UIGestureRecognizer {
 }
 
 /// A continuous gesture recognizer that interprets panning gestures.
-@MainActor
+@preconcurrency @MainActor
 open class UIPanGestureRecognizer: UIGestureRecognizer {
     open var minimumNumberOfTouches = 1
     open var maximumNumberOfTouches = Int.max
@@ -326,7 +326,7 @@ open class UIPanGestureRecognizer: UIGestureRecognizer {
 }
 
 /// A discrete gesture recognizer that interprets swiping gestures in one or more directions.
-@MainActor
+@preconcurrency @MainActor
 open class UISwipeGestureRecognizer: UIGestureRecognizer {
     public struct Direction: OptionSet, Sendable {
         public let rawValue: UInt
@@ -374,7 +374,7 @@ open class UISwipeGestureRecognizer: UIGestureRecognizer {
 
 /// A continuous gesture recognizer that interprets panning gestures that start near an edge of
 /// the screen.
-@MainActor
+@preconcurrency @MainActor
 open class UIScreenEdgePanGestureRecognizer: UIPanGestureRecognizer {
     open var edges: UIRectEdge = []
     private var startedAtEdge = false
@@ -406,7 +406,7 @@ open class UIScreenEdgePanGestureRecognizer: UIPanGestureRecognizer {
 
 /// A continuous gesture recognizer that interprets pinching gestures (fed by the host's
 /// trackpad or two-finger pinch through `UIKitScene.pinch`).
-@MainActor
+@preconcurrency @MainActor
 open class UIPinchGestureRecognizer: UIGestureRecognizer {
     open var scale: CGFloat = 1
     open private(set) var velocity: CGFloat = 0
@@ -458,7 +458,7 @@ open class UIPinchGestureRecognizer: UIGestureRecognizer {
 }
 
 /// A continuous gesture recognizer that interprets rotation gestures involving two touches.
-@MainActor
+@preconcurrency @MainActor
 open class UIRotationGestureRecognizer: UIGestureRecognizer {
     open var rotation: CGFloat = 0
     open private(set) var velocity: CGFloat = 0

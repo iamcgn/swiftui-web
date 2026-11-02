@@ -11,7 +11,7 @@ import Foundation
 #endif
 
 /// The simple text input: characters typed and deleted.
-@MainActor
+@preconcurrency @MainActor
 public protocol UIKeyInput: UITextInputTraits {
     var hasText: Bool { get }
     func insertText(_ text: String)
@@ -19,7 +19,7 @@ public protocol UIKeyInput: UITextInputTraits {
 }
 
 /// The traits of a text input (every one optional; the host reads them for its element).
-@MainActor
+@preconcurrency @MainActor
 public protocol UITextInputTraits: AnyObject {
     var keyboardType: UIKeyboardType { get }
     var returnKeyType: UIReturnKeyType { get }
@@ -39,7 +39,7 @@ extension UITextInputTraits {
 }
 
 /// A position in a text input's document (an offset in its characters here).
-@MainActor
+@preconcurrency @MainActor
 open class UITextPosition: Equatable {
     public let offset: Int
     public init(offset: Int) { self.offset = offset }
@@ -47,7 +47,7 @@ open class UITextPosition: Equatable {
 }
 
 /// A range in a text input's document.
-@MainActor
+@preconcurrency @MainActor
 open class UITextRange: Equatable {
     public let start: UITextPosition
     public let end: UITextPosition
@@ -64,7 +64,7 @@ public enum UITextLayoutDirection: Int, Sendable { case right = 2, left, up, dow
 public enum UITextGranularity: Int, Sendable { case character, word, sentence, paragraph, line, document }
 
 /// A selection rectangle (`selectionRects(for:)`).
-@MainActor
+@preconcurrency @MainActor
 open class UITextSelectionRect {
     open var rect: CGRect { .zero }
     open var writingDirection: UITextWritingDirection { .natural }
@@ -77,7 +77,7 @@ open class UITextSelectionRect {
 public enum UITextWritingDirection: Int, Sendable { case natural = -1, leftToRight, rightToLeft }
 
 /// The full text input: positions, ranges, the selection and marked text.
-@MainActor
+@preconcurrency @MainActor
 public protocol UITextInput: UIKeyInput {
     func text(in range: UITextRange) -> String?
     func replace(_ range: UITextRange, withText text: String)
@@ -123,7 +123,7 @@ extension UITextInput {
 }
 
 /// Told before and after the text or selection changes.
-@MainActor
+@preconcurrency @MainActor
 public protocol UITextInputDelegate: AnyObject {
     func selectionWillChange(_ textInput: (any UITextInput)?)
     func selectionDidChange(_ textInput: (any UITextInput)?)
@@ -132,7 +132,7 @@ public protocol UITextInputDelegate: AnyObject {
 }
 
 /// Makes a tap on a text input view begin editing (and the standard editing look: none here).
-@MainActor
+@preconcurrency @MainActor
 public final class UITextInteraction: UIInteraction {
     public enum Mode: Int, Sendable { case editable, nonEditable }
     public let textInteractionMode: Mode
@@ -164,7 +164,7 @@ public final class UITextInteraction: UIInteraction {
 
 /// The scene's bookkeeping for a `UIKeyInput`/`UITextInput` view: the text the host last had,
 /// so its next report becomes the typed or deleted characters.
-@MainActor
+@preconcurrency @MainActor
 final class HostKeyInputShadow {
     var text = ""
     var selection = NSRange(location: 0, length: 0)

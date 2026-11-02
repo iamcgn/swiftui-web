@@ -6,7 +6,7 @@
 import WebFoundation   // Foundation everywhere, and the NSItemProvider stand-in where ObjectiveC is absent
 
 /// Items an app copies and pastes: dictionaries of type identifier to value, as UIKit's.
-@MainActor
+@preconcurrency @MainActor
 open class UIPasteboard {
     public struct Name: RawRepresentable, Hashable, Sendable {
         public let rawValue: String

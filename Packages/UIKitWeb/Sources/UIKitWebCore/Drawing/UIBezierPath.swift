@@ -4,7 +4,7 @@
 
 /// A path that consists of straight and curved line segments that you can render in your
 /// custom views.
-@MainActor
+@preconcurrency @MainActor
 public final class UIBezierPath {
     /// The path itself (`cgPath` in UIKit; the substrate's `Path` stands in for CGPath).
     public var cgPath: Path

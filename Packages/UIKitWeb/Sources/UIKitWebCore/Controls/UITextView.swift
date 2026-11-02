@@ -13,7 +13,7 @@ import Foundation
 #endif
 
 /// The methods a text view's delegate implements.
-@MainActor
+@preconcurrency @MainActor
 public protocol UITextViewDelegate: UIScrollViewDelegate {
     func textViewShouldBeginEditing(_ textView: UITextView) -> Bool
     func textViewDidBeginEditing(_ textView: UITextView)
@@ -57,7 +57,7 @@ public struct UIDataDetectorTypes: OptionSet, Sendable {
 /// and the paths (in the container's coordinates: the view's inside its insets) lines flow
 /// around, by their bounds: a line whose band a path crosses starts after it when it lies in
 /// the left half, ends before it when in the right.
-@MainActor
+@preconcurrency @MainActor
 public final class NSTextContainer {
     public var lineFragmentPadding: CGFloat = 5 { didSet { owner?.textDidChange() } }
     public var maximumNumberOfLines = 0 { didSet { owner?.textDidChange() } }
@@ -68,7 +68,7 @@ public final class NSTextContainer {
 }
 
 /// A scrollable, multiline text region.
-@MainActor
+@preconcurrency @MainActor
 open class UITextView: UIScrollView, HostTextInput {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -653,7 +653,7 @@ open class UITextView: UIScrollView, HostTextInput {
 }
 
 /// A view the host types into: the text field and the text view.
-@MainActor
+@preconcurrency @MainActor
 protocol HostTextInput: UIView {
     func hostDidChange(_ newText: String)
     func hostDidSubmit()

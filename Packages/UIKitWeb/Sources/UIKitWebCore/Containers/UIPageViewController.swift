@@ -8,7 +8,7 @@
 // edge to edge and scrolls like the scroll style (the curl itself is not drawn).
 import WebFoundation   // NSCoder, for init?(coder:)
 
-@MainActor
+@preconcurrency @MainActor
 public protocol UIPageViewControllerDataSource: AnyObject {
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController?
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController?
@@ -22,7 +22,7 @@ extension UIPageViewControllerDataSource {
     public func presentationIndex(for pageViewController: UIPageViewController) -> Int { 0 }
 }
 
-@MainActor
+@preconcurrency @MainActor
 public protocol UIPageViewControllerDelegate: AnyObject {
     func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController])
     func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool)
@@ -39,7 +39,7 @@ extension UIPageViewControllerDelegate {
 public enum UIInterfaceOrientation: Int, Sendable { case unknown = 0, portrait, portraitUpsideDown, landscapeLeft, landscapeRight }
 
 /// A container view controller that manages navigation between pages of content.
-@MainActor
+@preconcurrency @MainActor
 open class UIPageViewController: UIViewController, UIScrollViewDelegate {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
