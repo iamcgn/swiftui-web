@@ -2234,8 +2234,8 @@
         {
           "api": "JSONEncoder / JSONDecoder",
           "status": "partial",
-          "notes": "Over the project's coder (JSONCoder.swift, the one navigation paths and drops use) and WebFoundation's Data, so `encoder.encode(x).write(to:)` type-checks and FoundationEssentials' scanner and writer stay out of the bundle; `outputFormatting`, the date, data and key strategies are stored and not applied (dates as seconds since 2001, keys as written, data as base64 through Codable) (2026-10-12)",
-          "noFixture": "Bytes, not a screen; TransferJSONTests on the coder, WasmFoundationTests on the classes."
+          "notes": "Over the project's coder (JSONCoder.swift, the one navigation paths and drops use) and WebFoundation's Data, so `encoder.encode(x).write(to:)` type-checks and FoundationEssentials' scanner and writer stay out of the bundle; every strategy applied as Foundation applies it: dates (seconds, milliseconds, ISO 8601, a formatter, custom), data (base64, custom), keys (snake case both ways, custom), non-conforming floats, pretty-printed and sorted output with escaped slashes, a URL as its absolute string and `userInfo` (2026-11-02); `Decimal` keeps its own keyed coding (2026-10-12)",
+          "noFixture": "Bytes, not a screen; TransferJSONTests on the coder, JSONStrategiesTests held to Foundation's output on macOS and Linux, WasmFoundationTests on the classes."
         },
         {
           "api": "NSError / Error.localizedDescription",
