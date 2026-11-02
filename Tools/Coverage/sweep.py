@@ -980,7 +980,7 @@ def cmd_run(args):
         return code, out
 
     code, out = build("SweepDeps", 5400)
-    results = {"batch": args.batch, "deps": "ok" if code == 0 else "failed", "apps": []}
+    results = {"batch": args.batch, "sdk": args.sdk, "deps": "ok" if code == 0 else "failed", "apps": []}
     if code != 0:
         results["deps_log"] = out[-6000:]
         Path(args.out).write_text(json.dumps(results, indent=1))
