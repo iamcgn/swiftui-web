@@ -57,17 +57,19 @@ private final class Box: @unchecked Sendable {
     @Test(.timeLimit(.minutes(1))) func groupsNotifyAndTimersFire() async {
         let box = Box()
         let group = DispatchGroup()
+        // Their own queues, not `.main`: Linux's test runner doesn't drain the main queue.
         let queue = DispatchQueue(label: "work")
+        let done = DispatchQueue(label: "done")
         queue.async(group: group, flags: .barrier) { box.append(1) }
-        group.notify(queue: .main) { box.append(2) }
+        group.notify(queue: done) { box.append(2) }
         let item = DispatchWorkItem(flags: .barrier) { box.append(3) }
-        item.notify(queue: .main) { box.append(4) }
+        item.notify(queue: done) { box.append(4) }
         queue.async(execute: item)
         for _ in 0..<400 where box.values.count < 4 { try? await Task.sleep(nanoseconds: 5_000_000) }
         #expect(box.values.sorted() == [1, 2, 3, 4])
 
         let ticks = Box()
-        let timer = DispatchSource.makeTimerSource(queue: .main)
+        let timer = DispatchSource.makeTimerSource(queue: done)
         timer.schedule(deadline: .now() + .milliseconds(5), repeating: .milliseconds(10))
         timer.setEventHandler { ticks.append(0) }
         timer.setCancelHandler { ticks.append(-1) }
