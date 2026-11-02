@@ -44,3 +44,14 @@ public func _convertNSErrorToError(_ error: NSError?) -> any Error {
     return error ?? NSError(domain: "NSCocoaErrorDomain", code: 0)
 }
 #endif
+
+#if os(WASI)
+// The interop SDK's compiler (decision 0023) looks the name `NSString` up in the module named
+// `Foundation` and takes a single type it finds there as Apple's Foundation being present, on
+// which it emits `@UIApplicationMain`'s entry against UIKit's Objective-C module, which that
+// SDK has not. This function shares the name, so that lookup finds two declarations and keeps
+// the plain entry; it takes `Never`, so nothing calls it, and the type `NSString`
+// (WebFoundation's) resolves as before in type and expression position.
+@_disfavoredOverload
+public func NSString(_ unreachable: Never) -> Never {}
+#endif
