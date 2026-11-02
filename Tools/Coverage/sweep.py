@@ -34,6 +34,11 @@ OURS = {
     "os", "OSLog", "CoreGraphics", "UniformTypeIdentifiers", "CoreData", "CryptoKit", "CoreHaptics", "WidgetKit", "StoreKit", "AppIntents",
 }
 STDLIB = {"Swift", "_Concurrency", "_StringProcessing", "Observation", "Synchronization", "RegexBuilder", "Dispatch", "WASILibc"}
+# swift-syntax, which the sweep package depends on itself: a package's macro targets import it.
+SYNTAX_PACKAGE = "https://github.com/swiftlang/swift-syntax.git"
+SYNTAX = {"SwiftSyntax", "SwiftSyntaxMacros", "SwiftCompilerPlugin", "SwiftSyntaxBuilder", "SwiftDiagnostics",
+          "SwiftParser", "SwiftParserDiagnostics", "SwiftBasicFormat", "SwiftOperators", "SwiftSyntaxMacroExpansion",
+          "SwiftIfConfig", "SwiftLexicalLookup", "SwiftSyntaxMacrosTestSupport", "SwiftSyntaxMacrosGenericTestSupport"}
 
 # Apple's frameworks, to tell a missing framework from a third-party package in the report.
 APPLE = set("""
@@ -154,6 +159,33 @@ def swift_settings(target):
     return out
 
 
+C_SOURCES = {".c", ".cc", ".cpp", ".cxx", ".m", ".mm"}
+C_HEADERS = {".h", ".hh", ".hpp", ".inc", ".def", ".modulemap"}
+# An Objective-C target this small is a shim (swift-navigation's UIKitNavigationShim): its headers
+# stand in for it so the Swift targets above it still build. A bigger one (Firebase) is left out.
+SHIM_LIMIT = 4
+
+
+def c_settings(target):
+    """The header search paths and defines a C target declares for every platform, as manifest source."""
+    out = []
+    for s in target.get("settings") or []:
+        if s.get("tool") not in ("c", "cxx"):
+            continue
+        cond = s.get("condition") or {}
+        if cond.get("platformNames") and not {"linux", "wasi"} & set(cond["platformNames"]):
+            continue
+        kind = s.get("kind") or {}
+        for key in ("headerSearchPath", "define"):
+            if key in kind:
+                value = kind[key].get("_0") if isinstance(kind[key], dict) else kind[key]
+                if isinstance(value, str):
+                    entry = f".{key}({json.dumps(value)})"
+                    if entry not in out:
+                        out.append(entry)
+    return out
+
+
 def dependency_names(dep):
     """(kind, name, package) for a dump-package target dependency."""
     for kind in ("target", "byName", "product"):
@@ -175,10 +207,174 @@ def read_local_packages(root: Path, extra_exclude):
     return packages
 
 
+# MARK: remote packages
+#
+# An app's third-party packages, as Xcode resolved them (Package.resolved), are cloned at their
+# pinned revisions under `<work>/_packages/<identity>@<revision>` and built from source like the
+# local packages: one target per regular target (and macro targets, built for the host against
+# swift-syntax). Binary, system-library and plugin targets, C-only targets and what depends on
+# them are left out; an app's import of one of those is taken out like any other missing module.
+
+PACKAGES_DIR = "_packages"
+
+
+def github_repo(url):
+    """`owner/name` for a GitHub URL (https, ssh or scp form), or None."""
+    m = re.match(r"^(?:https?://|ssh://git@|git@)github\.com[/:]([^/]+)/([^/]+?)(?:\.git)?/?$", url.strip())
+    return f"{m.group(1)}/{m.group(2)}" if m else None
+
+
+def resolved_pins(root: Path, extra):
+    """{identity: {"url", "repo", "revision"}} from every Package.resolved of the app (Xcode's in
+    the project or workspace, and its local packages'), the first file's pin winning."""
+    pins = {}
+    for f in sorted(root.rglob("Package.resolved"), key=lambda p: (len(p.parts), str(p))):
+        rel = f.relative_to(root)
+        if excluded(rel, extra) or ".build" in rel.parts:
+            continue
+        try:
+            data = json.loads(f.read_text(errors="replace"))
+        except json.JSONDecodeError:
+            continue
+        for pin in (data.get("object") or {}).get("pins") or data.get("pins") or []:
+            url = pin.get("location") or pin.get("repositoryURL") or ""
+            revision = (pin.get("state") or {}).get("revision")
+            repo = github_repo(url)
+            if not repo or not revision:
+                continue
+            identity = (pin.get("identity") or repo.split("/")[1]).lower()
+            pins.setdefault(identity, {"url": url, "repo": repo, "revision": revision})
+    return pins
+
+
+def package_key(identity, pin):
+    return f"{identity}@{pin['revision'][:12]}"
+
+
+def fetch_packages(work: Path, pins):
+    """Clones each pinned package once per revision; {identity: key} of the ones that cloned."""
+    keys = {}
+    for identity, pin in sorted(pins.items()):
+        if pin["url"].rstrip("/").removesuffix(".git").lower().endswith("swiftlang/swift-syntax") or \
+                pin["repo"].lower() in ("apple/swift-syntax", "swiftlang/swift-syntax"):
+            continue  # the sweep package's own swift-syntax builds the macros
+        key = package_key(identity, pin)
+        dest = work / PACKAGES_DIR / key
+        if not (dest / ".git").exists():
+            try:
+                clone(pin["repo"], dest, pin["revision"])
+            except Exception as e:
+                print(f"package {identity}: {str(e).splitlines()[0][:200]}", file=sys.stderr)
+                continue
+        keys[identity] = key
+    return keys
+
+
+def condition_allows_ios(dep):
+    """Whether a dump-package dependency's platform condition (if any) includes iOS."""
+    for part in (dep.get("product") or dep.get("byName") or dep.get("target") or [])[1:]:
+        if isinstance(part, dict) and part.get("platformNames"):
+            return "ios" in part["platformNames"]
+    return True
+
+
+def describe_remote_packages(work: Path, keys, notes):
+    """The targets of the cloned packages, in the shape describe_app gives local ones, each with
+    `base` (its clone, relative to the work folder) and `remote` (its package key)."""
+    dumps = {}
+    for identity, key in keys.items():
+        dump, err = dump_package(work / PACKAGES_DIR / key)
+        if not dump:
+            notes.append(f"package {identity}: {err[0] if err else 'unreadable'}")
+            continue
+        dumps[identity] = dump
+    products = {}  # product name -> (identity, target names)
+    for identity, dump in dumps.items():
+        for prod in dump.get("products", []):
+            if "library" in json.dumps(prod.get("type") or {}):
+                products.setdefault(prod["name"], (identity, prod.get("targets", [])))
+    targets, left_out = [], set()
+    for identity, dump in dumps.items():
+        key = keys[identity]
+        root = work / PACKAGES_DIR / key
+        names = {t["name"] for t in dump["targets"]}
+        for t in dump["targets"]:
+            kind = t["type"]
+            if kind not in ("regular", "macro"):
+                if kind in ("binary", "system", "plugin"):
+                    left_out.add(t["name"])
+                    notes.append(f"package {identity}: {kind} target {t['name']} not built")
+                continue
+            path = t.get("path") or f"Sources/{t['name']}"
+            src = root / path
+            if not src.is_dir():
+                notes.append(f"package {identity}: target {t['name']} has no folder {path}")
+                left_out.add(t["name"]); continue
+            excludes = [str(Path(path) / e) for e in t.get("exclude", [])]
+            files = [str(f.relative_to(root)) for f in sorted(src.rglob("*.swift"))
+                     if f.is_file() and not any(str(f.relative_to(root)).startswith(e.rstrip("/") + "/") or str(f.relative_to(root)) == e for e in excludes)
+                     and not (f.parent == root and is_manifest(f.name))]
+            c_kind = None
+            if not files:
+                found = [f for f in src.rglob("*") if f.is_file()]
+                sources = [f for f in found if f.suffix in C_SOURCES]
+                objc = [f for f in sources if f.suffix in (".m", ".mm")]
+                has_headers = any(f.suffix in C_HEADERS for f in found)
+                if not objc and (sources or has_headers):
+                    c_kind = "c"  # built as it is, by the wasm SDK's clang
+                elif objc and len(objc) <= SHIM_LIMIT and has_headers:
+                    c_kind = "headers"  # its headers only, so the module exists
+                    notes.append(f"package {identity}: Objective-C shim {t['name']} stands in with its headers only")
+                else:
+                    left_out.add(t["name"])
+                    why = f"{len(objc)} Objective-C files" if objc else "no sources"
+                    notes.append(f"package {identity}: target {t['name']} has {why}, not built")
+                    continue
+            deps, syntax = [], []
+            for d in t.get("dependencies", []):
+                if not condition_allows_ios(d):
+                    continue
+                k, name, package = dependency_names(d)
+                if k in ("target", "byName") and name in names:
+                    deps.append(name)
+                elif name in SYNTAX:
+                    syntax.append(name)
+                elif name in products and k in ("product", "byName"):
+                    deps.extend(products[name][1])
+                elif name:
+                    left_out.add(f"{t['name']}<-{name}")
+                    notes.append(f"package {identity}: target {t['name']} needs {name}, which no pinned package vends")
+            targets.append({
+                "module": t["name"], "source_root": path, "files": files, "base": f"{PACKAGES_DIR}/{key}",
+                "remote": key, "deps": sorted(set(deps) - {t["name"]}), "syntax": sorted(set(syntax)),
+                "third_party": [], "mode": language_mode_of_package(dump, t), "settings": swift_settings(t),
+                "resources": [r.get("path") for r in t.get("resources") or [] if r.get("path")],
+                "models": [], "executable": False, "macro": kind == "macro",
+                **({"c": c_kind, "public_headers": t.get("publicHeadersPath") or "include",
+                    "c_settings": c_settings(t), "exclude": t.get("exclude", [])} if c_kind else {}),
+            })
+    # What depends on a target that is not built is not built either (its module stays missing).
+    missing = {n for n in left_out if "<-" not in n}
+    changed = True
+    while changed:
+        changed = False
+        for t in targets:
+            if not t.get("skip") and any(d in missing or d not in {x["module"] for x in targets} for d in t["deps"]):
+                t["skip"] = True; missing.add(t["module"]); changed = True
+                gone = [d for d in t["deps"] if d in missing or d not in {x["module"] for x in targets}]
+                notes.append(f"package target {t['module']} depends on {', '.join(gone[:3])}, not built; not built either")
+    built = [t for t in targets if not t.get("skip")]
+    modules = {t["module"] for t in built}
+    vends = {name: [n for n in names if n in modules] for name, (_, names) in products.items()}
+    return built, {name: names for name, names in vends.items() if names}
+
+
 # MARK: plan
 
-def module_names(app):
-    return {t["module"] for t in app["targets"]}
+def module_keys(app):
+    """Each module the app's batch must build, with what makes it the same module in another
+    app: a package target is the same at the same package revision, an app's own never is."""
+    return {t["module"]: t.get("remote") or f"app:{app['name']}" for t in app["targets"]}
 
 
 def data_models(root: Path, base: Path):
@@ -207,10 +403,14 @@ def data_models(root: Path, base: Path):
     return [rel for rel in found if best[Path(rel).name][0] == rel]
 
 
-def describe_app(entry, root: Path):
-    """The sweep's view of one clone: its local targets, the app target's files, the imports."""
+def describe_app(entry, root: Path, work: Path = None):
+    """The sweep's view of one clone: its local targets, its packages' targets, the app target's
+    files, the imports."""
     extra = entry.get("exclude", [])
     packages = read_local_packages(root, extra)
+    pins = resolved_pins(root, extra) if work else {}
+    remote_notes = []
+    remote, remote_names_by_product = describe_remote_packages(work, fetch_packages(work, pins), remote_notes) if pins else ([], {})
     pkg_dirs = [Path(p["dir"]) for p in packages]
     targets, notes = [], []
     product_targets = {}  # product name -> target names, across the local packages
@@ -241,6 +441,8 @@ def describe_app(entry, root: Path):
                     deps.append(name)
                 elif name in product_targets and kind in ("product", "byName"):
                     deps.extend(product_targets[name])
+                elif name in remote_names_by_product and kind in ("product", "byName"):
+                    deps.extend(remote_names_by_product[name])
                 elif name:
                     third.append(name)
             files = [str(f.relative_to(root)) for f in sorted((root / src).rglob("*.swift"))
@@ -257,6 +459,9 @@ def describe_app(entry, root: Path):
                 "models": data_models(root, src),
                 "executable": t["type"] == "executable",
             })
+    local_count = len(targets)
+    targets.extend(remote)
+    notes.extend(remote_notes)
     # The app target: every Swift file outside the local packages and the excluded folders.
     app_files = []
     for f in sorted(root.rglob("*.swift")):
@@ -265,7 +470,7 @@ def describe_app(entry, root: Path):
             continue
         if excluded(rel, extra) or any(rel.is_relative_to(d) for d in pkg_dirs if str(d) != "."):
             continue
-        if Path(".") in pkg_dirs and any(rel.is_relative_to(Path(t["source_root"])) for t in targets):
+        if Path(".") in pkg_dirs and any(rel.is_relative_to(Path(t["source_root"])) for t in targets if not t.get("remote")):
             continue
         app_files.append(str(rel))
     # One @main: the SwiftUI App (or the UIKit delegate) of the iOS app, the others' files left out.
@@ -279,19 +484,42 @@ def describe_app(entry, root: Path):
             if f != keep:
                 app_files.remove(f)
                 notes.append(f"left out a second @main: {f}")
-    executable_locals = [t for t in targets if t["executable"]]
+    executable_locals = [t for t in targets[:local_count] if t["executable"]]
     if not app_files and executable_locals:
         executable_locals[0]["app"] = True
     elif app_files:
         models = [m for m in data_models(root, Path(".")) if not excluded(Path(m), extra)
                   and not any(Path(m).is_relative_to(d) for d in pkg_dirs if str(d) != ".")
-                  and not any(Path(m).is_relative_to(Path(t["source_root"])) for t in targets)]
+                  and not any(Path(m).is_relative_to(Path(t["source_root"])) for t in targets if not t.get("remote"))]
         targets.append({
             "module": "Sweep" + re.sub(r"\W", "", entry["name"]), "source_root": ".", "files": app_files,
-            "deps": sorted({t["module"] for t in targets if not t["executable"]}), "third_party": [],
+            "deps": sorted({t["module"] for t in targets if not t["executable"] and not t.get("macro")}), "third_party": [],
             "mode": xcode_language_mode(root), "settings": [], "resources": [], "models": models,
             "executable": True, "app": True,
         })
+    # The app target links the package modules its files import (Xcode links the products the
+    # project lists; the imports say which of them the app's code uses).
+    remote_modules = {t["module"]: t for t in targets if t.get("remote") and not t.get("macro")}
+    for t in targets:
+        if t.get("app") and t["source_root"] == ".":
+            imported = set()
+            for f in t["files"]:
+                for line in (root / f).read_text(errors="replace").splitlines():
+                    m = IMPORT.match(line)
+                    if m:
+                        imported.add(m.group(3))
+            t["deps"] = sorted({d for d in t["deps"] if d not in remote_modules}
+                               | {n for n in remote_modules if n in imported or n.replace("-", "_") in imported})
+    # Only the package targets the app's own targets reach are built.
+    by = {t["module"]: t for t in targets}
+    reach, todo = set(), [t["module"] for t in targets if not t.get("remote")]
+    while todo:
+        n = todo.pop()
+        if n in reach or n not in by:
+            continue
+        reach.add(n)
+        todo.extend(by[n]["deps"])
+    targets = [t for t in targets if not t.get("remote") or t["module"] in reach]
     for t in targets:
         if t["executable"] and not t.get("app"):
             t["skip"] = True
@@ -301,23 +529,36 @@ def describe_app(entry, root: Path):
     local = {t["module"] for t in targets} | {t["module"].replace("-", "_") for t in targets}
     imports = Counter()
     for t in targets:
+        if t.get("macro"):
+            continue  # built for the host: its imports are swift-syntax's and the host's
+        base = work / t["base"] if t.get("base") else root
         for f in t["files"]:
-            for line in (root / f).read_text(errors="replace").splitlines():
+            for line in (base / f).read_text(errors="replace").splitlines():
                 m = IMPORT.match(line)
                 if m:
                     imports[m.group(3)] += 1
-    missing = sorted(m for m in imports if m not in OURS | STDLIB | local)
+    missing = sorted(m for m in imports if m not in OURS | STDLIB | SYNTAX | local)
     asset_names = sorted({p.stem for p in root.rglob("*.colorset")} | {p.stem for p in root.rglob("*.imageset")}
                          | {p.stem for p in root.rglob("*.symbolset")})
     model_entities = sorted(set(re.findall(r'<entity name="([^"]+)"', "\n".join(
         c.read_text(errors="replace") for c in root.rglob("contents") if ".xcdatamodel" in str(c)))))
-    os_conditions = sum(1 for t in targets for f in t["files"]
+    os_conditions = sum(1 for t in targets if not t.get("remote") for f in t["files"]
                         if re.search(r"#(?:else)?if\b[^\n]*\bos\((?:iOS|macOS|watchOS|tvOS|visionOS)\)", (root / f).read_text(errors="replace")))
     return {
         "targets": targets, "notes": notes, "missing_imports": missing,
         "asset_names": asset_names, "model_entities": model_entities, "os_condition_files": os_conditions,
-        "files": sum(len(t["files"]) for t in targets if not t.get("skip")),
+        "files": sum(len(t["files"]) for t in targets if not t.get("skip") and not t.get("remote")),
+        "packages": sorted({t["remote"] for t in targets if t.get("remote")}),
+        "pins": pins,
     }
+
+    for key in sorted({t["remote"] for t in remote}):
+        dump, _ = dump_package(work / PACKAGES_DIR / key)
+        for prod in (dump or {}).get("products", []):
+            built = [n for n in prod.get("targets", []) if any(t["module"] == n for t in remote)]
+            if built:
+                out.setdefault(prod["name"], built)
+    return out
 
 
 def xcode_language_mode(root: Path):
@@ -345,22 +586,30 @@ def cmd_plan(args):
             apps.append({**entry, "sha": None, "error": str(e).splitlines()[0][:300]})
             print(f"{entry['name']}: {e}", file=sys.stderr)
             continue
-        info = describe_app(entry, dest)
+        try:
+            info = describe_app(entry, dest, work)
+        except Exception as e:  # one app's odd package must not stop the sweep: build it without packages
+            print(f"{entry['name']}: packages not usable ({type(e).__name__}: {str(e)[:200]}); building without them", file=sys.stderr)
+            info = describe_app(entry, dest)
+            info["notes"].append(f"its packages could not be described ({type(e).__name__}); built without them")
         apps.append({**entry, "sha": sha, **info})
         print(f"{entry['name']}: {sha[:10]} {info['files']} files, {len(info['targets'])} targets, missing imports {info['missing_imports']}")
+        for note in info["notes"]:
+            if note.startswith("package"):
+                print(f"  {note}")
     # Batches: no module name twice in one sweep package.
     batches = []
     for app in apps:
         if not app.get("sha"):
             app["batch"] = None
             continue
-        names = module_names(app)
+        keys = module_keys(app)
         for i, b in enumerate(batches):
-            if len(b["apps"]) < args.batch_size and not (b["modules"] & names):
-                b["apps"].append(app["name"]); b["modules"] |= names; app["batch"] = i
+            if len(b["apps"]) < args.batch_size and all(b["modules"].get(m, k) == k for m, k in keys.items()):
+                b["apps"].append(app["name"]); b["modules"].update(keys); app["batch"] = i
                 break
         else:
-            batches.append({"apps": [app["name"]], "modules": set(names)}); app["batch"] = len(batches) - 1
+            batches.append({"apps": [app["name"]], "modules": dict(keys)}); app["batch"] = len(batches) - 1
     plan = {"apps": apps, "batches": [b["apps"] for b in batches]}
     Path(args.out).write_text(json.dumps(plan, indent=1))
     if os.environ.get("GITHUB_OUTPUT"):
@@ -374,6 +623,8 @@ def cmd_fetch(args):
     for app in plan["apps"]:
         if app.get("batch") == args.batch:
             clone(app["repo"], Path(args.work) / app["name"], app["sha"])
+            fetch_packages(Path(args.work), {i: p for i, p in (app.get("pins") or {}).items()
+                                             if package_key(i, p) in set(app.get("packages", []))})
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "Traits"))
@@ -399,6 +650,7 @@ MANIFEST_HEAD = """// swift-tools-version: 6.1
 // Generated by Tools/Coverage/sweep.py prepare: one target per local package target and one for
 // each app of this batch, linking SwiftUIWeb's products where Xcode links Apple's frameworks.
 import PackageDescription
+import CompilerPluginSupport  // `.macro` targets (packages' macros, built for the host)
 
 let web: [Target.Dependency] = [
     .product(name: "SwiftUI", package: "SwiftUIWeb"),
@@ -431,6 +683,32 @@ let stack: [LinkerSetting] = [.unsafeFlags(["-Xlinker", "-z", "-Xlinker", "stack
 """
 
 
+DECL_NAME = re.compile(r'name: "([^"]+)"')
+
+
+def render_manifest(parts, drops=None):
+    """The sweep package's manifest from prepare's parts, with `drops` ({module: dependencies})
+    taken out of those targets' dependencies (a package target that did not build). Each target is
+    its own statement: one `targets: [...]` literal holding every package's targets is more than
+    the manifest's type checker will take in reasonable time."""
+    drops = drops or {}
+    out = []
+    for d in parts["decls"]:
+        m = DECL_NAME.search(d)
+        gone = drops.get(m.group(1), ()) if m else ()
+        if gone:
+            lines = d.split("\n")
+            for i, line in enumerate(lines):
+                if line.strip().startswith("dependencies:"):
+                    for n in gone:
+                        q = json.dumps(n)
+                        line = line.replace(q + ", ", "").replace(", " + q, "").replace(q, "")
+                    lines[i] = line
+            d = "\n".join(lines)
+        out.append("targets.append(\n" + d.strip().rstrip(",") + "\n)")
+    return parts["head"] + "\n".join(out) + "\n" + parts["tail"]
+
+
 def cmd_prepare(args):
     plan = json.loads(Path(args.plan).read_text())
     pkg = Path(args.out)
@@ -444,17 +722,57 @@ def cmd_prepare(args):
     # The package traits this batch's apps need (decision 0024), as each app's own manifest would
     # enable them; --all-traits turns every one on (the surface build, which has no apps).
     traits_needed = set(app_traits.TRAITS) if args.all_traits else set()
+    declared, uses_syntax = set(), False
     for app in plan["apps"]:
         if app.get("batch") != args.batch:
             continue
-        clone_dir = work / app["name"]
         local = {t["module"] for t in app["targets"]} | {t["module"].replace("-", "_") for t in app["targets"]}
         strip = (set(app["missing_imports"]) | set(strip_extra.get(app["name"], []))) - local
         strips[app["name"]] = sorted(strip)
         for t in app["targets"]:
             if t.get("skip"):
                 continue
+            if t["module"] in declared:
+                continue  # a package another app of the batch pins at the same revision
+            declared.add(t["module"])
+            clone_dir = work / (t.get("base") or app["name"])
             dest_root = pkg / "Sources" / t["module"]
+            if t.get("c"):
+                # A C target: its folder as it is (an Objective-C shim: without its .m files, plus
+                # an empty source so the target has one), built by the SDK's clang.
+                src = clone_dir / t["source_root"]
+                skip_objc = t["c"] == "headers"
+                shutil.copytree(src, dest_root, dirs_exist_ok=True, symlinks=False,
+                                ignore=lambda d, names: [n for n in names if skip_objc and Path(n).suffix in (".m", ".mm")
+                                                         or n in (".git", ".build") or is_manifest(n)
+                                                         or not (Path(d) / n).exists()])
+                if skip_objc:
+                    (dest_root / "_sweep_shim.c").write_text("/* The sweep builds this Objective-C shim's headers only. */\n")
+                excludes = [e for e in t.get("exclude", []) if (dest_root / e).exists()]
+                decls.append(
+                    f'        .target(\n            name: "{t["module"]}",\n            dependencies: [{", ".join(json.dumps(d) for d in t["deps"])}],\n'
+                    f'            path: "Sources/{t["module"]}",\n'
+                    + (f'            exclude: [{", ".join(json.dumps(e) for e in excludes)}],\n' if excludes else "")
+                    + f'            publicHeadersPath: {json.dumps(t["public_headers"])},\n'
+                    + f'            cSettings: [{", ".join(t["c_settings"])}]\n        ),'
+                )
+                continue
+            if t.get("macro"):
+                # Built for the host against the sweep package's swift-syntax; sources as they are.
+                uses_syntax = True
+                for f in t["files"]:
+                    dest = dest_root / Path(f).relative_to(t["source_root"])
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(clone_dir / f, dest)
+                syntax = "".join(f', .product(name: "{n}", package: "swift-syntax")' for n in t.get("syntax", []))
+                deps = (", ".join(json.dumps(d) for d in t["deps"]) + syntax).lstrip(", ")
+                settings = ", ".join([f".swiftLanguageMode(.{t['mode']})"] + t["settings"])
+                decls.append(
+                    f'        .macro(\n            name: "{t["module"]}",\n            dependencies: [{deps}],\n'
+                    f'            path: "Sources/{t["module"]}",\n'
+                    f'            swiftSettings: [{settings}]\n        ),'
+                )
+                continue
             used = set()
             for f in t["files"]:
                 rel = Path(f).relative_to(t["source_root"]) if t["source_root"] != "." else Path(f)
@@ -469,7 +787,8 @@ def cmd_prepare(args):
                 text = (clone_dir / f).read_text(errors="replace")
                 traits_needed |= set(app_traits.needed_in_text(text))
                 dest.write_text(strip_imports(text, strip))
-                mapping[str(dest.resolve())] = {"app": app["name"], "file": f}
+                mapping[str(dest.resolve())] = {"app": app["name"], "file": f, "base": t.get("base") or app["name"],
+                                                **({"package": t["remote"].split("@")[0]} if t.get("remote") else {})}
             if not t["files"]:
                 # A target with no Swift sources (an Objective-C or C package, whose only Swift
                 # file was its manifest) still needs its folder, so the module exists for the
@@ -500,7 +819,13 @@ def cmd_prepare(args):
                 models.append(name)
             kind = "executableTarget" if t.get("app") else "target"
             settings = [f".swiftLanguageMode(.{t['mode']})"] + t["settings"]
-            deps = "web" + "".join(f' + ["{d}"]' for d in t["deps"])
+            extra = [json.dumps(d) for d in t["deps"]]
+            if t.get("syntax"):
+                uses_syntax = True
+                extra += [f'.product(name: "{n}", package: "swift-syntax")' for n in t["syntax"]]
+            # One typed array, not a chain of `+`: a long chain is more than the manifest's type
+            # checker will take (IcySky's 32 targets).
+            deps = f"web + ([{', '.join(extra)}] as [Target.Dependency])" if extra else "web"
             decls.append(
                 f'        .{kind}(\n            name: "{t["module"]}",\n            dependencies: {deps},\n'
                 f'            path: "Sources/{t["module"]}",\n'
@@ -514,7 +839,16 @@ def cmd_prepare(args):
     def traits_for(package):
         names = [t for t in app_traits.TRAITS if t in traits_needed and package in app_traits.TRAITS[t][1]]
         return f', traits: [{", ".join(json.dumps(t) for t in names)}]' if names else ""
-    manifest = MANIFEST_HEAD + f"""
+    # The packages' macros build against the swift-syntax SwiftUIWeb already resolves.
+    syntax_dependency = f'\n        .package(url: "{SYNTAX_PACKAGE}", from: "601.0.1"),' if uses_syntax else ""
+    # Each target is its own statement: one `targets: [...]` literal holding every package's
+    # targets is more than the manifest's type checker will take in reasonable time.
+    head = MANIFEST_HEAD + """
+var targets: [Target] = [
+    .target(name: "SweepDeps", dependencies: web, path: "Sources/SweepDeps"),
+]
+"""
+    tail = f"""
 let package = Package(
     name: "Sweep",
     // Required as soon as any app target carries localized resources (.lproj, .xcstrings).
@@ -523,20 +857,20 @@ let package = Package(
     dependencies: [
         .package(name: "SwiftUIWeb", path: "{root}"{traits_for("SwiftUIWeb")}),
         .package(name: "UIKitWeb", path: "{root}/Packages/UIKitWeb"),
-        .package(name: "Shadows", path: "{root}/Packages/Shadows"{traits_for("Shadows")}),
+        .package(name: "Shadows", path: "{root}/Packages/Shadows"{traits_for("Shadows")}),{syntax_dependency}
     ],
-    targets: [
-        .target(name: "SweepDeps", dependencies: web, path: "Sources/SweepDeps"),
-{chr(10).join(decls)}
-    ]
+    targets: targets
 )
 """
+    parts = {"head": head, "decls": decls, "tail": tail}
+    manifest = render_manifest(parts)
     deps_dir = pkg / "Sources" / "SweepDeps"
     deps_dir.mkdir(parents=True, exist_ok=True)
     (deps_dir / "Deps.swift").write_text("".join(f"import {m}\n" for m in sorted(OURS - {"CoreLocation"})))
     (pkg / "Package.swift").write_text(manifest)
     (pkg / "mapping.json").write_text(json.dumps(mapping))
     (pkg / "strip.json").write_text(json.dumps(strips))
+    (pkg / "manifest.json").write_text(json.dumps(parts))
     print(f"wrote {pkg / 'Package.swift'} ({len(decls)} targets, {len(mapping)} files"
           + "".join(f", {t} trait" for t in app_traits.TRAITS if t in traits_needed) + ")")
 
@@ -616,7 +950,10 @@ def rewrite_sources(mapping, work, app_name, strip):
     """Writes an app's copied sources again with a larger set of imports taken out."""
     for dest, where in mapping.items():
         if where["app"] == app_name:
-            Path(dest).write_text(strip_imports((work / app_name / where["file"]).read_text(errors="replace"), strip))
+            source = work / where.get("base", app_name) / where["file"]
+            text = strip_imports(source.read_text(errors="replace"), strip)
+            if Path(dest).read_text(errors="replace") != text:  # an unchanged file keeps its build
+                Path(dest).write_text(text)
 
 
 def cmd_run(args):
@@ -627,6 +964,9 @@ def cmd_run(args):
     logs.mkdir(exist_ok=True)
     mapping = json.loads((pkg / "mapping.json").read_text())
     strips = json.loads((pkg / "strip.json").read_text())
+    parts_file = pkg / "manifest.json"
+    parts = json.loads(parts_file.read_text()) if parts_file.exists() else None
+    drops = {}  # module -> the dependencies it is built without (package targets that failed)
 
     def build(target, timeout):
         cmd = ["swift", "build", "--package-path", str(pkg), "--scratch-path", str(pkg / ".build"),
@@ -645,15 +985,31 @@ def cmd_run(args):
         results["deps_log"] = out[-6000:]
         Path(args.out).write_text(json.dumps(results, indent=1))
         print(out[-6000:]); sys.exit(1)
+    built = {}
     for app in plan["apps"]:
         if app.get("batch") != args.batch:
             continue
         status, failed = [], set()
-        for t in topo([t for t in app["targets"] if not t.get("skip")]):
+        # Macro targets build for the host as their users' dependencies, not on their own.
+        for t in topo([t for t in app["targets"] if not t.get("skip") and not t.get("macro")]):
             blocked = [d for d in t["deps"] if d in failed]
-            if blocked:
+            if t["module"] in built:
+                # A package target another app of the batch built already: the same result.
+                status.append({**built[t["module"]], "errors": []})
+                if built[t["module"]]["status"] != "ok":
+                    failed.add(t["module"])
+                continue
+            if blocked and not parts:
                 status.append({"module": t["module"], "status": "blocked", "by": blocked, "errors": []})
                 failed.add(t["module"]); continue
+            if blocked:
+                # A package it uses did not build: build it without that package, its imports
+                # taken out as the sweep takes out any module that does not exist on wasm, so its
+                # own errors still count (an app is never hidden behind a package's failure).
+                drops[t["module"]] = sorted(set(drops.get(t["module"], [])) | set(blocked))
+                (pkg / "Package.swift").write_text(render_manifest(parts, drops))
+                strips[app["name"]] = sorted(set(strips[app["name"]]) | set(blocked))
+                rewrite_sources(mapping, work, app["name"], set(strips[app["name"]]))
             code, out = build(t["module"], 2400)
             # A module the wasm SDK turns out not to have (or not to show to this target) is
             # taken out like the others and the target built again, once.
@@ -672,19 +1028,26 @@ def cmd_run(args):
                     continue
                 seen.add(k)
                 cat, key = classify(msg)
-                errors.append({"file": where["file"], "line": int(line), "msg": msg, "category": cat, "key": key})
+                shown = f"[{where['package']}] {where['file']}" if where.get("package") else where["file"]
+                errors.append({"file": shown, "line": int(line), "msg": msg, "category": cat, "key": key,
+                               **({"package": where["package"]} if where.get("package") else {})})
             ok = code == 0
             if not ok:
                 failed.add(t["module"])
             status.append({"module": t["module"], "status": "ok" if ok else ("timeout" if code == "timeout" else "errors"),
-                           "errors": errors, "tail": "" if ok or errors else out[-3000:]})
+                           "errors": errors, "tail": "" if ok or errors else out[-3000:],
+                           **({"without": blocked} if blocked else {})})
+            if t.get("remote"):
+                status[-1]["package"] = t["remote"]
+                built[t["module"]] = {k: v for k, v in status[-1].items() if k != "errors"}
             print(f"{app['name']} {t['module']}: {status[-1]['status']} ({len(errors)} errors)")
-        files = [f for t in app["targets"] if not t.get("skip") for f in t["files"]]
+        files = [f for t in app["targets"] if not t.get("skip") and not t.get("remote") for f in t["files"]]
         results["apps"].append({
             **{k: app.get(k) for k in ("name", "repo", "sha", "control", "missing_imports", "asset_names",
                                        "model_entities", "os_condition_files", "files", "notes")},
             "stripped": strips[app["name"]],
-            "modes": sorted({t["mode"] for t in app["targets"] if not t.get("skip")}),
+            "modes": sorted({t["mode"] for t in app["targets"] if not t.get("skip") and not t.get("remote")}),
+            "packages": app.get("packages", []),
             "third_party": sorted({d for t in app["targets"] for d in t["third_party"]}),
             "targets": status,
             "tokens": tokens_of(work / app["name"], files),
