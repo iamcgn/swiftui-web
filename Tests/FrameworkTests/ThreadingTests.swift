@@ -61,7 +61,8 @@ private struct LookupFailed: CustomNSError {}
     @Test func sleep() {
         let start = Date()
         Thread.sleep(forTimeInterval: 0.02)
-        #expect(Date().timeIntervalSince(start) >= 0.02)
+        // Date is a Double of seconds and Linux's sleep can wake a microsecond short of it.
+        #expect(Date().timeIntervalSince(start) >= 0.019)
     }
 
     #if os(WASI) || canImport(Darwin)
