@@ -387,3 +387,18 @@ credentials. The delegate methods have defaults that answer as Foundation does w
 leaves one out. Core Foundation's names (`CFDictionary`, `CFString`, `kCFBooleanTrue`, `noErr`)
 are the Swift types they bridge to, in WebFoundation for `import Foundation` and in a
 `CoreFoundation` shadow that `Security` re-exports, as Apple's does.
+
+### JSON coding strategies (2026-11-02)
+
+Apps and their packages talk to servers through `JSONEncoder` and `JSONDecoder` strategies (ISO
+8601 or millisecond dates, snake-case keys, base64 data), and the wasm coders used to accept the
+strategies and ignore them, so a request body silently differed from the one iOS sends. The coder
+behind them now applies every strategy as Foundation does: the date strategies (formatter and
+custom closures included), the data strategies, snake-case and custom keys both ways,
+non-conforming floats as strings, pretty-printed and sorted output, `/` escaped as `\/` unless
+asked not to, a `URL` as its absolute string, a `Float` by its own digits and `userInfo` handed
+to the values' coders. `JSONSerialization` writes through the same layout. The tests compare
+against Foundation's own output on macOS and Linux. Two deliberate differences: `Decimal` keeps
+its own keyed coding, because naming it would link Foundation's Decimal machinery into every app
+(WebDecimalFormats); and base64 decoding still reads an array of bytes, so stores the Core Data
+and SwiftData stand-ins wrote earlier stay readable.
