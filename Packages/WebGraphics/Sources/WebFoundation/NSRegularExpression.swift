@@ -8,12 +8,11 @@
 // corners where they differ (possessive quantifiers, `\p{...}` without the `u` flag,
 // lookbehind in older engines) are the host's. Without a host the initializer throws.
 //
-// The class is `_WebNSString` and `NSString` names it through a typealias, on both SDKs: the
-// interop SDK's compiler (decision 0023) looks up a *class* named `NSString` in the module
-// named Foundation to tell whether Apple's Foundation is present, and on finding one emits
-// `@UIApplicationMain`'s entry against UIKit's Objective-C module, which that SDK has not
-// (`emitArtificialTopLevel` asserted). A typealias is not a class declaration, so that lookup
-// still finds none, while apps' `NSString` and `as NSString` resolve as before.
+// `NSString` is on both SDKs. The interop SDK's compiler (decision 0023) takes a single
+// declaration named `NSString` in the module named Foundation as Apple's Foundation being
+// present and emits `@UIApplicationMain`'s entry against UIKit's Objective-C module, which that
+// SDK has not (`emitArtificialTopLevel` asserts); the Foundation shadow declares a second,
+// uncallable `NSString` function so that lookup finds two (Packages/Shadows, Foundation.swift).
 #if os(WASI)
 /// Foundation's name for the string object (`_WebNSString`, see above).
 public typealias NSString = _WebNSString
