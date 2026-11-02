@@ -81,6 +81,18 @@ public func NSStringFromClass(_ aClass: AnyClass) -> String { String(cString: cl
 public func NSClassFromString(_ aClassName: String) -> AnyClass? { objc_getClass(aClassName) as? AnyClass }
 #endif
 
+#if os(WASI) && !canImport(ObjectiveC)
+/// The class's name as Swift spells it, module first (what Apple's gives a Swift class).
+public func NSStringFromClass(_ aClass: AnyClass) -> String { String(reflecting: aClass) }
+#endif
+
+#if os(WASI)
+/// The selector with this name (registered with the runtime when there is one).
+public func NSSelectorFromString(_ aSelectorName: String) -> Selector { Selector(aSelectorName) }
+/// The selector's name.
+public func NSStringFromSelector(_ aSelector: Selector) -> String { aSelector.name }
+#endif
+
 #if !canImport(Darwin)
 
 /// An item for the pasteboard commands: a string, or a value with a type identifier.
@@ -163,8 +175,10 @@ open class NSObject: NSObjectProtocol, Hashable, CustomStringConvertible {
     public func isKind(of aClass: AnyClass) -> Bool { type(of: self) == aClass }
     public func isMember(of aClass: AnyClass) -> Bool { type(of: self) == aClass }
 }
+#endif
 
-// MARK: - Percent encoding with the URL character sets
+#if os(WASI)
+// MARK: - Percent encoding with the URL character sets (with or without the Objective-C runtime)
 
 extension CharacterSet {
     private static let unreserved = CharacterSet { $0.isASCII && ($0.properties.isAlphabetic || ("0"..."9").contains($0) || "-._~".unicodeScalars.contains($0)) }
