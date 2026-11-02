@@ -40,8 +40,6 @@ package final class ModifierBodyNode<Content: View, Modifier: ViewModifier>:
     package private(set) var child: TypedNode<Modifier.Body>!
     package private(set) var bodyEvaluations = 0
     package private(set) var propertyStorage: AnyObject?
-    /// The tween of an `AnimatableModifier`'s data (AnimatableBodies.swift).
-    private var animatableDriver: _AnimatableBodyDriver?
 
     init(_ context: _NodeContext<ModifiedContent<Content, Modifier>>) {
         super.init(view: context.view, parent: context.parent, runtime: context.runtime,
@@ -55,7 +53,6 @@ package final class ModifierBodyNode<Content: View, Modifier: ViewModifier>:
             || _valuesDiffer(self.view.modifier, view.modifier)
             || _valuesDiffer(self.view.content, view.content)
             || self.environment.generation != environment.generation
-        if _isAnimatableBody(Modifier.self) { _AnimatableBodyDriver.change(&animatableDriver, node: self, old: self.view.modifier, new: view.modifier) }
         self.view = view
         self.environment = environment
         clearNeedsUpdate()
@@ -65,8 +62,7 @@ package final class ModifierBodyNode<Content: View, Modifier: ViewModifier>:
     private func evaluateBody() {
         bodyEvaluations += 1
         _DynamicPropertyFields<Modifier>.installAll(into: &view.modifier, node: self, slot: &propertyStorage)
-        let shown = animatableDriver?.presented(view.modifier) ?? view.modifier
-        let body = _trackingObservation(for: self) { shown.body(content: _ViewModifier_Content<Modifier>()) }
+        let body = _trackingObservation(for: self) { view.modifier.body(content: _ViewModifier_Content<Modifier>()) }
         if let child {
             child.update(view: body, environment: environment)
         } else {
@@ -82,11 +78,6 @@ package final class ModifierBodyNode<Content: View, Modifier: ViewModifier>:
 
     package func updateContentNode(_ node: ViewNode, environment: EnvironmentValues) {
         (node as! TypedNode<Content>).update(view: view.content, environment: environment)
-    }
-
-    override package func unmount() {
-        animatableDriver?.stop()
-        super.unmount()
     }
 
     override package var structuralChildren: [ViewNode] { [child] }

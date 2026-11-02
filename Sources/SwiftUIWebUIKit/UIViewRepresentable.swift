@@ -83,7 +83,7 @@ public struct UIViewRepresentableContext<Representable: UIViewRepresentable> {
 extension UIViewRepresentable {
     /// The runtime hook: the coordinator, the UIKit view, a hosted tree around it, and the host
     /// node that stands for it in the SwiftUI tree.
-    public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> {
+    static func _makeHostNode(_ context: _NodeContext<Self>) -> TypedNode<Self> {
         let coordinator = context.view.makeCoordinator()
         let makeContext = { (environment: EnvironmentValues, transaction: Transaction) in
             Context(coordinator: coordinator, transaction: transaction, environment: environment)
@@ -103,4 +103,13 @@ extension UIViewRepresentable {
                 representable.updateUIView(view, context: makeContext(environment, transaction))
             })
     }
+}
+
+extension UIViewRepresentable {
+    public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> { _makeHostNode(context) }
+}
+
+/// An animatable UIKit view representable is still hosted as one (its data does not interpolate).
+extension UIViewRepresentable where Self: Animatable {
+    public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> { _makeHostNode(context) }
 }

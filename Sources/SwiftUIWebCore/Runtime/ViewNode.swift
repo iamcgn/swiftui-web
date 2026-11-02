@@ -554,9 +554,6 @@ package final class CompositeNode<V: View>: TypedNode<V> {
     /// Storage for the view's dynamic properties (`@State` boxes and the like).
     package private(set) var propertyStorage: AnyObject?
 
-    /// The tween of an `Animatable` view's data (AnimatableBodies.swift).
-    private var animatableDriver: _AnimatableBodyDriver?
-
     package init(_ context: _NodeContext<V>) {
         super.init(view: context.view, parent: context.parent, runtime: context.runtime,
                    environment: context.environment)
@@ -567,7 +564,6 @@ package final class CompositeNode<V: View>: TypedNode<V> {
         let changed = force || needsUpdate
             || _valuesDiffer(self.view, view)
             || self.environment.generation != environment.generation
-        if _isAnimatableBody(V.self) { _AnimatableBodyDriver.change(&animatableDriver, node: self, old: self.view, new: view) }
         self.view = view
         self.environment = environment
         clearNeedsUpdate()
@@ -577,18 +573,12 @@ package final class CompositeNode<V: View>: TypedNode<V> {
     private func evaluateBody() {
         bodyEvaluations += 1
         _DynamicPropertyFields<V>.installAll(into: &view, node: self, slot: &propertyStorage)
-        let shown = animatableDriver?.presented(view) ?? view
-        let body = _trackingObservation(for: self) { shown.body }
+        let body = _trackingObservation(for: self) { view.body }
         if let child {
             child.update(view: body, environment: environment)
         } else {
             child = V.Body._makeNode(_NodeContext(view: body, parent: self, environment: environment))
         }
-    }
-
-    override package func unmount() {
-        animatableDriver?.stop()
-        super.unmount()
     }
 
     override package var structuralChildren: [ViewNode] { child.map { [$0] } ?? [] }

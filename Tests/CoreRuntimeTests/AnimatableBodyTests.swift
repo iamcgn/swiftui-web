@@ -43,6 +43,16 @@ import SwiftUIWebHeadless
         var body: some View { Color.blue.modifier(Grow(progress: model.progress)) }
     }
 
+    /// A shape whose animatable data is how much of its width it fills.
+    struct Fill: Shape {
+        var fraction: CGFloat
+        nonisolated var animatableData: CGFloat {
+            get { fraction }
+            set { fraction = newValue }
+        }
+        nonisolated func path(in rect: CGRect) -> Path { Path(CGRect(x: 0, y: 0, width: rect.width * fraction, height: rect.height)) }
+    }
+
     private func runtime<V: View>(_ view: V) -> Runtime {
         let runtime = Runtime()
         runtime.mount(view)
@@ -106,6 +116,13 @@ import SwiftUIWebHeadless
         tick(r, 1)
         #expect(r.probeFrames["grown"]?.width == 140)
         #expect(!r.advanceAnimations(elapsed: 0.1))
+    }
+
+    @Test func onlyAnimatableTypesGetTheAnimatableNodes() {
+        let runtime = Runtime()
+        #expect(runtime.mount(Bar(width: 40)) is AnimatableBodyNode<Bar>)
+        #expect(runtime.mount(Fill(fraction: 0.5)) is AnimatableBodyNode<Fill>)
+        #expect(runtime.mount(Bars(model: Model())) is CompositeNode<Bars>)
     }
 }
 #endif
