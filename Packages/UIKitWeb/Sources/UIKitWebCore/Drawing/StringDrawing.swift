@@ -257,7 +257,7 @@ struct StringDrawingStyle {
     }
 }
 
-#if os(WASI) && !canImport(ObjectiveC)
+#if os(WASI)
 /// `(text as NSString).draw(...)`: the same drawing and measuring as the string's.
 extension NSString {
     @preconcurrency @MainActor public func draw(at point: CGPoint, withAttributes attributes: [NSAttributedString.Key: Any]? = nil) {
