@@ -99,7 +99,9 @@ def main():
     # MARK: the corpus
     if apps:
         out.append("## The corpus\n")
-        out.append("Each app built for wasm from its sources at the commit shown, with every `import` of a module "
+        sdks = sorted({s.get("sdk") for s in sweep if s.get("sdk")})
+        out.append((f"Built with the `{'`, `'.join(sdks)}` Swift SDK. " if sdks else "") +
+                   "Each app built for wasm from its sources at the commit shown, with every `import` of a module "
                    "wasm does not have taken out so the build reaches the code below it (a measurement only; "
                    "decision 0021's standard is unchanged). The app's pinned packages build from source with it; a "
                    "module whose package failed is built without that package, its imports taken out the same way, "

@@ -62,6 +62,14 @@ plugins (code generators such as swift-openapi-generator's), binary targets and 
 Objective-C targets are not built. A package's errors count toward the first app of its batch
 that pins it, and show in the report with the package's name before the file.
 
+## Which SDK
+
+The sweep builds with the Objective-C runtime wasm SDK of decision 0023 (swift-objc-wasm,
+macOS arm64 only, so those jobs run on macOS): it is what an app with `@objc`, `#selector` or
+NSObject subclasses ships with, and the packages apps pin use all three. A dispatch with
+`sdk: stock` builds with the plain wasm SDK on Linux instead. The report names the SDK under
+"The corpus"; totals from the two SDKs are not comparable.
+
 ## Running it by hand
 
 On Linux with the wasm SDK (`scripts/bootstrap.sh`):
