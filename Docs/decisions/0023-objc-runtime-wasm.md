@@ -101,11 +101,13 @@ fbb333cf with a clean tree.
   Everything else in CI keeps the stock SDK. The 659 MB download is not cached — the workflow
   caches no SDK — and a second machine installing from the URL is what that step is.
 - No bridging of `String`, `Array`, `Dictionary` or `Error` to Foundation classes without a
-  Foundation (`String as NSString` is a compile error; WebFoundation's own `NSString` and
-  bridge, written for the Ember app on the stock SDK, are `!canImport(ObjectiveC)`: a type of
-  that name in the module named Foundation makes the patched compiler emit
-  `@UIApplicationMain`'s entry against UIKit's Objective-C module, which this SDK has not —
-  `emitArtificialTopLevel` asserted in CI, 2026-10-22), no Objective-C exceptions, no
+  Foundation, apart from `String as NSString` over WebFoundation's own `NSString` (2026-11-02:
+  the patched compiler takes a *single* declaration named `NSString` found through the module
+  named Foundation as Apple's Foundation being present and emits `@UIApplicationMain`'s entry
+  against UIKit's Objective-C module, which this SDK has not — `emitArtificialTopLevel`
+  asserted in CI, 2026-10-22 and again for a typealias on 2026-11-02; the Foundation shadow
+  declares an uncallable `NSString(_: Never)` function beside it so that lookup finds two),
+  no Objective-C exceptions, no
   corelibs Foundation, XCTest or Swift Testing in the interop SDK, single-threaded only.
   Decided 2026-10-15: that stays so for v1; v1.5 bridges `String` over the runtime's small
   `NSString` in WebFoundation; the eventual direction is corelibs Foundation rebuilt with interop
