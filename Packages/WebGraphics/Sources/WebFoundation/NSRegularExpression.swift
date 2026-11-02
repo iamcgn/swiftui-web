@@ -8,15 +8,18 @@
 // corners where they differ (possessive quantifiers, `\p{...}` without the `u` flag,
 // lookbehind in older engines) are the host's. Without a host the initializer throws.
 //
-// `NSString` is the stock SDK's: the interop SDK's compiler (decision 0023) takes a type of
-// that name in the module named Foundation as Apple's Foundation being present and emits
+// The class is `_WebNSString` and `NSString` names it through a typealias, on both SDKs: the
+// interop SDK's compiler (decision 0023) looks up a *class* named `NSString` in the module
+// named Foundation to tell whether Apple's Foundation is present, and on finding one emits
 // `@UIApplicationMain`'s entry against UIKit's Objective-C module, which that SDK has not
-// (`emitArtificialTopLevel` asserts). There the bridge waits for the runtime's own `NSString`
-// (the SDK's v1.5 direction); `NSRegularExpression` takes a `String` either way.
+// (`emitArtificialTopLevel` asserted). A typealias is not a class declaration, so that lookup
+// still finds none, while apps' `NSString` and `as NSString` resolve as before.
 #if os(WASI)
-#if !canImport(ObjectiveC)
+/// Foundation's name for the string object (`_WebNSString`, see above).
+public typealias NSString = _WebNSString
+
 /// A static, plain-text Unicode string object, bridged from `String` (`as NSString`).
-public final class NSString: Hashable, CustomStringConvertible, ExpressibleByStringLiteral, @unchecked Sendable {
+public final class _WebNSString: Hashable, CustomStringConvertible, ExpressibleByStringLiteral, @unchecked Sendable {
     public let string: String
     private lazy var utf16: [UInt16] = Array(string.utf16)
 
@@ -106,7 +109,6 @@ extension String: @retroactive _ObjectiveCBridgeable {
     public static func _conditionallyBridgeFromObjectiveC(_ source: NSString, result: inout String?) -> Bool { result = source.string; return true }
     public static func _unconditionallyBridgeFromObjectiveC(_ source: NSString?) -> String { source?.string ?? "" }
 }
-#endif
 
 /// What a host provides: a compiled pattern's matches over a string, as UTF-16 ranges.
 public enum _RegexHost {
