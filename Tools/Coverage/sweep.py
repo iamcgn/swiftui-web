@@ -1044,6 +1044,11 @@ def cmd_run(args):
                 status[-1]["package"] = t["remote"]
                 built[t["module"]] = {k: v for k, v in status[-1].items() if k != "errors"}
             print(f"{app['name']} {t['module']}: {status[-1]['status']} ({len(errors)} errors)")
+            if args.show and re.search(args.show, f"{app['name']} {t['module']}"):
+                # The whole list in the job log, for a module a change is aimed at (the
+                # artifacts hold it too, but a log is what every reader can open).
+                for e in errors:
+                    print(f"  {e['file']}:{e['line']}: {e['msg']}")
         files = [f for t in app["targets"] if not t.get("skip") and not t.get("remote") for f in t["files"]]
         results["apps"].append({
             **{k: app.get(k) for k in ("name", "repo", "sha", "control", "missing_imports", "asset_names",
@@ -1072,6 +1077,7 @@ def main():
     p = sub.add_parser("run"); p.add_argument("--plan", required=True); p.add_argument("--work", required=True)
     p.add_argument("--pkg", required=True); p.add_argument("--batch", type=int, required=True)
     p.add_argument("--sdk", required=True); p.add_argument("-o", "--out", required=True)
+    p.add_argument("--show", default="", help="print every error of the modules this pattern matches (`App Module`)")
     args = ap.parse_args()
     {"plan": cmd_plan, "fetch": cmd_fetch, "prepare": cmd_prepare, "run": cmd_run}[args.cmd](args)
 

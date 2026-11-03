@@ -68,7 +68,9 @@ The sweep builds with the Objective-C runtime wasm SDK of decision 0023 (swift-o
 macOS arm64 only, so those jobs run on macOS): it is what an app with `@objc`, `#selector` or
 NSObject subclasses ships with, and the packages apps pin use all three. A dispatch with
 `sdk: stock` builds with the plain wasm SDK on Linux instead. The report names the SDK under
-"The corpus"; totals from the two SDKs are not comparable.
+"The corpus"; totals from the two SDKs are not comparable. A dispatch's `show` input (a pattern
+of `App Module` names, like `Kingfisher`) prints every error of the modules it matches to the
+sweep job's log (`run --show`), for work aimed at one package.
 
 ## Running it by hand
 
