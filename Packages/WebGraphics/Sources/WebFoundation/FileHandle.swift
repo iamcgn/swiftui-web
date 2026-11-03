@@ -7,17 +7,19 @@
 #if os(WASI)
 
 public final class FileHandle: @unchecked Sendable {
-    private enum Target { case file(URL), standardOutput, standardError, standardInput, null }
-    private let target: Target
+    /// The file in the store, or nil for the standard streams and the null device (told apart by
+    /// the descriptor). Plain fields rather than an enum with a URL payload: an enum's value
+    /// witnesses stay in the bundle even when nothing opens a file.
+    private let file: URL?
     private var buffer: Data
     private var position = 0
     private var closed = false
     public let fileDescriptor: Int32
 
-    private init(target: Target, descriptor: Int32) {
-        self.target = target
+    private init(file: URL?, descriptor: Int32) {
+        self.file = file
         fileDescriptor = descriptor
-        if case .file(let url) = target { buffer = _MemoryFiles.read(url) ?? Data() } else { buffer = Data() }
+        buffer = file.flatMap { _MemoryFiles.read($0) } ?? Data()
     }
 
     nonisolated(unsafe) private static var nextDescriptor: Int32 = 3
@@ -25,24 +27,19 @@ public final class FileHandle: @unchecked Sendable {
     private convenience init(file url: URL) {
         let descriptor = FileHandle.nextDescriptor
         FileHandle.nextDescriptor += 1
-        self.init(target: .file(url), descriptor: descriptor)
+        self.init(file: url, descriptor: descriptor)
     }
 
-    /// Wraps a descriptor: 0, 1 and 2 are the standard streams; any other reads and writes nothing.
+    /// Wraps a descriptor: 1 and 2 print what's written; any other reads and writes nothing.
     public convenience init(fileDescriptor: Int32) {
-        switch fileDescriptor {
-        case 0: self.init(target: .standardInput, descriptor: 0)
-        case 1: self.init(target: .standardOutput, descriptor: 1)
-        case 2: self.init(target: .standardError, descriptor: 2)
-        default: self.init(target: .null, descriptor: fileDescriptor)
-        }
+        self.init(file: nil, descriptor: fileDescriptor)
     }
     public convenience init(fileDescriptor: Int32, closeOnDealloc: Bool) { self.init(fileDescriptor: fileDescriptor) }
 
-    public static var standardInput: FileHandle { FileHandle(target: .standardInput, descriptor: 0) }
-    public static var standardOutput: FileHandle { FileHandle(target: .standardOutput, descriptor: 1) }
-    public static var standardError: FileHandle { FileHandle(target: .standardError, descriptor: 2) }
-    public static var nullDevice: FileHandle { FileHandle(target: .null, descriptor: -1) }
+    public static var standardInput: FileHandle { FileHandle(file: nil, descriptor: 0) }
+    public static var standardOutput: FileHandle { FileHandle(file: nil, descriptor: 1) }
+    public static var standardError: FileHandle { FileHandle(file: nil, descriptor: 2) }
+    public static var nullDevice: FileHandle { FileHandle(file: nil, descriptor: -1) }
 
     // Opening. The path forms return nil when the file is missing, as Foundation's do; the URL
     // forms throw. Opening for writing doesn't truncate.
@@ -87,17 +84,14 @@ public final class FileHandle: @unchecked Sendable {
     // Writing: overwrites from the current offset and grows the file past its end.
     public func write(_ data: Data) {
         guard !closed else { return }
-        switch target {
-        case .standardOutput, .standardError:
-            print(String(decoding: data, as: UTF8.self), terminator: "")
-        case .file(let url):
+        if let file {
             let end = position + data.count
             if end > buffer.count { buffer.append(Data(repeating: 0, count: end - buffer.count)) }
             buffer.replaceSubrange(position..<end, with: data)
             position = end
-            _MemoryFiles.write(buffer, to: url)
-        case .standardInput, .null:
-            break
+            _MemoryFiles.write(buffer, to: file)
+        } else if fileDescriptor == 1 || fileDescriptor == 2 {
+            print(String(decoding: data, as: UTF8.self), terminator: "")
         }
     }
 
@@ -120,7 +114,7 @@ public final class FileHandle: @unchecked Sendable {
         let size = Int(offset)
         if size < buffer.count { buffer = Data(buffer[0..<size]) } else if size > buffer.count { buffer.append(Data(repeating: 0, count: size - buffer.count)) }
         position = size
-        if case .file(let url) = target { _MemoryFiles.write(buffer, to: url) }
+        if let file { _MemoryFiles.write(buffer, to: file) }
     }
     public func truncate(atOffset offset: UInt64) throws { truncateFile(atOffset: offset) }
 

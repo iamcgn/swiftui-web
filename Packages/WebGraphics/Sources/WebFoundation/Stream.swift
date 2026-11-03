@@ -101,25 +101,38 @@ public final class InputStream: Stream, @unchecked Sendable {
 }
 
 public final class OutputStream: Stream, @unchecked Sendable {
-    private enum Target { case memory, file(URL), buffer(UnsafeMutablePointer<UInt8>, Int) }
-    private let target: Target
+    // Where the bytes go: a file when `file` is set, a caller's buffer when `destination` is,
+    // memory otherwise. Plain fields rather than an enum with a URL payload, whose value
+    // witnesses would stay in the bundle even when nothing makes a stream.
+    private let file: URL?
+    private let destination: UnsafeMutablePointer<UInt8>?
+    private let capacity: Int
     private var written = Data()
 
     public init(toMemory: ()) {
-        target = .memory
+        file = nil
+        destination = nil
+        capacity = .max
         super.init()
+        properties[.dataWrittenToMemoryStreamKey] = written
     }
 
     public init(toBuffer buffer: UnsafeMutablePointer<UInt8>, capacity: Int) {
-        target = .buffer(buffer, capacity)
+        file = nil
+        destination = buffer
+        self.capacity = capacity
         super.init()
     }
 
-    /// Writes to the file at `url`, after its current contents when `shouldAppend`.
+    /// Writes to the file at `url`, after its current contents when `shouldAppend`. The file is
+    /// created (or emptied) here rather than on `open()`.
     public init?(url: URL, append shouldAppend: Bool) {
-        target = .file(url)
+        file = url
+        destination = nil
+        capacity = .max
         if shouldAppend, let existing = _MemoryFiles.read(url) { written = existing }
         super.init()
+        _MemoryFiles.write(written, to: url)
     }
 
     public convenience init?(toFileAtPath path: String, append shouldAppend: Bool) {
@@ -128,33 +141,22 @@ public final class OutputStream: Stream, @unchecked Sendable {
 
     public static func toMemory() -> OutputStream { OutputStream(toMemory: ()) }
 
-    public var hasSpaceAvailable: Bool {
-        guard streamStatus == .open else { return false }
-        if case .buffer(_, let capacity) = target { return written.count < capacity }
-        return true
-    }
+    public var hasSpaceAvailable: Bool { streamStatus == .open && written.count < capacity }
 
     /// Appends up to `len` bytes; returns how many, or -1 if not open.
     public func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
         guard streamStatus == .open else { return -1 }
-        var count = len
-        if case .buffer(let destination, let capacity) = target {
-            count = min(len, capacity - written.count)
-            for offset in 0..<max(0, count) { destination[written.count + offset] = buffer[offset] }
+        let count = max(0, min(len, capacity - written.count))
+        if let destination {
+            for offset in 0..<count { destination[written.count + offset] = buffer[offset] }
         }
-        written.append(contentsOf: UnsafeBufferPointer(start: buffer, count: max(0, count)))
-        switch target {
-        case .memory: properties[.dataWrittenToMemoryStreamKey] = written
-        case .file(let url): _MemoryFiles.write(written, to: url)
-        case .buffer: break
+        written.append(contentsOf: UnsafeBufferPointer(start: buffer, count: count))
+        if let file {
+            _MemoryFiles.write(written, to: file)
+        } else if destination == nil {
+            properties[.dataWrittenToMemoryStreamKey] = written
         }
-        return max(0, count)
-    }
-
-    public override func open() {
-        super.open()
-        if case .file(let url) = target { _MemoryFiles.write(written, to: url) }
-        if case .memory = target { properties[.dataWrittenToMemoryStreamKey] = written }
+        return count
     }
 }
 #endif
