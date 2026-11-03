@@ -43,6 +43,17 @@ more when the last ends). The canvas host calls it every frame alongside the scr
 and keeps scheduling frames while `isAnimating`; `__swiftuiwebDebug.animating()` lets Tier B
 wait for the settled state after a step.
 
+A view with a body that conforms to `Animatable`, and an `AnimatableModifier` (or any modifier
+with a body that conforms to `Animatable`), gets a node of its own,
+`AnimatableBodyNode` or `AnimatableModifierBodyNode` (Runtime/AnimatableBodies.swift), chosen by
+`_makeNode` defaults constrained to `Animatable`, so the composite and modifier nodes every other
+type uses carry nothing for it. When its animatable data changes under an animation, the node
+subscribes to frames and evaluates the body each frame with the data interpolated from the value
+on screen to the new one; a change without an animation jumps, and the subscription ends with
+the tween. A custom `Shape` is such a view, so its data (a trimmed arc's progress, a corner
+radius) interpolates the same way. Geometry effects keep their own node, and a representable
+that conforms to `Animatable` is hosted as before.
+
 ## Measured (macOS 26.2, `animation/frame`, `animation/transition`, `animation/implicit`, 2026-09-03)
 
 | Property | Value | Probe |

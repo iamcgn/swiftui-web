@@ -48,6 +48,13 @@ public final class CLLocation: Sendable {
     }
 }
 
+/// Equal when the same object, as `NSObject`'s `isEqual(_:)` and `hash` make a location on
+/// Apple platforms: a model that stores one can be `Hashable` (FoodTruck's `ParkingSpot`).
+extension CLLocation: Hashable {
+    public static func == (lhs: CLLocation, rhs: CLLocation) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+}
+
 // Math without Foundation's overlays on wasm (WebGraphics has the same helpers; this module
 // stays free of it).
 @inline(__always) func _sinD(_ x: Double) -> Double { x.sin() }

@@ -1106,7 +1106,7 @@
         {
           "api": "Animation (linear, ease curves, timingCurve, springs, delay/speed/repeat) / withAnimation / Transaction.animation",
           "status": "partial",
-          "notes": "Curves evaluated per frame; frames, opacity and Color fills tween; no transforms, shape/text colour, Animatable custom data, completion callbacks or blending; withAnimation(completionCriteria:completion:) and Transaction.addAnimationCompletion, springs with initial velocity (blendDuration recorded), accessibilityReduceMotion from the host's prefers-reduced-motion, exiting ghosts inside List, Picker and grouped Form, symbol content transitions crossfading (2026-10-04)",
+          "notes": "Curves evaluated per frame; frames, opacity and Color fills tween; no transforms, shape/text colour, Animatable custom data, completion callbacks or blending; withAnimation(completionCriteria:completion:) and Transaction.addAnimationCompletion, springs with initial velocity (blendDuration recorded), accessibilityReduceMotion from the host's prefers-reduced-motion, exiting ghosts inside List, Picker and grouped Form, symbol content transitions crossfading (2026-10-04); views that conform to Animatable and AnimatableModifier evaluate their body each frame with their animatable data interpolated (2026-11-02)",
           "fixtures": [
             "animation/frame",
             "animation/implicit"

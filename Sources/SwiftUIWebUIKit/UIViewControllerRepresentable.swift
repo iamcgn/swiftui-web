@@ -66,7 +66,7 @@ public struct UIViewControllerRepresentableContext<Representable: UIViewControll
 }
 
 extension UIViewControllerRepresentable {
-    public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> {
+    static func _makeHostNode(_ context: _NodeContext<Self>) -> TypedNode<Self> {
         let coordinator = context.view.makeCoordinator()
         let makeContext = { (environment: EnvironmentValues, transaction: Transaction) in
             Context(coordinator: coordinator, transaction: transaction, environment: environment)
@@ -88,4 +88,13 @@ extension UIViewControllerRepresentable {
                 representable.updateUIViewController(controller, context: makeContext(environment, transaction))
             })
     }
+}
+
+extension UIViewControllerRepresentable {
+    public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> { _makeHostNode(context) }
+}
+
+/// An animatable view controller representable is still hosted as one (its data does not interpolate).
+extension UIViewControllerRepresentable where Self: Animatable {
+    public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> { _makeHostNode(context) }
 }

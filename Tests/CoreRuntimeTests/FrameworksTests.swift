@@ -163,6 +163,18 @@ import FoundationNetworking   // Linux keeps URLRequest here
         #expect(abs(distance - 111_195) < 100)
     }
 
+    /// Locations and map items are equal when the same object, as `NSObject` makes them on Apple
+    /// platforms, so a model that stores one can be `Hashable`.
+    @Test func locationsAndMapItemsHashByIdentity() {
+        struct Spot: Hashable { var name: String; var location: CLLocation }
+        let here = CLLocation(latitude: 1, longitude: 2)
+        #expect(Spot(name: "a", location: here) == Spot(name: "a", location: here))
+        #expect(Spot(name: "a", location: here) != Spot(name: "a", location: CLLocation(latitude: 1, longitude: 2)))
+        #expect(Set([here, here]).count == 1)
+        let item = MKMapItem(coordinate: CLLocationCoordinate2D(latitude: 1, longitude: 2))
+        #expect(Set([item, item, MKMapItem(coordinate: item.coordinate)]).count == 2)
+    }
+
     @Test func mapLaysOutTilesAndMarkerAtTheCoordinate() {
         let ferry = CLLocationCoordinate2D(latitude: 37.7955, longitude: -122.3937)
         let runtime = render(Map(initialPosition: .region(MKCoordinateRegion(center: ferry, span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.03)))) {

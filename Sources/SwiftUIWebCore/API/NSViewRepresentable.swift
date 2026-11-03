@@ -102,7 +102,7 @@ public protocol _NativeViewHosting: AnyObject {
 }
 
 extension NSViewRepresentable {
-    public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> {
+    static func _makeHostNode(_ context: _NodeContext<Self>) -> TypedNode<Self> {
         let coordinator = context.view.makeCoordinator()
         let makeContext = { (environment: EnvironmentValues, transaction: Transaction) in
             Context(coordinator: coordinator, transaction: transaction, environment: environment)
@@ -116,8 +116,17 @@ extension NSViewRepresentable {
     }
 }
 
+extension NSViewRepresentable {
+    public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> { _makeHostNode(context) }
+}
+
+/// An animatable AppKit view representable is still hosted as one (its data does not interpolate).
+extension NSViewRepresentable where Self: Animatable {
+    public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> { _makeHostNode(context) }
+}
+
 extension NSViewControllerRepresentable {
-    public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> {
+    static func _makeHostNode(_ context: _NodeContext<Self>) -> TypedNode<Self> {
         let coordinator = context.view.makeCoordinator()
         let makeContext = { (environment: EnvironmentValues, transaction: Transaction) in
             Context(coordinator: coordinator, transaction: transaction, environment: environment)
@@ -129,6 +138,15 @@ extension NSViewControllerRepresentable {
             update: { representable, environment, transaction in representable.updateNSViewController(controller, context: makeContext(environment, transaction)) },
             dismantle: { Self.dismantleNSViewController(controller, coordinator: coordinator) })
     }
+}
+
+extension NSViewControllerRepresentable {
+    public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> { _makeHostNode(context) }
+}
+
+/// An animatable view controller representable is still hosted as one (its data does not interpolate).
+extension NSViewControllerRepresentable where Self: Animatable {
+    public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> { _makeHostNode(context) }
 }
 
 /// The leaf that stands for an AppKit view: sized by the representable, else by the host's

@@ -55,3 +55,20 @@ public func _convertNSErrorToError(_ error: NSError?) -> any Error {
 @_disfavoredOverload
 public func NSString(_ unreachable: Never) -> Never {}
 #endif
+
+#if os(WASI)
+// POSIX mutexes, which Apple's Foundation brings with Darwin and the WASI C library declares
+// only for threaded builds: a page runs one thread, so each call succeeds at once (as the
+// locks in WebFoundation's Threading.swift do). SwiftSoup's `Mutex` is built on these.
+// The attributes are taken untyped: callers pass nil or their own attribute value.
+@discardableResult
+public func pthread_mutex_init(_ mutex: UnsafeMutablePointer<pthread_mutex_t>?, _ attributes: UnsafeRawPointer?) -> Int32 { 0 }
+@discardableResult
+public func pthread_mutex_destroy(_ mutex: UnsafeMutablePointer<pthread_mutex_t>?) -> Int32 { 0 }
+@discardableResult
+public func pthread_mutex_lock(_ mutex: UnsafeMutablePointer<pthread_mutex_t>?) -> Int32 { 0 }
+@discardableResult
+public func pthread_mutex_trylock(_ mutex: UnsafeMutablePointer<pthread_mutex_t>?) -> Int32 { 0 }
+@discardableResult
+public func pthread_mutex_unlock(_ mutex: UnsafeMutablePointer<pthread_mutex_t>?) -> Int32 { 0 }
+#endif

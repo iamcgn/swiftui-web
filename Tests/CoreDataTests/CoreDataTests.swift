@@ -89,8 +89,17 @@ struct CoreDataTests {
         return (error as Any as? NSError)?.code
     }
 
+    /// Waits, bounded, until `condition` holds; the assertion after it decides. Under WASI it
+    /// only yields: the Node test runner cannot wait on the event loop, and a sleep there ends
+    /// the whole run ("async io not supported") whenever the first look comes too early.
     private func settled(_ condition: @escaping @MainActor () -> Bool) async {
-        for _ in 0..<1000 { if await MainActor.run(body: condition) { return }; await Task.yield(); try? await Task.sleep(nanoseconds: 1_000_000) }
+        for _ in 0..<1000 {
+            if await MainActor.run(body: condition) { return }
+            await Task.yield()
+            #if !os(WASI)
+            try? await Task.sleep(nanoseconds: 1_000_000)
+            #endif
+        }
     }
 
     // MARK: Predicates
