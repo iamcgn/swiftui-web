@@ -83,6 +83,8 @@ public final class NotificationCenter: @unchecked Sendable {
         weak var object: AnyObject?
         let filtersObject: Bool
         let block: @Sendable (Notification) -> Void
+        /// The object a selector observer sends to (nil for a block observer).
+        var owner: ObjectIdentifier? = nil
     }
     private var observers: [Int: Observer] = [:]
     private var nextID = 0
@@ -99,9 +101,28 @@ public final class NotificationCenter: @unchecked Sendable {
     }
 
     public func removeObserver(_ token: Any) {
-        guard let token = token as? NotificationToken else { return }
-        observers[token.id] = nil
+        if let token = token as? NotificationToken { observers[token.id] = nil; return }
+        let owner = ObjectIdentifier(token as AnyObject)
+        observers = observers.filter { $0.value.owner != owner }
     }
+
+    /// Removes `observer`'s selector observations of `name` (every name when nil).
+    public func removeObserver(_ observer: Any, name: Notification.Name?, object: Any?) {
+        let owner = ObjectIdentifier(observer as AnyObject)
+        observers = observers.filter { $0.value.owner != owner || (name != nil && $0.value.name != name) }
+    }
+
+    #if canImport(ObjectiveC)
+    /// Sends `selector` to `observer` for each matching post while the observer lives (the
+    /// notification is not passed: it is a struct here, so an `@objc` method cannot take it).
+    public func addObserver(_ observer: Any, selector: Selector, name: Notification.Name?, object: Any?) {
+        let target = _WeakTarget(observer as AnyObject)
+        nextID += 1
+        observers[nextID] = Observer(name: name, object: object.map { $0 as AnyObject }, filtersObject: object != nil,
+                                     block: { _ in _ = (target.object as? NSObject)?.perform(selector, with: nil) },
+                                     owner: ObjectIdentifier(observer as AnyObject))
+    }
+    #endif
 
     public func post(_ notification: Notification) {
         for observer in observers.values {
@@ -114,6 +135,12 @@ public final class NotificationCenter: @unchecked Sendable {
     public func post(name: Notification.Name, object: AnyObject? = nil, userInfo: [AnyHashable: Any]? = nil) {
         post(Notification(name: name, object: object, userInfo: userInfo))
     }
+}
+
+/// A selector observer's target, held weakly.
+final class _WeakTarget: @unchecked Sendable {
+    weak var object: AnyObject?
+    init(_ object: AnyObject) { self.object = object }
 }
 
 /// An observer token (`addObserver(forName:...)`'s return value).

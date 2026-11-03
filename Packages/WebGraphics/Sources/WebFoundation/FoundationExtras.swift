@@ -274,6 +274,9 @@ public struct URLResourceValues: Sendable {
     public var fileSize: Int?
     public var contentModificationDate: Date?
     public var creationDate: Date?
+    public var contentAccessDate: Date?
+    public var totalFileAllocatedSize: Int?
+    public var fileAllocatedSize: Int?
     public var isDirectory: Bool?
     public var isRegularFile: Bool?
     public var name: String?
@@ -281,6 +284,7 @@ public struct URLResourceValues: Sendable {
         var values: [URLResourceKey: Any] = [:]
         if let fileSize { values[.fileSizeKey] = fileSize }
         if let contentModificationDate { values[.contentModificationDateKey] = contentModificationDate }
+        if let creationDate { values[.creationDateKey] = creationDate }
         if let isDirectory { values[.isDirectoryKey] = isDirectory }
         return values
     }
@@ -302,7 +306,10 @@ extension URL {
         values.isRegularFile = true
         values.fileSize = data.count
         values.contentModificationDate = _MemoryFiles.modificationDate(self)
-        values.creationDate = values.contentModificationDate
+        values.creationDate = _MemoryFiles.creationDate(self)
+        values.contentAccessDate = values.contentModificationDate
+        values.totalFileAllocatedSize = data.count
+        values.fileAllocatedSize = data.count
         return values
     }
 }

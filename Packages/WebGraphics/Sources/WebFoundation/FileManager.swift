@@ -88,8 +88,56 @@ public final class FileManager: @unchecked Sendable {
         _MemoryFiles.contents(of: URL(fileURLWithPath: path, isDirectory: true)).map(\.lastPathComponent)
     }
     public func attributesOfItem(atPath path: String) throws -> [FileAttributeKey: Any] {
-        guard let data = _MemoryFiles.read(URL(fileURLWithPath: path)) else { throw _FileError.noSuchFile(URL(fileURLWithPath: path)) }
-        return [.size: data.count]
+        let url = URL(fileURLWithPath: path)
+        guard let data = _MemoryFiles.read(url) else { throw _FileError.noSuchFile(url) }
+        var attributes: [FileAttributeKey: Any] = [.size: data.count, .type: FileAttributeType.typeRegular]
+        if let date = _MemoryFiles.modificationDate(url) { attributes[.modificationDate] = date }
+        if let date = _MemoryFiles.creationDate(url) { attributes[.creationDate] = date }
+        return attributes
+    }
+
+    /// Sets a file's creation and modification dates; other attributes are accepted and kept by
+    /// nothing (the in-memory files have no owners or permissions).
+    public func setAttributes(_ attributes: [FileAttributeKey: Any], ofItemAtPath path: String) throws {
+        let url = URL(fileURLWithPath: path)
+        guard _MemoryFiles.exists(url) || _MemoryFiles.isDirectory(url) else { throw _FileError.noSuchFile(url) }
+        _MemoryFiles.setDates(url, creation: attributes[.creationDate] as? Date, modification: attributes[.modificationDate] as? Date)
+    }
+
+    /// Every file and directory under `url`, depth first (the keys are read when asked for).
+    public func enumerator(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]?,
+                           options mask: DirectoryEnumerationOptions = [],
+                           errorHandler handler: ((URL, Error) -> Bool)? = nil) -> DirectoryEnumerator? {
+        guard _MemoryFiles.isDirectory(url) else { return nil }
+        var found: [Any] = []
+        func walk(_ directory: URL) {
+            for child in _MemoryFiles.contents(of: directory) {
+                if mask.contains(.skipsHiddenFiles), child.lastPathComponent.hasPrefix(".") { continue }
+                found.append(child)
+                if _MemoryFiles.isDirectory(child), !mask.contains(.skipsSubdirectoryDescendants) { walk(child) }
+            }
+        }
+        walk(url)
+        return DirectoryEnumerator(found)
+    }
+
+    /// The paths under `path`, relative to it, depth first.
+    public func enumerator(atPath path: String) -> DirectoryEnumerator? {
+        let base = URL(fileURLWithPath: path, isDirectory: true)
+        guard let all = enumerator(at: base, includingPropertiesForKeys: nil) else { return nil }
+        let prefix = base.path.hasSuffix("/") ? base.path : base.path + "/"
+        return DirectoryEnumerator(all.allObjects.compactMap { ($0 as? URL).map { String($0.path.dropFirst(prefix.count)) } })
+    }
+
+    /// The items a directory enumeration found, in order.
+    public final class DirectoryEnumerator: Sequence, IteratorProtocol {
+        private var items: [Any]
+        init(_ items: [Any]) { self.items = items }
+        public func nextObject() -> Any? { items.isEmpty ? nil : items.removeFirst() }
+        public func next() -> Any? { nextObject() }
+        /// The items not yet enumerated.
+        public var allObjects: [Any] { let rest = items; items = []; return rest }
+        public func skipDescendants() {}
     }
 
     public enum _FileError: Error, CustomStringConvertible {
@@ -108,6 +156,16 @@ public struct FileAttributeKey: Hashable, Sendable, RawRepresentable {
     public static let modificationDate = FileAttributeKey("NSFileModificationDate")
     public static let creationDate = FileAttributeKey("NSFileCreationDate")
     public static let type = FileAttributeKey("NSFileType")
+    public static let posixPermissions = FileAttributeKey("NSFilePosixPermissions")
+    public static let protectionKey = FileAttributeKey("NSFileProtectionKey")
+}
+
+/// The kind of a file (`FileAttributeKey.type`'s value).
+public struct FileAttributeType: Hashable, Sendable, RawRepresentable {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+    public static let typeRegular = FileAttributeType(rawValue: "NSFileTypeRegular")
+    public static let typeDirectory = FileAttributeType(rawValue: "NSFileTypeDirectory")
 }
 
 public struct URLResourceKey: Hashable, Sendable, RawRepresentable {
@@ -116,6 +174,12 @@ public struct URLResourceKey: Hashable, Sendable, RawRepresentable {
     public static let isDirectoryKey = URLResourceKey(rawValue: "NSURLIsDirectoryKey")
     public static let contentModificationDateKey = URLResourceKey(rawValue: "NSURLContentModificationDateKey")
     public static let fileSizeKey = URLResourceKey(rawValue: "NSURLFileSizeKey")
+    public static let creationDateKey = URLResourceKey(rawValue: "NSURLCreationDateKey")
+    public static let contentAccessDateKey = URLResourceKey(rawValue: "NSURLContentAccessDateKey")
+    public static let isRegularFileKey = URLResourceKey(rawValue: "NSURLIsRegularFileKey")
+    public static let nameKey = URLResourceKey(rawValue: "NSURLNameKey")
+    public static let totalFileAllocatedSizeKey = URLResourceKey(rawValue: "NSURLTotalFileAllocatedSizeKey")
+    public static let fileAllocatedSizeKey = URLResourceKey(rawValue: "NSURLFileAllocatedSizeKey")
 }
 
 public struct ObjCBool: Sendable, ExpressibleByBooleanLiteral {

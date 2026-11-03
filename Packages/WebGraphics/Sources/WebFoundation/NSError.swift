@@ -47,6 +47,8 @@ public let NSLocalizedRecoverySuggestionErrorKey = "NSLocalizedRecoverySuggestio
 public let NSUnderlyingErrorKey = "NSUnderlyingError"
 public let NSCocoaErrorDomain = "NSCocoaErrorDomain"
 public let NSURLErrorDomain = "NSURLErrorDomain"
+public let NSPOSIXErrorDomain = "NSPOSIXErrorDomain"
+public let NSOSStatusErrorDomain = "NSOSStatusErrorDomain"
 /// Cocoa's error codes apps raise themselves (the Countries app's `Loadable`, decision 0021).
 public let NSUserCancelledError = 3072
 public let NSFileNoSuchFileError = 4

@@ -188,6 +188,35 @@ extension NSAttributedString.Key {
     public static let strikethroughColor = NSAttributedString.Key("NSStrikethroughColor")
     public static let kern = NSAttributedString.Key("NSKern")
     public static let link = NSAttributedString.Key("NSLink")
+    public static let attachment = NSAttributedString.Key("NSAttachment")
+}
+
+/// An attachment in an attributed string: an image (or file contents) and the bounds it
+/// takes in the line. Attributed text holds it under `.attachment` at U+FFFC; text views show
+/// the attachment character's run as text (attachments are not laid out inline yet).
+open class NSTextAttachment: @unchecked Sendable {
+    /// The character an attachment stands on.
+    public static let character: Int = 0xFFFC
+    open var image: UIImage?
+    open var contents: Data?
+    open var fileType: String?
+    open var bounds: CGRect = .zero
+    public init(data contentData: Data?, ofType uti: String?) {
+        contents = contentData
+        fileType = uti
+    }
+    public convenience init() { self.init(data: nil, ofType: nil) }
+    public convenience init(image: UIImage) {
+        self.init(data: nil, ofType: nil)
+        self.image = image
+    }
+}
+
+extension NSAttributedString {
+    /// A one-character string holding `attachment`.
+    public convenience init(attachment: NSTextAttachment) {
+        self.init(string: "\u{FFFC}", attributes: [.attachment: attachment])
+    }
 }
 
 /// The underline and strikethrough styles (`NSUnderlineStyle.single.rawValue` as the

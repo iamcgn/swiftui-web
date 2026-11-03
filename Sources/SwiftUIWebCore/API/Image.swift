@@ -21,6 +21,12 @@ public struct Image: Equatable, Sendable {
         case renderer(_ImageRenderer)
     }
 
+    /// How an image's pixels are turned and mirrored to show it, with SwiftUI's raw values.
+    public enum Orientation: UInt8, CaseIterable, Hashable, Sendable {
+        case up = 0, upMirrored = 2, down = 6, downMirrored = 4
+        case left = 1, leftMirrored = 3, right = 7, rightMirrored = 5
+    }
+
     /// How a resizable image fills its frame.
     public enum ResizingMode: Hashable, CaseIterable, Sendable {
         case tile

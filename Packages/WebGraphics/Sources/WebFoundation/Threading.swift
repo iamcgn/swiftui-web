@@ -129,6 +129,14 @@ public enum QualityOfService: Int, Sendable {
 /// A mutable collection of key-value pairs that it may evict: here, the oldest entries once
 /// `countLimit` or `totalCostLimit` is passed. Keys compare as Foundation's do, by `isEqual`
 /// (their hashable value), else by identity.
+/// An object whose contents a cache may throw away while nobody is accessing them.
+public protocol NSDiscardableContent: AnyObject {
+    func beginContentAccess() -> Bool
+    func endContentAccess()
+    func discardContentIfPossible()
+    func isContentDiscarded() -> Bool
+}
+
 open class NSCache<KeyType: AnyObject, ObjectType: AnyObject>: NSObject, @unchecked Sendable {
     private struct Entry { let key: KeyType; let object: ObjectType; let cost: Int }
     private var entries: [AnyHashable: Entry] = [:]
