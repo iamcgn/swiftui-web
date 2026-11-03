@@ -43,8 +43,13 @@ public final class UIGraphicsRecordingContext {
     /// and earlier drawing, as CoreGraphics composites in a layer's backing store.
     private(set) var usesBlending = false
 
-    init(origin: CGPoint, scale: CGFloat) {
+    /// The size in points of the image an image context draws (nil for a view's context): what
+    /// `width`, `height` and `makeImage()` report.
+    let canvasSize: CGSize?
+
+    init(origin: CGPoint, scale: CGFloat, canvasSize: CGSize? = nil) {
         self.scale = scale
+        self.canvasSize = canvasSize
         state.ctm = CGAffineTransform(translationX: origin.x, y: origin.y)
     }
 
@@ -320,6 +325,21 @@ public final class UIGraphicsRecordingContext {
             commands.append(contentsOf: local)
             commands.append(.restore)
         }
+    }
+
+    /// What has been recorded, with what is still open closed (as `finish` would close it).
+    var closedCommands: [DisplayCommand] {
+        var out = commands
+        var groups = groupsInState, clips = clipsInState
+        var savedGroups = openGroups, savedClips = clipStack
+        while true {
+            out += Array(repeating: DisplayCommand.endGroup, count: groups)
+            if clips > 0 { out.append(.restore) }
+            guard let next = savedGroups.popLast() else { break }
+            groups = next
+            clips = savedClips.popLast() ?? 0
+        }
+        return out
     }
 
     /// Closes what is still open when drawing ends.

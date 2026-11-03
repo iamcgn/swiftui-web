@@ -1,8 +1,15 @@
 // CADisplayLink (Docs/elements/UIKit/Animation.md): a timer tied to the scene's frame clock.
-// There is no Objective-C runtime here, so the link takes a handler rather than a selector:
-// `CADisplayLink(target:handler:)` or `CADisplayLink { link in … }`; `add(to:forMode:)` starts
-// it (the run loop arguments are accepted and ignored), `invalidate` ends it, `isPaused` holds
-// it. `timestamp`, `targetTimestamp` and `duration` follow the frames the host delivers.
+// The link takes a handler, `CADisplayLink(target:handler:)` or `CADisplayLink { link in … }`,
+// or, where there is an Objective-C runtime, iOS's `CADisplayLink(target:selector:)`.
+// `add(to:forMode:)` starts it (the run loop and mode are accepted and ignored), `invalidate`
+// ends it, `isPaused` holds it. `timestamp`, `targetTimestamp` and `duration` follow the frames
+// the host delivers.
+
+#if os(WASI)
+import WebFoundation
+#else
+import Foundation
+#endif
 
 /// The frame rate range a display link prefers (`CAFrameRateRange` in Core Animation).
 public typealias CAFrameRateRange = CADisplayLink.FrameRateRange
@@ -44,22 +51,31 @@ public final class CADisplayLink {
         self.handler = handler
     }
 
+    #if canImport(ObjectiveC)
+    /// iOS's link: `selector` is sent to `target` with the link each frame. As on iOS the link
+    /// keeps its target until it is invalidated.
+    public convenience init(target: Any, selector: Selector) {
+        let object = target as AnyObject
+        self.init { link in _ = (object as? NSObject)?.perform(selector, with: link) }
+    }
+    #endif
+
     /// Starts the link (the run loop and mode are accepted for source compatibility).
-    public func add(to runLoop: AnyObject?, forMode mode: String? = nil) {
+    public func add(to runLoop: RunLoop, forMode mode: RunLoop.Mode) {
         guard isValid, !isAdded else { return }
         isAdded = true
         UIKitScene.shared.displayLinks.append(WeakDisplayLink(link: self))
         UIKitScene.shared.setNeedsFrame()
     }
 
-    public func remove(from runLoop: AnyObject?, forMode mode: String? = nil) {
+    public func remove(from runLoop: RunLoop, forMode mode: RunLoop.Mode) {
         isAdded = false
         UIKitScene.shared.displayLinks.removeAll { $0.link === self || $0.link == nil }
     }
 
     public func invalidate() {
         isValid = false
-        remove(from: nil)
+        remove(from: .main, forMode: .default)
     }
 
     /// A frame passed: the handler runs with the new timestamps.

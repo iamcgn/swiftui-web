@@ -518,6 +518,11 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
     /// `UIBezierPath`, `UIColor.setFill`); the default draws nothing (Drawing/GraphicsContext.swift).
     open func draw(_ rect: CGRect) {}
 
+    /// Updates the layer when it needs display (Core Animation's `CALayerDelegate`), before it
+    /// paints: the default does nothing (the view's content is `draw(_:)`'s); a subclass may
+    /// set `layer.contents` here, which then shows in place of the view's own content.
+    open func display(_ layer: CALayer) {}
+
     /// Renders the view and its subviews into the current graphics context at `rect` (a
     /// snapshot for an image renderer: EnvironmentOverrides' screenshot, decision 0021). The
     /// layer tree paints as the host paints it, scaled to the rect; `afterScreenUpdates` is

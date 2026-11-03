@@ -25,6 +25,7 @@ let package = Package(
         .library(name: "WebDecimalFormats", targets: ["WebDecimalFormats"]),
         .library(name: "WebCombine", targets: ["WebCombine"]),
         .library(name: "WebGraphics", targets: ["WebGraphics"]),
+        .library(name: "WebImageIO", targets: ["WebImageIO"]),
         .library(name: "WebGraphicsCanvas", targets: ["WebGraphicsCanvas"]),
         .library(name: "WebGraphicsNative", targets: ["WebGraphicsNative"]),
         .library(name: "WebGraphicsHeadless", targets: ["WebGraphicsHeadless"]),
@@ -63,6 +64,13 @@ let package = Package(
         .target(
             name: "WebGraphics",
             dependencies: ["WebFoundation"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // ImageIO's image sources on wasm (the `ImageIO` shadow re-exports it, Packages/Shadows):
+        // a module of its own, so the shadow brings its names and none of WebGraphics's.
+        .target(
+            name: "WebImageIO",
+            dependencies: ["WebFoundation", "WebGraphics"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

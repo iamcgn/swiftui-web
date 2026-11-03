@@ -35,12 +35,12 @@ public final class UIGraphicsImageRendererFormat: @unchecked Sendable {
     public init() { scale = 2 }
 
     /// The main screen's format.
-    @MainActor public static func `default`() -> UIGraphicsImageRendererFormat {
+    @preconcurrency @MainActor public static func `default`() -> UIGraphicsImageRendererFormat {
         let format = UIGraphicsImageRendererFormat()
         format.scale = UIScreen.main.scale
         return format
     }
-    @MainActor public static func preferred() -> UIGraphicsImageRendererFormat { .default() }
+    @preconcurrency @MainActor public static func preferred() -> UIGraphicsImageRendererFormat { .default() }
 }
 
 /// What the renderer's drawing block receives: the recording context and shorthands.
@@ -84,7 +84,7 @@ public final class UIGraphicsImageRenderer {
     /// Runs `actions` with a fresh context (the image's origin at the bounds' origin) and
     /// returns the recording as an image the size of the bounds.
     public func image(actions: (UIGraphicsImageRendererContext) -> Void) -> UIImage {
-        let recorder = UIGraphicsRecordingContext(origin: CGPoint(x: -bounds.minX, y: -bounds.minY), scale: format.scale)
+        let recorder = UIGraphicsRecordingContext(origin: CGPoint(x: -bounds.minX, y: -bounds.minY), scale: format.scale, canvasSize: bounds.size)
         let context = UIGraphicsImageRendererContext(cgContext: recorder, format: format, bounds: bounds)
         UIGraphicsPushContext(recorder)
         actions(context)
@@ -100,7 +100,7 @@ public final class UIGraphicsImageRenderer {
 
 /// Makes a recording context of `size` the current one until `UIGraphicsEndImageContext`.
 @preconcurrency @MainActor public func UIGraphicsBeginImageContextWithOptions(_ size: CGSize, _ opaque: Bool, _ scale: CGFloat) {
-    let recorder = UIGraphicsRecordingContext(origin: .zero, scale: scale == 0 ? UIScreen.main.scale : scale)
+    let recorder = UIGraphicsRecordingContext(origin: .zero, scale: scale == 0 ? UIScreen.main.scale : scale, canvasSize: size)
     imageContexts.append((recorder, size))
     UIGraphicsPushContext(recorder)
 }

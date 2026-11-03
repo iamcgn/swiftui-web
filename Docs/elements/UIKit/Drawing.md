@@ -195,7 +195,39 @@ scaled to 48 with the simulator's interpolation, the badge through `pngData()` a
 view sized to its image (`tints`, 0.72 %). The real-UIKit fixture kit loads catalog images
 from disk (`UIKitFixtureImage.named`), since the SwiftPM harness has no compiled catalog.
 
-Open: `UIImage(contentsOfFile:)`, image orientation, `resizableImage` cap insets on image
-views (the drawing side has them), `preferredSymbolConfiguration` on the view, HEIC and other
-formats (the header parser knows PNG and JPEG).
+Open: `UIImage(contentsOfFile:)`, `resizableImage` cap insets on image views (the drawing
+side has them), `preferredSymbolConfiguration` on the view, HEIC and other formats (the header
+parser knows PNG, JPEG, GIF and WebP).
+
+## CGImage, image sources and orientation (2026-11-03)
+
+On wasm and Linux `CGImage` is WebGraphics's (`Images/CGImage.swift`; Apple's platforms keep
+CoreGraphics's). It describes what to draw rather than holding decoded pixels: a frame of an
+image file (PNG, JPEG, GIF, WebP; `Images/ImageFiles.swift` reads each header for the pixel
+size, EXIF orientation, frame count, frame delays and loop count), a premultiplied RGBA bitmap,
+or a recording of drawing commands, plus a crop. `CGImage(width:height:bitsPerComponent:...)`
+takes 8-bit, 32-bit pixels with alpha first, last or skipped in either byte order;
+`dataProvider` hands a bitmap's pixels back; `cropping(to:)` keeps the content and narrows the
+crop. A bitmap's PNG is written by `_PNGEncoder` (stored deflate blocks, no compressor). Files
+are drawn the way browsers decode them, upright, so a JPEG whose EXIF orientation turns it a
+quarter reports its turned size.
+
+`UIImage(cgImage:scale:orientation:)` keeps the CGImage for `cgImage` and shows it turned by
+any of the eight orientations (`imageOrientation`); an upright whole file or bitmap becomes a
+`data:` URL, anything else a recording. An image made from data or a drawing makes its
+CGImage when asked. In a context (`CGImageDrawing.swift`), `draw(_:in:)` draws a CGImage the
+way CoreGraphics does, its first row at the rectangle's maximum y, and `makeImage()` turns what
+an image context has drawn into a CGImage; the context reports its pixel size and holds no
+pixels (`data` is nil). A layer's `contents` CGImage is painted in place of the view's own
+drawing, honouring `contentsRect`, `contentsScale` and `contentsGravity` (with iOS's top and
+bottom swapped). `display(_:)` on the layer's view runs when the layer needs display.
+
+`import ImageIO` (Packages/Shadows, `WebImageIO`) gives `CGImageSource` over the same
+headers: creation from data, a URL, a data provider or incrementally; type, count, status,
+properties (pixel size, orientation and the GIF, PNG and WebP frame dictionaries with their
+delays and loop counts) and images and thumbnails per frame. `import MobileCoreServices`
+gives the `kUTType` constants. Tested in `CGImageTests`.
+
+Open: decoding pixels of a file or a recording (`dataProvider` is nil for them),
+`CGImageDestination`, Core Image, vImage.
 

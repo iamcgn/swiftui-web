@@ -16,17 +16,7 @@ import WebFoundation   // `CFArray`, with Core Foundation's other names (CoreFou
 #endif
 
 #if !canImport(CoreGraphics) || os(WASI)
-/// A colour space stand-in on wasm: every colour is sRGB (decision 0006).
-public final class CGColorSpace: @unchecked Sendable {
-    public static let sRGB = "kCGColorSpaceSRGB"
-    public static let genericGrayGamma2_2 = "kCGColorSpaceGenericGrayGamma2_2"
-    /// Colour components before alpha: 3 for RGB, 1 for grey.
-    public let numberOfComponents: Int
-    init(numberOfComponents: Int) { self.numberOfComponents = numberOfComponents }
-    public convenience init?(name: String) { self.init(numberOfComponents: name._hasSubstring("Gray") ? 1 : 3) }
-}
-public func CGColorSpaceCreateDeviceRGB() -> CGColorSpace { CGColorSpace(numberOfComponents: 3) }
-public func CGColorSpaceCreateDeviceGray() -> CGColorSpace { CGColorSpace(numberOfComponents: 1) }
+// `CGColorSpace` is WebGraphics's (Images/CGImage.swift), beside the image types.
 
 #if !os(WASI)
 /// `[colors] as CFArray` in gradient code: an array of anything (WebFoundation's on wasm).

@@ -32,7 +32,7 @@ OURS = {
     "SwiftUI", "UIKit", "Foundation", "Combine", "Security", "SafariServices", "Charts", "MapKit",
     "CoreLocation", "AVFoundation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit",
     "os", "OSLog", "CoreGraphics", "UniformTypeIdentifiers", "CoreData", "CryptoKit", "CoreHaptics", "WidgetKit", "StoreKit", "AppIntents",
-    "Dispatch", "CoreFoundation",
+    "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices",
 }
 STDLIB = {"Swift", "_Concurrency", "_StringProcessing", "Observation", "Synchronization", "RegexBuilder", "WASILibc"}
 # swift-syntax, which the sweep package depends on itself: a package's macro targets import it.
@@ -681,6 +681,8 @@ let web: [Target.Dependency] = [
     .product(name: "CoreData", package: "Shadows"),
     .product(name: "Dispatch", package: "Shadows"),
     .product(name: "CoreFoundation", package: "Shadows"),
+    .product(name: "ImageIO", package: "Shadows"),
+    .product(name: "MobileCoreServices", package: "Shadows"),
 ]
 let stack: [LinkerSetting] = [.unsafeFlags(["-Xlinker", "-z", "-Xlinker", "stack-size=4194304"])]
 """

@@ -83,8 +83,9 @@ the strings. Open: attributed runs beyond their plain text, `allowsFontSubpixelQ
 ## CADisplayLink (2026-10-09)
 
 `Layers/CADisplayLink.swift`. `CADisplayLink(target:handler:)` and `CADisplayLink(handler:)`
-(no Objective-C selectors on the web; the handler gets the link and runs while the target
-lives), `add(to:forMode:)`, `remove(from:forMode:)`, `invalidate`, `isPaused`, `timestamp`,
+(the handler gets the link and runs while the target lives), iOS's
+`CADisplayLink(target:selector:)` where there is an Objective-C runtime, `add(to:forMode:)`
+(taking a `RunLoop` and a `RunLoop.Mode`, as iOS's does), `remove(from:forMode:)`, `invalidate`, `isPaused`, `timestamp`,
 `targetTimestamp`, `duration`, `preferredFramesPerSecond`, `preferredFrameRateRange`
 (`CAFrameRateRange`). An added link keeps the scene animating; the scene ticks it from its
 frame clock in `advanceFrame(elapsed:)` (and a hosted tree's `advanceTimers`) before the
