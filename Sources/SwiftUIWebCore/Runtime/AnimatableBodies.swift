@@ -29,6 +29,7 @@ extension ViewModifier where Self: Animatable {
 extension Shape where AnimatableData == EmptyAnimatableData {
     /// Hidden hook: a shape with nothing to interpolate (a rectangle, a circle, a capsule) is a
     /// plain composite, as the library's controls draw many of them.
+    @MainActor
     public static func _makeNode(_ context: _NodeContext<Self>) -> TypedNode<Self> {
         CompositeNode(context)
     }
