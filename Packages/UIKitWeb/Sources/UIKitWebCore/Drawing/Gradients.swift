@@ -16,17 +16,7 @@ import WebFoundation   // `CFArray`, with Core Foundation's other names (CoreFou
 #endif
 
 #if !canImport(CoreGraphics) || os(WASI)
-/// A colour space stand-in on wasm: every colour is sRGB (decision 0006).
-public final class CGColorSpace: @unchecked Sendable {
-    public static let sRGB = "kCGColorSpaceSRGB"
-    public static let genericGrayGamma2_2 = "kCGColorSpaceGenericGrayGamma2_2"
-    /// Colour components before alpha: 3 for RGB, 1 for grey.
-    public let numberOfComponents: Int
-    init(numberOfComponents: Int) { self.numberOfComponents = numberOfComponents }
-    public convenience init?(name: String) { self.init(numberOfComponents: name._hasSubstring("Gray") ? 1 : 3) }
-}
-public func CGColorSpaceCreateDeviceRGB() -> CGColorSpace { CGColorSpace(numberOfComponents: 3) }
-public func CGColorSpaceCreateDeviceGray() -> CGColorSpace { CGColorSpace(numberOfComponents: 1) }
+// `CGColorSpace` is WebGraphics's (Images/CGImage.swift), beside the image types.
 
 #if !os(WASI)
 /// `[colors] as CFArray` in gradient code: an array of anything (WebFoundation's on wasm).
@@ -154,17 +144,5 @@ extension UIGraphicsRecordingContext {
         let stops = alpha < 1 ? gradient.stops.map { DisplayGradient.Stop(location: $0.location, color: $0.color.multiplyingAlpha(by: alpha)) } : gradient.stops
         let absolute = region.applying(ctm)
         recordShadowed(.fillGradient(absolute, DisplayGradient(kind: kind, stops: stops), eoFill: evenOdd), bounds: absolute.boundingRect)
-    }
-}
-
-extension StringProtocol {
-    /// `contains(_: String)` without _StringProcessing: that overload links the Regex engine
-    /// into the wasm bundle, 1.4 MB it never runs (decision 0006, the wasm size log).
-    func _hasSubstring(_ needle: String) -> Bool {
-        let needle = Array(needle.utf8)
-        guard !needle.isEmpty else { return true }
-        let haystack = Array(utf8)
-        guard haystack.count >= needle.count else { return false }
-        return (0...(haystack.count - needle.count)).contains { haystack[$0..<($0 + needle.count)].elementsEqual(needle) }
     }
 }

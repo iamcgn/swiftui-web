@@ -6,7 +6,8 @@
 //     .package(name: "Shadows", path: "<SwiftUIWeb>/Packages/Shadows"),
 //     .product(name: "Foundation", package: "Shadows", condition: .when(platforms: [.wasi])),
 //     .product(name: "Combine", package: "Shadows", condition: .when(platforms: [.wasi])),
-// `os` and `OSLog` (`Logger` over the console), `CoreGraphics` (the geometry types) and
+// `os` and `OSLog` (`Logger` over the console), `CoreGraphics` (the geometry and image types),
+// `ImageIO` (image sources over WebImageIO), `MobileCoreServices` (the `kUTType` names) and
 // `UniformTypeIdentifiers` (`UTType`) are here for the same reason as the rest, and so is
 // `CoreData` (WebCoreData; the app's models go through SwiftUIWeb's CoreDataModel plugin). With
 // `CoreGraphics` importable on wasm, SwiftUIWeb's own sources test for Apple's with
@@ -34,6 +35,8 @@ let package = Package(
         .library(name: "os", targets: ["os"]),
         .library(name: "OSLog", targets: ["OSLog"]),
         .library(name: "CoreGraphics", targets: ["CoreGraphics"]),
+        .library(name: "ImageIO", targets: ["ImageIO"]),
+        .library(name: "MobileCoreServices", targets: ["MobileCoreServices"]),
         .library(name: "UniformTypeIdentifiers", targets: ["UniformTypeIdentifiers"]),
         .library(name: "CoreData", targets: ["CoreData"]),
         .library(name: "Dispatch", targets: ["Dispatch"]),
@@ -98,6 +101,16 @@ let package = Package(
         .target(
             name: "CoreGraphics",
             dependencies: [.product(name: "WebGraphics", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "ImageIO",
+            dependencies: ["CoreGraphics", .product(name: "WebImageIO", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "MobileCoreServices",
+            dependencies: [.product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

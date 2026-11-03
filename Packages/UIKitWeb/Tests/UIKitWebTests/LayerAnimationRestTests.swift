@@ -135,7 +135,7 @@ import UIKit
         var ticks: [(Double, Double)] = []
         let link = CADisplayLink { link in ticks.append((link.timestamp, link.duration)) }
         #expect(!scene.isAnimating)
-        link.add(to: nil, forMode: nil)
+        link.add(to: .main, forMode: .common)
         #expect(scene.isAnimating)
         _ = scene.advanceFrame(elapsed: 1.0 / 60)
         _ = scene.advanceFrame(elapsed: 1.0 / 30)
@@ -153,7 +153,7 @@ import UIKit
         var owner: Owner? = Owner()
         var owned = 0
         let bound = CADisplayLink(target: owner!) { _ in owned += 1 }
-        bound.add(to: nil)
+        bound.add(to: .main, forMode: .default)
         _ = scene.advanceFrame(elapsed: 0.01)
         owner = nil
         _ = scene.advanceFrame(elapsed: 0.01)

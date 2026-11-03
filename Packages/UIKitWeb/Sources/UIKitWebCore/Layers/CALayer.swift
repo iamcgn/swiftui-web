@@ -175,6 +175,16 @@ open class CALayer {
     /// transparent layer's shadow path casts nothing (open).
     open var shadowPath: Path? { didSet { setNeedsDisplay() } }
     open var contentsScale: CGFloat = 2
+    /// The layer's image (a `CGImage`), drawn in its bounds by `contentsGravity` after its
+    /// background and in place of its view's own content (LayerPainting.swift).
+    open var contents: Any? { didSet { setNeedsDisplay() } }
+    open var contentsGravity: CALayerContentsGravity = .resize { didSet { setNeedsDisplay() } }
+    /// The part of the image shown, in unit coordinates (all of it by default).
+    open var contentsRect = CGRect(x: 0, y: 0, width: 1, height: 1) { didSet { setNeedsDisplay() } }
+    open var contentsCenter = CGRect(x: 0, y: 0, width: 1, height: 1)
+    open var contentsFormat: CALayerContentsFormat = .RGBA8Uint
+    /// Whether `setNeedsDisplay` asked for `display` before the next paint.
+    var needsDisplayCall = false
     open var name: String?
     /// Whether the layer has been painted: a standalone layer's property changes animate
     /// implicitly only once it has a presentation, as in Core Animation (a layer added and
@@ -255,6 +265,7 @@ open class CALayer {
 
     /// Marks the layer's content as needing to be drawn again (the next frame repaints the tree).
     open func setNeedsDisplay() {
+        needsDisplayCall = true
         UIKitScene.shared.setNeedsFrame()
     }
 
@@ -267,7 +278,16 @@ open class CALayer {
 
     open func layoutIfNeeded() { view?.layoutIfNeeded() }
     open func layoutSublayers() {}
-    open func display() {}
+    /// Updates the contents: a view's layer asks its view (`display(_:)`), as Core Animation
+    /// asks the layer's delegate. Called before the paint after `setNeedsDisplay`.
+    open func display() { view?.display(self) }
+    open func displayIfNeeded() {
+        guard needsDisplayCall else { return }
+        needsDisplayCall = false
+        display()
+        needsDisplayCall = false   // what `display` set does not ask again
+    }
+    open func needsDisplay() -> Bool { needsDisplayCall }
 
     // MARK: Geometry queries
 
@@ -488,4 +508,31 @@ open class CATextLayer: CALayer {
             y += font.lineHeight
         }
     }
+}
+
+/// Where a layer's contents image sits in its bounds.
+public struct CALayerContentsGravity: RawRepresentable, Hashable, Sendable {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+    public static let center = CALayerContentsGravity(rawValue: "center")
+    public static let top = CALayerContentsGravity(rawValue: "top")
+    public static let bottom = CALayerContentsGravity(rawValue: "bottom")
+    public static let left = CALayerContentsGravity(rawValue: "left")
+    public static let right = CALayerContentsGravity(rawValue: "right")
+    public static let topLeft = CALayerContentsGravity(rawValue: "topLeft")
+    public static let topRight = CALayerContentsGravity(rawValue: "topRight")
+    public static let bottomLeft = CALayerContentsGravity(rawValue: "bottomLeft")
+    public static let bottomRight = CALayerContentsGravity(rawValue: "bottomRight")
+    public static let resize = CALayerContentsGravity(rawValue: "resize")
+    public static let resizeAspect = CALayerContentsGravity(rawValue: "resizeAspect")
+    public static let resizeAspectFill = CALayerContentsGravity(rawValue: "resizeAspectFill")
+}
+
+/// The pixel format of a layer's backing store (every layer here is painted, so all alike).
+public struct CALayerContentsFormat: RawRepresentable, Hashable, Sendable {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+    public static let RGBA8Uint = CALayerContentsFormat(rawValue: "RGBA8")
+    public static let RGBA16Float = CALayerContentsFormat(rawValue: "RGBAh")
+    public static let gray8Uint = CALayerContentsFormat(rawValue: "Gray8")
 }

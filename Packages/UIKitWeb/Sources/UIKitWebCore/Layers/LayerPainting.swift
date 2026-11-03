@@ -20,6 +20,7 @@ extension CALayer {
         let border: RGBA? = animating ? presented(.borderColor, model: .color(borderColor.flatMap { RGBA(cgColor: $0) })).color : borderColor.flatMap { RGBA(cgColor: $0) }
         isCommitted = true
         guard !isHidden, opacity > 0 else { return }
+        displayIfNeeded()
         let effective = view?.effectiveStyle(style) ?? style
         // The layer's origin in the superlayer's space, without the transform.
         let origin = CGPoint(x: position.x - bounds.width * anchorPoint.x, y: position.y - bounds.height * anchorPoint.y)
@@ -115,7 +116,12 @@ extension CALayer {
         } else if let text = self as? CATextLayer {
             text.paintText(into: &list, context: child)
         }
-        view?.drawContent(into: &list, context: child, style: effective)
+        #if !canImport(CoreGraphics) || os(WASI)
+        let paintedContents = paintContents(into: &list, in: rect)
+        #else
+        let paintedContents = false
+        #endif
+        if !paintedContents { view?.drawContent(into: &list, context: child, style: effective) }
         for layer in (sublayers ?? []).sorted(by: { $0.zPosition < $1.zPosition }) {
             layer.paint(into: &list, context: child, style: effective)
         }
