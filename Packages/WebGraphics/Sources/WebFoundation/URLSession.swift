@@ -167,6 +167,9 @@ public struct URLRequest: Hashable, Sendable {
     public var httpShouldHandleCookies = true
     public var networkServiceType: NetworkServiceType = .default
     public var mainDocumentURL: URL?
+    public var httpShouldUsePipelining = false
+    public var allowsConstrainedNetworkAccess = true
+    public var allowsExpensiveNetworkAccess = true
 
     public init(url: URL, cachePolicy: CachePolicy = .useProtocolCachePolicy, timeoutInterval: TimeInterval = 60) {
         self.url = url
@@ -407,8 +410,11 @@ open class URLSessionTask: @unchecked Sendable {
     public internal(set) var response: URLResponse?
     public internal(set) var error: Error?
     public private(set) var state: State = .suspended
-    public var priority: Float = 0.5
+    public var priority: Float = URLSessionTask.defaultPriority
     public var taskDescription: String?
+    public static let defaultPriority: Float = 0.5
+    public static let lowPriority: Float = 0.25
+    public static let highPriority: Float = 0.75
     private let start: @Sendable () -> _WebURLSession.Task
     var core: _WebURLSession.Task?
 
@@ -595,6 +601,10 @@ final class _Box<Value>: @unchecked Sendable {
 /// Foundation's operation queue name, for the delegate initializer's label only.
 public final class OperationQueue: @unchecked Sendable {
     public static let main = OperationQueue()
+    /// The queue running the current operation: the browser has only the main one.
+    public static var current: OperationQueue? { main }
+    /// The dispatch queue operations run on.
+    public var underlyingQueue: DispatchQueue? = .main
     public var maxConcurrentOperationCount = 1
     public var name: String?
     public init() {}

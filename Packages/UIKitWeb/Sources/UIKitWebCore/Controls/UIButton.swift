@@ -20,6 +20,7 @@ open class UIButton: UIControl {
     private var titles: [State: String] = [:]
     private var titleColors: [State: UIColor] = [:]
     private var images: [State: UIImage] = [:]
+    private var backgroundImages: [State: UIImage] = [:]
     open var contentEdgeInsets = UIEdgeInsets.zero { didSet { invalidateIntrinsicContentSize() } }
     open var titleEdgeInsets = UIEdgeInsets.zero
     open var imageEdgeInsets = UIEdgeInsets.zero
@@ -140,6 +141,14 @@ open class UIButton: UIControl {
     }
 
     open func image(for state: State) -> UIImage? { images[state] ?? images[.normal] }
+
+    /// An image stretched behind the button's content for `state` (the normal one otherwise).
+    open func setBackgroundImage(_ image: UIImage?, for state: State) {
+        backgroundImages[state] = image
+        setNeedsDisplay()
+    }
+    open func backgroundImage(for state: State) -> UIImage? { backgroundImages[state] ?? backgroundImages[.normal] }
+    open var currentBackgroundImage: UIImage? { backgroundImage(for: state) }
     open var currentImage: UIImage? { image(for: state) }
 
     /// Called on every state change (and `setNeedsUpdateConfiguration`) to adjust the configuration.
@@ -372,6 +381,10 @@ open class UIButton: UIControl {
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
         let tint = tintColor.rgba(for: style)
+        if let background = currentBackgroundImage {
+            UIImageView.paint(background, in: context.absoluteRect(CGRect(origin: .zero, size: bounds.size)), tint: nil,
+                              scale: context.scale, style: style, into: &list)
+        }
         guard let configuration else {
             // iOS 26 marks a selected plain system button with a tinted ground around its title
             // (uikit/accessibility/basic: the tint at 30 % under a white title, 4.5 pt beside

@@ -214,6 +214,8 @@ public final class _WebProgress {
     public var isCancelled = false
 
     public init(totalUnitCount: Int64) { self.totalUnitCount = totalUnitCount }
+    /// A progress with no units yet (indeterminate until a total is set).
+    public convenience init() { self.init(totalUnitCount: 0) }
 
     /// Zero to one; indeterminate while the total is zero or less.
     public var fractionCompleted: Double {

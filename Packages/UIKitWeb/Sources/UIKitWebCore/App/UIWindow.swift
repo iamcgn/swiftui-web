@@ -147,6 +147,20 @@ public final class UIApplication: UIResponder {
     override public func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) { UIKitScene.shared.pressUnhandled = true }
     public var applicationIconBadgeNumber = 0
 
+    /// Background time: a page keeps running while it is open, so a task never expires and
+    /// ending it only retires its identifier.
+    public func beginBackgroundTask(withName taskName: String?, expirationHandler handler: (@MainActor @Sendable () -> Void)? = nil) -> UIBackgroundTaskIdentifier {
+        nextBackgroundTask += 1
+        return UIBackgroundTaskIdentifier(rawValue: nextBackgroundTask)
+    }
+    public func beginBackgroundTask(expirationHandler handler: (@MainActor @Sendable () -> Void)? = nil) -> UIBackgroundTaskIdentifier {
+        beginBackgroundTask(withName: nil, expirationHandler: handler)
+    }
+    public func endBackgroundTask(_ identifier: UIBackgroundTaskIdentifier) {}
+    /// Seconds of background time left: unbounded while the page is open.
+    public var backgroundTimeRemaining: TimeInterval { .greatestFiniteMagnitude }
+    private var nextBackgroundTask = 0
+
     /// Opens a URL with the host (a new tab in the browser). The settings URL
     /// (`openSettingsURLString`) has nothing to open in a page: the completion says so.
     public func open(_ url: URL, options: [OpenExternalURLOptionsKey: Any] = [:], completionHandler: ((Bool) -> Void)? = nil) {
@@ -258,4 +272,11 @@ extension UIApplicationDelegate {
     public func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {}
     public func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any]) async -> UIBackgroundFetchResult { .noData }
     public func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any]) -> Bool { false }
+}
+
+/// A background task's identifier (`UIApplication.beginBackgroundTask`).
+public struct UIBackgroundTaskIdentifier: RawRepresentable, Hashable, Sendable {
+    public let rawValue: Int
+    public init(rawValue: Int) { self.rawValue = rawValue }
+    public static let invalid = UIBackgroundTaskIdentifier(rawValue: 0)
 }

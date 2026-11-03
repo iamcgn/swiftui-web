@@ -536,14 +536,16 @@ open class UIActivityIndicatorView: UIView {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
 
-    public enum Style: Int, Sendable { case medium = 100, large = 101 }
+    /// iOS 13's sizes, and the older styles: `whiteLarge` is large and white, `white` and
+    /// `gray` medium in those colours (their colour shows when `color` is unset).
+    public enum Style: Int, Sendable { case whiteLarge = 0, white = 1, gray = 2, medium = 100, large = 101 }
 
     open var style: Style { didSet { frame.size = Self.size(for: style); setNeedsDisplay() } }
     open var hidesWhenStopped = true { didSet { updateHidden() } }
     open var color: UIColor?
     public private(set) var isAnimating = false
 
-    static func size(for style: Style) -> CGSize { style == .large ? CGSize(width: 37, height: 37) : CGSize(width: 20, height: 20) }
+    static func size(for style: Style) -> CGSize { style == .large || style == .whiteLarge ? CGSize(width: 37, height: 37) : CGSize(width: 20, height: 20) }
 
     public init(style: Style) {
         self.style = style
@@ -606,7 +608,8 @@ open class UIActivityIndicatorView: UIView {
     /// Eight spokes fading around the ring; the pattern turns with `phase` while animating.
     override func drawContent(into list: inout DisplayList, context: PaintContext, style userStyle: UIUserInterfaceStyle) {
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
-        let ink = (color ?? UIColor(light: RGBA(r: 61, g: 61, b: 67, a: 0.8), dark: RGBA(r: 152, g: 152, b: 157))).rgba(for: userStyle)
+        let legacy: UIColor? = style == .white || style == .whiteLarge ? .white : style == .gray ? .gray : nil
+        let ink = (color ?? legacy ?? UIColor(light: RGBA(r: 61, g: 61, b: 67, a: 0.8), dark: RGBA(r: 152, g: 152, b: 157))).rgba(for: userStyle)
         let centre = CGPoint(x: rect.midX, y: rect.midY)
         let outer = rect.width / 2, inner = outer * 0.5, width = max(1.5, rect.width / 10)
         for spoke in 0..<8 {

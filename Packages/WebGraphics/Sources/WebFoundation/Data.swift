@@ -164,6 +164,7 @@ public enum _MemoryFiles {
     nonisolated(unsafe) private static var directories: Set<String> = ["file:///", "file:///Documents/", "file:///Library/", "file:///tmp/"]
     nonisolated(unsafe) private static var counter = 0
     nonisolated(unsafe) private static var dates: [String: Date] = [:]
+    nonisolated(unsafe) private static var creationDates: [String: Date] = [:]
     /// Where the durable files live between loads: the host installs one before the app runs.
     /// `list` names every kept path, `load` gives a file's bytes as base64, `save` with nil removes.
     nonisolated(unsafe) public static var _hostStore: (list: () -> [String], load: (String) -> String?, save: (String, String?) -> Void)?
@@ -186,12 +187,14 @@ public enum _MemoryFiles {
     public static func write(_ data: Data, to url: URL) {
         files[url.absoluteString] = data
         dates[url.absoluteString] = Date()
+        if creationDates[url.absoluteString] == nil { creationDates[url.absoluteString] = dates[url.absoluteString] }
         if url.isFileURL { createDirectory(url.deletingLastPathComponent()) }
         if isDurable(url) { _hostStore?.save(url.path, data.base64EncodedString()) }
     }
     public static func remove(_ url: URL) {
         files[url.absoluteString] = nil
         dates[url.absoluteString] = nil
+        creationDates[url.absoluteString] = nil
         directories.remove(directoryKey(url))
         if isDurable(url) { _hostStore?.save(url.path, nil) }
     }
@@ -201,6 +204,13 @@ public enum _MemoryFiles {
     public static func isDirectory(_ url: URL) -> Bool { directories.contains(directoryKey(url)) }
     /// When the file was last written here (a file kept by the host from an earlier load has none).
     public static func modificationDate(_ url: URL) -> Date? { dates[url.absoluteString] }
+    /// When the file was first written here (or the date set with `setAttributes`).
+    public static func creationDate(_ url: URL) -> Date? { creationDates[url.absoluteString] ?? dates[url.absoluteString] }
+    /// Sets a file's dates (`FileManager.setAttributes`); nil leaves one as it is.
+    public static func setDates(_ url: URL, creation: Date?, modification: Date?) {
+        if let creation { creationDates[url.absoluteString] = creation }
+        if let modification { dates[url.absoluteString] = modification }
+    }
     public static func createDirectory(_ url: URL) {
         var path = url.path
         while path != "/" && !path.isEmpty {
