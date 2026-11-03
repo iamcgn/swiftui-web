@@ -146,15 +146,3 @@ extension UIGraphicsRecordingContext {
         recordShadowed(.fillGradient(absolute, DisplayGradient(kind: kind, stops: stops), eoFill: evenOdd), bounds: absolute.boundingRect)
     }
 }
-
-extension StringProtocol {
-    /// `contains(_: String)` without _StringProcessing: that overload links the Regex engine
-    /// into the wasm bundle, 1.4 MB it never runs (decision 0006, the wasm size log).
-    func _hasSubstring(_ needle: String) -> Bool {
-        let needle = Array(needle.utf8)
-        guard !needle.isEmpty else { return true }
-        let haystack = Array(utf8)
-        guard haystack.count >= needle.count else { return false }
-        return (0...(haystack.count - needle.count)).contains { haystack[$0..<($0 + needle.count)].elementsEqual(needle) }
-    }
-}

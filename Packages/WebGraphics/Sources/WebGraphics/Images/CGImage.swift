@@ -28,7 +28,11 @@ public final class CGColorSpace: @unchecked Sendable {
         self.name = name ?? (components == 1 ? Self.genericGrayGamma2_2 : Self.sRGB)
     }
     public convenience init?(name: String) {
-        self.init(_numberOfComponents: name._hasSubstring("Gray") ? 1 : 3, name: name)
+        // A grey space by its name ("…Gray…"); not `contains`, whose String overload links the
+        // Regex engine into the wasm bundle (decision 0006).
+        let gray = Array("Gray".utf8), bytes = Array(name.utf8)
+        let isGray = bytes.count >= gray.count && (0...(bytes.count - gray.count)).contains { Array(bytes[$0..<($0 + gray.count)]) == gray }
+        self.init(_numberOfComponents: isGray ? 1 : 3, name: name)
     }
     public var model: CGColorSpaceModel { numberOfComponents == 1 ? .monochrome : .rgb }
 }
