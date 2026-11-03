@@ -227,6 +227,12 @@ public final class _WebProgress {
     public func cancel() { isCancelled = true }
 }
 
+#if os(WASI)
+/// Packages observe a progress by key path (ButtonKit's progress bridge); its sets report
+/// through Observation.
+extension _WebProgress: _KeyValueCodingAndObserving {}
+#endif
+
 extension ProgressView where Label == ProgressViewStyleConfiguration.Label, CurrentValueLabel == ProgressViewStyleConfiguration.CurrentValueLabel {
     /// Creates a progress view based on a style configuration (custom styles).
     public init(_ configuration: ProgressViewStyleConfiguration) {

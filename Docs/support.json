@@ -2214,6 +2214,18 @@
           "noFixture": "Storage, not a screen; WasmFoundationTests round-trips a document through a host store."
         },
         {
+          "api": "String(format:) / String(format:arguments:) / localizedStringWithFormat / appendingFormat",
+          "status": "partial",
+          "notes": "On wasm: printf conversions (d i u x X o f e g a c s @ p %%) with flags, widths, precisions, `*` from the arguments, length modifiers (an integer is cut to the width C reads) and positional arguments (`%2$@`); numbers go through the C library's vsnprintf, so rounding matches Apple's (\"%.2f\" of 2.675 is 2.67); nil prints as (null); the locale forms format as en_US and the `'` flag doesn't group (2026-11-03)",
+          "noFixture": "Storage, not a screen; WasmFoundationTests round-trips a document through a host store."
+        },
+        {
+          "api": "observe(_:options:changeHandler:) / NSKeyValueObservation / NSKeyValueObservedChange / willChangeValue / didChangeValue",
+          "status": "partial",
+          "notes": "On wasm there is no runtime to swap setters, so a change reports when an observable object (wasm's Progress, any @Observable class) sets the property, on the next main-actor turn, or when the object calls willChangeValue/didChangeValue (for: a key path, or forKey:, which reaches all of its observations); .initial, .prior, .old and .new fill the change; observations stop when invalidated or released; a plain `@objc dynamic` property reports nothing (2026-11-03)",
+          "noFixture": "Storage, not a screen; WasmFoundationTests round-trips a document through a host store."
+        },
+        {
           "api": "URLSession / URLRequest / HTTPURLResponse / URLError / URLSessionConfiguration",
           "status": "partial",
           "notes": "decision 0021, pf-urlsession (2026-10-13): data(for:), data(from:), upload, download(from:) and the dataTask forms over the browser's fetch (AbortController for cancel and the timeout, the browser's redirects and cache); an HTTP error status is a response with its status, headers, mime type and bytes, a transport failure, CORS refusal, timeout or cancellation a URLError with Foundation's code — never confused. Core tested against a fake host (URLSessionCoreTests), the browser host against local fixtures in CI (Examples/Launches: 200, 404, a CORS-refused second server, a cancel). Not done: streaming, delegates, background sessions, WebSocket tasks, cookies beyond the browser's",
