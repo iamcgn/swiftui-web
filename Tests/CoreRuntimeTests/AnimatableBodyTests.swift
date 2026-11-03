@@ -123,6 +123,8 @@ import SwiftUIWebHeadless
         #expect(runtime.mount(Bar(width: 40)) is AnimatableBodyNode<Bar>)
         #expect(runtime.mount(Fill(fraction: 0.5)) is AnimatableBodyNode<Fill>)
         #expect(runtime.mount(Bars(model: Model())) is CompositeNode<Bars>)
+        // A shape with nothing to interpolate stays a plain composite.
+        #expect(runtime.mount(Circle()) is CompositeNode<Circle>)
     }
 }
 #endif
