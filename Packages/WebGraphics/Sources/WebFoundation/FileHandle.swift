@@ -2,10 +2,11 @@
 // file destination) and caches open files for appending, seek, truncate and read back. Files
 // here are the in-memory store `FileManager` uses, so a handle reads the file's bytes when it
 // opens and writes them back after each change. The standard output and error handles print
-// to the console.
+// to the console. The class is final (Foundation's is open): a class's vtable keeps every method
+// it lists in the bundle, used or not, and apps don't subclass file handles.
 #if os(WASI)
 
-open class FileHandle: @unchecked Sendable {
+public final class FileHandle: @unchecked Sendable {
     private enum Target { case file(URL), standardOutput, standardError, standardInput, null }
     private let target: Target
     private var buffer: Data

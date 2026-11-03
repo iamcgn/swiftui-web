@@ -1,7 +1,8 @@
 // `Stream`, `InputStream` and `OutputStream` for wasm, where FoundationEssentials has none.
 // Networking packages pass upload bodies as input streams (Alamofire's multipart uploads), and
 // parsers read documents from one (FeedKit's XML feeds). Streams here read from data or a file
-// in the in-memory store and write to memory or a file, synchronously.
+// in the in-memory store and write to memory or a file, synchronously. The input and output
+// streams are final (Foundation's are open), so the bundle drops the methods an app never calls.
 #if os(WASI)
 
 public protocol StreamDelegate: AnyObject {
@@ -62,7 +63,7 @@ open class Stream: @unchecked Sendable {
     open func remove(from aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {}
 }
 
-open class InputStream: Stream, @unchecked Sendable {
+public final class InputStream: Stream, @unchecked Sendable {
     private var data: Data
     private var position = 0
 
@@ -80,10 +81,10 @@ open class InputStream: Stream, @unchecked Sendable {
 
     public convenience init?(fileAtPath path: String) { self.init(url: URL(fileURLWithPath: path)) }
 
-    open var hasBytesAvailable: Bool { streamStatus == .open && position < data.count }
+    public var hasBytesAvailable: Bool { streamStatus == .open && position < data.count }
 
     /// Copies up to `len` bytes into `buffer`; returns how many, 0 at the end, -1 if not open.
-    open func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
+    public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
         guard streamStatus == .open || streamStatus == .atEnd else { return -1 }
         let count = min(len, data.count - position)
         for offset in 0..<max(0, count) { buffer[offset] = data[data.startIndex + position + offset] }
@@ -96,10 +97,10 @@ open class InputStream: Stream, @unchecked Sendable {
     }
 
     /// No direct buffer access: callers fall back to `read(_:maxLength:)`.
-    open func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool { false }
+    public func getBuffer(_ buffer: UnsafeMutablePointer<UnsafeMutablePointer<UInt8>?>, length len: UnsafeMutablePointer<Int>) -> Bool { false }
 }
 
-open class OutputStream: Stream, @unchecked Sendable {
+public final class OutputStream: Stream, @unchecked Sendable {
     private enum Target { case memory, file(URL), buffer(UnsafeMutablePointer<UInt8>, Int) }
     private let target: Target
     private var written = Data()
@@ -127,14 +128,14 @@ open class OutputStream: Stream, @unchecked Sendable {
 
     public static func toMemory() -> OutputStream { OutputStream(toMemory: ()) }
 
-    open var hasSpaceAvailable: Bool {
+    public var hasSpaceAvailable: Bool {
         guard streamStatus == .open else { return false }
         if case .buffer(_, let capacity) = target { return written.count < capacity }
         return true
     }
 
     /// Appends up to `len` bytes; returns how many, or -1 if not open.
-    open func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
+    public func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
         guard streamStatus == .open else { return -1 }
         var count = len
         if case .buffer(let destination, let capacity) = target {
@@ -150,7 +151,7 @@ open class OutputStream: Stream, @unchecked Sendable {
         return max(0, count)
     }
 
-    open override func open() {
+    public override func open() {
         super.open()
         if case .file(let url) = target { _MemoryFiles.write(written, to: url) }
         if case .memory = target { properties[.dataWrittenToMemoryStreamKey] = written }
