@@ -96,6 +96,9 @@ open class NSMutableData: NSData {
     open override func copy(with zone: NSZone? = nil) -> Any { NSData(data: _data) }
 }
 
+// With the Objective-C runtime, `Data` already bridges to the runtime's value box
+// (ObjectiveCBridging.swift), so there `as` doesn't reach these classes.
+#if !canImport(ObjectiveC)
 extension Data: _ObjectiveCBridgeable {
     public typealias _ObjectiveCType = NSData
     public func _bridgeToObjectiveC() -> NSData { NSData(data: self) }
@@ -106,4 +109,5 @@ extension Data: _ObjectiveCBridgeable {
     }
     public static func _unconditionallyBridgeFromObjectiveC(_ source: NSData?) -> Data { source?._data ?? Data() }
 }
+#endif
 #endif

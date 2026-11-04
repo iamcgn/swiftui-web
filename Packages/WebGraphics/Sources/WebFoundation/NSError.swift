@@ -36,6 +36,8 @@ open class NSError: NSObject, Error, @unchecked Sendable {
         self.userInfo = userInfo ?? [:]
         super.init()
     }
+    /// An error with no domain, as `NSError()` makes on Apple platforms.
+    public override convenience init() { self.init(domain: "", code: 0) }
 
     open var localizedDescription: String {
         if let text = userInfo[NSLocalizedDescriptionKey] as? String { return text }
