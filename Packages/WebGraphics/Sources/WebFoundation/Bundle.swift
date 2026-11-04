@@ -12,6 +12,8 @@ open class Bundle: @unchecked Sendable {
     public var bundleURL: URL { URL(fileURLWithPath: bundlePath) }
     public var resourcePath: String? { bundlePath }
     public var resourceURL: URL? { bundleURL }
+    /// The App Store receipt: none on the web, where nothing was bought from the App Store.
+    public var appStoreReceiptURL: URL? { nil }
     public var bundleIdentifier: String? { Bundle._identifier }
     public var infoDictionary: [String: Any]? { Bundle._info }
     /// The app's languages, from its string catalogs and `.lproj` folders as the bundle's build
