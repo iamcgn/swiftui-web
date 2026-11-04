@@ -46,4 +46,23 @@ extension Locale.LanguageCode {
 extension Locale.Region {
     public static var isoRegions: [Locale.Region] { Locale._isoRegions.map { Locale.Region($0) } }
 }
+
+extension Locale {
+    /// A currency code ("USD").
+    public struct Currency: Hashable, Sendable, Codable, ExpressibleByStringLiteral, CustomStringConvertible, CustomDebugStringConvertible {
+        public let identifier: String
+        public init(_ identifier: String) { self.identifier = identifier }
+        public init(stringLiteral value: String) { self.identifier = value }
+        public var description: String { identifier }
+        public var debugDescription: String { identifier }
+        /// Whether the code is three uppercase letters, as ISO 4217 codes are.
+        public var isISOCurrency: Bool { identifier.count == 3 && identifier.allSatisfy { $0.isASCII && $0.isUppercase } }
+        public static var isoCurrencies: [Locale.Currency] {
+            Set(Locale._currencies.values).sorted().map { Locale.Currency($0) }
+        }
+    }
+
+    /// The currency of the locale's region ("USD" for en_US).
+    public var currency: Currency? { currencyCode.map { Currency($0) } }
+}
 #endif

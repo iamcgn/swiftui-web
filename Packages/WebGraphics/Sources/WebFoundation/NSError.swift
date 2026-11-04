@@ -72,6 +72,11 @@ open class NSError: Error, CustomStringConvertible, @unchecked Sendable {
 }
 #endif
 
+extension NSError {
+    /// The keys of an error's user info, which Swift spells as strings.
+    public typealias UserInfoKey = String
+}
+
 public let NSLocalizedDescriptionKey = "NSLocalizedDescription"
 public let NSLocalizedFailureReasonErrorKey = "NSLocalizedFailureReason"
 public let NSLocalizedRecoverySuggestionErrorKey = "NSLocalizedRecoverySuggestion"
@@ -87,6 +92,34 @@ public let NSFileReadNoSuchFileError = 260
 public let NSURLErrorCancelled = -999
 public let NSURLErrorNotConnectedToInternet = -1009
 public let NSURLErrorTimedOut = -1001
+public let NSURLErrorUnknown = -1
+public let NSURLErrorBadURL = -1000
+public let NSURLErrorUnsupportedURL = -1002
+public let NSURLErrorCannotFindHost = -1003
+public let NSURLErrorCannotConnectToHost = -1004
+public let NSURLErrorNetworkConnectionLost = -1005
+public let NSURLErrorDNSLookupFailed = -1006
+public let NSURLErrorHTTPTooManyRedirects = -1007
+public let NSURLErrorResourceUnavailable = -1008
+public let NSURLErrorRedirectToNonExistentLocation = -1010
+public let NSURLErrorBadServerResponse = -1011
+public let NSURLErrorUserCancelledAuthentication = -1012
+public let NSURLErrorUserAuthenticationRequired = -1013
+public let NSURLErrorZeroByteResource = -1014
+public let NSURLErrorCannotDecodeRawData = -1015
+public let NSURLErrorCannotDecodeContentData = -1016
+public let NSURLErrorCannotParseResponse = -1017
+public let NSURLErrorInternationalRoamingOff = -1018
+public let NSURLErrorCallIsActive = -1019
+public let NSURLErrorDataNotAllowed = -1020
+public let NSURLErrorSecureConnectionFailed = -1200
+public let NSURLErrorCannotLoadFromNetwork = -2000
+public let NSURLErrorFailingURLErrorKey = "NSErrorFailingURLKey"
+public let NSURLErrorFailingURLStringErrorKey = "NSErrorFailingURLStringKey"
+public let NSFilePathErrorKey = "NSFilePath"
+public let NSHelpAnchorErrorKey = "NSHelpAnchor"
+public let NSDebugDescriptionErrorKey = "NSDebugDescription"
+public let NSLocalizedFailureErrorKey = "NSLocalizedFailure"
 
 /// A localized string from the main bundle: the string catalogs are not loaded in a page, so
 /// `value` (when given and not empty) else the key, as `Bundle.localizedString` answers.

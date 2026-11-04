@@ -331,6 +331,8 @@ public struct URLError: Error, Hashable, @unchecked Sendable, CustomStringConver
 
     public var errorCode: Int { code.rawValue }
     public var failingURL: URL? { userInfo["NSErrorFailingURLKey"] as? URL }
+    /// The address that failed, as text.
+    public var failureURLString: String? { userInfo["NSErrorFailingURLStringKey"] as? String ?? failingURL?.absoluteString }
     public var localizedDescription: String { reason ?? description }
     public var errorDescription: String? { localizedDescription }
     public var description: String {
@@ -618,7 +620,13 @@ public final class OperationQueue: @unchecked Sendable {
     public var underlyingQueue: DispatchQueue? = .main
     public var maxConcurrentOperationCount = 1
     public var name: String?
+    public var isSuspended = false
     public init() {}
+
+    /// Runs the block later on the main queue: the page has one thread.
+    public func addOperation(_ block: @escaping @Sendable () -> Void) {
+        (underlyingQueue ?? .main).async(execute: block)
+    }
 }
 
 #endif

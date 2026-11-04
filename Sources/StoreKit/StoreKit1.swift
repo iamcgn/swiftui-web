@@ -13,7 +13,7 @@ import SwiftUI
 // MARK: - Errors
 
 /// An error from the App Store.
-public struct SKError: Error, Hashable, Sendable {
+public struct SKError: Error, Hashable, @unchecked Sendable {
     public enum Code: Int, Hashable, Sendable {
         case unknown = 0
         case clientInvalid = 1
@@ -39,7 +39,18 @@ public struct SKError: Error, Hashable, Sendable {
     }
 
     public let code: Code
-    public init(_ code: Code) { self.code = code }
+    /// What the store said about the error, as Foundation's `userInfo`.
+    public let userInfo: [String: Any]
+    public init(_ code: Code, userInfo: [String: Any] = [:]) {
+        self.code = code
+        self.userInfo = userInfo
+    }
+    /// The error's code, as Foundation's `errorCode`.
+    public var errorCode: Int { code.rawValue }
+    public static var errorDomain: String { SKErrorDomain }
+
+    public static func == (lhs: SKError, rhs: SKError) -> Bool { lhs.code == rhs.code }
+    public func hash(into hasher: inout Hasher) { hasher.combine(code) }
 
     public static var unknown: Code { .unknown }
     public static var clientInvalid: Code { .clientInvalid }
@@ -51,6 +62,9 @@ public struct SKError: Error, Hashable, Sendable {
     public static var cloudServiceNetworkConnectionFailed: Code { .cloudServiceNetworkConnectionFailed }
     public static var unsupportedPlatform: Code { .unsupportedPlatform }
 }
+
+/// The domain of App Store errors.
+public let SKErrorDomain = "SKErrorDomain"
 
 /// Matches an error against an App Store error code (`catch SKError.paymentCancelled`).
 public func ~= (code: SKError.Code, error: any Error) -> Bool {
@@ -85,6 +99,10 @@ open class SKProduct: NSObject {
     open private(set) var isFamilyShareable = false
     open private(set) var subscriptionPeriod: SKProductSubscriptionPeriod?
     open private(set) var subscriptionGroupIdentifier: String?
+    /// The product's introductory offer, if it has one.
+    open private(set) var introductoryPrice: SKProductDiscount?
+    /// The product's promotional offers.
+    open private(set) var discounts: [SKProductDiscount] = []
 
     /// A product with these details. The App Store makes products; on the web none load.
     package init(productIdentifier: String, localizedTitle: String, localizedDescription: String = "",
@@ -165,10 +183,15 @@ open class SKPayment: NSObject {
     package var storedProductIdentifier: String
     package var storedQuantity: Int
     package var storedApplicationUsername: String?
+    package var storedPaymentDiscount: SKPaymentDiscount?
+    package var storedSimulatesAskToBuyInSandbox = false
 
     open var productIdentifier: String { storedProductIdentifier }
     open var quantity: Int { storedQuantity }
     open var applicationUsername: String? { storedApplicationUsername }
+    /// The signed promotional offer to apply to the purchase.
+    open var paymentDiscount: SKPaymentDiscount? { storedPaymentDiscount }
+    open var simulatesAskToBuyInSandbox: Bool { storedSimulatesAskToBuyInSandbox }
 
     public convenience init(product: SKProduct) {
         self.init(productIdentifier: product.productIdentifier, quantity: 1)
@@ -195,6 +218,14 @@ open class SKMutablePayment: SKPayment {
     open override var applicationUsername: String? {
         get { storedApplicationUsername }
         set { storedApplicationUsername = newValue }
+    }
+    open override var paymentDiscount: SKPaymentDiscount? {
+        get { storedPaymentDiscount }
+        set { storedPaymentDiscount = newValue }
+    }
+    open override var simulatesAskToBuyInSandbox: Bool {
+        get { storedSimulatesAskToBuyInSandbox }
+        set { storedSimulatesAskToBuyInSandbox = newValue }
     }
 }
 
@@ -258,6 +289,12 @@ open class SKPaymentQueue: NSObject {
 
     /// The transactions waiting in the queue.
     open private(set) var transactions: [SKPaymentTransaction] = []
+
+    /// The object the queue asks before it continues a transaction.
+    open weak var delegate: (any SKPaymentQueueDelegate)?
+
+    /// The App Store storefront the queue uses: none on the web, where there is no store.
+    open private(set) var storefront: SKStorefront?
 
     /// The observers registered with the queue.
     open var transactionObservers: [any SKPaymentTransactionObserver] { observerBoxes.compactMap(\.observer) }
