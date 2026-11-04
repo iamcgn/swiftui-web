@@ -139,6 +139,17 @@ extension Set: @retroactive _ObjectiveCBridgeable {
     }
 }
 
+/// `description` on every object, as Foundation gives `NSObject`: the runtime's header declares
+/// it with Foundation's `NSString`, which this SDK does not define, so the compiler leaves it out
+/// and an app's `override var description` overrode nothing (RevenueCat's model classes). This
+/// one is `@objc`, so subclasses override it as they do Foundation's.
+extension NSObject: @retroactive CustomStringConvertible, @retroactive CustomDebugStringConvertible {
+    @objc open var description: String {
+        "<\(type(of: self)): 0x\(String(UInt(bitPattern: ObjectIdentifier(self).hashValue), radix: 16))>"
+    }
+    @objc open var debugDescription: String { description }
+}
+
 /// A value type that bridges as itself in a `_WebNSValue`.
 public protocol _WebValueBridged: _ObjectiveCBridgeable where _ObjectiveCType == _WebNSValue {}
 

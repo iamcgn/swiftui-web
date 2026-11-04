@@ -24,7 +24,8 @@ extension LocalizedError {
 #if canImport(ObjectiveC)
 // With an Objective-C runtime (decision 0023) `NSError` is an `NSObject`, as Foundation's is, so
 // `@objc` members can take and hand back errors (a `(CustomerInfo?, NSError?) -> Void` completion).
-open class NSError: NSObject, Error, CustomStringConvertible, @unchecked Sendable {
+// It describes itself through `NSObject`'s `description` (ObjectiveCBridging.swift).
+open class NSError: NSObject, Error, @unchecked Sendable {
     public let domain: String
     public let code: Int
     public let userInfo: [String: Any]
