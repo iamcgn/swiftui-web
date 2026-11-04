@@ -1,16 +1,20 @@
 // The Foundation names RevenueCat reaches for: `NSError.UserInfoKey` and the URL error keys,
 // a URL error's failing address as text, the app's directories as `URL` statics, an operation
 // queue's block operations, `NSNumber.objCType` and `Locale.currency`. The cases run against
-// Foundation on macOS and Linux too.
+// Foundation on macOS and Linux too, except where Linux's Foundation lacks the name (the user
+// info key, the directory statics) or deprecates it (the failing address as text).
 import Testing
 import WebFoundation
 import WebFoundationFormats
 
+#if os(WASI) || canImport(Darwin)
 extension NSError.UserInfoKey {
     fileprivate static let statusCode: NSError.UserInfoKey = "status_code"
 }
+#endif
 
 @Suite struct ErrorKeysAndDirectoriesTests {
+    #if os(WASI) || canImport(Darwin)
     @Test func userInfoKeys() {
         let info: [NSError.UserInfoKey: Any] = [.statusCode: 404, NSLocalizedDescriptionKey: "Missing"]
         let error = NSError(domain: NSURLErrorDomain, code: NSURLErrorBadServerResponse, userInfo: info)
@@ -19,18 +23,23 @@ extension NSError.UserInfoKey {
         #expect(NSURLErrorBadServerResponse == -1011)
         #expect(NSURLErrorCannotFindHost == -1003)
     }
+    #endif
 
+    #if os(WASI)
     @Test func failingAddressAsText() {
         let error = URLError(.badURL, userInfo: [NSURLErrorFailingURLStringErrorKey: "https://example.com/x"])
         #expect(error.failureURLString == "https://example.com/x")
     }
+    #endif
 
+    #if os(WASI) || canImport(Darwin)
     @Test func directories() {
         #expect(URL.documentsDirectory == FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0])
         #expect(URL.cachesDirectory == FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0])
         #expect(URL.applicationSupportDirectory == FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0])
         #expect(URL.temporaryDirectory.path == FileManager.default.temporaryDirectory.path)
     }
+    #endif
 
     @Test func blockOperation() async {
         await withCheckedContinuation { (done: CheckedContinuation<Void, Never>) in
