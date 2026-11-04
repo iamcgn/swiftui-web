@@ -21,6 +21,30 @@ extension LocalizedError {
     public var helpAnchor: String? { nil }
 }
 
+#if canImport(ObjectiveC)
+// With an Objective-C runtime (decision 0023) `NSError` is an `NSObject`, as Foundation's is, so
+// `@objc` members can take and hand back errors (a `(CustomerInfo?, NSError?) -> Void` completion).
+open class NSError: NSObject, Error, CustomStringConvertible, @unchecked Sendable {
+    public let domain: String
+    public let code: Int
+    public let userInfo: [String: Any]
+
+    public init(domain: String, code: Int, userInfo: [String: Any]? = nil) {
+        self.domain = domain
+        self.code = code
+        self.userInfo = userInfo ?? [:]
+        super.init()
+    }
+
+    open var localizedDescription: String {
+        if let text = userInfo[NSLocalizedDescriptionKey] as? String { return text }
+        return "The operation couldn’t be completed. (\(domain) error \(code).)"
+    }
+    open var localizedFailureReason: String? { userInfo[NSLocalizedFailureReasonErrorKey] as? String }
+    open var localizedRecoverySuggestion: String? { userInfo[NSLocalizedRecoverySuggestionErrorKey] as? String }
+    open override var description: String { localizedDescription }
+}
+#else
 open class NSError: Error, CustomStringConvertible, @unchecked Sendable {
     public let domain: String
     public let code: Int
@@ -40,6 +64,7 @@ open class NSError: Error, CustomStringConvertible, @unchecked Sendable {
     open var localizedRecoverySuggestion: String? { userInfo[NSLocalizedRecoverySuggestionErrorKey] as? String }
     public var description: String { localizedDescription }
 }
+#endif
 
 public let NSLocalizedDescriptionKey = "NSLocalizedDescription"
 public let NSLocalizedFailureReasonErrorKey = "NSLocalizedFailureReason"

@@ -4,7 +4,9 @@
 // a purchase can't start. Apps that sell things compile unchanged and show their store as
 // unavailable, the way they do on a device whose storefront doesn't offer the products.
 #if os(WASI)
-import WebFoundation
+// Apple's StoreKit re-exports Foundation: a file that imports only StoreKit names `Date` and
+// `NSObject` (RevenueCat's StoreKit wrappers, the sweep).
+@_exported import WebFoundation
 import WebDecimalFormats
 #else
 import Foundation
