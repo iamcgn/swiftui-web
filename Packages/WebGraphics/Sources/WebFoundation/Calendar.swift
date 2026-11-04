@@ -174,6 +174,10 @@ public struct Locale: Hashable, Sendable, Codable, CustomStringConvertible {
     /// Set by the canvas host from `navigator.languages`.
     nonisolated(unsafe) public static var _hostPreferredLanguages: [String]?
     public static var preferredLanguages: [String] { _hostPreferredLanguages ?? [_hostIdentifier ?? "en-US"] }
+    /// Set by the canvas host from `Intl.DisplayNames`: the name, in the language of a locale
+    /// (BCP 47), of a language, region or script code (`type` is "language", "region" or
+    /// "script"); nil for a code it doesn't know.
+    nonisolated(unsafe) public static var _hostDisplayName: ((_ locale: String, _ type: String, _ code: String) -> String?)?
     private static func normalized(_ tag: String) -> String { String(tag.map { $0 == "-" ? "_" : $0 }) }
     public var languageCode: String? { identifier.split { $0 == "_" || $0 == "-" }.first.map(String.init) }
     public var regionCode: String? {

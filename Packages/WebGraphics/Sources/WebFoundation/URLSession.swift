@@ -532,7 +532,9 @@ public final class URLSession: @unchecked Sendable {
 
     /// Retrieves the contents of a URL request and delivers the data asynchronously; a
     /// cancelled Swift task cancels the request (`URLError.cancelled`).
-    public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+    /// A `delegate` is accepted for the forms that take one; the browser reports no progress
+    /// while a body goes out, so an upload tells it once, when the body is sent.
+    public func data(for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {
         guard let url = request.url, url.scheme != nil else { throw URLError(.badURL) }
         // A task cancelled before the request goes out never sends it (Foundation's behaviour).
         if Task.isCancelled { throw URLError(.cancelled) }
@@ -555,26 +557,35 @@ public final class URLSession: @unchecked Sendable {
         }
     }
 
-    public func data(from url: URL) async throws -> (Data, URLResponse) { try await data(for: URLRequest(url: url)) }
+    public func data(from url: URL, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) { try await data(for: URLRequest(url: url)) }
 
     /// Downloads to a file under the temporary directory (the in-memory file system on wasm,
     /// `Data(contentsOf:)` reads it back, as the Countries image repository does) and answers
     /// its URL with the response; an HTTP error status is still a response.
-    public func download(for request: URLRequest) async throws -> (URL, URLResponse) {
+    public func download(for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (URL, URLResponse) {
         let (data, response) = try await data(for: request)
         let name = "CFNetworkDownload_" + String(UInt64(Date().timeIntervalSince1970 * 1000), radix: 36) + "_" + String(data.count) + ".tmp"
         let file = FileManager.default.temporaryDirectory.appendingPathComponent(name)
         try data.write(to: file)
         return (file, response)
     }
-    public func download(from url: URL) async throws -> (URL, URLResponse) { try await download(for: URLRequest(url: url)) }
+    public func download(from url: URL, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (URL, URLResponse) { try await download(for: URLRequest(url: url)) }
 
     /// Uploads `bodyData` with the request's method (POST unless the request says otherwise).
-    public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) {
+    public func upload(for request: URLRequest, from bodyData: Data, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {
         var uploading = request
         uploading.httpBody = bodyData
         if uploading.httpMethod == nil || uploading.httpMethod == "GET" { uploading.httpMethod = "POST" }
-        return try await data(for: uploading)
+        let result = try await data(for: uploading)
+        if let delegate {
+            let task = URLSessionUploadTask(identifier: nextTaskIdentifier, request: uploading) { _WebURLSession.Task(identifier: 0) { _ in } }
+            nextTaskIdentifier += 1
+            task.finished(response: result.1, error: nil)
+            let sent = Int64(bodyData.count)
+            delegate.urlSession(self, task: task, didSendBodyData: sent, totalBytesSent: sent, totalBytesExpectedToSend: sent)
+            delegate.urlSession(self, task: task, didCompleteWithError: nil)
+        }
+        return result
     }
 
     /// Cancels the session's tasks, tells the delegate the session is invalid and lets it go.

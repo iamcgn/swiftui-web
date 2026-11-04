@@ -1838,6 +1838,8 @@ final class CanvasImageLoader: _ImageLoading {
 enum IntlBridge {
     /// One `Intl.DateTimeFormat` per zone and name style, made on first use.
     nonisolated(unsafe) private static var formatters: [String: JSObject] = [:]
+    /// One `Intl.DisplayNames` per locale and kind of code, made on first use.
+    nonisolated(unsafe) private static var displayNames: [String: JSObject] = [:]
 
     static func install() {
         let intl = JSObject.global.Intl
@@ -1852,6 +1854,25 @@ enum IntlBridge {
             guard let values = JSObject.global.Intl.supportedValuesOf.function?("timeZone").object else { return ["GMT"] }
             let count = Int(values.length.number ?? 0)
             return (0..<count).compactMap { values[$0].string }
+        }
+        if intl.DisplayNames.function != nil {
+            Locale._hostDisplayName = { locale, type, code in
+                let key = locale + "|" + type
+                let names: JSObject
+                if let known = displayNames[key] {
+                    names = known
+                } else {
+                    let options = JSObject.global.Object.function!.new()
+                    options.type = .string(type)
+                    options.fallback = .string("none")
+                    guard let made = JSObject.global.Intl.DisplayNames.function?.new(locale, options) else { return nil }
+                    names = made
+                    displayNames[key] = made
+                }
+                // `of` throws a RangeError for a malformed code; an undefined answer is unknown.
+                guard code.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-" || $0 == "_") }), !code.isEmpty else { return nil }
+                return names.of?(code.replacingOccurrences(of: "_", with: "-")).string
+            }
         }
         let navigator = JSObject.global.navigator
         if let language = navigator.language.string, !language.isEmpty { Locale._hostIdentifier = language }

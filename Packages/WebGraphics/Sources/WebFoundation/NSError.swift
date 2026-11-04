@@ -31,6 +31,9 @@ open class NSError: Error, CustomStringConvertible, @unchecked Sendable {
         self.code = code
         self.userInfo = userInfo ?? [:]
     }
+    /// An error with no domain, as `NSError()` makes on Apple platforms (ButtonKit's previews
+    /// throw one).
+    public convenience init() { self.init(domain: "", code: 0) }
 
     open var localizedDescription: String {
         if let text = userInfo[NSLocalizedDescriptionKey] as? String { return text }

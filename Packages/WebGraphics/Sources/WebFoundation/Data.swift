@@ -23,6 +23,8 @@ public struct Data: Hashable, Sendable, Codable, CustomStringConvertible, Custom
     public init<S: Sequence>(_ elements: S) where S.Element == UInt8 { bytes = Array(elements) }
     public init(repeating value: UInt8, count: Int) { bytes = Array(repeating: value, count: count) }
     public init(capacity: Int) { bytes = []; bytes.reserveCapacity(capacity) }
+    /// `count` zero bytes.
+    public init(count: Int) { bytes = Array(repeating: 0, count: count) }
     public init(bytes pointer: UnsafeRawPointer, count: Int) {
         self.bytes = Array(UnsafeRawBufferPointer(start: pointer, count: count))
     }
@@ -31,7 +33,14 @@ public struct Data: Hashable, Sendable, Codable, CustomStringConvertible, Custom
     public init(_ buffer: UnsafeRawBufferPointer) { bytes = Array(buffer) }
 
     public var endIndex: Int { startIndex + bytes.count }
-    public var count: Int { bytes.count }
+    /// The number of bytes. Setting it truncates or pads with zeros, as Foundation's does.
+    public var count: Int {
+        get { bytes.count }
+        set {
+            precondition(newValue >= 0, "count must not be negative")
+            if newValue < bytes.count { bytes.removeLast(bytes.count - newValue) } else { bytes += Array(repeating: 0, count: newValue - bytes.count) }
+        }
+    }
     public func index(after i: Int) -> Int { i + 1 }
     public func index(before i: Int) -> Int { i - 1 }
 
