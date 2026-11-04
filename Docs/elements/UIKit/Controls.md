@@ -23,6 +23,8 @@ iPhone SE simulator on iOS 26. `UISwitch` and `UITextField` have their own pages
   pattern turns on the scene's clock while animating (2026-09-18, `ActivityIndicatorTests`).
 - `UIPageControl`: `numberOfPages`, `currentPage`, `hidesForSinglePage`, the indicator tint
   colours, `size(forNumberOfPages:)`; a tap on either half moves a page and sends `valueChanged`.
+- `UIColorWell` (2026-11-04, approximate: not measured): `selectedColor` (sends `valueChanged`),
+  `supportsAlpha`, `title`; a 28 pt disc of the colour. A tap opens no picker yet.
 
 ## Measured (iOS 26, iPhone SE simulator)
 

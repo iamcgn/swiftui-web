@@ -30,7 +30,8 @@ attributes in Chromium; `FrameworksTests` the runtime's reports.
 | `AVPlayer(url:)`, `AVPlayer(playerItem:)`, `play()`, `pause()`, `rate`, `isMuted`, `volume`, `replaceCurrentItem`, `currentItem`, `timeControlStatus`, `status` | implemented: the element follows the player's state each frame (`@Observable`) |
 | `AVPlayerItem(url:)`, `AVAsset`, `AVURLAsset`, `AVQueuePlayer`, `AVPlayerLooper` (loops the element) | implemented (one item at a time) |
 | `CMTime` (seconds), `seek(to:)`, `currentTime()`, `addPeriodicTimeObserver` | accepted: seeks are kept, not applied; the observer never fires; `duration` is invalid |
-| Playback state back from the element (ended, buffering, the time), picture in picture, AirPlay, `AVPlayerViewController` | missing |
+| `AVPlayerViewController` (`player`, `showsPlaybackControls`, `videoGravity`, the picture-in-picture flags, `delegate`) | implemented (2026-11-04): its view hosts a `VideoPlayer` for the player; picture in picture, full screen and `contentOverlayView` are accepted, not shown |
+| Playback state back from the element (ended, buffering, the time), picture in picture, AirPlay | missing |
 
 ## WebView (WebKit)
 
@@ -60,6 +61,7 @@ this (heavy use needs a tile provider of one's own; `_MapTiles.tileURL`).
 | `Annotation(_:coordinate:anchor:content:)` | implemented: the content centred on the coordinate (the anchor is accepted) |
 | `ForEach` of map content, `MapContentBuilder` | implemented |
 | `CLLocationCoordinate2D`, `CLLocation` (`distance(from:)`), `MKMapItem`, `MKPlacemark`, `MapStyle`, `mapStyle`, `mapControls`, `MapCompass` and the other controls, `UserAnnotation`, `MapPolyline`, `MapCircle`, `onMapCameraChange`, `MapCameraBounds` | accepted: styles, controls, overlays and the user's location paint nothing; the camera never changes |
+| `MKMapView` (`region`, `setRegion`, `centerCoordinate`, `mapType`, the `shows…` and `is…Enabled` flags, annotations added, removed, selected and shown, `delegate`), `MKAnnotation`, `MKPointAnnotation`, `MKAnnotationView`, `MKMarkerAnnotationView` | accepted (2026-11-04): the view keeps what it is given and paints a plain land colour; no tiles or annotation views yet, and the delegate hears only region changes |
 | Panning, zooming and rotating by gestures, the camera binding written back, imagery and hybrid tiles, polylines and polygons, selection, look-around, geocoding, `CLLocationManager` | missing |
 
 ## Open
