@@ -112,5 +112,13 @@ fbb333cf with a clean tree.
   Decided 2026-10-15: that stays so for v1; v1.5 bridges `String` over the runtime's small
   `NSString` in WebFoundation; the eventual direction is corelibs Foundation rebuilt with interop
   on, taken as its own decision when it is scheduled.
+- 2026-11-04, `@objc` signatures: `Array`, `Dictionary`, `Set`, `Date`, `URL`, `Data` and `UUID`
+  conform to `_ObjectiveCBridgeable` on this SDK, over small `NSObject` holders of the Swift
+  value in WebFoundation (ObjectiveCBridging.swift), `NSObject` gains an `@objc` `description`
+  (the runtime header's uses Foundation's `NSString`, so the compiler drops it and apps'
+  `override var description` overrode nothing), and `NSError` is rooted at `NSObject`, so
+  `@objc` members that take or return them compile (RevenueCat's API surface). The holders are
+  not Foundation's classes: Objective-C code cannot read them, and they only carry values between
+  Swift `@objc` members.
 - `#selector`-based `UIKeyCommand`s do nothing on builds without the runtime; the closure
   form works everywhere.
