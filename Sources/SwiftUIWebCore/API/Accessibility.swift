@@ -194,69 +194,69 @@ extension _AccessibilityModifier: ViewModifier {
 }
 
 extension View {
-    private nonisolated func accessibility(_ change: (inout AccessibilityAttributes) -> Void) -> some View {
+    private nonisolated func _accessibilityChange(_ change: (inout AccessibilityAttributes) -> Void) -> some View {
         var attributes = AccessibilityAttributes()
         change(&attributes)
         return modifier(_AccessibilityModifier(attributes))
     }
 
     /// Adds a label to the view that describes its contents.
-    nonisolated public func accessibilityLabel(_ label: Text) -> some View { accessibility { $0.label = label.resolvedString } }
-    nonisolated public func accessibilityLabel(_ labelKey: LocalizedStringKey) -> some View { accessibility { $0.label = Text(labelKey).resolvedString } }
+    nonisolated public func accessibilityLabel(_ label: Text) -> some View { _accessibilityChange { $0.label = label.resolvedString } }
+    nonisolated public func accessibilityLabel(_ labelKey: LocalizedStringKey) -> some View { _accessibilityChange { $0.label = Text(labelKey).resolvedString } }
     @_disfavoredOverload
-    nonisolated public func accessibilityLabel<S: StringProtocol>(_ label: S) -> some View { accessibility { $0.label = String(label) } }
+    nonisolated public func accessibilityLabel<S: StringProtocol>(_ label: S) -> some View { _accessibilityChange { $0.label = String(label) } }
 
     /// Communicates to the user what happens after performing the view's action.
-    nonisolated public func accessibilityHint(_ hint: Text) -> some View { accessibility { $0.hint = hint.resolvedString } }
-    nonisolated public func accessibilityHint(_ hintKey: LocalizedStringKey) -> some View { accessibility { $0.hint = Text(hintKey).resolvedString } }
+    nonisolated public func accessibilityHint(_ hint: Text) -> some View { _accessibilityChange { $0.hint = hint.resolvedString } }
+    nonisolated public func accessibilityHint(_ hintKey: LocalizedStringKey) -> some View { _accessibilityChange { $0.hint = Text(hintKey).resolvedString } }
     @_disfavoredOverload
-    nonisolated public func accessibilityHint<S: StringProtocol>(_ hint: S) -> some View { accessibility { $0.hint = String(hint) } }
+    nonisolated public func accessibilityHint<S: StringProtocol>(_ hint: S) -> some View { _accessibilityChange { $0.hint = String(hint) } }
 
     /// Adds a textual description of the value that the view contains.
-    nonisolated public func accessibilityValue(_ value: Text) -> some View { accessibility { $0.value = value.resolvedString } }
-    nonisolated public func accessibilityValue(_ valueKey: LocalizedStringKey) -> some View { accessibility { $0.value = Text(valueKey).resolvedString } }
+    nonisolated public func accessibilityValue(_ value: Text) -> some View { _accessibilityChange { $0.value = value.resolvedString } }
+    nonisolated public func accessibilityValue(_ valueKey: LocalizedStringKey) -> some View { _accessibilityChange { $0.value = Text(valueKey).resolvedString } }
     @_disfavoredOverload
-    nonisolated public func accessibilityValue<S: StringProtocol>(_ value: S) -> some View { accessibility { $0.value = String(value) } }
+    nonisolated public func accessibilityValue<S: StringProtocol>(_ value: S) -> some View { _accessibilityChange { $0.value = String(value) } }
 
     /// Uses the string you specify to identify the view (tests, automation).
-    nonisolated public func accessibilityIdentifier(_ identifier: String) -> some View { accessibility { $0.identifier = identifier } }
+    nonisolated public func accessibilityIdentifier(_ identifier: String) -> some View { _accessibilityChange { $0.identifier = identifier } }
 
     /// Specifies whether to hide this view from system accessibility features.
-    nonisolated public func accessibilityHidden(_ hidden: Bool) -> some View { accessibility { $0.hidden = hidden } }
+    nonisolated public func accessibilityHidden(_ hidden: Bool) -> some View { _accessibilityChange { $0.hidden = hidden } }
     /// Accepted: the browser has no Smart Invert to exempt the view from.
     nonisolated public func accessibilityIgnoresInvertColors(_ active: Bool = true) -> some View { self }
 
     /// Adds the given traits to the view.
-    nonisolated public func accessibilityAddTraits(_ traits: AccessibilityTraits) -> some View { accessibility { $0.addedTraits = traits } }
+    nonisolated public func accessibilityAddTraits(_ traits: AccessibilityTraits) -> some View { _accessibilityChange { $0.addedTraits = traits } }
 
     /// Removes the given traits from this view.
-    nonisolated public func accessibilityRemoveTraits(_ traits: AccessibilityTraits) -> some View { accessibility { $0.removedTraits = traits } }
+    nonisolated public func accessibilityRemoveTraits(_ traits: AccessibilityTraits) -> some View { _accessibilityChange { $0.removedTraits = traits } }
 
     /// Creates a new accessibility element, or modifies the existing one, for the view.
-    nonisolated public func accessibilityElement(children: AccessibilityChildBehavior = .ignore) -> some View { accessibility { $0.children = children } }
+    nonisolated public func accessibilityElement(children: AccessibilityChildBehavior = .ignore) -> some View { _accessibilityChange { $0.children = children } }
 
     // MARK: Actions
 
     /// Adds an accessibility action of a kind to the view (the default kind activates the element).
     nonisolated public func accessibilityAction(_ actionKind: AccessibilityActionKind = .default, _ handler: @escaping @MainActor () -> Void) -> some View {
-        accessibility { $0.actions = [_AccessibilityAction(kind: .kind(actionKind), run: handler)] }
+        _accessibilityChange { $0.actions = [_AccessibilityAction(kind: .kind(actionKind), run: handler)] }
     }
 
     /// Adds a named custom action.
     nonisolated public func accessibilityAction(named name: Text, _ handler: @escaping @MainActor () -> Void) -> some View {
-        accessibility { $0.actions = [_AccessibilityAction(kind: .named(name.resolvedString), run: handler)] }
+        _accessibilityChange { $0.actions = [_AccessibilityAction(kind: .named(name.resolvedString), run: handler)] }
     }
     nonisolated public func accessibilityAction(named nameKey: LocalizedStringKey, _ handler: @escaping @MainActor () -> Void) -> some View {
-        accessibility { $0.actions = [_AccessibilityAction(kind: .named(Text(nameKey).resolvedString), run: handler)] }
+        _accessibilityChange { $0.actions = [_AccessibilityAction(kind: .named(Text(nameKey).resolvedString), run: handler)] }
     }
     @_disfavoredOverload
     nonisolated public func accessibilityAction<S: StringProtocol>(named name: S, _ handler: @escaping @MainActor () -> Void) -> some View {
-        accessibility { $0.actions = [_AccessibilityAction(kind: .named(String(name)), run: handler)] }
+        _accessibilityChange { $0.actions = [_AccessibilityAction(kind: .named(String(name)), run: handler)] }
     }
 
     /// Adds a custom action named by its label view (the label's text; "Action" otherwise).
     nonisolated public func accessibilityAction<Label: View>(action: @escaping @MainActor () -> Void, @ViewBuilder label: () -> Label) -> some View {
-        accessibility { $0.actions = [_AccessibilityAction(kind: .named(_staticText(of: label()) ?? "Action"), run: action)] }
+        _accessibilityChange { $0.actions = [_AccessibilityAction(kind: .named(_staticText(of: label()) ?? "Action"), run: action)] }
     }
 
     /// Adds custom actions from the buttons in `content` (each button's title names its action).
@@ -266,17 +266,17 @@ extension View {
 
     /// Makes the element adjustable: assistive technology increments and decrements it.
     nonisolated public func accessibilityAdjustableAction(_ handler: @escaping @MainActor (AccessibilityAdjustmentDirection) -> Void) -> some View {
-        accessibility { $0.adjustable = _AdjustableAction(handler) }
+        _accessibilityChange { $0.adjustable = _AdjustableAction(handler) }
     }
 
     // MARK: Order, headings, focus and content
 
     /// Sets the sort priority of the element among its siblings (higher first; 0 by default).
-    nonisolated public func accessibilitySortPriority(_ sortPriority: Double) -> some View { accessibility { $0.sortPriority = sortPriority } }
+    nonisolated public func accessibilitySortPriority(_ sortPriority: Double) -> some View { _accessibilityChange { $0.sortPriority = sortPriority } }
 
     /// Makes the element a heading of the given level.
     nonisolated public func accessibilityHeading(_ level: AccessibilityHeadingLevel) -> some View {
-        accessibility { $0.addedTraits = .isHeader; $0.headingLevel = level.level == 0 ? nil : level.level }
+        _accessibilityChange { $0.addedTraits = .isHeader; $0.headingLevel = level.level == 0 ? nil : level.level }
     }
 
     /// Replaces the view's accessibility elements with those of `representation` (laid out over
@@ -292,27 +292,27 @@ extension View {
 
     /// Ties assistive technology's focus on the view to a Boolean focus state.
     nonisolated public func accessibilityFocused(_ condition: AccessibilityFocusState<Bool>.Binding) -> some View {
-        modifier(_FocusedModifier(box: condition.box, value: true)).accessibility { $0.focusable = true }
+        modifier(_FocusedModifier(box: condition.box, value: true))._accessibilityChange { $0.focusable = true }
     }
 
     /// Ties assistive technology's focus on the view to a focus state value.
     nonisolated public func accessibilityFocused<Value: Hashable>(_ binding: AccessibilityFocusState<Value?>.Binding, equals value: Value) -> some View {
-        modifier(_FocusedModifier(box: binding.box, value: value)).accessibility { $0.focusable = true }
+        modifier(_FocusedModifier(box: binding.box, value: value))._accessibilityChange { $0.focusable = true }
     }
 
     /// Adds custom content assistive technology can read on request.
     nonisolated public func accessibilityCustomContent(_ label: Text, _ value: Text, importance: AXCustomContentImportance = .default) -> some View {
-        accessibility { $0.customContent = ["\(label.resolvedString): \(value.resolvedString)"] }
+        _accessibilityChange { $0.customContent = ["\(label.resolvedString): \(value.resolvedString)"] }
     }
     nonisolated public func accessibilityCustomContent(_ labelKey: LocalizedStringKey, _ value: Text, importance: AXCustomContentImportance = .default) -> some View {
-        accessibility { $0.customContent = ["\(Text(labelKey).resolvedString): \(value.resolvedString)"] }
+        _accessibilityChange { $0.customContent = ["\(Text(labelKey).resolvedString): \(value.resolvedString)"] }
     }
     nonisolated public func accessibilityCustomContent<V: StringProtocol>(_ labelKey: LocalizedStringKey, _ value: V, importance: AXCustomContentImportance = .default) -> some View {
-        accessibility { $0.customContent = ["\(Text(labelKey).resolvedString): \(value)"] }
+        _accessibilityChange { $0.customContent = ["\(Text(labelKey).resolvedString): \(value)"] }
     }
     @_disfavoredOverload
     nonisolated public func accessibilityCustomContent<L: StringProtocol, V: StringProtocol>(_ label: L, _ value: V, importance: AXCustomContentImportance = .default) -> some View {
-        accessibility { $0.customContent = ["\(label): \(value)"] }
+        _accessibilityChange { $0.customContent = ["\(label): \(value)"] }
     }
 
     // MARK: Rotors
@@ -320,38 +320,38 @@ extension View {
     /// Adds a rotor: a named list of entries assistive technology can navigate (the canvas host
     /// exposes it as a navigation landmark with a link per entry).
     nonisolated public func accessibilityRotor<Content: AccessibilityRotorContent>(_ label: Text, @AccessibilityRotorContentBuilder entries: () -> Content) -> some View {
-        accessibility { $0.rotors = [_AccessibilityRotor(label: label.resolvedString, entries: entries()._rotorEntries)] }
+        _accessibilityChange { $0.rotors = [_AccessibilityRotor(label: label.resolvedString, entries: entries()._rotorEntries)] }
     }
     nonisolated public func accessibilityRotor<Content: AccessibilityRotorContent>(_ labelKey: LocalizedStringKey, @AccessibilityRotorContentBuilder entries: () -> Content) -> some View {
-        accessibility { $0.rotors = [_AccessibilityRotor(label: Text(labelKey).resolvedString, entries: entries()._rotorEntries)] }
+        _accessibilityChange { $0.rotors = [_AccessibilityRotor(label: Text(labelKey).resolvedString, entries: entries()._rotorEntries)] }
     }
     @_disfavoredOverload
     nonisolated public func accessibilityRotor<L: StringProtocol, Content: AccessibilityRotorContent>(_ label: L, @AccessibilityRotorContentBuilder entries: () -> Content) -> some View {
-        accessibility { $0.rotors = [_AccessibilityRotor(label: String(label), entries: entries()._rotorEntries)] }
+        _accessibilityChange { $0.rotors = [_AccessibilityRotor(label: String(label), entries: entries()._rotorEntries)] }
     }
     nonisolated public func accessibilityRotor<Content: AccessibilityRotorContent>(_ systemRotor: AccessibilitySystemRotor, @AccessibilityRotorContentBuilder entries: () -> Content) -> some View {
-        accessibility { $0.rotors = [_AccessibilityRotor(label: systemRotor.name, entries: entries()._rotorEntries)] }
+        _accessibilityChange { $0.rotors = [_AccessibilityRotor(label: systemRotor.name, entries: entries()._rotorEntries)] }
     }
 
     /// Adds a rotor whose entries are `entries`, labelled by `entryLabel`; each entry points at
     /// the view marked `accessibilityRotorEntry(id:in:)` with its id.
     nonisolated public func accessibilityRotor<EntryModel: Identifiable>(_ label: Text, entries: [EntryModel], entryLabel: KeyPath<EntryModel, String>) -> some View {
-        accessibility { $0.rotors = [_AccessibilityRotor(label: label.resolvedString, entries: entries.map { .init(label: $0[keyPath: entryLabel], id: AnyHashable($0.id), namespace: nil, prepare: nil) })] }
+        _accessibilityChange { $0.rotors = [_AccessibilityRotor(label: label.resolvedString, entries: entries.map { .init(label: $0[keyPath: entryLabel], id: AnyHashable($0.id), namespace: nil, prepare: nil) })] }
     }
     nonisolated public func accessibilityRotor<EntryModel: Identifiable>(_ labelKey: LocalizedStringKey, entries: [EntryModel], entryLabel: KeyPath<EntryModel, String>) -> some View {
-        accessibility { $0.rotors = [_AccessibilityRotor(label: Text(labelKey).resolvedString, entries: entries.map { .init(label: $0[keyPath: entryLabel], id: AnyHashable($0.id), namespace: nil, prepare: nil) })] }
+        _accessibilityChange { $0.rotors = [_AccessibilityRotor(label: Text(labelKey).resolvedString, entries: entries.map { .init(label: $0[keyPath: entryLabel], id: AnyHashable($0.id), namespace: nil, prepare: nil) })] }
     }
     @_disfavoredOverload
     nonisolated public func accessibilityRotor<L: StringProtocol, EntryModel: Identifiable>(_ label: L, entries: [EntryModel], entryLabel: KeyPath<EntryModel, String>) -> some View {
-        accessibility { $0.rotors = [_AccessibilityRotor(label: String(label), entries: entries.map { .init(label: $0[keyPath: entryLabel], id: AnyHashable($0.id), namespace: nil, prepare: nil) })] }
+        _accessibilityChange { $0.rotors = [_AccessibilityRotor(label: String(label), entries: entries.map { .init(label: $0[keyPath: entryLabel], id: AnyHashable($0.id), namespace: nil, prepare: nil) })] }
     }
     nonisolated public func accessibilityRotor<EntryModel: Identifiable>(_ systemRotor: AccessibilitySystemRotor, entries: [EntryModel], entryLabel: KeyPath<EntryModel, String>) -> some View {
-        accessibility { $0.rotors = [_AccessibilityRotor(label: systemRotor.name, entries: entries.map { .init(label: $0[keyPath: entryLabel], id: AnyHashable($0.id), namespace: nil, prepare: nil) })] }
+        _accessibilityChange { $0.rotors = [_AccessibilityRotor(label: systemRotor.name, entries: entries.map { .init(label: $0[keyPath: entryLabel], id: AnyHashable($0.id), namespace: nil, prepare: nil) })] }
     }
 
     /// Marks the view as the target of rotor entries with `id` in `namespace`.
     nonisolated public func accessibilityRotorEntry<ID: Hashable>(id: ID, in namespace: Namespace.ID) -> some View {
-        accessibility { $0.rotorEntry = _RotorEntryKey(id: AnyHashable(id), namespace: namespace) }
+        _accessibilityChange { $0.rotorEntry = _RotorEntryKey(id: AnyHashable(id), namespace: namespace) }
     }
 }
 
@@ -540,4 +540,21 @@ extension EnvironmentValues {
         get { self[InvertColorsKey.self] }
         set { self[InvertColorsKey.self] = newValue }
     }
+}
+
+// MARK: - Deprecated `accessibility(…)` spellings
+
+/// The iOS 13 forms, still common in shipping apps; each forwards to its `accessibility…` successor.
+extension View {
+    nonisolated public func accessibility(hidden: Bool) -> some View { accessibilityHidden(hidden) }
+    nonisolated public func accessibility(label: Text) -> some View { accessibilityLabel(label) }
+    nonisolated public func accessibility(hint: Text) -> some View { accessibilityHint(hint) }
+    nonisolated public func accessibility(value: Text) -> some View { accessibilityValue(value) }
+    nonisolated public func accessibility(identifier: String) -> some View { accessibilityIdentifier(identifier) }
+    nonisolated public func accessibility(addTraits traits: AccessibilityTraits) -> some View { accessibilityAddTraits(traits) }
+    nonisolated public func accessibility(removeTraits traits: AccessibilityTraits) -> some View { accessibilityRemoveTraits(traits) }
+    nonisolated public func accessibility(sortPriority: Double) -> some View { accessibilitySortPriority(sortPriority) }
+    nonisolated public func accessibility(selectionIdentifier: AnyHashable) -> some View { self }
+    nonisolated public func accessibility(activationPoint: UnitPoint) -> some View { self }
+    nonisolated public func accessibility(activationPoint: CGPoint) -> some View { self }
 }
