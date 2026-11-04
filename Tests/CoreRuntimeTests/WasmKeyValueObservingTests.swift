@@ -33,6 +33,8 @@ private final class Player: NSObject {
         observation.invalidate()
         player.rate = 2
         #expect(seen.count == 5)
+        let kept: Set<NSKeyValueObservation> = [observation, observation]
+        #expect(kept.count == 1)
     }
 
     @Test func releasingAnObservationStopsIt() {

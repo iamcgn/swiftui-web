@@ -55,7 +55,7 @@ public struct NSKeyValueObservedChange<Value> {
 
 /// An observation `observe(_:options:changeHandler:)` returns. It reports until it's invalidated
 /// or released, as Foundation's does.
-public final class NSKeyValueObservation: @unchecked Sendable {
+public final class NSKeyValueObservation: Hashable, @unchecked Sendable {
     fileprivate let object: ObjectIdentifier
     fileprivate let keyPath: AnyKeyPath
     /// Reports a change: before it (`true`) or after it (`false`).
@@ -76,6 +76,10 @@ public final class NSKeyValueObservation: @unchecked Sendable {
     }
 
     deinit { invalidate() }
+
+    // Hashable by identity, as Foundation's (an NSObject) is: packages keep them in sets.
+    public static func == (lhs: NSKeyValueObservation, rhs: NSKeyValueObservation) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 
     /// Observation's report of a set: the prior report now, the change once the set is done.
     fileprivate func observedWillSet() {
