@@ -46,20 +46,21 @@ private final class Player: NSObject {
         #expect(count == 1)
     }
 
-    @Test func observableProgressReportsItsSets() async throws {
+    // Waits by yielding: under Node a sleeping task asks WASI for timers it doesn't have.
+    @Test func observableProgressReportsItsSets() async {
         let progress = Progress(totalUnitCount: 10)
         var fractions: [Double] = []
         let observation = progress.observe(\.fractionCompleted, options: [.initial, .new]) { _, change in
             if let value = change.newValue { fractions.append(value) }
         }
         progress.completedUnitCount = 5
-        for _ in 0..<50 where fractions.count < 2 { try await Task.sleep(nanoseconds: 2_000_000) }
+        for _ in 0..<50 where fractions.count < 2 { await Task.yield() }
         progress.completedUnitCount = 10
-        for _ in 0..<50 where fractions.count < 3 { try await Task.sleep(nanoseconds: 2_000_000) }
+        for _ in 0..<50 where fractions.count < 3 { await Task.yield() }
         #expect(fractions == [0, 0.5, 1])
         observation.invalidate()
         progress.completedUnitCount = 0
-        try await Task.sleep(nanoseconds: 10_000_000)
+        for _ in 0..<20 { await Task.yield() }
         #expect(fractions == [0, 0.5, 1])
     }
 }
