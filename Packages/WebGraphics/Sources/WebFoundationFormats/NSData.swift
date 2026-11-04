@@ -65,7 +65,7 @@ open class NSData: NSObject, NSCopying, NSMutableCopying, @unchecked Sendable {
 }
 
 /// A byte buffer that can grow, shrink and change.
-open class NSMutableData: NSData {
+open class NSMutableData: NSData, @unchecked Sendable {
     public convenience init?(capacity: Int) {
         self.init()
         _bytes.reserveCapacity(capacity)
