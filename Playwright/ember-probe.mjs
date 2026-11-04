@@ -62,6 +62,12 @@ page.on('console', m => {
   if (/net::ERR_FAILED|Failed to load resource/.test(text) && !/firebaseio|algolia/.test(text)) { report.favicons_refused++; return; }
   // A site refusing to be framed is the site's choice (the reader sheet's Open link is the way out).
   if (/Refused to (display|frame) |X-Frame-Options|frame-ancestors|allow-scripts and allow-same-origin/.test(text)) return;
+  // A framed article's own script logging an error (its stack, or the message's source, names
+  // only other origins) is that site's, as for page errors above.
+  const source = m.location()?.url || '';
+  if ((/\n\s+at /.test(text) && isFramedSiteError(text)) || (source && !source.startsWith(appOrigin) && !source.startsWith('blob:') && isFramedSiteError(source))) {
+    report.framed_site_errors.push('console: ' + text.slice(0, 200)); return;
+  }
   problems.push('console: ' + text.slice(0, 300));
 });
 // The painted texts, each with its font family and position.
