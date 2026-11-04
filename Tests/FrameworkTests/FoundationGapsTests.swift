@@ -101,7 +101,7 @@ import WebFoundationFormats
 
 extension FoundationGapsTests {
     @Test func localizedCase() {
-        #expect("hello wORLD, it's 3pm".localizedCapitalized == "Hello World, It's 3pm")
+        #expect("hello wORLD, it's here".localizedCapitalized == "Hello World, It's Here")
         #expect("Ab".localizedLowercase == "ab")
         #expect("Ab".localizedUppercase == "AB")
     }
