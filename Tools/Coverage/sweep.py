@@ -826,10 +826,10 @@ def cmd_prepare(args):
             # A package target that declares no resources still gets the ones SwiftPM finds by
             # type (string catalogs, .lproj folders, asset catalogs), and with them `Bundle.module`
             # (BackyardBirds' data package). They are copied as they are, which needs no Xcode tool.
-            declared = [(r, "process") for r in t["resources"]]
-            if not declared and not t.get("app"):
-                declared = [(r, "copy") for r in auto_resources(clone_dir / t["source_root"])]
-            for r, rule in declared:
+            resource_rules = [(r, "process") for r in t["resources"]]
+            if not resource_rules and not t.get("app"):
+                resource_rules = [(r, "copy") for r in auto_resources(clone_dir / t["source_root"])]
+            for r, rule in resource_rules:
                 src = clone_dir / t["source_root"] / r
                 if src.exists():
                     dst = dest_root / r
