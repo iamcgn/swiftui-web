@@ -61,7 +61,14 @@ public final class JSONSerialization {
 
     /// Returns a Foundation object from the JSON data.
     public class func jsonObject(with data: Data, options opt: ReadingOptions = []) throws -> Any {
-        var parser = _JSONParser(bytes: Array(data))
+        var bytes = Array(data)
+        if opt.contains(.json5Allowed) {
+            guard let json = _JSON5.json(bytes, assumesTopLevelDictionary: opt.contains(.topLevelDictionaryAssumed)) else {
+                throw _Error(description: "The data is not valid JSON5.")
+            }
+            bytes = json
+        }
+        var parser = _JSONParser(bytes: bytes)
         let root = try parser.parseDocument()
         switch root {
         case .array, .object: break

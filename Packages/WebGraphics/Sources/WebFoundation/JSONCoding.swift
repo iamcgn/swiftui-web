@@ -102,10 +102,24 @@ open class JSONDecoder: @unchecked Sendable {
     open var keyDecodingStrategy: KeyDecodingStrategy = .useDefaultKeys
     open var nonConformingFloatDecodingStrategy: NonConformingFloatDecodingStrategy = .throw
     open var userInfo: [CodingUserInfoKey: Any] = [:]
+    /// Reads JSON5 too (comments, trailing commas, unquoted keys; JSON5.swift).
+    open var allowsJSON5 = false
+    /// With `allowsJSON5`, takes a top-level object without its braces.
+    open var assumesTopLevelDictionary = false
 
     public init() {}
 
     open func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
+        if allowsJSON5 {
+            guard let json = _JSON5.json(Array(data), assumesTopLevelDictionary: assumesTopLevelDictionary) else {
+                throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: [], debugDescription: "The given data was not valid JSON5."))
+            }
+            return try _decode(type, from: Data(json))
+        }
+        return try _decode(type, from: data)
+    }
+
+    private func _decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
         var options = _JSONDecodingOptions()
         switch dateDecodingStrategy {
         case .deferredToDate: options.dateStrategy = .deferred

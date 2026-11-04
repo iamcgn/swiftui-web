@@ -199,7 +199,18 @@ extension String {
         guard let core = encoding._core, let text = _TextEncoding.decode(data.bytes, as: core) else { return nil }
         self = text
     }
-    public init?<S: Sequence>(bytes: S, encoding: Encoding) where S.Element == UInt8 {
+    // FoundationEssentials declares this same initializer; with the same signature (`__shared`
+    // included) this one shadows it, where a different one left `String(bytes:encoding:) != nil`
+    // ambiguous. The array and slice forms win over the generic one as well.
+    public init?<S: Sequence>(bytes: __shared S, encoding: Encoding) where S.Iterator.Element == UInt8 {
+        guard let core = encoding._core, let text = _TextEncoding.decode(Array(bytes), as: core) else { return nil }
+        self = text
+    }
+    public init?(bytes: __shared [UInt8], encoding: Encoding) {
+        guard let core = encoding._core, let text = _TextEncoding.decode(bytes, as: core) else { return nil }
+        self = text
+    }
+    public init?(bytes: __shared ArraySlice<UInt8>, encoding: Encoding) {
         guard let core = encoding._core, let text = _TextEncoding.decode(Array(bytes), as: core) else { return nil }
         self = text
     }
@@ -218,6 +229,13 @@ extension String {
     public func data(using encoding: Encoding, allowLossyConversion: Bool = false) -> Data? {
         guard let core = encoding._core, let bytes = _TextEncoding.encode(self, as: core, lossy: allowLossyConversion) else { return nil }
         return Data(bytes)
+    }
+    /// The form without the lossy flag. FoundationEssentials' `data(using:allowLossyConversion:)`
+    /// answers its own `Data`, so the two never shadow each other and `s.data(using: .utf8)`
+    /// with nothing to pick the result type was ambiguous; a call that leaves out the flag picks
+    /// this one, as the solver prefers the overload that needs no default argument.
+    public func data(using encoding: Encoding) -> Data? {
+        data(using: encoding, allowLossyConversion: false)
     }
     public func lengthOfBytes(using encoding: Encoding) -> Int { _bytes(encoding)?.count ?? 0 }
     public func maximumLengthOfBytes(using encoding: Encoding) -> Int {

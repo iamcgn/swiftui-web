@@ -105,7 +105,7 @@ public struct AttributedString: Hashable, Sendable, CustomStringConvertible {
     public init(stringLiteral value: String) { self.init(value) }
 
     /// Markdown text parsed into runs with `inlinePresentationIntent` and `link` attributes.
-    public init(markdown: String, options: MarkdownParsingOptions = MarkdownParsingOptions()) throws {
+    public init(markdown: String, options: MarkdownParsingOptions = MarkdownParsingOptions(), baseURL: URL? = nil) throws {
         _runs = _InlineMarkdown.parse(markdown).map { run in
             var container = AttributeContainer()
             var intent = InlinePresentationIntent()
@@ -114,15 +114,29 @@ public struct AttributedString: Hashable, Sendable, CustomStringConvertible {
             if run.code { intent.insert(.code) }
             if run.strikethrough { intent.insert(.strikethrough) }
             if !intent.isEmpty { container.inlinePresentationIntent = intent }
-            if let link = run.link, let url = URL(string: link) { container.link = url }
+            if let link = run.link, let url = URL(string: link, relativeTo: baseURL) { container.link = url }
             return _Run(run.text, attributes: container)
         }.filter { !$0.string.isEmpty }
     }
 
-    public struct MarkdownParsingOptions: Sendable {
-        public enum InterpretedSyntax: Sendable { case full, inlineOnly, inlineOnlyPreservingWhitespace }
+    /// How markdown is read. The inline syntax is what's parsed in every case; the other
+    /// options are kept for the code that sets them (IceCubes asks for extended attributes).
+    public struct MarkdownParsingOptions: Hashable, Sendable {
+        public enum InterpretedSyntax: Hashable, Sendable { case full, inlineOnly, inlineOnlyPreservingWhitespace }
+        public enum FailurePolicy: Hashable, Sendable { case throwError, returnPartiallyParsedIfPossible }
+        public var allowsExtendedAttributes: Bool
         public var interpretedSyntax: InterpretedSyntax
-        public init(interpretedSyntax: InterpretedSyntax = .full) { self.interpretedSyntax = interpretedSyntax }
+        public var failurePolicy: FailurePolicy
+        public var languageCode: String?
+        public var appliesSourcePositionAttributes: Bool
+        public init(allowsExtendedAttributes: Bool = false, interpretedSyntax: InterpretedSyntax = .full,
+                    failurePolicy: FailurePolicy = .throwError, languageCode: String? = nil, appliesSourcePositionAttributes: Bool = false) {
+            self.allowsExtendedAttributes = allowsExtendedAttributes
+            self.interpretedSyntax = interpretedSyntax
+            self.failurePolicy = failurePolicy
+            self.languageCode = languageCode
+            self.appliesSourcePositionAttributes = appliesSourcePositionAttributes
+        }
     }
 
     // MARK: Characters

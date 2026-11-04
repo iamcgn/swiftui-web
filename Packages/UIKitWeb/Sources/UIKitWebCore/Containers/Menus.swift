@@ -584,9 +584,6 @@ public final class UIContextMenuConfiguration {
     }
 }
 
-/// A placeholder for identifiers (Foundation's `NSCopying` is not available on wasm).
-public protocol NSCopying: AnyObject {}
-
 /// An interaction that shows a context menu after a long press on its view.
 @preconcurrency @MainActor
 public final class UIContextMenuInteraction: UIInteraction {
