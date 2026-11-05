@@ -14,6 +14,9 @@ public protocol Publisher<Output, Failure> {
     /// the subscription. Every delivery is on the main actor.
     @MainActor func _subscribe(_ receive: @escaping @MainActor (Output) -> Void,
                                _ complete: @escaping @MainActor (Subscribers.Completion<Failure>) -> Void) -> AnyCancellable
+    /// Combine's entry point; each of the two has a default in terms of the other
+    /// (Subscriber.swift), so a publisher implements one.
+    func receive<S: Subscriber>(subscriber: S) where S.Input == Output, S.Failure == Failure
 }
 
 public enum Subscribers {

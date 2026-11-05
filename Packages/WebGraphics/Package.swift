@@ -90,7 +90,7 @@ let package = Package(
         ),
         .testTarget(
             name: "WebCombineTests",
-            dependencies: ["WebCombine"],
+            dependencies: ["WebCombine", "WebFoundation"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .testTarget(
