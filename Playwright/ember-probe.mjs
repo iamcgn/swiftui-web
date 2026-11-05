@@ -165,9 +165,14 @@ let feedRows = rows(shown);
 expect(feedRows.length >= 5, 'fewer than five story rows after the Top feed loaded: ' + JSON.stringify(shown.slice(0, 30)));
 const firstTitle = feedRows.length > 1 ? shown.slice(feedRows[0].index + 1, feedRows[1].index).find(s => s.length > 8) : null;
 expect(!!firstTitle, 'the first row has no title text');
+// The title is the first row's first text after its rank and thumbnail (a symbol is a lone
+// glyph with no letter or digit), read from the same painted list as its font.
 const detail = await drawn();
-const titleFont = detail.find(d => d.text === firstTitle)?.font;
-expect(titleFont === 'Inter', `the story title is drawn in ${titleFont}, not the app's Inter (the bundled font through Font.custom)`);
+const detailRows = rows(detail.map(d => d.text));
+const firstRow = detailRows.length > 1 ? detail.slice(detailRows[0].index + 1, detailRows[1].index) : [];
+const titleEntry = firstRow.find(d => /[\p{L}\p{N}]/u.test(d.text));
+const titleFont = titleEntry?.font;
+expect(titleFont === 'Inter', `the story title ${JSON.stringify(titleEntry?.text)} is drawn in ${titleFont}, not the app's Inter (the bundled font through Font.custom); the row: ${JSON.stringify(firstRow.slice(0, 8).map(d => [d.text.slice(0, 40), d.font]))}`);
 expect(shown.some(s => /^\d+[hmd]$/.test(s)), 'no relative age ("3h") in the rows');
 expect(shown.includes('Stories') && shown.includes('Search') && shown.includes('Saved') && shown.includes('Settings'), 'the tab bar does not list the four tabs');
 await shot('2-feed');
