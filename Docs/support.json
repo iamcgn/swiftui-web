@@ -2447,6 +2447,12 @@
           "noFixture": "Nothing to draw: FrameworkTests build and play a pattern"
         },
         {
+          "api": "CIImage / CIFilter / CIContext / CIColor / CIVector (CoreImage)",
+          "status": "partial",
+          "notes": "pf-core-image (2026-11-05): images are recipes over CGImages and colours, and a context renders one as a CGImage recording whose filters the painters run (colour matrices, Gaussian blur, blend modes, clips and transforms). Filters by name: colour controls, exposure, colour matrix, invert, sepia, the mono, noir and tonal effects, Gaussian blur, source-over and the blend-mode composites, constant colour, affine transform and crop; CIColor(color:) and UIImage(ciImage:). Not done: QR, barcode and gradient generators, reading pixels back, detectors, CIFilterBuiltins, custom kernels",
+          "noFixture": "Nothing new to draw: the painters already draw colour-matrix, blur and blend groups; FrameworkTests check the recordings"
+        },
+        {
           "api": "WidgetCenter / WidgetFamily / TimelineEntry / Timeline (WidgetKit)",
           "status": "stub",
           "notes": "pf-small-frameworks (2026-10-31): an app's calls to its widgets (reloadAllTimelines, reloadTimelines(ofKind:), currentConfigurations) are accepted and report no configured widgets, since a page has no home screen; the timeline types are values, so code shared with a widget extension compiles. Widgets themselves (Widget, WidgetConfiguration) are not rendered",

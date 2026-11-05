@@ -34,6 +34,7 @@ let package = Package(
         .library(name: "UserNotifications", targets: ["UserNotifications"]),
         .library(name: "CryptoKit", targets: ["CryptoKit"]),
         .library(name: "CoreHaptics", targets: ["CoreHaptics"]),
+        .library(name: "WebCoreImage", targets: ["WebCoreImage"]),
         .library(name: "WidgetKit", targets: ["WidgetKit"]),
         .library(name: "StoreKit", targets: ["StoreKit"]),
         .library(name: "AppIntents", targets: ["AppIntents"]),
@@ -114,6 +115,17 @@ let package = Package(
         // to its widgets (none on the web). Pure Swift values over WebFoundation.
         .target(name: "CryptoKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "CoreHaptics", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Core Image's images, filters and contexts as display-list recordings (filters the
+        // painters draw), with UIKit's CIColor and UIImage additions. Apps import it as
+        // `CoreImage`, the Shadows module that re-exports it on wasm (a root module of that
+        // name would shadow Apple's, which AppKit imports, in every macOS build).
+        .target(
+            name: "WebCoreImage",
+            dependencies: [.product(name: "UIKit", package: "UIKitWeb"), .product(name: "WebGraphics", package: "WebGraphics"),
+                           .product(name: "WebFoundation", package: "WebGraphics"),
+                           .product(name: "WebImageIO", package: "WebGraphics", condition: .when(platforms: [.wasi]))],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
         .target(name: "WidgetKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "Speech", dependencies: ["AVFoundation", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -212,7 +224,7 @@ let package = Package(
         // The small frameworks against known answers (FIPS 180, RFC 1321, RFC 4231 vectors).
         .testTarget(
             name: "FrameworkTests",
-            dependencies: ["CryptoKit", "CoreHaptics", "WidgetKit", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics"), .product(name: "WebDecimalFormats", package: "WebGraphics")],
+            dependencies: ["CryptoKit", "CoreHaptics", "WebCoreImage", "WidgetKit", .product(name: "WebGraphics", package: "WebGraphics"), .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics"), .product(name: "WebDecimalFormats", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         .testTarget(
