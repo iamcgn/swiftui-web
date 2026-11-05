@@ -42,9 +42,11 @@ extension NSError.UserInfoKey {
     }
     #endif
 
+    // A queue of its own: the test process doesn't drain Linux's main queue.
     @Test func blockOperation() async {
+        let queue = OperationQueue()
         await withCheckedContinuation { (done: CheckedContinuation<Void, Never>) in
-            OperationQueue.main.addOperation { done.resume() }
+            queue.addOperation { done.resume() }
         }
     }
 
