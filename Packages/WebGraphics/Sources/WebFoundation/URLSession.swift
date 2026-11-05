@@ -611,22 +611,5 @@ final class _Box<Value>: @unchecked Sendable {
     init(_ value: Value) { self.value = value }
 }
 
-/// Foundation's operation queue name, for the delegate initializer's label only.
-public final class OperationQueue: @unchecked Sendable {
-    public static let main = OperationQueue()
-    /// The queue running the current operation: the browser has only the main one.
-    public static var current: OperationQueue? { main }
-    /// The dispatch queue operations run on.
-    public var underlyingQueue: DispatchQueue? = .main
-    public var maxConcurrentOperationCount = 1
-    public var name: String?
-    public var isSuspended = false
-    public init() {}
-
-    /// Runs the block later on the main queue: the page has one thread.
-    public func addOperation(_ block: @escaping @Sendable () -> Void) {
-        (underlyingQueue ?? .main).async(execute: block)
-    }
-}
 
 #endif

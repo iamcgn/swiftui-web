@@ -204,8 +204,12 @@ public struct _TimerIntervalLabel: View {
     }
 }
 
-/// The progress object of wasm's `Progress` (the thin module names it so; Apple platforms keep
-/// Foundation's): unit counts, a fraction, a description, observable.
+#if os(WASI)
+/// The progress object `ProgressView(_:)` follows on wasm: WebFoundation's observable `Progress`.
+public typealias _WebProgress = Progress
+#else
+/// The progress object of wasm's `Progress`, kept off wasm for the headless tests: unit counts,
+/// a fraction, a description, observable.
 @Observable
 public final class _WebProgress {
     public var totalUnitCount: Int64
@@ -226,11 +230,6 @@ public final class _WebProgress {
     public var isFinished: Bool { totalUnitCount > 0 && completedUnitCount >= totalUnitCount }
     public func cancel() { isCancelled = true }
 }
-
-#if os(WASI)
-/// Packages observe a progress by key path (ButtonKit's progress bridge); its sets report
-/// through Observation.
-extension _WebProgress: _KeyValueCodingAndObserving {}
 #endif
 
 extension ProgressView where Label == ProgressViewStyleConfiguration.Label, CurrentValueLabel == ProgressViewStyleConfiguration.CurrentValueLabel {

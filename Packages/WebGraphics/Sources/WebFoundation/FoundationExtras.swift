@@ -25,6 +25,8 @@ public final class JSONSerialization {
         public static let mutableContainers = ReadingOptions(rawValue: 1 << 0)
         public static let mutableLeaves = ReadingOptions(rawValue: 1 << 1)
         public static let fragmentsAllowed = ReadingOptions(rawValue: 1 << 2)
+        /// The older name of `fragmentsAllowed`.
+        public static let allowFragments = fragmentsAllowed
         public static let json5Allowed = ReadingOptions(rawValue: 1 << 3)
         public static let topLevelDictionaryAssumed = ReadingOptions(rawValue: 1 << 4)
     }
