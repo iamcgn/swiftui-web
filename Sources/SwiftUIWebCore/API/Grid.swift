@@ -147,11 +147,18 @@ public struct GridLayout: Layout {
     }
 
     public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
-        let (rows, columns) = rows(subviews)
-        return planner.plan(rows: rows, columns: columns, proposal: proposal).size
+        // The planner reads the subviews' nodes, which live on the main actor, where layout runs.
+        MainActor.assumeIsolated {
+            let (rows, columns) = rows(subviews)
+            return planner.plan(rows: rows, columns: columns, proposal: proposal).size
+        }
     }
 
     public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
+        MainActor.assumeIsolated { place(in: bounds, proposal: proposal, subviews: subviews) }
+    }
+
+    @MainActor private func place(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews) {
         let (rows, columns) = rows(subviews)
         let plan = planner.plan(rows: rows, columns: columns, proposal: ProposedViewSize(width: bounds.width, height: proposal.height))
         var frames: [ObjectIdentifier: CGRect] = [:]
