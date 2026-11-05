@@ -101,5 +101,5 @@ public struct Storefront: Identifiable, Equatable, Hashable, Sendable {
     public static var current: Storefront? { get async { nil } }
 
     /// Storefront changes: none on the web, so the sequence ends at once.
-    public static var updates: AsyncStream<Storefront> { AsyncStream { _ in } }
+    public static var updates: AsyncStream<Storefront> { AsyncStream { $0.finish() } }
 }
