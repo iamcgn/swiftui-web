@@ -7,7 +7,8 @@
 //     .product(name: "Foundation", package: "Shadows", condition: .when(platforms: [.wasi])),
 //     .product(name: "Combine", package: "Shadows", condition: .when(platforms: [.wasi])),
 // `os` and `OSLog` (`Logger` over the console), `CoreGraphics` (the geometry and image types),
-// `ImageIO` (image sources over WebImageIO), `MobileCoreServices` (the `kUTType` names) and
+// `ImageIO` (image sources over WebImageIO), `CoreImage` (SwiftUIWeb's WebCoreImage),
+// `MobileCoreServices` (the `kUTType` names) and
 // `UniformTypeIdentifiers` (`UTType`) are here for the same reason as the rest, and so is
 // `CoreData` (WebCoreData; the app's models go through SwiftUIWeb's CoreDataModel plugin). With
 // `CoreGraphics` importable on wasm, SwiftUIWeb's own sources test for Apple's with
@@ -36,6 +37,7 @@ let package = Package(
         .library(name: "OSLog", targets: ["OSLog"]),
         .library(name: "CoreGraphics", targets: ["CoreGraphics"]),
         .library(name: "ImageIO", targets: ["ImageIO"]),
+        .library(name: "CoreImage", targets: ["CoreImage"]),
         .library(name: "MobileCoreServices", targets: ["MobileCoreServices"]),
         .library(name: "UniformTypeIdentifiers", targets: ["UniformTypeIdentifiers"]),
         .library(name: "CoreData", targets: ["CoreData"]),
@@ -106,6 +108,11 @@ let package = Package(
         .target(
             name: "ImageIO",
             dependencies: ["CoreGraphics", .product(name: "WebImageIO", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "CoreImage",
+            dependencies: ["CoreGraphics", .product(name: "WebCoreImage", package: "SwiftUIWeb")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
