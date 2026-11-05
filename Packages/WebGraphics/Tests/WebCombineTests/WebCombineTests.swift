@@ -2,7 +2,9 @@
 // the closure subscriptions, the subjects, Future, and the operators apps chain (map, filter,
 // removeDuplicates, first, merge, combineLatest, catch, share, collect, zip, scan, prefix).
 import Testing
+#if !canImport(Darwin)
 import WebFoundation
+#endif
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
