@@ -71,6 +71,23 @@ public struct Transaction: Identifiable, Equatable, Hashable, Sendable {
     public let revocationReason: RevocationReason?
     public let appAccountToken: UUID?
     public let environment: AppStore.Environment
+    /// What the customer paid, in `currency`: nil when the App Store didn't say.
+    public let price: Decimal?
+    /// The currency of `price`.
+    public let currency: Locale.Currency?
+    /// The offer the purchase redeemed, if any.
+    public let offer: Offer?
+    /// Why the transaction happened.
+    public let reason: Reason
+
+    /// The ISO 4217 code of `currency`.
+    public var currencyCode: String? { currency?.identifier }
+    /// The type of `offer`.
+    public var offerType: OfferType? { offer?.type }
+    /// The identifier of `offer`.
+    public var offerID: String? { offer?.id }
+    /// The payment mode of `offer`, as its raw string.
+    public var offerPaymentModeStringRepresentation: String? { offer?.paymentMode?.rawValue }
 
     /// A transaction with these details. Only the App Store makes transactions; on the web none
     /// exist, so only tests make one.
@@ -94,6 +111,49 @@ public struct Transaction: Identifiable, Equatable, Hashable, Sendable {
         self.revocationReason = revocationReason
         self.appAccountToken = nil
         self.environment = .production
+        self.price = nil
+        self.currency = nil
+        self.offer = nil
+        self.reason = .purchase
+    }
+
+    /// The kind of offer a transaction redeemed.
+    public struct OfferType: RawRepresentable, Equatable, Hashable, Sendable {
+        public let rawValue: Int
+        public init(rawValue: Int) { self.rawValue = rawValue }
+        public static let introductory = OfferType(rawValue: 1)
+        public static let promotional = OfferType(rawValue: 2)
+        public static let code = OfferType(rawValue: 3)
+        public static let winBack = OfferType(rawValue: 4)
+    }
+
+    /// How the customer pays for an offer.
+    public struct OfferPaymentMode: RawRepresentable, Equatable, Hashable, Sendable {
+        public let rawValue: String
+        public init(rawValue: String) { self.rawValue = rawValue }
+        public static let freeTrial = OfferPaymentMode(rawValue: "FREE_TRIAL")
+        public static let payAsYouGo = OfferPaymentMode(rawValue: "PAY_AS_YOU_GO")
+        public static let payUpFront = OfferPaymentMode(rawValue: "PAY_UP_FRONT")
+    }
+
+    /// The offer a transaction redeemed.
+    public struct Offer: Equatable, Hashable, Sendable {
+        public let id: String?
+        public let type: OfferType
+        public let paymentMode: OfferPaymentMode?
+        package init(id: String?, type: OfferType, paymentMode: OfferPaymentMode?) {
+            self.id = id
+            self.type = type
+            self.paymentMode = paymentMode
+        }
+    }
+
+    /// Why a transaction happened: a purchase, or the renewal of a subscription.
+    public struct Reason: RawRepresentable, Equatable, Hashable, Sendable {
+        public let rawValue: String
+        public init(rawValue: String) { self.rawValue = rawValue }
+        public static let purchase = Reason(rawValue: "PURCHASE")
+        public static let renewal = Reason(rawValue: "RENEWAL")
     }
 
     /// Tells the App Store the app delivered the purchase. Nothing is waiting on the web.

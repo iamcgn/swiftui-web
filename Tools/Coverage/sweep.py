@@ -70,6 +70,27 @@ EXCLUDE_DIR = re.compile(
     r"scripts|tools|plugins|docs?|skip)$",
     re.IGNORECASE,
 )
+
+
+AUTO_RESOURCE_SUFFIXES = (".xcstrings", ".lproj", ".xcassets", ".storyboard", ".xib")
+
+
+def auto_resources(source_root):
+    """The resources SwiftPM picks up in a target's folder by their type, outermost only."""
+    found = []
+    if not source_root.is_dir():
+        return found
+    for path in sorted(source_root.rglob("*")):
+        rel = path.relative_to(source_root)
+        if any(EXCLUDE_DIR.match(part.lower()) for part in rel.parts[:-1]):
+            continue
+        if any(part.endswith(AUTO_RESOURCE_SUFFIXES) for part in rel.parts[:-1]):
+            continue  # inside a resource already taken whole
+        if path.name.endswith(AUTO_RESOURCE_SUFFIXES):
+            found.append(str(rel))
+    return found
+
+
 IMPORT = re.compile(
     r"^(\s*)((?:@[\w]+(?:\([^)]*\))?\s+)*)import\s+(?:(?:typealias|struct|class|enum|protocol|let|var|func)\s+)?([A-Za-z_]\w*)"
 )
@@ -802,7 +823,13 @@ def cmd_prepare(args):
                 (dest_root / "_NoSwiftSources.swift").write_text(
                     "// This target has no Swift sources in the app's repository.\n")
             resources = []
-            for r in t["resources"]:
+            # A package target that declares no resources still gets the ones SwiftPM finds by
+            # type (string catalogs, .lproj folders, asset catalogs), and with them `Bundle.module`
+            # (BackyardBirds' data package). They are copied as they are, which needs no Xcode tool.
+            resource_rules = [(r, "process") for r in t["resources"]]
+            if not resource_rules and not t.get("app"):
+                resource_rules = [(r, "copy") for r in auto_resources(clone_dir / t["source_root"])]
+            for r, rule in resource_rules:
                 src = clone_dir / t["source_root"] / r
                 if src.exists():
                     dst = dest_root / r
@@ -810,7 +837,7 @@ def cmd_prepare(args):
                         shutil.copytree(src, dst, dirs_exist_ok=True)
                     else:
                         dst.parent.mkdir(parents=True, exist_ok=True); shutil.copy2(src, dst)
-                    resources.append(f'.process({json.dumps(r)})')
+                    resources.append(f'.{rule}({json.dumps(r)})')
             # Core Data models go next to the sources, out of the target's files, and the
             # CoreDataModel plugin generates their classes (as Xcode's codegen does).
             models = []
