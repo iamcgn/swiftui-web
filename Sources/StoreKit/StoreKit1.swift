@@ -85,6 +85,10 @@ open class SKProduct: NSObject {
     open private(set) var isFamilyShareable = false
     open private(set) var subscriptionPeriod: SKProductSubscriptionPeriod?
     open private(set) var subscriptionGroupIdentifier: String?
+    /// The introductory offer, if the product has one.
+    open private(set) var introductoryPrice: SKProductDiscount?
+    /// The product's promotional offers.
+    open private(set) var discounts: [SKProductDiscount] = []
 
     /// A product with these details. The App Store makes products; on the web none load.
     package init(productIdentifier: String, localizedTitle: String, localizedDescription: String = "",
@@ -94,6 +98,40 @@ open class SKProduct: NSObject {
         self.localizedDescription = localizedDescription
         self.price = price
         self.priceLocale = priceLocale
+        super.init()
+    }
+}
+
+/// An introductory or promotional offer on a subscription.
+open class SKProductDiscount: NSObject {
+    /// How the customer pays during the offer.
+    public enum PaymentMode: UInt, Sendable {
+        case payAsYouGo = 0, payUpFront, freeTrial
+    }
+
+    /// Whether the offer is introductory or promotional.
+    public enum `Type`: UInt, Sendable {
+        case introductory = 0, subscription
+    }
+
+    open private(set) var price: NSDecimalNumber
+    open private(set) var priceLocale: Locale
+    /// The promotional offer's identifier (nil for an introductory offer).
+    open private(set) var identifier: String?
+    open private(set) var subscriptionPeriod: SKProductSubscriptionPeriod
+    open private(set) var numberOfPeriods: Int
+    open private(set) var paymentMode: PaymentMode
+    open private(set) var type: `Type`
+
+    package init(price: NSDecimalNumber, priceLocale: Locale, identifier: String?, subscriptionPeriod: SKProductSubscriptionPeriod,
+                 numberOfPeriods: Int, paymentMode: PaymentMode, type: `Type`) {
+        self.price = price
+        self.priceLocale = priceLocale
+        self.identifier = identifier
+        self.subscriptionPeriod = subscriptionPeriod
+        self.numberOfPeriods = numberOfPeriods
+        self.paymentMode = paymentMode
+        self.type = type
         super.init()
     }
 }
@@ -130,6 +168,9 @@ public protocol SKProductsRequestDelegate: SKRequestDelegate {
 
 /// A request to the App Store.
 open class SKRequest: NSObject {
+    /// The request's delegate. A products request's delegate also gets the products, when it is
+    /// an `SKProductsRequestDelegate`.
+    open weak var delegate: (any SKRequestDelegate)?
     /// Sends the request.
     open func start() {}
     /// Cancels the request.
@@ -140,7 +181,6 @@ open class SKRequest: NSObject {
 /// identifier as invalid.
 open class SKProductsRequest: SKRequest {
     public let productIdentifiers: Set<String>
-    open weak var delegate: (any SKProductsRequestDelegate)?
     private var cancelled = false
 
     public init(productIdentifiers: Set<String>) {
@@ -149,10 +189,30 @@ open class SKProductsRequest: SKRequest {
     }
 
     open override func start() {
-        guard !cancelled, let delegate else { return }
+        guard !cancelled, let delegate = delegate as? any SKProductsRequestDelegate else { return }
         let response = SKProductsResponse(products: [], invalidProductIdentifiers: productIdentifiers.sorted())
         delegate.productsRequest(self, didReceive: response)
         delegate.requestDidFinish(self)
+    }
+
+    open override func cancel() { cancelled = true }
+}
+
+/// A request to refresh the app's receipt. On the web there is no receipt to fetch, so the
+/// request fails.
+open class SKReceiptRefreshRequest: SKRequest {
+    /// The receipt properties the request asks for (sandbox testing only).
+    open private(set) var receiptProperties: [String: Any]?
+    private var cancelled = false
+
+    public init(receiptProperties properties: [String: Any]? = nil) {
+        receiptProperties = properties
+        super.init()
+    }
+
+    open override func start() {
+        guard !cancelled, let delegate else { return }
+        delegate.request(self, didFailWithError: SKError(.unknown))
     }
 
     open override func cancel() { cancelled = true }
@@ -165,10 +225,17 @@ open class SKPayment: NSObject {
     package var storedProductIdentifier: String
     package var storedQuantity: Int
     package var storedApplicationUsername: String?
+    package var storedPaymentDiscount: SKPaymentDiscount?
+    package var storedRequestData: Data?
+    package var storedSimulatesAskToBuy = false
 
     open var productIdentifier: String { storedProductIdentifier }
     open var quantity: Int { storedQuantity }
     open var applicationUsername: String? { storedApplicationUsername }
+    /// The signed promotional offer the payment applies.
+    open var paymentDiscount: SKPaymentDiscount? { storedPaymentDiscount }
+    open var requestData: Data? { storedRequestData }
+    open var simulatesAskToBuyInSandbox: Bool { storedSimulatesAskToBuy }
 
     public convenience init(product: SKProduct) {
         self.init(productIdentifier: product.productIdentifier, quantity: 1)
@@ -178,6 +245,24 @@ open class SKPayment: NSObject {
         self.storedProductIdentifier = productIdentifier
         self.storedQuantity = quantity
         self.storedApplicationUsername = applicationUsername
+        super.init()
+    }
+}
+
+/// The signed details of a promotional offer, which the app's server makes for a payment.
+open class SKPaymentDiscount: NSObject {
+    open private(set) var identifier: String
+    open private(set) var keyIdentifier: String
+    open private(set) var nonce: UUID
+    open private(set) var signature: String
+    open private(set) var timestamp: NSNumber
+
+    public init(identifier: String, keyIdentifier: String, nonce: UUID, signature: String, timestamp: NSNumber) {
+        self.identifier = identifier
+        self.keyIdentifier = keyIdentifier
+        self.nonce = nonce
+        self.signature = signature
+        self.timestamp = timestamp
         super.init()
     }
 }
@@ -195,6 +280,18 @@ open class SKMutablePayment: SKPayment {
     open override var applicationUsername: String? {
         get { storedApplicationUsername }
         set { storedApplicationUsername = newValue }
+    }
+    open override var paymentDiscount: SKPaymentDiscount? {
+        get { storedPaymentDiscount }
+        set { storedPaymentDiscount = newValue }
+    }
+    open override var requestData: Data? {
+        get { storedRequestData }
+        set { storedRequestData = newValue }
+    }
+    open override var simulatesAskToBuyInSandbox: Bool {
+        get { storedSimulatesAskToBuy }
+        set { storedSimulatesAskToBuy = newValue }
     }
 }
 
@@ -242,6 +339,32 @@ extension SKPaymentTransactionObserver {
     public func paymentQueueDidChangeStorefront(_ queue: SKPaymentQueue) {}
 }
 
+/// Decides whether the payment queue continues a transaction after the storefront changes, and
+/// whether it shows a price increase consent sheet.
+public protocol SKPaymentQueueDelegate: AnyObject {
+    func paymentQueue(_ paymentQueue: SKPaymentQueue, shouldContinue transaction: SKPaymentTransaction, in newStorefront: SKStorefront) -> Bool
+    func paymentQueueShouldShowPriceConsent(_ paymentQueue: SKPaymentQueue) -> Bool
+}
+
+extension SKPaymentQueueDelegate {
+    public func paymentQueue(_ paymentQueue: SKPaymentQueue, shouldContinue transaction: SKPaymentTransaction, in newStorefront: SKStorefront) -> Bool { true }
+    public func paymentQueueShouldShowPriceConsent(_ paymentQueue: SKPaymentQueue) -> Bool { true }
+}
+
+/// The App Store country or region a customer buys in.
+open class SKStorefront: NSObject {
+    /// The three-letter ISO 3166-1 code of the country or region.
+    open private(set) var countryCode: String
+    /// The App Store's identifier for the storefront.
+    open private(set) var identifier: String
+
+    package init(countryCode: String, identifier: String) {
+        self.countryCode = countryCode
+        self.identifier = identifier
+        super.init()
+    }
+}
+
 /// The queue of payments the App Store processes. On the web payments are not allowed: a
 /// payment added fails with `SKError.paymentNotAllowed`.
 open class SKPaymentQueue: NSObject {
@@ -258,6 +381,12 @@ open class SKPaymentQueue: NSObject {
 
     /// The transactions waiting in the queue.
     open private(set) var transactions: [SKPaymentTransaction] = []
+
+    /// The queue's delegate.
+    open weak var delegate: (any SKPaymentQueueDelegate)?
+
+    /// The customer's storefront: none on the web, where there is no App Store account.
+    open var storefront: SKStorefront? { nil }
 
     /// The observers registered with the queue.
     open var transactionObservers: [any SKPaymentTransactionObserver] { observerBoxes.compactMap(\.observer) }

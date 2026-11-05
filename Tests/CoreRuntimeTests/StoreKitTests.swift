@@ -40,6 +40,11 @@ private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsReq
     func requestDidFinish(_ request: SKRequest) { finished = true }
 }
 
+private final class RefreshObserver: SKRequestDelegate {
+    var failed = false
+    func request(_ request: SKRequest, didFailWithError error: any Error) { failed = request is SKReceiptRefreshRequest }
+}
+
 @Suite @MainActor struct StoreKitTests {
     private func texts(_ runtime: Runtime) -> [String] {
         runtime.root.descendants(where: { $0 is TextNode }).compactMap { ($0 as? TextNode)?.view.resolvedString }
@@ -70,7 +75,9 @@ private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsReq
         for await _ in StoreKit.Transaction.currentEntitlements { count += 1 }
         for await _ in StoreKit.Transaction.unfinished { count += 1 }
         for await _ in Product.SubscriptionInfo.Status.updates { count += 1 }
+        for await _ in StoreKit.Storefront.updates { count += 1 }
         #expect(count == 0)
+        #expect(await StoreKit.Storefront.current == nil)
         try await AppStore.sync()
         #expect(!AppStore.canMakePayments)
         await #expect(throws: StoreKitError.self) { _ = try await AppTransaction.shared }
@@ -124,6 +131,17 @@ private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsReq
 
         queue.restoreCompletedTransactions()
         #expect(observer.restored)
+
+        let refresh = SKReceiptRefreshRequest()
+        let refreshObserver = RefreshObserver()
+        refresh.delegate = refreshObserver
+        refresh.start()
+        #expect(refreshObserver.failed)
+        #expect(queue.storefront == nil)
+
+        let payment = SKMutablePayment(product: product)
+        payment.paymentDiscount = SKPaymentDiscount(identifier: "spring", keyIdentifier: "key", nonce: UUID(), signature: "sig", timestamp: 1)
+        #expect(payment.paymentDiscount?.identifier == "spring")
 
         var capabilities: SKCloudServiceCapability = [.musicCatalogPlayback]
         SKCloudServiceController().requestCapabilities { capability, _ in capabilities = capability }

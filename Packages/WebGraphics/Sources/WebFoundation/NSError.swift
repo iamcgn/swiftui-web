@@ -87,6 +87,51 @@ public let NSFileReadNoSuchFileError = 260
 public let NSURLErrorCancelled = -999
 public let NSURLErrorNotConnectedToInternet = -1009
 public let NSURLErrorTimedOut = -1001
+public let NSURLErrorUnknown = -1
+public let NSURLErrorBackgroundSessionRequiresSharedContainer = -995
+public let NSURLErrorBackgroundSessionInUseByAnotherProcess = -996
+public let NSURLErrorBackgroundSessionWasDisconnected = -997
+public let NSURLErrorBadURL = -1000
+public let NSURLErrorUnsupportedURL = -1002
+public let NSURLErrorCannotFindHost = -1003
+public let NSURLErrorCannotConnectToHost = -1004
+public let NSURLErrorNetworkConnectionLost = -1005
+public let NSURLErrorDNSLookupFailed = -1006
+public let NSURLErrorHTTPTooManyRedirects = -1007
+public let NSURLErrorResourceUnavailable = -1008
+public let NSURLErrorRedirectToNonExistentLocation = -1010
+public let NSURLErrorBadServerResponse = -1011
+public let NSURLErrorUserCancelledAuthentication = -1012
+public let NSURLErrorUserAuthenticationRequired = -1013
+public let NSURLErrorZeroByteResource = -1014
+public let NSURLErrorCannotDecodeRawData = -1015
+public let NSURLErrorCannotDecodeContentData = -1016
+public let NSURLErrorCannotParseResponse = -1017
+public let NSURLErrorInternationalRoamingOff = -1018
+public let NSURLErrorCallIsActive = -1019
+public let NSURLErrorDataNotAllowed = -1020
+public let NSURLErrorRequestBodyStreamExhausted = -1021
+public let NSURLErrorAppTransportSecurityRequiresSecureConnection = -1022
+public let NSURLErrorFileDoesNotExist = -1100
+public let NSURLErrorFileIsDirectory = -1101
+public let NSURLErrorNoPermissionsToReadFile = -1102
+public let NSURLErrorDataLengthExceedsMaximum = -1103
+public let NSURLErrorSecureConnectionFailed = -1200
+public let NSURLErrorServerCertificateHasBadDate = -1201
+public let NSURLErrorServerCertificateUntrusted = -1202
+public let NSURLErrorServerCertificateHasUnknownRoot = -1203
+public let NSURLErrorServerCertificateNotYetValid = -1204
+public let NSURLErrorClientCertificateRejected = -1205
+public let NSURLErrorClientCertificateRequired = -1206
+public let NSURLErrorCannotLoadFromNetwork = -2000
+
+/// The type of an error domain's name.
+public typealias NSErrorDomain = String
+
+extension NSError {
+    /// The type of a key in an error's user info.
+    public typealias UserInfoKey = String
+}
 
 /// A localized string from the main bundle: the string catalogs are not loaded in a page, so
 /// `value` (when given and not empty) else the key, as `Bundle.localizedString` answers.

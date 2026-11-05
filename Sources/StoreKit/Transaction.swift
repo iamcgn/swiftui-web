@@ -79,6 +79,8 @@ public struct Transaction: Identifiable, Equatable, Hashable, Sendable {
     public let offer: Offer?
     /// Why the transaction happened.
     public let reason: Reason
+    /// The storefront the transaction was made in.
+    public let storefront: Storefront
 
     /// The ISO 4217 code of `currency`.
     public var currencyCode: String? { currency?.identifier }
@@ -115,6 +117,7 @@ public struct Transaction: Identifiable, Equatable, Hashable, Sendable {
         self.currency = nil
         self.offer = nil
         self.reason = .purchase
+        self.storefront = Storefront(id: "143441", countryCode: "USA")
     }
 
     /// The kind of offer a transaction redeemed.
