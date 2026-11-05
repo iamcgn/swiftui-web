@@ -2220,6 +2220,12 @@
           "noFixture": "Storage, not a screen; WasmFoundationTests round-trips a document through a host store."
         },
         {
+          "api": "Darwin through Foundation: `dlopen`/`dlsym`/`dlerror`, `_dyld_image_count`, `os_log(_:dso:log:_:_:)`, String/Date/UUID as `CVarArg`, `Thread.callStackReturnAddresses`",
+          "status": "partial",
+          "notes": "On wasm, for packages that build their Apple-platform paths (xctest-dynamic-overlay's issue reporting, Core Data predicates written `date as CVarArg`): the loader opens nothing and finds no symbol, dyld lists no images, the call stack is empty, the type-first `os_log` with a format and arguments logs as the other forms do, and strings, dates and UUIDs are `CVarArg` values the formatters read as themselves (2026-11-05)",
+          "noFixture": "Not a screen; WasmDarwinSurfaceTests."
+        },
+        {
           "api": "observe(_:options:changeHandler:) / NSKeyValueObservation / NSKeyValueObservedChange / willChangeValue / didChangeValue",
           "status": "partial",
           "notes": "On wasm there is no runtime to swap setters, so a change reports when an observable object (wasm's Progress, any @Observable class) sets the property, on the next main-actor turn, or when the object calls willChangeValue/didChangeValue (for: a key path, or forKey:, which reaches all of its observations); .initial, .prior, .old and .new fill the change; observations stop when invalidated or released; a plain `@objc dynamic` property reports nothing (2026-11-03)",
