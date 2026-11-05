@@ -88,6 +88,8 @@ public protocol MKMapViewDelegate: AnyObject {
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView)
     func mapView(_ mapView: MKMapView, didDeselect view: MKAnnotationView)
     func mapViewDidChangeVisibleRegion(_ mapView: MKMapView)
+    func mapView(_ mapView: MKMapView, rendererFor overlay: any MKOverlay) -> MKOverlayRenderer
+    func mapView(_ mapView: MKMapView, didChange mode: MKUserTrackingMode, animated: Bool)
 }
 
 extension MKMapViewDelegate {
@@ -97,6 +99,10 @@ extension MKMapViewDelegate {
     public func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {}
     public func mapView(_ mapView: MKMapView, didDeselect view: MKAnnotationView) {}
     public func mapViewDidChangeVisibleRegion(_ mapView: MKMapView) {}
+    public func mapView(_ mapView: MKMapView, rendererFor overlay: any MKOverlay) -> MKOverlayRenderer {
+        MKOverlayRenderer(overlay: overlay)
+    }
+    public func mapView(_ mapView: MKMapView, didChange mode: MKUserTrackingMode, animated: Bool) {}
 }
 
 /// An embeddable map interface, similar to the one that the Maps app provides.
@@ -116,6 +122,14 @@ open class MKMapView: UIView {
     open var isRotateEnabled = true
     open var isPitchEnabled = true
     open private(set) var annotations: [MKAnnotation] = []
+    /// The overlays on the map, lowest first.
+    open private(set) var overlays: [any MKOverlay] = []
+    private var overlayLevels: [ObjectIdentifier: MKOverlayLevel] = [:]
+    private var overlayRenderers: [ObjectIdentifier: MKOverlayRenderer] = [:]
+    /// How the map follows the user's location; setting it tells the delegate.
+    open var userTrackingMode: MKUserTrackingMode = .none {
+        didSet { delegate?.mapView(self, didChange: userTrackingMode, animated: false) }
+    }
     open var selectedAnnotations: [MKAnnotation] = []
 
     /// The area the map shows; setting it tells the delegate the region changed.
@@ -139,6 +153,40 @@ open class MKMapView: UIView {
     open func setRegion(_ region: MKCoordinateRegion, animated: Bool) { self.region = region }
     open func setCenter(_ coordinate: CLLocationCoordinate2D, animated: Bool) { centerCoordinate = coordinate }
     open func regionThatFits(_ region: MKCoordinateRegion) -> MKCoordinateRegion { region }
+
+    open func setUserTrackingMode(_ mode: MKUserTrackingMode, animated: Bool) { userTrackingMode = mode }
+
+    open func addOverlay(_ overlay: any MKOverlay) { addOverlay(overlay, level: .aboveLabels) }
+    open func addOverlay(_ overlay: any MKOverlay, level: MKOverlayLevel) {
+        overlays.append(overlay)
+        overlayLevels[ObjectIdentifier(overlay)] = level
+    }
+    open func addOverlays(_ overlays: [any MKOverlay]) { for overlay in overlays { addOverlay(overlay) } }
+    open func addOverlays(_ overlays: [any MKOverlay], level: MKOverlayLevel) {
+        for overlay in overlays { addOverlay(overlay, level: level) }
+    }
+    open func insertOverlay(_ overlay: any MKOverlay, at index: Int) {
+        overlays.insert(overlay, at: min(max(index, 0), overlays.count))
+        overlayLevels[ObjectIdentifier(overlay)] = .aboveLabels
+    }
+    open func removeOverlay(_ overlay: any MKOverlay) {
+        overlays.removeAll { $0 === overlay }
+        overlayLevels[ObjectIdentifier(overlay)] = nil
+        overlayRenderers[ObjectIdentifier(overlay)] = nil
+    }
+    open func removeOverlays(_ overlays: [any MKOverlay]) { for overlay in overlays { removeOverlay(overlay) } }
+    open func overlays(in level: MKOverlayLevel) -> [any MKOverlay] {
+        overlays.filter { overlayLevels[ObjectIdentifier($0)] == level }
+    }
+    /// The renderer the delegate made for an overlay on the map, asked for once.
+    open func renderer(for overlay: any MKOverlay) -> MKOverlayRenderer? {
+        guard overlays.contains(where: { $0 === overlay }) else { return nil }
+        let key = ObjectIdentifier(overlay)
+        if let renderer = overlayRenderers[key] { return renderer }
+        let renderer = delegate?.mapView(self, rendererFor: overlay) ?? MKOverlayRenderer(overlay: overlay)
+        overlayRenderers[key] = renderer
+        return renderer
+    }
 
     open func addAnnotation(_ annotation: MKAnnotation) { annotations.append(annotation) }
     open func addAnnotations(_ annotations: [MKAnnotation]) { self.annotations += annotations }
