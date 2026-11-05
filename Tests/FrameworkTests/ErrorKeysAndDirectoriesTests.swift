@@ -51,7 +51,10 @@ extension NSError.UserInfoKey {
     }
 
     @Test func objCTypes() {
+        // Linux's Foundation stores a small integer narrower ("i"); Apple's and ours keep "q".
+        #if os(WASI) || canImport(Darwin)
         #expect(String(cString: NSNumber(value: 3 as Int).objCType) == "q")
+        #endif
         #expect(String(cString: NSNumber(value: 1.5).objCType) == "d")
         #expect(String(cString: NSNumber(value: true).objCType) == "c")
     }
