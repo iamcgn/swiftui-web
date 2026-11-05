@@ -71,5 +71,40 @@ import SwiftUIWebHeadless
         #expect(seen.first?.0 == 2 && seen.first?.1 == 7 && seen.first?.2 == 8)
         #expect(seen.last?.0 == 0 && seen.last?.1 == 0)
     }
+
+    /// A Swift 6 layout written the way SwiftUI allows: nonisolated methods, and a nonisolated
+    /// protocol that `LayoutSubview` satisfies (SwiftUI-Flow does both).
+    struct Column: Layout {
+        nonisolated func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+            subviews.reduce(CGSize.zero) { total, subview in
+                let size = (subview as any Measured).measure(.unspecified)
+                return CGSize(width: max(total.width, size.width), height: total.height + size.height)
+            }
+        }
+        nonisolated func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+            var y = bounds.minY
+            for subview in subviews {
+                subview.place(at: CGPoint(x: bounds.minX, y: y), proposal: .unspecified)
+                y += subview.sizeThatFits(.unspecified).height
+            }
+        }
+    }
+
+    @Test func nonisolatedLayoutMeasuresSubviews() {
+        let r = Runtime()
+        r.mount(Column {
+            Color.red.frame(width: 30, height: 10)._probe("a")
+            Color.blue.frame(width: 20, height: 15)._probe("b")
+        }._probe("column"))
+        r.layout(in: CGSize(width: 100, height: 100))
+        let f = r.probeFrames
+        #expect(f["column"]?.size == CGSize(width: 30, height: 25))
+        #expect(f["b"].map { $0.minY - f["a"]!.minY } == 10)
+    }
+}
+
+protocol Measured { func measure(_ proposal: ProposedViewSize) -> CGSize }
+extension LayoutSubview: Measured {
+    func measure(_ proposal: ProposedViewSize) -> CGSize { let d = dimensions(in: proposal); return CGSize(width: d.width, height: d.height) }
 }
 #endif
