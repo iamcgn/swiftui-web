@@ -12,7 +12,7 @@ echo "iOS $VER ($(xcodebuild -version | head -1))" > "$OUT/sdk-version"
 # the ones the sweep finds apps importing most.
 MODULES="SwiftUI SwiftUICore Observation Combine SwiftData Charts MapKit CoreLocation AVKit AVFoundation \
   WebKit UserNotifications Speech SafariServices UIKit Foundation \
-  OSLog CoreData StoreKit PhotosUI CryptoKit CoreHaptics AuthenticationServices LocalAuthentication \
+  OSLog CoreData StoreKit PhotosUI CryptoKit CoreHaptics CoreImage AuthenticationServices LocalAuthentication \
   UniformTypeIdentifiers CoreTransferable TipKit WidgetKit AppIntents"
 for m in $MODULES; do
   mkdir -p "$OUT/$m"
