@@ -83,6 +83,9 @@ jobs:
             Playwright/.speech-profile/SODA
             Playwright/.speech-profile/SODALanguagePacks
           key: speech-pack-${{ runner.os }}-chrome-${{ steps.chrome.outputs.version }}
+          # A new Chrome on the runner starts from the last pack (Chrome updates SODA in place):
+          # the cold download into a fresh profile did not finish in 15 minutes on Chrome 157.
+          restore-keys: speech-pack-${{ runner.os }}-chrome-
       - name: Tier B (gallery vs goldens)
         run: . ~/.swiftly/env.sh && scripts/tier-b.sh
       - name: Host elements and the map in Chromium (sw-frameworks)
