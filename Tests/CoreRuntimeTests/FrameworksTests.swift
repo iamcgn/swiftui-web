@@ -200,4 +200,49 @@ import FoundationNetworking   // Linux keeps URLRequest here
         #expect(text.count == 1 && text[0].x < 144 && text[0].x > 90 && text[0].y > 92 + 36)
     }
 }
+
+@Suite @MainActor struct MapOverlayTests {
+    private final class Delegate: NSObject, MKMapViewDelegate {
+        var modes: [MKUserTrackingMode] = []
+        func mapView(_ mapView: MKMapView, rendererFor overlay: any MKOverlay) -> MKOverlayRenderer {
+            let renderer = MKPolylineRenderer(overlay: overlay)
+            renderer.lineWidth = 4
+            return renderer
+        }
+        func mapView(_ mapView: MKMapView, didChange mode: MKUserTrackingMode, animated: Bool) { modes.append(mode) }
+    }
+
+    @Test func projectionRoundTrips() {
+        let point = MKMapPoint(CLLocationCoordinate2D(latitude: 0, longitude: 0))
+        #expect(point.x == MKMapSize.world.width / 2)
+        #expect(abs(point.y - MKMapSize.world.height / 2) < 0.001)
+        let berlin = CLLocationCoordinate2D(latitude: 52.52, longitude: 13.405)
+        let back = MKMapPoint(berlin).coordinate
+        #expect(abs(back.latitude - 52.52) < 1e-9 && abs(back.longitude - 13.405) < 1e-9)
+        let paris = MKMapPoint(CLLocationCoordinate2D(latitude: 48.8566, longitude: 2.3522))
+        #expect(abs(MKMapPoint(berlin).distance(to: paris) - 878_000) < 10_000)
+    }
+
+    @Test func overlaysAndRenderers() {
+        let map = MKMapView(frame: CGRect(x: 0, y: 0, width: 200, height: 200))
+        let delegate = Delegate()
+        map.delegate = delegate
+        var coordinates = [CLLocationCoordinate2D(latitude: 1, longitude: 1), CLLocationCoordinate2D(latitude: 2, longitude: 3)]
+        let line = MKPolyline(coordinates: &coordinates, count: 2)
+        let circle = MKCircle(center: CLLocationCoordinate2D(latitude: 10, longitude: 10), radius: 1000)
+        map.addOverlay(line)
+        map.addOverlay(circle, level: .aboveRoads)
+        #expect(map.overlays.count == 2)
+        #expect(map.overlays(in: .aboveRoads).count == 1)
+        #expect(line.pointCount == 2)
+        #expect(line.boundingMapRect.contains(MKMapPoint(CLLocationCoordinate2D(latitude: 1.5, longitude: 2))))
+        #expect(circle.boundingMapRect.contains(MKMapPoint(circle.coordinate)))
+        #expect((map.renderer(for: line) as? MKPolylineRenderer)?.lineWidth == 4)
+        #expect(map.renderer(for: line) === map.renderer(for: line))
+        map.removeOverlays([line])
+        #expect(map.overlays.count == 1 && map.renderer(for: line) == nil)
+        map.setUserTrackingMode(.follow, animated: true)
+        #expect(delegate.modes == [.follow])
+    }
+}
 #endif
