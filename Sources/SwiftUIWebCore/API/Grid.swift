@@ -91,7 +91,7 @@ extension View {
 /// The grid as a `Layout` value (`AnyLayout(GridLayout())`, sw-custom-layout): the subviews are
 /// the rows' cells, grouped by the `GridRow` each sits in; a subview outside a row is a row of
 /// its own spanning every column, as in `Grid`.
-public struct GridLayout: Layout {
+public struct GridLayout: Layout, Sendable {
     nonisolated public var alignment: Alignment
     nonisolated public var horizontalSpacing: CGFloat?
     nonisolated public var verticalSpacing: CGFloat?

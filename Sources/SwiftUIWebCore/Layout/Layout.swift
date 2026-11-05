@@ -115,7 +115,7 @@ public struct LayoutSubview: Equatable, Sendable {
 
     /// Gets the value of a layout value key.
     public subscript<K: LayoutValueKey>(key: K.Type) -> K.Value {
-        onMain { node.layoutValue(for: key) }
+        onMain { node.layoutValue(for: K.self) }
     }
 
     /// Asks the subview for its size.
