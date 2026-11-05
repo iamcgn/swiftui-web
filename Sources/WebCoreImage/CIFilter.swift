@@ -161,7 +161,9 @@ open class CIFilter: CustomStringConvertible {
                 return m
             },
             "CIExposureAdjust": matrix([kCIInputEVKey: 0.0]) { f in
-                let s = _pow(2, f.number(kCIInputEVKey))
+                let ev = f.number(kCIInputEVKey)
+                // Whole stops exactly (wasm's own pow is a series), others through _pow.
+                let s = ev == ev.rounded() && abs(ev) < 1000 ? Double(sign: .plus, exponent: Int(ev), significand: 1) : _pow(2, ev)
                 return ColorMatrix([s, 0, 0, 0, 0, 0, s, 0, 0, 0, 0, 0, s, 0, 0, 0, 0, 0, 1, 0])
             },
             "CIColorMatrix": matrix() { f in
