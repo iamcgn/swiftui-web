@@ -175,19 +175,19 @@ extension HStackLayout: Layout {
     }
 
     public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
-        _StackAxisLayout.sizeThatFits(axis: .horizontal, guide: alignment.key, spacing: spacing,
-                                      proposal: proposal, subviews: subviews)
+        onMain { _StackAxisLayout.sizeThatFits(axis: .horizontal, guide: alignment.key, spacing: spacing,
+                                      proposal: proposal, subviews: subviews) }
     }
 
     public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
-        _StackAxisLayout.placeSubviews(axis: .horizontal, guide: alignment.key, spacing: spacing,
-                                       in: bounds, proposal: proposal, subviews: subviews)
+        onMain { _StackAxisLayout.placeSubviews(axis: .horizontal, guide: alignment.key, spacing: spacing,
+                                       in: bounds, proposal: proposal, subviews: subviews) }
     }
 
     public func explicitAlignment(of guide: VerticalAlignment, in bounds: CGRect, proposal: ProposedViewSize,
                                   subviews: Subviews, cache: inout Void) -> CGFloat? {
-        _StackAxisLayout.explicitCrossAlignment(axis: .horizontal, stackGuide: alignment.key, guide: guide.key,
-                                                spacing: spacing, proposal: proposal, subviews: subviews)
+        onMain { _StackAxisLayout.explicitCrossAlignment(axis: .horizontal, stackGuide: alignment.key, guide: guide.key,
+                                                spacing: spacing, proposal: proposal, subviews: subviews) }
     }
 
     public typealias AnimatableData = EmptyAnimatableData
@@ -214,25 +214,25 @@ extension VStackLayout: Layout {
     }
 
     public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
-        _StackAxisLayout.sizeThatFits(axis: .vertical, guide: alignment.key, spacing: spacing,
-                                      proposal: proposal, subviews: subviews)
+        onMain { _StackAxisLayout.sizeThatFits(axis: .vertical, guide: alignment.key, spacing: spacing,
+                                      proposal: proposal, subviews: subviews) }
     }
 
     public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
-        _StackAxisLayout.placeSubviews(axis: .vertical, guide: alignment.key, spacing: spacing,
-                                       in: bounds, proposal: proposal, subviews: subviews)
+        onMain { _StackAxisLayout.placeSubviews(axis: .vertical, guide: alignment.key, spacing: spacing,
+                                       in: bounds, proposal: proposal, subviews: subviews) }
     }
 
     public func explicitAlignment(of guide: HorizontalAlignment, in bounds: CGRect, proposal: ProposedViewSize,
                                   subviews: Subviews, cache: inout Void) -> CGFloat? {
-        _StackAxisLayout.explicitCrossAlignment(axis: .vertical, stackGuide: alignment.key, guide: guide.key,
-                                                spacing: spacing, proposal: proposal, subviews: subviews)
+        onMain { _StackAxisLayout.explicitCrossAlignment(axis: .vertical, stackGuide: alignment.key, guide: guide.key,
+                                                spacing: spacing, proposal: proposal, subviews: subviews) }
     }
 
     public func explicitAlignment(of guide: VerticalAlignment, in bounds: CGRect, proposal: ProposedViewSize,
                                   subviews: Subviews, cache: inout Void) -> CGFloat? {
-        _StackAxisLayout.explicitAxisBaseline(axis: .vertical, stackGuide: alignment.key, guide: guide.key,
-                                              spacing: spacing, in: bounds, proposal: proposal, subviews: subviews)
+        onMain { _StackAxisLayout.explicitAxisBaseline(axis: .vertical, stackGuide: alignment.key, guide: guide.key,
+                                              spacing: spacing, in: bounds, proposal: proposal, subviews: subviews) }
     }
 
     public typealias AnimatableData = EmptyAnimatableData
@@ -251,6 +251,10 @@ public struct ZStackLayout: Sendable {
 extension ZStackLayout: Layout {
 
     public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
+        onMain { size(proposal: proposal, subviews: subviews) }
+    }
+
+    @MainActor private func size(proposal: ProposedViewSize, subviews: Subviews) -> CGSize {
         let dimensions = subviews.map { $0.dimensions(in: proposal) }
         let horizontal = StackLayoutEngine.crossExtent(dimensions, guide: alignment.horizontal.key, axis: .vertical)
         let vertical = StackLayoutEngine.crossExtent(dimensions, guide: alignment.vertical.key, axis: .horizontal)
@@ -258,6 +262,10 @@ extension ZStackLayout: Layout {
     }
 
     public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
+        onMain { place(in: bounds, proposal: proposal, subviews: subviews) }
+    }
+
+    @MainActor private func place(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews) {
         let dimensions = subviews.map { $0.dimensions(in: proposal) }
         let horizontal = StackLayoutEngine.crossExtent(dimensions, guide: alignment.horizontal.key, axis: .vertical)
         let vertical = StackLayoutEngine.crossExtent(dimensions, guide: alignment.vertical.key, axis: .horizontal)

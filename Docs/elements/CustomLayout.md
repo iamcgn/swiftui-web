@@ -27,6 +27,11 @@ with a cache made for another type remakes it, and because the node's generic ty
 `AnyLayout` throughout, switching from `HStackLayout` to `VStackLayout` updates the same node
 and keeps every subview (a `@State` counter survives, `CustomLayoutTests`).
 
+As in SwiftUI, `Layout` and `LayoutSubview` aren't isolated to the main actor, so a Swift 6
+package can write `nonisolated` layout methods and conform `LayoutSubview` to its own protocols
+(SwiftUI-Flow does both). The runtime only ever calls a layout on the main actor, and each
+`LayoutSubview` method steps back onto it with `MainActor.assumeIsolated` to reach its node.
+
 ## Measured (macOS 26.2, `customlayout/flow`, `radial`, `values`, `any`, 2026-09-03)
 
 | Property | Value | Probe |

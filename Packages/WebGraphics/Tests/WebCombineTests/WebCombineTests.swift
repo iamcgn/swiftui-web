@@ -2,6 +2,12 @@
 // the closure subscriptions, the subjects, Future, and the operators apps chain (map, filter,
 // removeDuplicates, first, merge, combineLatest, catch, share, collect, zip, scan, prefix).
 import Testing
+#if !canImport(Darwin)
+import WebFoundation
+#endif
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 @testable import WebCombine
 
 @MainActor @Suite(.serialized) struct WebCombineTests {
@@ -177,6 +183,21 @@ import Testing
         #expect(erased == [1, 2])
         h.cancel()
     }
+
+    #if !canImport(Darwin)
+    @Test func dataTaskPublisherFailsWithAURLError() async {
+        let publisher = URLSession.shared.dataTaskPublisher(for: URL(string: "no-scheme")!)
+        var cancellable: AnyCancellable?
+        let failed: Bool = await withCheckedContinuation { done in
+            cancellable = publisher._subscribe({ _ in done.resume(returning: false) }) { completion in
+                if case .failure = completion { done.resume(returning: true) }
+            }
+        }
+        #expect(failed)
+        #expect(publisher.request.url?.absoluteString == "no-scheme")
+        _ = cancellable
+    }
+    #endif
 }
 
 struct NSErrorLike: Error { var code: Int }
