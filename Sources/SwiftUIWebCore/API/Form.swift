@@ -182,7 +182,7 @@ public struct _FormColumnsLayout: Layout {
             proposals.append(p)
             sizes.append(subview.sizeThatFits(p))
         }
-        let gaps = StackLayoutEngine.spacings(subviews, axis: .vertical, explicit: nil)
+        let gaps = onMain { StackLayoutEngine.spacings(subviews, axis: .vertical, explicit: nil) }
         let width = zip(guides, sizes).map { column - $0 + $1.width }.max() ?? 0
         let height = sizes.reduce(0) { $0 + $1.height } + gaps.reduce(0, +)
         return Plan(column: column, guides: guides, sizes: sizes, proposals: proposals, gaps: gaps, size: CGSize(width: width, height: height))

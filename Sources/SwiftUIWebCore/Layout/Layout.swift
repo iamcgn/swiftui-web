@@ -94,7 +94,7 @@ package func onMain<T>(_ body: @MainActor () -> T) -> T {
 }
 
 /// A proxy that represents one subview of a layout.
-public struct LayoutSubview: Equatable {
+public struct LayoutSubview: Equatable, Sendable {
     package let node: ViewNode
     package let container: ViewNode
     package let index: Int
@@ -139,7 +139,7 @@ public struct LayoutSubview: Equatable {
 }
 
 /// A collection of proxy values that represent the subviews of a layout view.
-public struct LayoutSubviews: RandomAccessCollection, Equatable {
+public struct LayoutSubviews: RandomAccessCollection, Equatable, Sendable {
     public typealias Element = LayoutSubview
     public typealias Index = Int
     public typealias SubSequence = LayoutSubviews
