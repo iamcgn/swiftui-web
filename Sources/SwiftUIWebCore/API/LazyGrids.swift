@@ -155,7 +155,11 @@ public struct _LazyGridLayout: Sendable {
         }
     }
 
-    @MainActor package func plan(proposal: ProposedViewSize, subviews: LayoutSubviews) -> Plan {
+    package func plan(proposal: ProposedViewSize, subviews: LayoutSubviews) -> Plan {
+        onMain { makePlan(proposal: proposal, subviews: subviews) }
+    }
+
+    @MainActor private func makePlan(proposal: ProposedViewSize, subviews: LayoutSubviews) -> Plan {
         let available = (axis == .vertical ? proposal.width : proposal.height).flatMap { $0.isFinite ? $0 : nil }
         let tracks = resolvedTracks(in: available)
         let lineSpacing = spacing ?? PlatformMetrics.gridItemSpacing

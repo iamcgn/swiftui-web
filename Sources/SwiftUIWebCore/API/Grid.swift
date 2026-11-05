@@ -91,7 +91,7 @@ extension View {
 /// The grid as a `Layout` value (`AnyLayout(GridLayout())`, sw-custom-layout): the subviews are
 /// the rows' cells, grouped by the `GridRow` each sits in; a subview outside a row is a row of
 /// its own spanning every column, as in `Grid`.
-public struct GridLayout: Layout {
+public struct GridLayout: Layout, Sendable {
     nonisolated public var alignment: Alignment
     nonisolated public var horizontalSpacing: CGFloat?
     nonisolated public var verticalSpacing: CGFloat?
@@ -147,11 +147,18 @@ public struct GridLayout: Layout {
     }
 
     public func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) -> CGSize {
-        let (rows, columns) = rows(subviews)
-        return planner.plan(rows: rows, columns: columns, proposal: proposal).size
+        // The planner reads the subviews' nodes, which live on the main actor, where layout runs.
+        MainActor.assumeIsolated {
+            let (rows, columns) = rows(subviews)
+            return planner.plan(rows: rows, columns: columns, proposal: proposal).size
+        }
     }
 
     public func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Void) {
+        MainActor.assumeIsolated { place(in: bounds, proposal: proposal, subviews: subviews) }
+    }
+
+    @MainActor private func place(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews) {
         let (rows, columns) = rows(subviews)
         let plan = planner.plan(rows: rows, columns: columns, proposal: ProposedViewSize(width: bounds.width, height: proposal.height))
         var frames: [ObjectIdentifier: CGRect] = [:]

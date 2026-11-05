@@ -12,8 +12,9 @@ public protocol LayoutValueKey {
     static var defaultValue: Self.Value { get }
 }
 
-/// A type that defines the geometry of a collection of views.
-@MainActor @preconcurrency
+/// A type that defines the geometry of a collection of views. Like SwiftUI's, it isn't tied to the
+/// main actor, so a Swift 6 layout can implement it with `nonisolated` methods; the runtime still
+/// calls it on the main actor, and `LayoutSubview` steps back onto it.
 public protocol Layout: Animatable {
     /// Cached values computed by the layout container.
     associatedtype Cache = Void
@@ -84,8 +85,16 @@ extension Layout {
     }
 }
 
+/// Runs `body` on the main actor, where layout always runs, and hands back its result, which
+/// needn't be `Sendable` since it never leaves the main thread.
+package func onMain<T>(_ body: @MainActor () -> T) -> T {
+    nonisolated(unsafe) var result: T?
+    MainActor.assumeIsolated { result = body() }
+    return result!
+}
+
 /// A proxy that represents one subview of a layout.
-public struct LayoutSubview: Equatable {
+public struct LayoutSubview: Equatable, Sendable {
     package let node: ViewNode
     package let container: ViewNode
     package let index: Int
@@ -97,31 +106,31 @@ public struct LayoutSubview: Equatable {
     }
 
     /// The layout priority of the subview.
-    @MainActor public var priority: Double { node.layoutPriority }
+    public var priority: Double { onMain { node.layoutPriority } }
     /// Whether the subview is a `Spacer` (stacks size spacers from the leftover).
-    @MainActor package var isSpacer: Bool { node.isSpacer }
+    package var isSpacer: Bool { onMain { node.isSpacer } }
 
     /// The view's preferred spacing values.
-    @MainActor public var spacing: ViewSpacing { node.layoutSpacing }
+    public var spacing: ViewSpacing { onMain { node.layoutSpacing } }
 
     /// Gets the value of a layout value key.
-    @MainActor public subscript<K: LayoutValueKey>(key: K.Type) -> K.Value {
-        node.layoutValue(for: key)
+    public subscript<K: LayoutValueKey>(key: K.Type) -> K.Value {
+        onMain { node.layoutValue(for: K.self) }
     }
 
     /// Asks the subview for its size.
-    @MainActor public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
-        node.sizeThatFits(proposal)
+    public func sizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
+        onMain { node.sizeThatFits(proposal) }
     }
 
     /// Asks the subview for its dimensions and alignment guides.
-    @MainActor public func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
-        node.dimensions(in: proposal)
+    public func dimensions(in proposal: ProposedViewSize) -> ViewDimensions {
+        onMain { node.dimensions(in: proposal) }
     }
 
     /// Assigns a position and proposed size to the subview.
-    @MainActor public func place(at position: CGPoint, anchor: UnitPoint = .topLeading, proposal: ProposedViewSize) {
-        node.place(at: position, anchor: anchor, proposal: proposal, by: container)
+    public func place(at position: CGPoint, anchor: UnitPoint = .topLeading, proposal: ProposedViewSize) {
+        onMain { node.place(at: position, anchor: anchor, proposal: proposal, by: container) }
     }
 
     public static func == (lhs: LayoutSubview, rhs: LayoutSubview) -> Bool {
@@ -130,7 +139,7 @@ public struct LayoutSubview: Equatable {
 }
 
 /// A collection of proxy values that represent the subviews of a layout view.
-public struct LayoutSubviews: RandomAccessCollection, Equatable {
+public struct LayoutSubviews: RandomAccessCollection, Equatable, Sendable {
     public typealias Element = LayoutSubview
     public typealias Index = Int
     public typealias SubSequence = LayoutSubviews
@@ -202,13 +211,13 @@ extension _LayoutView: View {
 /// A type-erased instance of the layout protocol: switching between layouts keeps the subviews.
 public struct AnyLayout: Layout {
     package let base: any Layout
-    private let makeCacheBox: @MainActor (LayoutSubviews) -> Any
-    private let updateCacheBox: @MainActor (inout Any, LayoutSubviews) -> Void
-    private let spacingBox: @MainActor (LayoutSubviews, inout Any) -> ViewSpacing
-    private let sizeBox: @MainActor (ProposedViewSize, LayoutSubviews, inout Any) -> CGSize
-    private let placeBox: @MainActor (CGRect, ProposedViewSize, LayoutSubviews, inout Any) -> Void
-    private let horizontalGuideBox: @MainActor (HorizontalAlignment, CGRect, ProposedViewSize, LayoutSubviews, inout Any) -> CGFloat?
-    private let verticalGuideBox: @MainActor (VerticalAlignment, CGRect, ProposedViewSize, LayoutSubviews, inout Any) -> CGFloat?
+    private let makeCacheBox: (LayoutSubviews) -> Any
+    private let updateCacheBox: (inout Any, LayoutSubviews) -> Void
+    private let spacingBox: (LayoutSubviews, inout Any) -> ViewSpacing
+    private let sizeBox: (ProposedViewSize, LayoutSubviews, inout Any) -> CGSize
+    private let placeBox: (CGRect, ProposedViewSize, LayoutSubviews, inout Any) -> Void
+    private let horizontalGuideBox: (HorizontalAlignment, CGRect, ProposedViewSize, LayoutSubviews, inout Any) -> CGFloat?
+    private let verticalGuideBox: (VerticalAlignment, CGRect, ProposedViewSize, LayoutSubviews, inout Any) -> CGFloat?
 
     /// Creates an instance that type-erases `layout`.
     public init<L: Layout>(_ layout: L) {
