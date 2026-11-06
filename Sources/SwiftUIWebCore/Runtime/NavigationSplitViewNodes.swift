@@ -227,6 +227,9 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
     private lazy var identifier: Int = { Self.nextIdentifier += 1; return Self.nextIdentifier }()
     /// A group for the semantics overlay (not focusable: only its dividers take the pointer).
     package var semantics: SemanticsNode { SemanticsNode(role: .group, label: "", frame: frameInRoot, identifier: identifier) }
+    /// The columns' elements are their own (the group only holds them): without this the
+    /// overlay stopped at the split view, so nothing in a sidebar or detail was reachable.
+    package var exposesChildren: Bool { true }
 
     package func pressBegan(at point: CGPoint) {
         guard let divider = divider(at: point) else { return }
