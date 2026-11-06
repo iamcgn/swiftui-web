@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
-const url = args.find(a => !a.startsWith('--')) || 'http://127.0.0.1:8770/index.html';
+const url = args.find(a => !a.startsWith('--')) || 'http://127.0.0.1:8767/index.html';
 const opt = name => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : undefined; };
 const out = resolve(here, opt('--out') || '../.build/interactions');
 const only = opt('--only')?.split(',');
@@ -45,7 +45,9 @@ const suite = [
 const run = (name) => new Promise(done => {
   const started = Date.now();
   const extra = name === 'scroll-probe' ? ['--out', join(out, 'scroll')] : [];
-  const child = spawn(process.execPath, [join(here, `${name}.mjs`), url, ...extra], { cwd: here });
+  // The Foundation probe reads the debug bridge once something has painted: any fixture will do.
+  const target = name === 'foundation-probe' ? `${url}?fixture=${encodeURIComponent('textfield/steps')}` : url;
+  const child = spawn(process.execPath, [join(here, `${name}.mjs`), target, ...extra], { cwd: here });
   let log = '';
   child.stdout.on('data', d => { log += d; });
   child.stderr.on('data', d => { log += d; });

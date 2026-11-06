@@ -15,6 +15,8 @@ const page = await browser.newPage({ viewport: { width: 1000, height: 800 }, dev
 page.on('pageerror', e => console.error('page error', e));
 await page.goto(`${url}?fixture=${encodeURIComponent('ios/representable/wheel')}`);
 await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
+// The gallery's loading screen fades out over the canvas: the colours are sampled once it is gone.
+await page.waitForFunction(() => !document.getElementById('loading'), null, { timeout: 5000 }).catch(() => {});
 // The gallery publishes the probe frames whenever they change (a scroll included).
 const probes = () => page.evaluate(() => window.__galleryFrames);
 // Chromium delivers half the requested wheel delta at a device scale factor of 2 (scroll-probe.mjs).

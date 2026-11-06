@@ -15,6 +15,8 @@ const page = await browser.newPage({ viewport: { width: 1000, height: 800 }, dev
 page.on('pageerror', e => console.error('page error', e));
 await page.goto(`${url}?fixture=${encodeURIComponent('ios/representable/hover')}`);
 await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
+// The gallery's loading screen fades out over the canvas: the colours are sampled once it is gone.
+await page.waitForFunction(() => !document.getElementById('loading'), null, { timeout: 5000 }).catch(() => {});
 const canvas = page.locator('canvas').first();
 const box = await canvas.boundingBox();
 const frames = await page.evaluate(() => window.__galleryFrames);
