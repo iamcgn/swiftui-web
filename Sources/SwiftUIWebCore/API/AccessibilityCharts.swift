@@ -143,7 +143,7 @@ extension AXChartDescriptorRepresentable {
 public struct _AccessibilityChartModifier<Representable: AXChartDescriptorRepresentable>: ViewModifier {
     let representable: Representable
 
-    package init(representable: Representable) { self.representable = representable }
+    nonisolated package init(representable: Representable) { self.representable = representable }
 
     public func body(content: Content) -> some View { content }
 
