@@ -71,6 +71,8 @@ extension UInt32: PrimitivePlottableProtocol { public var _plotValue: _PlotValue
 extension UInt64: PrimitivePlottableProtocol { public var _plotValue: _PlotValue { .number(Double(self)) } }
 extension String: PrimitivePlottableProtocol { public var _plotValue: _PlotValue { .category(self) } }
 extension Date: PrimitivePlottableProtocol { public var _plotValue: _PlotValue { .date(self) } }
+/// A decimal plots as its double (through its exact text: no bridge to `NSNumber` on wasm).
+extension Decimal: PrimitivePlottableProtocol { public var _plotValue: _PlotValue { .number(Double(description) ?? 0) } }
 
 /// Enums with a plottable raw value plot as that value (`enum Kind: String, Plottable`).
 extension Plottable where Self: RawRepresentable, RawValue: PrimitivePlottableProtocol {

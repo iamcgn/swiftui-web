@@ -64,4 +64,20 @@ extension FormatStyle where Self == Decimal.FormatStyle.Currency {
 }
 
 
+/// `price as NSNumber` (`Double(truncating: price as NSNumber)`): the number holds the decimal's
+/// double, as WebFoundation's `NSDecimalNumber` is an `NSNumber` holding one.
+extension Decimal: @retroactive _ObjectiveCBridgeable {
+    public typealias _ObjectiveCType = NSNumber
+    public func _bridgeToObjectiveC() -> NSNumber { NSNumber(value: _double) }
+    public static func _forceBridgeFromObjectiveC(_ source: NSNumber, result: inout Decimal?) {
+        result = Decimal(source.doubleValue)
+    }
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSNumber, result: inout Decimal?) -> Bool {
+        result = Decimal(source.doubleValue)
+        return true
+    }
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSNumber?) -> Decimal {
+        Decimal(source?.doubleValue ?? 0)
+    }
+}
 #endif
