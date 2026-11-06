@@ -104,7 +104,7 @@ try {
   await shot('03-single-bar');
   const aria = await page.evaluate(() => [...document.querySelectorAll('[aria-label]')].map(e => `${e.getAttribute('role') || e.tagName.toLowerCase()}:${e.getAttribute('aria-label')}`).slice(0, 40).join(' | '));
   expect(t.includes('Bar Width: 7.0'), `the Single Bar chart did not open; painted: ${t.slice(0, 30).join(' | ')}; accessibility: ${aria}`);
-  const bars = (await list()).filter(c => /^fill(Rect|Path|RRect)/.test(c)).length;
+  const bars = (await list()).filter(c => /^fill(Rect|Path|RRect|Gradient)/.test(c)).length;   // the bars are gradient fills
   expect(bars >= 30, `${bars} filled shapes in the chart (30 days of bars)`);
   note(`the chart and its controls, ${bars} filled shapes`);
 
@@ -137,9 +137,11 @@ try {
   expect(t.includes('Show all'), `the Filter menu did not open; painted: ${t.slice(0, 30).join(' | ')}`);
   const picked = (await tapLabel('Bar')) || (await tapText('Bar'));
   expect(picked, 'no "Bar" row in the menu');
-  t = await settle(t => !t.includes('Show all') && t.includes('Single Bar') && !t.includes('Line Chart'));
+  // The list keeps its scroll position, so the bar section may show from any of its rows.
+  const barRow = t => ['Single Bar', 'Two Bars', 'Pyramid', 'Time Sheet Bar'].some(r => t.includes(r));
+  t = await settle(t => !t.includes('Show all') && barRow(t) && !t.includes('line') && !t.includes('apple'));
   await shot('07-filtered');
-  expect(t.includes('Single Bar') && !t.includes('Line Chart') && !t.includes('Electrocardiograms (ECG)'), `the list was not narrowed to bar charts; painted: ${t.slice(0, 30).join(' | ')}`);
+  expect(barRow(t) && t.includes('bar') && !t.includes('line') && !t.includes('apple') && !t.includes('Electrocardiograms (ECG)'), `the list was not narrowed to bar charts; painted: ${t.slice(0, 30).join(' | ')}`);
 
   report.full_app_pass = Object.values(report.flows).every(f => f.outcome === 'passed') && problems.length === 0;
 } catch (e) {

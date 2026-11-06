@@ -340,7 +340,8 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
                 list.append(.fillRect(context.absoluteRect(plan), RGBA(red: 0, green: 0, blue: 0, alpha: PlatformMetrics.splitDividerAlpha)))
             }
         }
-        detail.paint(into: &list, context: context.child(at: detail.presentedFrame))
+        // A compact split showing a leading column leaves the detail unpainted (it has no width).
+        if !isCompact || compactColumn == .detail { detail.paint(into: &list, context: context.child(at: detail.presentedFrame)) }
     }
 }
 
