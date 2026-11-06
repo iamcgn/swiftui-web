@@ -263,21 +263,28 @@ extension OperationQueue: Scheduler {
     public typealias SchedulerTimeType = _DateSchedulerTime
     public typealias SchedulerOptions = _DateSchedulerOptions
 
-    private var dispatchQueue: DispatchQueue { underlyingQueue ?? .main }
+    // Every action runs as an operation on this queue, as Apple's do, so the queue's
+    // suspension, concurrency limit and cancellation apply to it; a delay waits on the main
+    // queue before the operation is added.
     public var now: SchedulerTimeType { SchedulerTimeType(Date()) }
     public var minimumTolerance: SchedulerTimeType.Stride { .zero }
     public func schedule(options: SchedulerOptions?, _ action: @escaping () -> Void) {
         nonisolated(unsafe) let action = action
-        dispatchQueue.async { action() }
+        addOperation { action() }
     }
     public func schedule(after date: SchedulerTimeType, tolerance: SchedulerTimeType.Stride,
                          options: SchedulerOptions?, _ action: @escaping () -> Void) {
         nonisolated(unsafe) let action = action
-        dispatchQueue.asyncAfter(deadline: .now() + max(0, date.date.timeIntervalSinceNow)) { action() }
+        DispatchQueue.main.asyncAfter(deadline: .now() + max(0, date.date.timeIntervalSinceNow)) { [self] in
+            addOperation { action() }
+        }
     }
     public func schedule(after date: SchedulerTimeType, interval: SchedulerTimeType.Stride, tolerance: SchedulerTimeType.Stride,
                          options: SchedulerOptions?, _ action: @escaping () -> Void) -> any Cancellable {
-        _repeat(on: dispatchQueue, startingIn: date.date.timeIntervalSinceNow, every: interval.timeInterval, action)
+        nonisolated(unsafe) let action = action
+        return _repeat(on: .main, startingIn: date.date.timeIntervalSinceNow, every: interval.timeInterval) { [self] in
+            addOperation { action() }
+        }
     }
 }
 #endif

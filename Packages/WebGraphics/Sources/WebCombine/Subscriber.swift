@@ -107,7 +107,9 @@ extension Publisher {
     /// this; WebCombine's own get it from `_subscribe`.
     public func receive<S: Subscriber>(subscriber: S) where S.Input == Output, S.Failure == Failure {
         nonisolated(unsafe) let publisher = self
+        let policy: _DemandPolicy = (self as? any _SubjectDemand).map { $0._keepsLatestWithoutDemand ? .keepLatest : .drop } ?? .hold
         let bridge = _DemandBridge<Output, Failure>(
+            policy: policy,
             receive: { subscriber.receive($0) },
             complete: { subscriber.receive(completion: $0) })
         subscriber.receive(subscription: bridge)
@@ -128,9 +130,25 @@ extension Publisher {
     }
 }
 
-/// The subscription a WebCombine publisher hands a Combine subscriber: values wait in order
-/// until the subscriber's demand allows them; completion follows the last of them.
+/// What a subscription does with a value its subscriber hasn't asked for.
+enum _DemandPolicy {
+    /// Holds it until asked, completion after the last held value (a sequence, `Just`).
+    case hold
+    /// Drops it, and delivers completion at once (`PassthroughSubject`, as Combine's does).
+    case drop
+    /// Keeps only the newest, and delivers completion at once (`CurrentValueSubject`).
+    case keepLatest
+}
+
+/// A subject, whose values go to the subscribers that have asked for them as they are sent.
+protocol _SubjectDemand {
+    var _keepsLatestWithoutDemand: Bool { get }
+}
+
+/// The subscription a WebCombine publisher hands a Combine subscriber: values reach the
+/// subscriber as its demand allows them, by the publisher's policy for the rest.
 final class _DemandBridge<Output, Failure: Error>: Subscription, @unchecked Sendable {
+    private let policy: _DemandPolicy
     private var downstream: (receive: (Output) -> Subscribers.Demand, complete: (Subscribers.Completion<Failure>) -> Void)?
     private var demand = Subscribers.Demand.none
     private var buffer: [Output] = []
@@ -138,16 +156,33 @@ final class _DemandBridge<Output, Failure: Error>: Subscription, @unchecked Send
     private var upstream: AnyCancellable?
     private var draining = false
 
-    init(receive: @escaping (Output) -> Subscribers.Demand, complete: @escaping (Subscribers.Completion<Failure>) -> Void) {
+    init(policy: _DemandPolicy, receive: @escaping (Output) -> Subscribers.Demand,
+         complete: @escaping (Subscribers.Completion<Failure>) -> Void) {
+        self.policy = policy
         downstream = (receive, complete)
     }
 
     @MainActor func start(_ subscribe: (@escaping @MainActor (Output) -> Void,
                                          @escaping @MainActor (Subscribers.Completion<Failure>) -> Void) -> AnyCancellable) {
         guard downstream != nil else { return }
-        let cancellable = subscribe({ [weak self] in self?.buffer.append($0); self?.drain() },
-                                    { [weak self] in self?.completion = $0; self?.drain() })
+        let cancellable = subscribe({ [weak self] in self?.offer($0) },
+                                    { [weak self] in self?.finish($0) })
         if downstream == nil { cancellable.cancel() } else { upstream = cancellable }
+    }
+
+    private func offer(_ value: Output) {
+        switch policy {
+        case .hold: buffer.append(value)
+        case .drop: if demand > 0 { buffer.append(value) }
+        case .keepLatest: if demand > 0 { buffer.append(value) } else { buffer = [value] }
+        }
+        drain()
+    }
+
+    private func finish(_ completion: Subscribers.Completion<Failure>) {
+        if policy != .hold { buffer = [] }
+        self.completion = completion
+        drain()
     }
 
     func request(_ more: Subscribers.Demand) {

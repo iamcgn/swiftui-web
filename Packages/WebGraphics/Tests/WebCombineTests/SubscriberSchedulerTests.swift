@@ -66,22 +66,46 @@ private final class OneAtATime: Subscriber {
     }
 
     @Test func subscriberDemandHoldsValuesBack() {
-        let subject = PassthroughSubject<Int, Never>()
-        let held = OneAtATime(more: .none)
-        subject.subscribe(held)
-        subject.send(1)
-        subject.send(2)
-        subject.send(completion: .finished)
-        #expect(held.values == [1])
-        #expect(!held.finished)
-        held.subscription?.request(.max(5))
-        #expect(held.values == [1, 2])
-        #expect(held.finished)
+        let countdown = OneAtATime(more: .none)
+        [5, 4, 3].publisher.subscribe(countdown)
+        #expect(countdown.values == [5])
+        #expect(!countdown.finished)
+        countdown.subscription?.request(.max(5))
+        #expect(countdown.values == [5, 4, 3])
+        #expect(countdown.finished)
 
         let eager = OneAtATime(more: .max(1))
         Just(7).subscribe(eager)
         #expect(eager.values == [7])
         #expect(eager.finished)
+    }
+
+    /// A passthrough subject drops what nobody asked for, and its completion needs no demand.
+    @Test func passthroughDropsValuesWithoutDemand() {
+        let subject = PassthroughSubject<Int, Never>()
+        let subscriber = OneAtATime(more: .none)
+        subject.subscribe(subscriber)
+        subject.send(1)
+        subject.send(2)
+        subject.send(completion: .finished)
+        #expect(subscriber.values == [1])
+        #expect(subscriber.finished)
+        subscriber.subscription?.request(.max(5))
+        #expect(subscriber.values == [1])
+    }
+
+    /// A current-value subject keeps the newest value for when demand comes.
+    @Test func currentValueKeepsTheNewestWithoutDemand() {
+        let subject = CurrentValueSubject<Int, Never>(0)
+        let subscriber = OneAtATime(more: .none)
+        subject.subscribe(subscriber)
+        subject.send(1)
+        subject.send(2)
+        #expect(subscriber.values == [0])
+        subscriber.subscription?.request(.max(1))
+        #expect(subscriber.values == [0, 2])
+        subject.send(completion: .finished)
+        #expect(subscriber.finished)
     }
 
     @Test func cancellingTheSubscriptionStopsValues() {

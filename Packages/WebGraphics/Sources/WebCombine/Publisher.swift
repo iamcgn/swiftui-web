@@ -174,6 +174,10 @@ public final class PassthroughSubject<Output, Failure: Error>: Subject, @uncheck
     }
 }
 
+extension PassthroughSubject: _SubjectDemand {
+    var _keepsLatestWithoutDemand: Bool { false }
+}
+
 extension PassthroughSubject where Output == Void {
     public func send() { send(()) }
 }
@@ -193,6 +197,10 @@ public final class CurrentValueSubject<Output, Failure: Error>: Subject, @unchec
         if subscribers.completion == nil { receive(value) }
         return subscribers.add(receive, complete)
     }
+}
+
+extension CurrentValueSubject: _SubjectDemand {
+    var _keepsLatestWithoutDemand: Bool { true }
 }
 
 // MARK: - Objects and published properties
