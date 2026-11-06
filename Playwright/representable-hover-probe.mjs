@@ -49,3 +49,4 @@ await page.waitForTimeout(150);
 check('away from both the cursor is the default', ['default', 'auto', ''].includes(await cursor()), `cursor: ${await cursor()}`);
 await browser.close();
 console.log(failures === 0 ? 'representable hover probe: all passed' : `representable hover probe: ${failures} failed`);
+process.exit(failures === 0 ? 0 : 1);

@@ -56,3 +56,4 @@ const row0 = (await probes()).row0;
 check('what the inner leaves chains to the outer scroll view', row0 && row0.y === 100, JSON.stringify(row0));
 await browser.close();
 console.log(failures === 0 ? 'wheel probe: all passed' : `wheel probe: ${failures} failed`);
+process.exit(failures === 0 ? 0 : 1);
