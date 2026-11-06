@@ -197,11 +197,10 @@ public struct NavigationLink<Label: View, Destination: View>: View {
     private var isEnabled: Bool { destination != nil || value != nil }
 
     public var body: some View {
-        let action = _ActionBox { [context, destination, value] in
+        let action = _ActionBox(linkValue: value) { [context, destination, value] in
             guard let stack = context?.stack else { return }
             if let value { stack.push(value: value) } else if let destination { stack.push(view: destination) }
         }
-        action.linkValue = value
         if inListRow && platform.isIOS {
             // iOS: the label fills the row, which shows a chevron at its trailing edge.
             label.frame(maxWidth: .infinity, alignment: .leading).layoutValue(key: NavigationLinkActivationKey.self, value: action)
