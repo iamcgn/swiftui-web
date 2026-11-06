@@ -87,6 +87,26 @@ private final class LaterOperation: Operation, @unchecked Sendable {
         #expect(log.items == ["after a finished one"])
     }
 
+    @Test func aBarrierHoldsLaterOperations() async {
+        let queue = OperationQueue()
+        queue.isSuspended = true
+        queue.maxConcurrentOperationCount = 2
+        let log = Log()
+        let earlier = LaterOperation()
+        let later = BlockOperation { log.add(earlier.isFinished ? "after finished" : "after before finish") }
+        later.queuePriority = .veryHigh
+        await withCheckedContinuation { (done: CheckedContinuation<Void, Never>) in
+            queue.addOperation(earlier)
+            queue.addBarrierBlock { log.add("barrier") }
+            queue.addOperation(later)
+            queue.addBarrierBlock { log.add("second barrier") }
+            queue.addOperation { log.add("last") }
+            queue.addBarrierBlock { done.resume() }
+            queue.isSuspended = false
+        }
+        #expect(log.items == ["barrier", "after finished", "second barrier", "last"])
+    }
+
     @Test func fileCoordinationRunsTheAccessor() {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("coordinated.txt")
         var error: NSError?
