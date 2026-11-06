@@ -276,8 +276,6 @@ public struct URLError: Error, Hashable, @unchecked Sendable, CustomStringConver
         public static let cannotDecodeRawData = Code(rawValue: -1015)
         public static let cannotParseResponse = Code(rawValue: -1017)
         public static let secureConnectionFailed = Code(rawValue: -1200)
-        public static let fileDoesNotExist = Code(rawValue: -1100)
-        public static let cannotDecodeContentData = Code(rawValue: -1016)
         // The rest of Foundation's codes, which the browser's fetch never reports; computed, so an
         // app that never names them does not ship them.
         public static var backgroundSessionRequiresSharedContainer: Code { Code(rawValue: -995) }
