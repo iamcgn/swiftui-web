@@ -30,7 +30,7 @@ public struct NumberBins<Value: BinaryFloatingPoint & Sendable>: RandomAccessCol
 
     /// `count` bins of equal width across `range`.
     public init(range: ClosedRange<Value>, count: Int) {
-        let n = max(count, 1)
+        let n = Swift.max(count, 1)
         let width = (range.upperBound - range.lowerBound) / Value(n)
         thresholds = (0...n).map { $0 == n ? range.upperBound : range.lowerBound + Value($0) * width }
     }
@@ -45,7 +45,7 @@ public struct NumberBins<Value: BinaryFloatingPoint & Sendable>: RandomAccessCol
     }
 
     public var startIndex: Int { 0 }
-    public var endIndex: Int { max(thresholds.count - 1, 0) }
+    public var endIndex: Int { Swift.max(thresholds.count - 1, 0) }
 
     public subscript(position: Int) -> ChartBinRange<Value> {
         ChartBinRange(lowerBound: thresholds[position], upperBound: thresholds[position + 1])
