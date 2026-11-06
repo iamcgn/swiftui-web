@@ -108,6 +108,60 @@ private final class OneAtATime: Subscriber {
         #expect(subscriber.finished)
     }
 
+    /// Type erasure and one-for-one operators keep a subject's policy (as Combine's pass demand
+    /// up to the subject).
+    @Test func wrappedPassthroughDropsValuesWithoutDemand() {
+        let wrapped: [(PassthroughSubject<Int, Never>) -> AnyPublisher<Int, Never>] = [
+            { $0.eraseToAnyPublisher() },
+            { $0.map { $0 }.eraseToAnyPublisher() },
+            { $0.filter { _ in true }.mapError { $0 }.eraseToAnyPublisher() },
+        ]
+        for wrap in wrapped {
+            let subject = PassthroughSubject<Int, Never>()
+            let subscriber = OneAtATime(more: .none)
+            wrap(subject).subscribe(subscriber)
+            subject.send(1)
+            subject.send(2)
+            subject.send(completion: .finished)
+            #expect(subscriber.values == [1])
+            #expect(subscriber.finished)
+            subscriber.subscription?.request(.max(1))
+            #expect(subscriber.values == [1])
+        }
+        let subject = PassthroughSubject<Int, Never>()
+        let subscriber = OneAtATime(more: .none)
+        subject.map { $0 * 10 }.subscribe(subscriber)
+        subject.send(1)
+        subject.send(2)
+        subject.send(completion: .finished)
+        #expect(subscriber.values == [10])
+        #expect(subscriber.finished)
+    }
+
+    @Test func wrappedCurrentValueKeepsTheNewestWithoutDemand() {
+        let subject = CurrentValueSubject<Int, Never>(0)
+        let subscriber = OneAtATime(more: .none)
+        subject.map { $0 }.eraseToAnyPublisher().subscribe(subscriber)
+        subject.send(1)
+        subject.send(2)
+        #expect(subscriber.values == [0])
+        subscriber.subscription?.request(.max(1))
+        #expect(subscriber.values == [0, 2])
+        subject.send(completion: .finished)
+        #expect(subscriber.finished)
+    }
+
+    /// A sequence keeps holding its values through the same operators.
+    @Test func wrappedSequenceStillHoldsValues() {
+        let subscriber = OneAtATime(more: .none)
+        [5, 4, 3].publisher.map { $0 }.eraseToAnyPublisher().subscribe(subscriber)
+        #expect(subscriber.values == [5])
+        #expect(!subscriber.finished)
+        subscriber.subscription?.request(.max(2))
+        #expect(subscriber.values == [5, 4, 3])
+        #expect(subscriber.finished)
+    }
+
     @Test func cancellingTheSubscriptionStopsValues() {
         let subject = PassthroughSubject<Int, Never>()
         let subscriber = OneAtATime(more: .unlimited)
