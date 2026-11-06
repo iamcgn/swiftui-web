@@ -8,14 +8,16 @@
 //     .product(name: "Combine", package: "Shadows", condition: .when(platforms: [.wasi])),
 // `os` and `OSLog` (`Logger` over the console), `CoreGraphics` (the geometry and image types),
 // `ImageIO` (image sources over WebImageIO), `CoreImage` (SwiftUIWeb's WebCoreImage),
-// `MobileCoreServices` (the `kUTType` names) and
+// `MobileCoreServices` (the `kUTType` names and tag functions), `SystemConfiguration` (network
+// reachability over the browser's online state) and
 // `UniformTypeIdentifiers` (`UTType`) are here for the same reason as the rest, and so is
 // `CoreData` (WebCoreData; the app's models go through SwiftUIWeb's CoreDataModel plugin). With
 // `CoreGraphics` importable on wasm, SwiftUIWeb's own sources test for Apple's with
 // `canImport(CoreGraphics) && !os(WASI)`.
 // `Dispatch` (WebFoundation's queues, for packages that import it by name), `CoreFoundation`
 // (WebFoundation's CF names, which `Security` re-exports as Apple's does),
-// `Security` (the keychain item functions over a host store) and `SafariServices`
+// `Security` (the keychain item functions over a host store, which `Foundation` re-exports as
+// Apple's does) and `SafariServices`
 // (`SFSafariViewController` over `WKWebView`) live here for the same reason (decision 0021, the
 // Ember app): a root-package module named `Security` would shadow Apple's for every macOS
 // build, the testing library's included. Their sources are `#if os(WASI)` too.
@@ -39,6 +41,7 @@ let package = Package(
         .library(name: "ImageIO", targets: ["ImageIO"]),
         .library(name: "CoreImage", targets: ["CoreImage"]),
         .library(name: "MobileCoreServices", targets: ["MobileCoreServices"]),
+        .library(name: "SystemConfiguration", targets: ["SystemConfiguration"]),
         .library(name: "UniformTypeIdentifiers", targets: ["UniformTypeIdentifiers"]),
         .library(name: "CoreData", targets: ["CoreData"]),
         .library(name: "Dispatch", targets: ["Dispatch"]),
@@ -61,6 +64,7 @@ let package = Package(
             name: "Foundation",
             dependencies: [
                 .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics"), "Combine", "CoreGraphics",
+                "Security",
                 .product(name: "WebCoreData", package: "SwiftUIWeb", condition: .when(traits: ["CoreData"])),
                 .product(name: "WebDecimalFormats", package: "WebGraphics", condition: .when(traits: ["DecimalFormatting"])),
             ],
@@ -113,6 +117,11 @@ let package = Package(
         .target(
             name: "CoreImage",
             dependencies: ["CoreGraphics", .product(name: "WebCoreImage", package: "SwiftUIWeb")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "SystemConfiguration",
+            dependencies: ["CoreFoundation", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

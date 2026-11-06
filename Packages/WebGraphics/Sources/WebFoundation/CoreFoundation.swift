@@ -18,6 +18,15 @@ public typealias CFIndex = Int
 public typealias CFError = NSError
 /// A result code (Core Services' `OSStatus`, which the keychain functions return).
 public typealias OSStatus = Int32
+/// A bit set of options (Security's revocation flags).
+public typealias CFOptionFlags = UInt
+
+/// What allocates a CF object; every allocation here is Swift's, so callers pass nil or the
+/// default.
+public final class CFAllocator: @unchecked Sendable {
+    fileprivate init() {}
+}
+public let kCFAllocatorDefault: CFAllocator! = CFAllocator()
 
 /// The result code for success.
 public let noErr: OSStatus = 0
