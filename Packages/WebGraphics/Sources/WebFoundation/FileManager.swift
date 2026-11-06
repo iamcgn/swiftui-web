@@ -191,4 +191,19 @@ public struct ObjCBool: Sendable, ExpressibleByBooleanLiteral {
 /// The path of the temporary directory (`FileManager.default.temporaryDirectory`).
 public func NSTemporaryDirectory() -> String { FileManager.default.temporaryDirectory.path + "/" }
 
+extension URL {
+    private static func _directory(_ directory: FileManager.SearchPathDirectory) -> URL {
+        FileManager.default.urls(for: directory, in: .userDomainMask)[0]
+    }
+    /// The app's directories, as `FileManager` gives them.
+    public static var documentsDirectory: URL { _directory(.documentDirectory) }
+    public static var cachesDirectory: URL { _directory(.cachesDirectory) }
+    public static var applicationSupportDirectory: URL { _directory(.applicationSupportDirectory) }
+    public static var libraryDirectory: URL { _directory(.libraryDirectory) }
+    public static var downloadsDirectory: URL { _directory(.downloadsDirectory) }
+    public static var desktopDirectory: URL { _directory(.desktopDirectory) }
+    public static var temporaryDirectory: URL { FileManager.default.temporaryDirectory }
+    public static var homeDirectory: URL { FileManager.default.homeDirectoryForCurrentUser }
+}
+
 #endif

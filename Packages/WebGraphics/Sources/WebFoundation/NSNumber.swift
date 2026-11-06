@@ -53,6 +53,18 @@ public final class NSNumber: Hashable, Comparable, @unchecked Sendable, CustomSt
         }
     }
     public var floatValue: Float { Float(doubleValue) }
+    /// The Objective-C type code of the stored value: "q" for a signed integer, "Q" for an
+    /// unsigned one, "d" for a floating-point number and "c" for a boolean.
+    public var objCType: UnsafePointer<CChar> {
+        let code: StaticString
+        switch storage {
+        case .int: code = "q"
+        case .uint: code = "Q"
+        case .double: code = "d"
+        case .bool: code = "c"
+        }
+        return UnsafeRawPointer(code.utf8Start).assumingMemoryBound(to: CChar.self)
+    }
     public var intValue: Int { Int(truncatingIfNeeded: int64Value) }
     public var int8Value: Int8 { Int8(truncatingIfNeeded: int64Value) }
     public var int16Value: Int16 { Int16(truncatingIfNeeded: int64Value) }

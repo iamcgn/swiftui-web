@@ -179,4 +179,37 @@ private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsReq
         _ = runtime
     }
 }
+@Suite struct StoreKitOfferTests {
+    @Test func noStorefrontAndNoDiscounts() async {
+        #expect(await Storefront.current == nil)
+        var count = 0
+        for await _ in Storefront.updates { count += 1 }
+        #expect(count == 0)
+        let queue = SKPaymentQueue.default()
+        #expect(queue.storefront == nil)
+        #expect(queue.delegate == nil)
+        let product = SKProduct(productIdentifier: "pro", localizedTitle: "Pro", price: NSDecimalNumber(string: "4.99"), priceLocale: Locale(identifier: "en_US"))
+        #expect(product.introductoryPrice == nil)
+        #expect(product.discounts.isEmpty)
+    }
+
+    @Test func mutablePaymentCarriesItsDiscount() {
+        let product = SKProduct(productIdentifier: "pro", localizedTitle: "Pro", price: NSDecimalNumber(string: "4.99"), priceLocale: Locale(identifier: "en_US"))
+        let payment = SKMutablePayment(product: product)
+        #expect(payment.paymentDiscount == nil)
+        let discount = SKPaymentDiscount(identifier: "offer", keyIdentifier: "key", nonce: UUID(), signature: "sig", timestamp: 1)
+        payment.paymentDiscount = discount
+        payment.simulatesAskToBuyInSandbox = true
+        #expect(payment.paymentDiscount?.identifier == "offer")
+        #expect(payment.simulatesAskToBuyInSandbox)
+    }
+
+    @Test func errorKeepsItsUserInfo() {
+        let error = SKError(.paymentNotAllowed, userInfo: [NSLocalizedDescriptionKey: "No payments"])
+        #expect(error.userInfo[NSLocalizedDescriptionKey] as? String == "No payments")
+        #expect(error.errorCode == 4)
+        #expect(error == SKError(.paymentNotAllowed))
+        #expect(SKError.errorDomain == "SKErrorDomain")
+    }
+}
 #endif

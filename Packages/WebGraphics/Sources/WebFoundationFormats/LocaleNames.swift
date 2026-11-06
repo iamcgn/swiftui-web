@@ -46,4 +46,16 @@ extension Locale.LanguageCode {
 extension Locale.Region {
     public static var isoRegions: [Locale.Region] { Locale._isoRegions.map { Locale.Region($0) } }
 }
+
+extension Locale.Currency {
+    /// The currencies of the regions the locale table knows.
+    public static var isoCurrencies: [Locale.Currency] {
+        Set(Locale._currencies.values).sorted().map { Locale.Currency($0) }
+    }
+}
+
+extension Locale {
+    /// The currency of the locale's region ("USD" for en_US).
+    public var currency: Currency? { currencyCode.map { Currency($0) } }
+}
 #endif
