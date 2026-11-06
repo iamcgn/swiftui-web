@@ -2256,6 +2256,24 @@
           "noFixture": "Foundation API with nothing on screen; FoundationGapsTests holds it to Foundation on macOS and Linux and checks the wasm forms."
         },
         {
+          "api": "NSError.UserInfoKey / NSURLError* codes and keys / URLError.failureURLString",
+          "status": "full",
+          "notes": "On wasm: the user info key is a string, as in Swift on Apple platforms; the URL error codes and keys carry Foundation's values.",
+          "noFixture": "Foundation API with nothing on screen; ErrorKeysAndDirectoriesTests holds it to Foundation on macOS and Linux and checks the wasm forms."
+        },
+        {
+          "api": "URL.documentsDirectory / cachesDirectory / applicationSupportDirectory / temporaryDirectory / homeDirectory",
+          "status": "full",
+          "notes": "On wasm: the directories FileManager gives, under the page's in-memory file system.",
+          "noFixture": "Foundation API with nothing on screen; ErrorKeysAndDirectoriesTests holds it to Foundation on macOS and Linux and checks the wasm forms."
+        },
+        {
+          "api": "OperationQueue.addOperation / NSNumber.objCType / Locale.currency / Locale.Currency",
+          "status": "partial",
+          "notes": "On wasm: a block operation runs later on the main queue (the page has one thread); objCType reports q, Q, d or c by what the number holds; a locale's currency comes from its region.",
+          "noFixture": "Foundation API with nothing on screen; ErrorKeysAndDirectoriesTests holds it to Foundation on macOS and Linux and checks the wasm forms."
+        },
+        {
           "api": "URLSession / URLRequest / HTTPURLResponse / URLError / URLSessionConfiguration",
           "status": "partial",
           "notes": "decision 0021, pf-urlsession (2026-10-13): data(for:), data(from:), upload, download(from:) and the dataTask forms over the browser's fetch (AbortController for cancel and the timeout, the browser's redirects and cache); an HTTP error status is a response with its status, headers, mime type and bytes, a transport failure, CORS refusal, timeout or cancellation a URLError with Foundation's code — never confused. Core tested against a fake host (URLSessionCoreTests), the browser host against local fixtures in CI (Examples/Launches: 200, 404, a CORS-refused second server, a cancel). Not done: streaming, delegates, background sessions, WebSocket tasks, cookies beyond the browser's",
@@ -2441,9 +2459,9 @@
           "noFixture": "Nothing to draw: FrameworkTests call the center and build a timeline"
         },
         {
-          "api": "Product / Transaction / AppStore / SKPaymentQueue / ProductView / StoreView / SubscriptionStoreView (StoreKit)",
+          "api": "Product / Transaction / AppStore / SKPaymentQueue / ProductView / StoreView / SubscriptionStoreView (StoreKit) / SKProductDiscount / SKPaymentDiscount / SKStorefront / SKPaymentQueueDelegate / Storefront",
           "status": "stub",
-          "notes": "pf-small-frameworks (2026-11-01): a web page has no App Store account, so the store is empty. Product.products(for:) loads none, the transaction sequences (updates, all, currentEntitlements, unfinished) end without an element, entitlements and subscription statuses are absent, AppStore.sync succeeds, AppTransaction.shared throws, and a purchase throws productUnavailable. The original API matches: a products request lists every identifier as invalid, a payment added to the queue fails as not allowed, a restore finishes empty, Apple Music capabilities are none. ProductView shows its product as unavailable (a custom ProductViewStyle gets that state), StoreView lists its products that way, SubscriptionStoreView shows its marketing content over a note, the review prompt shows nothing, and the App Store sheets close as soon as they open. Not done: selling anything (a web payment provider would be a different API)",
+          "notes": "pf-small-frameworks (2026-11-01): a web page has no App Store account, so the store is empty. Product.products(for:) loads none, the transaction sequences (updates, all, currentEntitlements, unfinished) end without an element, entitlements and subscription statuses are absent, AppStore.sync succeeds, AppTransaction.shared throws, and a purchase throws productUnavailable. The original API matches: a products request lists every identifier as invalid, a payment added to the queue fails as not allowed, a restore finishes empty, Apple Music capabilities are none. ProductView shows its product as unavailable (a custom ProductViewStyle gets that state), StoreView lists its products that way, SubscriptionStoreView shows its marketing content over a note, the review prompt shows nothing, and the App Store sheets close as soon as they open. Not done: selling anything (a web payment provider would be a different API) Products carry no discounts, the payment queue has no storefront and Storefront.current is nil.",
           "noFixture": "Nothing to draw beyond text: StoreKitTests check the empty store, the refused payments and the views' unavailable state"
         },
         {
