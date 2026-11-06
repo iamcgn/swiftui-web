@@ -94,6 +94,17 @@ jobs:
           python3 -m http.server 8770 --bind 127.0.0.1 --directory Examples/Gallery >/dev/null 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8770/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node frameworks-probe.mjs http://127.0.0.1:8770/index.html)
+      - name: Interaction suite in Chromium (the gallery, Tier B's build) — focus, typing, keys, menus, sheets, toolbar, gestures, hover, scrolling, selection, drag and drop, the colour well, accessibility, UIKit pickers, AsyncImage, animation, timelines
+        run: |
+          # 8767, the port the probes and the AsyncImage fixture's served URL name; the server
+          # stops here, as the UIKit counter takes 8767 later.
+          python3 -m http.server 8767 --bind 127.0.0.1 --directory Examples/Gallery >/dev/null 2>&1 &
+          server=$!
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8767/index.html >/dev/null && break; sleep 1; done
+          status=0
+          (cd Playwright && node interactions.mjs http://127.0.0.1:8767/index.html --out ../.build/interactions) || status=$?
+          kill $server
+          exit $status
       - name: Landing frame budget (pf-perf)
         run: . ~/.swiftly/env.sh && scripts/frame-budget.sh
       - name: Counter smoke test and size gate
@@ -220,6 +231,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: tier-b, path: .build/tier-b-chromium, if-no-files-found: error, include-hidden-files: true }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: interactions, path: .build/interactions, if-no-files-found: warn, include-hidden-files: true }
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: apps-evidence, path: .build/apps, if-no-files-found: error, include-hidden-files: true }

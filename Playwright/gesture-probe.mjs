@@ -86,7 +86,7 @@ await gestureEvent('gesturechange', 1.5, 30);
 await page.waitForTimeout(100);
 await check('gesture events scale and rotate', (await labels()).includes('Scale 1.50, 30°'));
 await gestureEvent('gestureend', 1.5, 30);
-await page.waitForTimeout(100);
+await page.waitForFunction(() => window.__swiftuiwebDebug.semantics().some(n => n.label === 'Scale 1.00, 0°'), null, { timeout: 1000 }).catch(() => {});
 await check('gesture end resets', (await labels()).includes('Scale 1.00, 0°'));
 
 const stateBox = await below('Rest', 14 + 20);

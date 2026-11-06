@@ -64,7 +64,8 @@ const startPrevented = await drag('dragstart', sourceX + 2, sourceY, 'own');
 check('dragstart is not prevented (the scene has items)', !startPrevented);
 check('the DataTransfer carries the text', (await transferData('own', 'text/plain')) === 'Drag me');
 check('dragover over the well is accepted', await drag('dragover', targetX, targetY, 'own'));
-await page.waitForTimeout(50);
+// The next frame paints the well (a slow runner can take more than one frame interval).
+await page.waitForFunction(() => window.__swiftuiwebDebug.displayList().some(c => c.startsWith('fillRRect(20, 120, 280, 120)') && c.includes('#34C759')), null, { timeout: 1000 }).catch(() => {});
 check('the well turns green for the system drag', await wellIsGreen());
 await drag('drop', targetX, targetY, 'own');
 await drag('dragend', targetX, targetY, 'own');
