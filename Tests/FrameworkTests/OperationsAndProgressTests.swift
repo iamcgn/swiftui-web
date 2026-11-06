@@ -13,17 +13,18 @@ private final class Log: @unchecked Sendable {
 
 #if os(WASI) || canImport(Darwin)
 /// An operation that finishes on a later turn and reports its state by hand, as RevenueCat's
-/// network operations do.
+/// network operations do. (`executing` and `finished` are NSOperation's own names on Apple
+/// platforms, so the state goes by other names.)
 private final class LaterOperation: Operation, @unchecked Sendable {
-    private var executing = false
-    private var finished = false
+    private var running = false
+    private var done = false
     override var isAsynchronous: Bool { true }
-    override var isExecuting: Bool { executing }
-    override var isFinished: Bool { finished }
+    override var isExecuting: Bool { running }
+    override var isFinished: Bool { done }
 
     override func start() {
         willChangeValue(forKey: "isExecuting")
-        executing = true
+        running = true
         didChangeValue(forKey: "isExecuting")
         Task { self.finish() }
     }
@@ -31,8 +32,8 @@ private final class LaterOperation: Operation, @unchecked Sendable {
     private func finish() {
         willChangeValue(forKey: "isExecuting")
         willChangeValue(forKey: "isFinished")
-        executing = false
-        finished = true
+        running = false
+        done = true
         didChangeValue(forKey: "isExecuting")
         didChangeValue(forKey: "isFinished")
     }
