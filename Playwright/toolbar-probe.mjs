@@ -13,6 +13,8 @@ await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiweb
 const labels = () => page.evaluate(() => window.__swiftuiwebDebug.semantics().map(n => n.label));
 const box = async (label) => (await page.locator(`[aria-label="${label}"]`).boundingBox());
 let failures = 0;
+// Polls until the semantics hold `label` (a CI runner can take more than one frame to update).
+const hasLabel = (label, ms = 3000) => page.waitForFunction(l => window.__swiftuiwebDebug.semantics().some(n => n.label === l), label, { timeout: ms, polling: 50 }).then(() => true, () => false);
 const check = (name, ok) => { console.log((ok ? 'PASS ' : 'FAIL ') + name); if (!ok) failures++; };
 
 const canvas = await page.locator('canvas').first().boundingBox();
@@ -23,11 +25,9 @@ check('navigation item leads', back.x - canvas.x < 40 && action.x > back.x);
 check('trailing items end at the right margin', Math.abs(canvas.x + canvas.width - 8 - (two.x + two.width)) < 1);
 check('content sits below the bar', taps.y > canvas.y + 52);
 await page.mouse.click(action.x + action.width / 2, action.y + action.height / 2);
-await page.waitForTimeout(100);
-check('toolbar button action runs', (await labels()).includes('Taps: 1'));
+check('toolbar button action runs', await hasLabel('Taps: 1'));
 await page.mouse.click(two.x + two.width / 2, two.y + two.height / 2);
-await page.waitForTimeout(100);
-check('group button action runs', (await labels()).includes('Taps: 1001'));
+check('group button action runs', await hasLabel('Taps: 1001'));
 
 // searchable: the field in the bar filters the list through its binding.
 await page.goto(`${url}?fixture=${encodeURIComponent('toolbar/searchable')}&chrome=1`);
@@ -40,7 +40,7 @@ check('search field trails in the bar', fieldBox.y < canvas2.y + 52 && fieldBox.
 check('all rows before searching', (await labels()).includes('Elderberry'));
 await field.click();
 await page.keyboard.type('an');
-await page.waitForTimeout(150);
+await page.waitForFunction(() => { const l = window.__swiftuiwebDebug.semantics().map(n => n.label); return l.includes('Banana') && !l.includes('Cherry'); }, null, { timeout: 3000, polling: 50 }).catch(() => {});
 const filtered = await labels();
 check('typing filters the list', filtered.includes('Banana') && !filtered.includes('Cherry'));
 await browser.close();
