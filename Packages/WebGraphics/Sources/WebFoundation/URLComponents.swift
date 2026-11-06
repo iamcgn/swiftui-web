@@ -349,7 +349,10 @@ public struct URLComponents: Hashable, Sendable, CustomStringConvertible {
 
     /// The URL string, nil when the parts cannot form one (a host with a path that does not
     /// start with `/`, a scheme that is not one).
-    public var string: String? {
+    public var string: String? { composed?.string }
+
+    /// The parts as `string` writes them (the host Punycoded), nil when they cannot form a URL.
+    private var composed: _URLParts? {
         var parts = self.parts
         if let host = parts.host {
             guard let encoded = _Punycode.encodedHost(_URLParts.percentDecoded(host)) else { return nil }
@@ -361,7 +364,55 @@ public struct URLComponents: Hashable, Sendable, CustomStringConvertible {
             guard let first = scheme.first, first.isLetter, scheme.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "+" || $0 == "-" || $0 == "." }) else { return nil }
         }
         if parts.hasAuthority, parts.host == nil, parts.user == nil, parts.port == nil { parts.hasAuthority = parts.scheme == "file" }
-        return parts.string
+        return parts
+    }
+
+    // MARK: Ranges in `string`
+
+    public var rangeOfScheme: Range<String.Index>? { range(of: .scheme) }
+    public var rangeOfUser: Range<String.Index>? { range(of: .user) }
+    public var rangeOfPassword: Range<String.Index>? { range(of: .password) }
+    /// The host's range, with the brackets of an IPv6 address.
+    public var rangeOfHost: Range<String.Index>? { range(of: .host) }
+    public var rangeOfPort: Range<String.Index>? { range(of: .port) }
+    public var rangeOfPath: Range<String.Index>? { range(of: .path) }
+    public var rangeOfQuery: Range<String.Index>? { range(of: .query) }
+    public var rangeOfFragment: Range<String.Index>? { range(of: .fragment) }
+
+    private enum Piece { case scheme, user, password, host, port, path, query, fragment }
+
+    /// Walks `string` in the order `_URLParts.string` writes it, by UTF-8 offset; each piece's
+    /// delimiter stays outside its range. The path's range is there, maybe empty, whenever
+    /// `string` is.
+    private func range(of piece: Piece) -> Range<String.Index>? {
+        guard let parts = composed else { return nil }
+        let text = parts.string
+        var offset = 0
+        var found: Range<String.Index>?
+        func take(_ part: String?, _ which: Piece, after delimiter: Int = 0, before trailing: Int = 0) {
+            guard let part else { return }
+            offset += delimiter
+            if which == piece {
+                let start = text.utf8.index(text.startIndex, offsetBy: offset)
+                found = start..<text.utf8.index(start, offsetBy: part.utf8.count)
+            }
+            offset += part.utf8.count + trailing
+        }
+        take(parts.scheme, .scheme, before: 1)
+        if parts.hasAuthority {
+            offset += 2
+            if parts.user != nil {
+                take(parts.user, .user)
+                take(parts.password, .password, after: 1)
+                offset += 1
+            }
+            take(parts.host.map { $0.contains(":") ? "[" + $0 + "]" : $0 }, .host)
+            take(parts.port.map(String.init), .port, after: 1)
+        }
+        take(parts.path, .path)
+        take(parts.query, .query, after: 1)
+        take(parts.fragment, .fragment, after: 1)
+        return found
     }
 
     public var url: URL? { string.flatMap { URL(string: $0) } }
