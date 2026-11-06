@@ -114,7 +114,7 @@ private final class OneAtATime: Subscriber {
         let wrapped: [(PassthroughSubject<Int, Never>) -> AnyPublisher<Int, Never>] = [
             { $0.eraseToAnyPublisher() },
             { $0.map { $0 }.eraseToAnyPublisher() },
-            { $0.filter { _ in true }.mapError { $0 }.eraseToAnyPublisher() },
+            { $0.filter { _ in true }.compactMap { Optional($0) }.eraseToAnyPublisher() },
         ]
         for wrap in wrapped {
             let subject = PassthroughSubject<Int, Never>()
