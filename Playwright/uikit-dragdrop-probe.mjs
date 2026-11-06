@@ -15,6 +15,8 @@ await page.goto(`${url}?fixture=${encodeURIComponent('uikit/events/dragdrop')}`)
 await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
 await page.waitForFunction(() => window.__galleryFrames !== undefined, null, { timeout: 60000 });
 let failures = 0;
+// Polls until `ok` holds (a CI runner can take more than one frame to repaint).
+const until = async (ok, ms = 3000) => { const end = Date.now() + ms; let v = await ok(); while (!v && Date.now() < end) { await page.waitForTimeout(50); v = await ok(); } return v; };
 const check = (name, ok) => { console.log((ok ? 'PASS ' : 'FAIL ') + name); if (!ok) failures++; };
 const frames = await page.evaluate(() => window.__galleryFrames);
 const canvas = await page.locator('canvas').first().boundingBox();
@@ -54,8 +56,8 @@ check('the well turns green while the drag is over it', await wellIsGreen());
 // its own here; the pointer-driven preview is covered by HostedDragDropTests natively.)
 await page.mouse.up();
 await page.waitForTimeout(100);
-check('the drop shows the text', (await statusText()) === 'Dropped: Drag me');
-check('the well is blue again', await wellIsBlue());
+check('the drop shows the text', await until(async () => (await statusText()) === 'Dropped: Drag me'));
+check('the well is blue again', await until(wellIsBlue));
 // 2. The same through the browser's system drag.
 await page.mouse.move(sourceX, sourceY);
 await page.mouse.down();
@@ -66,21 +68,21 @@ check('the DataTransfer carries the text', (await transferData('own', 'text/plai
 check('dragover over the well is accepted', await drag('dragover', targetX, targetY, 'own'));
 // The next frame paints the well (a slow runner can take more than one frame interval).
 await page.waitForFunction(() => window.__swiftuiwebDebug.displayList().some(c => c.startsWith('fillRRect(20, 120, 280, 120)') && c.includes('#34C759')), null, { timeout: 1000 }).catch(() => {});
-check('the well turns green for the system drag', await wellIsGreen());
+check('the well turns green for the system drag', await until(wellIsGreen));
 await drag('drop', targetX, targetY, 'own');
 await drag('dragend', targetX, targetY, 'own');
 await page.mouse.up();
 await page.waitForTimeout(100);
-check('the system drop delivers the text', (await statusText()) === 'Dropped: Drag me');
+check('the system drop delivers the text', await until(async () => (await statusText()) === 'Dropped: Drag me'));
 check('the canvas is no longer draggable', !(await page.evaluate(() => document.querySelector('canvas').draggable)));
 // 3. A drag from outside the page, and one of a type the well refuses.
 await setTransfer('outside', 'text/plain', 'From outside');
 check('an outside dragover is accepted', await drag('dragover', targetX, targetY, 'outside'));
 await page.waitForTimeout(50);
-check('the well turns green for it', await wellIsGreen());
+check('the well turns green for it', await until(wellIsGreen));
 await drag('drop', targetX, targetY, 'outside');
 await page.waitForTimeout(100);
-check('its text is dropped', (await statusText()) === 'Dropped: From outside');
+check('its text is dropped', await until(async () => (await statusText()) === 'Dropped: From outside'));
 await setTransfer('png', 'image/png', 'iVBORw0KGgo=');
 check('a PNG drag is refused over the well', !(await drag('dragover', targetX, targetY, 'png')));
 await drag('dragleave', targetX, targetY, 'png');
