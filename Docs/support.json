@@ -2292,6 +2292,12 @@
           "noFixture": "Nothing to show: every evaluation fails, which the app handles as on a device without biometry."
         },
         {
+          "api": "Keychain internet passwords (kSecAttrProtocol, Port, Path, SecurityDomain, AuthenticationType) / SecAccessControl / kSecUseAuthenticationUI / CFErrorGetDomain, GetCode, CopyUserInfo",
+          "status": "partial",
+          "notes": "On wasm (KeychainAccess): internet-password items are told apart by account, server, protocol, port, path, security domain and authentication type, as Apple's are, and queries match on those attributes, numbers included. An access control is kept with its item but gates nothing, since a page has no presence, biometry or passcode prompt; the authentication UI and operation prompt keys are accepted and change nothing. The CFError functions read the NSError a CFError is (2026-11-06).",
+          "noFixture": "Keychain storage with nothing on screen; the Ember app's keychain builds against the same functions."
+        },
+        {
           "api": "URLSession / URLRequest / HTTPURLResponse / URLError / URLSessionConfiguration",
           "status": "partial",
           "notes": "decision 0021, pf-urlsession (2026-10-13): data(for:), data(from:), upload, download(from:) and the dataTask forms over the browser's fetch (AbortController for cancel and the timeout, the browser's redirects and cache); an HTTP error status is a response with its status, headers, mime type and bytes, a transport failure, CORS refusal, timeout or cancellation a URLError with Foundation's code — never confused. Core tested against a fake host (URLSessionCoreTests), the browser host against local fixtures in CI (Examples/Launches: 200, 404, a CORS-refused second server, a cancel). Not done: streaming, delegates, background sessions, WebSocket tasks, cookies beyond the browser's",
