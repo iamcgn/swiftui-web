@@ -75,6 +75,8 @@ open class Thread: NSObject, @unchecked Sendable {
     open class var isMainThread: Bool { true }
     open var isMainThread: Bool { self === Thread.mainThread }
     open class var callStackSymbols: [String] { [] }
+    /// The return addresses of the calling frames; wasm doesn't expose its stack, so none.
+    open class var callStackReturnAddresses: [NSNumber] { [] }
     open class func isMultiThreaded() -> Bool { false }
 
     open var name: String?
