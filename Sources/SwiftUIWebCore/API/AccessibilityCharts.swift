@@ -139,16 +139,20 @@ extension AXChartDescriptorRepresentable {
     public func updateChartDescriptor(_ descriptor: AXChartDescriptor) {}
 }
 
-/// Keeps the representable; the descriptor is made when asked for, as on Apple platforms.
-public struct _AccessibilityChartModifier<Representable: AXChartDescriptorRepresentable>: ViewModifier {
+/// Keeps the representable; the descriptor is made when asked for, as on Apple platforms. (The
+/// conformance is an extension's, as the other modifiers', so the struct itself is not main-actor
+/// isolated and the nonisolated `accessibilityChartDescriptor(_:)` can make it.)
+public struct _AccessibilityChartModifier<Representable: AXChartDescriptorRepresentable> {
     let representable: Representable
 
-    nonisolated package init(representable: Representable) { self.representable = representable }
-
-    public func body(content: Content) -> some View { content }
+    package init(representable: Representable) { self.representable = representable }
 
     /// The chart descriptor, made now.
     @MainActor public func descriptor() -> AXChartDescriptor { representable.makeChartDescriptor() }
+}
+
+extension _AccessibilityChartModifier: ViewModifier {
+    public func body(content: Content) -> some View { content }
 }
 
 extension View {
