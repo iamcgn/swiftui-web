@@ -1,6 +1,6 @@
 // Swift Charts Examples (Apps/upstream/Swift-Charts-Examples, unmodified; decision 0021) in
 // headless Chromium on a phone-sized page: the split view collapses to its "Charts" list of
-// sections with a rendered preview image per chart (ImageRenderer), the list scrolls, a row
+// sections with a preview per chart (ImageRenderer's recording, replayed), the list scrolls, a row
 // pushes its chart (bars painted), the chart's slider changes the bar width, Back returns, and
 // the toolbar's Filter menu narrows the list to one category. All data is the app's own.
 //   node charts-probe.mjs http://127.0.0.1:8781/index.html?platform=ios [--out ../.build/apps/charts]
@@ -82,11 +82,15 @@ try {
   expect(t.includes('Electrocardiograms (ECG)') && t.includes('iPhone Storage'), `the first section's charts are not listed; painted: ${t.slice(0, 30).join(' | ')}`);
   note(`${t.length} texts painted, the apple section first`);
 
-  // Each row shows the chart drawn into an image by ImageRenderer at launch.
+  // Each row shows its chart drawn by ImageRenderer at launch: the recording replays as drawing
+  // commands, so the previews' own texts (the ECG's average, the storage total) are painted.
   begin('previews');
-  const images = count(await list(), 'drawImage');
-  expect(images >= 2, `${images} preview image(s) drawn on the first screen`);
-  note(`${images} preview image(s) drawn on the first screen`);
+  t = await texts();
+  const ecg = t.find(s => s.includes('BPM Average')), storage = t.find(s => s.includes('GB of 128 GB Used'));
+  const fills = count(await list(), 'fill');
+  expect(!!ecg && !!storage, `the first previews' texts are not painted; painted: ${t.slice(0, 30).join(' | ')}`);
+  expect(fills >= 20, `${fills} filled shapes on the first screen`);
+  note(`"${ecg}" and "${storage}" painted, ${fills} filled shapes`);
 
   begin('scroll');
   for (let i = 0; i < 12 && !(await onScreen('Single Bar')); i++) await swipeUp();

@@ -201,6 +201,7 @@ public struct NavigationLink<Label: View, Destination: View>: View {
             guard let stack = context?.stack else { return }
             if let value { stack.push(value: value) } else if let destination { stack.push(view: destination) }
         }
+        action.linkValue = value
         if inListRow && platform.isIOS {
             // iOS: the label fills the row, which shows a chevron at its trailing edge.
             label.frame(maxWidth: .infinity, alignment: .leading).layoutValue(key: NavigationLinkActivationKey.self, value: action)
@@ -451,6 +452,9 @@ public struct _NavigationBackButton: View {
 @MainActor
 package final class _NavigationContext {
     package weak var stack: NavigationStackNode?
+    /// A split view's: a sidebar list selected a value link's value, so a compact width shows
+    /// the detail; the closure clears that selection when the detail's back returns.
+    package var showDetail: ((@escaping @MainActor () -> Void) -> Void)?
     package init(stack: NavigationStackNode) { self.stack = stack }
 }
 

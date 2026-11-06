@@ -42,7 +42,8 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
         detail = NavigationStackNode(_NodeContext(view: _NavigationStackHost(root: context.view.detail, path: binding, values: []),
                                                   parent: self, environment: context.environment))
         self.context = _NavigationContext(stack: detail)
-        sidebar = AnyView._makeNode(_NodeContext(view: context.view.sidebar, parent: self, environment: sidebarEnvironment))
+        self.context.showDetail = { [weak self] clear in self?.showSelectedDetail(clear: clear) }
+        sidebar = AnyView._makeNode(_NodeContext(view: sidebarView(context.view.sidebar), parent: self, environment: sidebarEnvironment))
         if let view = context.view.content {
             content = AnyView._makeNode(_NodeContext(view: view, parent: self, environment: leadingEnvironment))
         }
@@ -57,12 +58,39 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
             view.compactBinding.set(.detail)
             setCompact(.detail)
             runtime.requestLayout(invalidatingSizes: true)
-        } else if after <= 1, before > after, compactColumn == .detail {
+        } else if after <= 1, before > after, compactColumn == .detail, detail.rootBack == nil {
             let column: NavigationSplitViewColumn = content != nil && view.compactColumn == .content ? .content : .sidebar
             view.compactBinding.set(column)
             setCompact(column)
             runtime.requestLayout(invalidatingSizes: true)
         }
+    }
+
+    /// Compact: a sidebar list selected a value link's value (`List(selection:)` with
+    /// `NavigationLink(value:)`), so the detail shows, with a back that clears the selection and
+    /// returns, as a collapsed UIKit split view's navigation controller does.
+    private func showSelectedDetail(clear: @escaping @MainActor () -> Void) {
+        guard isCompact, compactColumn != .detail else { return }
+        view.compactBinding.set(.detail)
+        setCompact(.detail)
+        detail.rootBack = { [weak self] in
+            guard let self else { return }
+            self.detail.rootBack = nil
+            clear()
+            let column: NavigationSplitViewColumn = self.content != nil ? .content : .sidebar
+            self.view.compactBinding.set(column)
+            self.setCompact(column)
+            self.runtime.requestLayout(invalidatingSizes: true)
+        }
+        runtime.requestLayout(invalidatingSizes: true)
+    }
+
+    /// iOS compact: the sidebar column sits in a navigation stack of its own, so its title and
+    /// toolbar show in a bar (UIKit collapses the split view into one navigation controller with
+    /// the sidebar at its root); its links and destinations still target the detail's stack.
+    private func sidebarView(_ sidebar: AnyView) -> AnyView {
+        guard isCompact, environment.platformProfile.isIOS else { return sidebar }
+        return AnyView(_CompactSidebarColumn(content: sidebar, context: context))
     }
 
     /// Leading columns' links and destination registrations target the detail stack.
@@ -82,7 +110,7 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
         self.view = view
         self.environment = environment
         clearNeedsUpdate()
-        sidebar.update(view: view.sidebar, environment: sidebarEnvironment, force: force)
+        sidebar.update(view: sidebarView(view.sidebar), environment: sidebarEnvironment, force: force)
         switch (view.content, content) {
         case (let view?, let node?): node.update(view: view, environment: leadingEnvironment, force: force)
         case (let view?, nil): content = AnyView._makeNode(_NodeContext(view: view, parent: self, environment: leadingEnvironment))
@@ -329,5 +357,16 @@ extension Runtime {
         guard let split = root.descendants(where: { $0 is NavigationSplitViewNode }).first as? NavigationSplitViewNode else { return false }
         split.toggleSidebar()
         return true
+    }
+}
+
+/// The sidebar column of a compact split view on iOS: in a navigation stack of its own for the
+/// bar, with the split's navigation context restored for its content.
+package struct _CompactSidebarColumn: View {
+    let content: AnyView
+    let context: _NavigationContext
+
+    package var body: some View {
+        NavigationStack { content.environment(\._navigationContext, context) }
     }
 }
