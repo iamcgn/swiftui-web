@@ -48,6 +48,17 @@ const drawn = async () => (await list()).filter(c => c.startsWith('drawText')).m
 const texts = async () => (await drawn()).map(d => d.text);
 const settle = async (ready, tries = 60) => { let t = await texts(); for (let i = 0; i < tries && !ready(t); i++) { await page.waitForTimeout(250); t = await texts(); } return t; };
 const onScreen = async (text) => (await drawn()).find(d => d.text === text && d.y > 0 && d.y < 844);
+// Waits for a text to stop moving (a fling's momentum): a tap during it only stops the scroll.
+const still = async (text) => {
+  let previous = await onScreen(text);
+  for (let i = 0; i < 30; i++) {
+    await page.waitForTimeout(150);
+    const current = await onScreen(text);
+    if (previous && current && previous.x === current.x && previous.y === current.y) return current;
+    previous = current;
+  }
+  return previous;
+};
 const tapText = async (text) => {
   const hit = await onScreen(text);
   if (!hit) return false;
@@ -98,8 +109,15 @@ try {
   expect(!!(await onScreen('Single Bar')), `"Single Bar" never scrolled into view; painted: ${(await texts()).slice(0, 30).join(' | ')}`);
 
   begin('detail');
+  await still('Single Bar');
   expect(await tapText('Single Bar'), 'no "Single Bar" row to tap');
-  t = await settle(t => t.some(s => s.startsWith('Bar Width: ')));
+  t = await settle(t => t.some(s => s.startsWith('Bar Width: ')), 20);
+  if (!t.some(s => s.startsWith('Bar Width: '))) {
+    // A tap that landed while the list still moved only stopped it (as on iOS): tap again.
+    await still('Single Bar');
+    await tapText('Single Bar');
+    t = await settle(t => t.some(s => s.startsWith('Bar Width: ')));
+  }
   await page.waitForTimeout(1200);   // the bars rise into place, one after another
   await shot('03-single-bar');
   const aria = await page.evaluate(() => [...document.querySelectorAll('[aria-label]')].map(e => `${e.getAttribute('role') || e.tagName.toLowerCase()}:${e.getAttribute('aria-label')}`).slice(0, 40).join(' | '));
