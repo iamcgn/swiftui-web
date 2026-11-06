@@ -111,6 +111,13 @@ public func os_log(_ message: StaticString, dso: UnsafeRawPointer? = nil, log: O
     log.write(_osLogFormat("\(message)", args), type: type)
 }
 
+/// The older function with the type first, as packages write it (`os_log(.fault, dso:, log:,
+/// "%@", message)`); disfavoured, so a bare literal still reads as the interpolated message.
+@_disfavoredOverload
+public func os_log(_ type: OSLogType, dso: UnsafeRawPointer? = nil, log: OSLog = .default, _ message: StaticString, _ args: CVarArg...) {
+    log.write(_osLogFormat("\(message)", args), type: type)
+}
+
 /// The older function, with an interpolated message.
 public func os_log(_ type: OSLogType, dso: UnsafeRawPointer? = nil, log: OSLog = .default, _ message: OSLogMessage) {
     log.write(message.text, type: type)
