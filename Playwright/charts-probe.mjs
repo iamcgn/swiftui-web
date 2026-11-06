@@ -102,7 +102,8 @@ try {
   t = await settle(t => t.some(s => s.startsWith('Bar Width: ')));
   await page.waitForTimeout(1200);   // the bars rise into place, one after another
   await shot('03-single-bar');
-  expect(t.includes('Bar Width: 7.0'), `the Single Bar chart did not open; painted: ${t.slice(0, 30).join(' | ')}`);
+  const aria = await page.evaluate(() => [...document.querySelectorAll('[aria-label]')].map(e => `${e.getAttribute('role') || e.tagName.toLowerCase()}:${e.getAttribute('aria-label')}`).slice(0, 40).join(' | '));
+  expect(t.includes('Bar Width: 7.0'), `the Single Bar chart did not open; painted: ${t.slice(0, 30).join(' | ')}; accessibility: ${aria}`);
   const bars = (await list()).filter(c => /^fill(Rect|Path|RRect)/.test(c)).length;
   expect(bars >= 30, `${bars} filled shapes in the chart (30 days of bars)`);
   note(`the chart and its controls, ${bars} filled shapes`);
