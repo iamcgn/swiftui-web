@@ -136,6 +136,16 @@ import Charts
         #expect(proxy.plotFrame == anchor)
     }
 
+    private func middle() -> Date { Date(timeIntervalSince1970: 10) }
+    private func middle() -> Double { 10 }
+
+    /// A call that could make a date or a number plots the date (TimeSheetBar's `getEventMiddle`,
+    /// ambiguous on wasm where `CGFloat` is `Double`).
+    @Test func aDateIsPreferredWhenACallCouldBeEither() {
+        let out = records { RuleMark(x: .value("Middle", middle())) }
+        #expect(out[0].x == .date(Date(timeIntervalSince1970: 10)))
+    }
+
     @Test func decimalsPlot() {
         let out = records { BarMark(x: .value("Day", "Mon"), y: .value("Price", Decimal(string: "12.5")!)) }
         #expect(out[0].y == .number(12.5))

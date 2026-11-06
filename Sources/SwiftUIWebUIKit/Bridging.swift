@@ -72,7 +72,7 @@ extension ImageRenderer {
 
 extension UIColor {
     /// Creates a UIKit color from a SwiftUI color, resolved for the light and dark appearances.
-    @MainActor public convenience init(_ color: Color) {
+    public convenience init(_ color: Color) {
         var light = EnvironmentValues(), dark = EnvironmentValues()
         light.colorScheme = .light
         dark.colorScheme = .dark

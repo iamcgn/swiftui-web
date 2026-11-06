@@ -107,6 +107,12 @@ public struct PlottableValue<Value: Plottable> {
 }
 
 extension PlottableValue where Value == Date {
+    /// A date value. Where a call could make a `Date` or a `Double` (an overloaded function, as
+    /// on wasm `CGFloat` is `Double` and so plottable), the date is meant, as on Apple platforms.
+    public static func value(_ label: String, _ value: Date) -> PlottableValue<Date> {
+        PlottableValue(label: label, value: value)
+    }
+
     /// A date value standing for a calendar unit: the mark covers the whole unit.
     public static func value(_ label: String, _ value: Date, unit: Calendar.Component, calendar: Calendar? = nil) -> PlottableValue<Date> {
         PlottableValue(label: label, value: value, unit: unit)
