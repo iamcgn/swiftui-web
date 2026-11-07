@@ -371,6 +371,8 @@ package struct _CompactSidebarColumn: View {
     let context: _NavigationContext
 
     package var body: some View {
-        NavigationStack { content.environment(\._navigationContext, context) }
+        // Erased, so the stack's generic body is specialized once for AnyView rather than for
+        // this modifier chain (about 5 KB of code in Counter, which never shows a split view).
+        NavigationStack { AnyView(content.environment(\._navigationContext, context)) }
     }
 }
