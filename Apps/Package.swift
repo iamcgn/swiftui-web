@@ -29,6 +29,7 @@ let package = Package(
         .executable(name: "Scrumdinger", targets: ["Scrumdinger"]),
         .executable(name: "Ember", targets: ["Ember"]),
         .executable(name: "ChartsExamples", targets: ["ChartsExamples"]),
+        .executable(name: "Buttoncraft", targets: ["Buttoncraft"]),
     ],
     dependencies: [
         .package(name: "SwiftUIWeb", path: "..", traits: ["FoundationFormats", "DecimalFormatting"]),
@@ -129,6 +130,19 @@ let package = Package(
             ],
             path: "upstream/Swift-Charts-Examples/Swift Charts Examples",
             exclude: ["Swift_Charts_Examples.entitlements", "Preview Content"],
+            resources: [.process("Assets.xcassets")],
+            swiftSettings: [.swiftLanguageMode(.v5)],
+            linkerSettings: stack
+        ),
+
+        // MARK: atrinh0/buttoncraft — one Xcode target (SWIFT_VERSION 5.0, iOS 14): the app
+        // folder as the target path; the plist, the launch storyboard and the preview assets
+        // are Xcode's, the asset catalog the app's resources.
+        .executableTarget(
+            name: "Buttoncraft",
+            dependencies: swiftUI + [uiKit] + host,
+            path: "upstream/buttoncraft/buttoncraft/buttoncraft",
+            exclude: ["Info.plist", "Launch Screen.storyboard", "Preview Content"],
             resources: [.process("Assets.xcassets")],
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: stack
