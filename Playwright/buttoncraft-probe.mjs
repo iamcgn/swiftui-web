@@ -62,6 +62,17 @@ const swipeUp = async (distance = 300) => {
   await page.waitForTimeout(300);
 };
 const scale = t => t.find(s => /^\d+%$/.test(s));
+// The accessibility overlay's buttons with their labels and boxes (a symbol button reads as its
+// symbol's name when the runtime gives it one; else its place on screen picks it out).
+const buttons = () => page.evaluate(() => [...document.querySelectorAll('button, [role="button"]')].map(e => {
+  const r = e.getBoundingClientRect();
+  return { label: e.getAttribute('aria-label') || e.textContent || '', x: r.x, y: r.y, width: r.width, height: r.height };
+}).filter(b => b.width > 0 && b.height > 0));
+const button = async (name, where) => {
+  const all = await buttons();
+  return all.find(b => b.label.includes(name)) || all.filter(where).sort((a, b) => a.y - b.y)[0] || null;
+};
+const centre = b => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 });
 const animationSwitch = '[aria-label="Animation"][role="switch"], [aria-label="Animation"][role="checkbox"]';
 
 try {
@@ -74,6 +85,7 @@ try {
   expect(t.includes('buttoncraft'), `no "buttoncraft" title; painted: ${t.slice(0, 30).join(' | ')}`);
   expect(['Scale Effect', 'Rotation Effect', 'Blur Radius', 'tap here', 'or here'].every(s => t.includes(s)), `the cards and buttons are not all painted; painted: ${t.slice(0, 30).join(' | ')}`);
   expect(t.includes('85%') && t.includes('0 degrees') && t.includes('0.0'), `the default values (85%, 0 degrees, 0.0) are not painted; painted: ${t.slice(0, 30).join(' | ')}`);
+  report.buttons = (await buttons()).map(b => `${b.label}@${Math.round(b.x)},${Math.round(b.y)}`);
   note(`${t.length} texts painted, Scale Effect ${scale(t)}`);
 
   // A held touch on "tap here": its ButtonStyle scales the label and fills the capsule with the
@@ -109,8 +121,9 @@ try {
   }
 
   begin('reset');
-  const reset = await box('[aria-label="arrow.counterclockwise.circle.fill"]');
-  if (expect(!!reset, 'no reset button')) {
+  // The top bar's trailing button.
+  const reset = await button('arrow.counterclockwise', b => centre(b).x > 260 && centre(b).y < 200);
+  if (expect(!!reset, `no reset button; buttons: ${(await buttons()).map(b => `${b.label}@${Math.round(b.x)},${Math.round(b.y)}`).join(' | ')}`)) {
     await tapBox(reset);
     t = await settle(t => scale(t) === '85%', 20);
     await shot('04-reset');
@@ -139,10 +152,14 @@ try {
   // The curly braces button opens the code panel with the snippet for the current style; its
   // copy button shows "Copied" for a second.
   begin('code');
-  for (let i = 0; i < 8 && !(await box('[aria-label="curlybraces"]')); i++) await swipeUp();
-  let braces = await box('[aria-label="curlybraces"]');
-  for (let i = 0; i < 6 && braces && braces.y + braces.height > 800; i++) { await swipeUp(); braces = await box('[aria-label="curlybraces"]'); }
-  if (expect(!!braces, 'no code button')) {
+  // The centred button under the last card (the damping card's footnote).
+  const bracesButton = async () => {
+    const footnote = (await drawn()).find(d => d.text.startsWith('(low for bouncier'));
+    return button('curlybraces', b => footnote && centre(b).y > footnote.y && Math.abs(centre(b).x - 195) < 60);
+  };
+  let braces = await bracesButton();
+  for (let i = 0; i < 8 && (!braces || braces.y + braces.height > 800); i++) { await swipeUp(); braces = await bracesButton(); }
+  if (expect(!!braces, `no code button; buttons: ${(await buttons()).map(b => `${b.label}@${Math.round(b.x)},${Math.round(b.y)}`).join(' | ')}`)) {
     await tapBox(braces);
     const snippet = t => t.some(s => s.includes('struct MyButtonStyle: ButtonStyle'));
     t = await settle(snippet, 20);
@@ -150,8 +167,10 @@ try {
     await shot('06-code');
     expect(snippet(t), `the code panel did not open; painted: ${t.slice(-30).join(' | ')}`);
     expect(t.some(s => s.includes('.scaleEffect(configuration.isPressed ? CGFloat(0.85)')), 'the snippet does not carry the scale 0.85');
-    const copy = await box('[aria-label="doc.on.doc.fill"]');
-    if (expect(!!copy, 'no copy button')) {
+    // The copy button sits at the code panel's bottom trailing corner, above "just like that".
+    const below = (await drawn()).find(d => d.text === 'just like that');
+    const copy = await button('doc.on.doc', b => centre(b).x > 250 && (!below || centre(b).y < below.y) && centre(b).y > 0);
+    if (expect(!!copy, `no copy button; buttons: ${(await buttons()).map(b => `${b.label}@${Math.round(b.x)},${Math.round(b.y)}`).join(' | ')}`)) {
       await tapBox(copy);
       let copied = false;
       for (let i = 0; i < 20 && !copied; i++) { copied = (await texts()).includes('Copied'); if (!copied) await page.waitForTimeout(50); }
