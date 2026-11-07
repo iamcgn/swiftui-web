@@ -371,8 +371,15 @@ public final class URLSessionConfiguration: @unchecked Sendable {
     public var isDiscretionary = false
     public var sessionSendsLaunchEvents = false
     public var networkServiceType: URLRequest.NetworkServiceType = .default
-    /// Recorded: the browser answers HTTP authentication itself, so nothing reads it.
-    public var urlCredentialStorage: URLCredentialStorage? = .shared
+    /// Recorded: the browser answers HTTP authentication itself, so nothing reads it. Held
+    /// untyped, and the shared storage named only when read, so a page that never asks links no
+    /// credential storage (Counter's size budget).
+    public var urlCredentialStorage: URLCredentialStorage? {
+        get { _credentialStorageIsShared ? .shared : _credentialStorage.map { unsafeDowncast($0, to: URLCredentialStorage.self) } }
+        set { _credentialStorageIsShared = false; _credentialStorage = newValue }
+    }
+    private var _credentialStorage: AnyObject?
+    private var _credentialStorageIsShared = true
     public var identifier: String? { nil }
     public init() {}
 
@@ -485,20 +492,27 @@ public final class URLSession: @unchecked Sendable {
     /// The delegate (URLSessionDelegate.swift), held until the session is invalidated, as
     /// Foundation holds it.
     public private(set) var delegate: (any URLSessionDelegate)?
-    public let delegateQueue: OperationQueue
+    /// The queue given, or one made when first read, as a session makes its own. Held untyped,
+    /// so a page that never names it links no OperationQueue (Counter's size budget).
+    public var delegateQueue: OperationQueue {
+        if let queue = _delegateQueue { return unsafeDowncast(queue, to: OperationQueue.self) }
+        let queue = OperationQueue()
+        _delegateQueue = queue
+        return queue
+    }
+    private var _delegateQueue: AnyObject?
     let core: _WebURLSession
     private var nextTaskIdentifier = 1
 
     public init(configuration: URLSessionConfiguration) {
         self.configuration = configuration
         core = _WebURLSession(configuration: configuration.core)
-        delegateQueue = OperationQueue()
     }
     public init(configuration: URLSessionConfiguration, delegate: (any URLSessionDelegate)?, delegateQueue queue: OperationQueue?) {
         self.configuration = configuration
         core = _WebURLSession(configuration: configuration.core)
         self.delegate = delegate
-        delegateQueue = queue ?? OperationQueue()
+        _delegateQueue = queue
     }
 
     /// Maps the host's answer: a response of any status is `(data, HTTPURLResponse)`; a
