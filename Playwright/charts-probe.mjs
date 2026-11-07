@@ -77,8 +77,12 @@ const swipeUp = async (distance = 400) => {
   const x = 195, y0 = 700;
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y: y0 }] });
   for (let i = 1; i <= 10; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y0 - distance * i / 10 }] });
+  // Held still before the lift, so the list moves the drag's distance and does not fling: a
+  // fling's length depends on the runner's speed and could carry a row past between looks.
+  await page.waitForTimeout(200);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y0 - distance }] });
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  await page.waitForTimeout(600);
+  await page.waitForTimeout(300);
 };
 const count = (commands, prefix) => commands.filter(c => c.startsWith(prefix)).length;
 
@@ -104,7 +108,7 @@ try {
   note(`"${ecg}" and "${storage}" painted, ${fills} filled shapes`);
 
   begin('scroll');
-  for (let i = 0; i < 12 && !(await onScreen('Single Bar')); i++) await swipeUp();
+  for (let i = 0; i < 20 && !(await onScreen('Single Bar')); i++) await swipeUp();
   await shot('02-scrolled');
   expect(!!(await onScreen('Single Bar')), `"Single Bar" never scrolled into view; painted: ${(await texts()).slice(0, 30).join(' | ')}`);
 
