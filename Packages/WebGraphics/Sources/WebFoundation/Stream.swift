@@ -61,14 +61,39 @@ open class Stream: @unchecked Sendable {
     /// Streams here are synchronous, so there's no run loop to deliver events on.
     open func schedule(in aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {}
     open func remove(from aRunLoop: RunLoop, forMode mode: RunLoop.Mode) {}
+
+    /// A pair whose output's writes the input reads, at most `bufferSize` bytes waiting at once
+    /// (Alamofire's streaming requests). The input is at its end once the output is closed and
+    /// every byte has been read.
+    public class func getBoundStreams(withBufferSize bufferSize: Int, inputStream: UnsafeMutablePointer<InputStream?>?,
+                                      outputStream: UnsafeMutablePointer<OutputStream?>?) {
+        let pipe = _StreamPipe(capacity: max(1, bufferSize))
+        inputStream?.pointee = InputStream(pipe: pipe)
+        outputStream?.pointee = OutputStream(pipe: pipe)
+    }
+}
+
+/// The bytes between a bound pair of streams.
+final class _StreamPipe: @unchecked Sendable {
+    let capacity: Int
+    var bytes: [UInt8] = []
+    var closed = false
+    init(capacity: Int) { self.capacity = capacity }
 }
 
 public final class InputStream: Stream, @unchecked Sendable {
     private var data: Data
     private var position = 0
+    private var pipe: _StreamPipe?
 
     public init(data: Data) {
         self.data = data
+        super.init()
+    }
+
+    init(pipe: _StreamPipe) {
+        data = Data()
+        self.pipe = pipe
         super.init()
     }
 
@@ -81,11 +106,24 @@ public final class InputStream: Stream, @unchecked Sendable {
 
     public convenience init?(fileAtPath path: String) { self.init(url: URL(fileURLWithPath: path)) }
 
-    public var hasBytesAvailable: Bool { streamStatus == .open && position < data.count }
+    public var hasBytesAvailable: Bool {
+        if let pipe { return streamStatus == .open && !pipe.bytes.isEmpty }
+        return streamStatus == .open && position < data.count
+    }
 
     /// Copies up to `len` bytes into `buffer`; returns how many, 0 at the end, -1 if not open.
     public func read(_ buffer: UnsafeMutablePointer<UInt8>, maxLength len: Int) -> Int {
         guard streamStatus == .open || streamStatus == .atEnd else { return -1 }
+        if let pipe {
+            let count = min(len, pipe.bytes.count)
+            for offset in 0..<count { buffer[offset] = pipe.bytes[offset] }
+            pipe.bytes.removeFirst(count)
+            if pipe.bytes.isEmpty, pipe.closed, streamStatus != .atEnd {
+                streamStatus = .atEnd
+                delegate?.stream(self, handle: .endEncountered)
+            }
+            return count
+        }
         let count = min(len, data.count - position)
         for offset in 0..<max(0, count) { buffer[offset] = data[data.startIndex + position + offset] }
         position += max(0, count)
@@ -108,6 +146,15 @@ public final class OutputStream: Stream, @unchecked Sendable {
     private let destination: UnsafeMutablePointer<UInt8>?
     private let capacity: Int
     private var written = Data()
+    private var pipe: _StreamPipe?
+
+    init(pipe: _StreamPipe) {
+        file = nil
+        destination = nil
+        capacity = .max
+        self.pipe = pipe
+        super.init()
+    }
 
     public init(toMemory: ()) {
         file = nil
@@ -141,11 +188,24 @@ public final class OutputStream: Stream, @unchecked Sendable {
 
     public static func toMemory() -> OutputStream { OutputStream(toMemory: ()) }
 
-    public var hasSpaceAvailable: Bool { streamStatus == .open && written.count < capacity }
+    public override func close() {
+        pipe?.closed = true
+        super.close()
+    }
+
+    public var hasSpaceAvailable: Bool {
+        if let pipe { return streamStatus == .open && pipe.bytes.count < pipe.capacity }
+        return streamStatus == .open && written.count < capacity
+    }
 
     /// Appends up to `len` bytes; returns how many, or -1 if not open.
     public func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
         guard streamStatus == .open else { return -1 }
+        if let pipe {
+            let count = max(0, min(len, pipe.capacity - pipe.bytes.count))
+            pipe.bytes.append(contentsOf: UnsafeBufferPointer(start: buffer, count: count))
+            return count
+        }
         let count = max(0, min(len, capacity - written.count))
         if let destination {
             for offset in 0..<count { destination[written.count + offset] = buffer[offset] }

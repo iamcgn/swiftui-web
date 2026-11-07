@@ -2280,6 +2280,18 @@
           "noFixture": "Foundation API with nothing on screen; ErrorKeysAndDirectoriesTests holds it to Foundation on macOS and Linux and checks the wasm forms."
         },
         {
+          "api": "Operation / BlockOperation / OperationQueue / Progress / NSFileCoordinator / JSONSerialization .allowFragments",
+          "status": "partial",
+          "notes": "On wasm: a queue starts its operations on the main queue's next turn, by priority, as their dependencies finish and within its concurrent limit; an asynchronous operation reports isExecuting and isFinished by hand, as on Apple platforms, and cancelling makes it ready. Progress is observable and counts children by their pending units; nothing becomes current. A file coordinator runs its accessor at once, as nothing else shares the file system. waitUntilFinished returns at once (2026-11-05).",
+          "noFixture": "Foundation API with nothing on screen; OperationsAndProgressTests holds it to Foundation on macOS and Linux and checks the wasm forms."
+        },
+        {
+          "api": "URLSession download and upload tasks / URLSessionTask suspend and Hashable / URLCredentialStorage / Stream.getBoundStreams / SecTrust, SecCertificate, SecPolicy / SCNetworkReachability / UTTypeCreatePreferredIdentifierForTag",
+          "status": "partial",
+          "notes": "On wasm: download tasks write the body to a temporary file the handler or delegate reads (removed afterwards, as on Apple platforms); upload tasks send data, a file or a delegate's body stream; tasks are NSObjects that key dictionaries; suspend marks a task without pausing a fetch already started. No resume data is produced. A bound stream pair hands writes to its input. Credentials are stored per protection space, though the browser answers authentication itself. Trust built from certificates keeps them and its policies, but a page can't verify a chain, so evaluation answers not trusted and no key is read out. Reachability follows navigator.onLine and its online and offline events. Foundation re-exports Security, as Apple's does (2026-11-06).",
+          "noFixture": "Foundation API with nothing on screen; WasmNetworkingTests checks the wasm forms against a host that answers at once."
+        },
+        {
           "api": "URLSession / URLRequest / HTTPURLResponse / URLError / URLSessionConfiguration",
           "status": "partial",
           "notes": "decision 0021, pf-urlsession (2026-10-13): data(for:), data(from:), upload, download(from:) and the dataTask forms over the browser's fetch (AbortController for cancel and the timeout, the browser's redirects and cache); an HTTP error status is a response with its status, headers, mime type and bytes, a transport failure, CORS refusal, timeout or cancellation a URLError with Foundation's code — never confused. Core tested against a fake host (URLSessionCoreTests), the browser host against local fixtures in CI (Examples/Launches: 200, 404, a CORS-refused second server, a cancel). Not done: streaming, delegates, background sessions, WebSocket tasks, cookies beyond the browser's",

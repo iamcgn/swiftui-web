@@ -14,6 +14,9 @@ Serve a built bundle first (`scripts/build-wasm.sh <pkg>` then `scripts/serve.sh
   probe that drives the runtime as a user does (focus, typing, keys, menus, sheets, gestures,
   hover, scrolling, selection, drag and drop, accessibility, pickers), one process each, with a
   `report.json`; `--only focus,menu` runs a few.
+- `landing-controls-probe.mjs <landing url>`: the Controls demo by keyboard (issue 54): Space turns
+  Notifications off, on, off and on, and Name disables and re-enables with it. CI runs it in
+  `scripts/frame-budget.sh`.
 - `landing-perf.mjs`, `landing-mobile.mjs`, `landing-load.mjs`: the landing page's frame phases
   under wheel scrolling (with a CPU profile), an iPhone-sized finger drag (`--webkit` runs it in
   WebKit; the drag is the host's scripted one, `__swiftuiwebDebug.drag`), and the loading screen

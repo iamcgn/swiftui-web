@@ -1,9 +1,7 @@
-// `Progress` for `ProgressView(_ progress:)`: wasm has no Foundation `Progress`, so the thin
-// module names SwiftUIWebCore's observable object `Progress` there; Apple platforms keep
-// Foundation's, which the progress view polls every frame (no key-value observing here).
-#if os(WASI)
-public typealias Progress = _WebProgress
-#else
+// `Progress` for `ProgressView(_ progress:)`: wasm's is WebFoundation's observable `Progress`,
+// which the progress view follows; Apple platforms keep Foundation's, which the progress view
+// polls every frame (no key-value observing here).
+#if !os(WASI)
 import Foundation
 
 extension ProgressView where Label == Text, CurrentValueLabel == EmptyView {

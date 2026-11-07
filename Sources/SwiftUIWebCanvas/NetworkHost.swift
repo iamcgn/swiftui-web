@@ -14,6 +14,15 @@ enum NetworkHost {
     static func install() {
         guard JSObject.global.fetch.function != nil else { return }
         _WebHTTPHost.send = { request, completion in FetchTask(request: request, completion: completion) }
+        // Reachability (SystemConfiguration) reads the browser's online state and hears its changes.
+        _WebNetworkStatus.isOnline = { JSObject.global.navigator.onLine.boolean ?? true }
+        let changed = JSClosure { _ in
+            _WebNetworkStatus.changed()
+            return .undefined
+        }
+        _ = JSObject.global.addEventListener?("online", changed)
+        _ = JSObject.global.addEventListener?("offline", changed)
+        FetchTask.retained.append(changed)
     }
 }
 

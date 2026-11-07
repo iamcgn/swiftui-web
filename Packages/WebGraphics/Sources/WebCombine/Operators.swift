@@ -11,9 +11,17 @@ public struct _Pipe<Output, Failure: Error>: Publisher {
     /// the main actor can capture its upstream.
     public let subscribe: (_ receive: @escaping @MainActor (Output) -> Void,
                            _ complete: @escaping @MainActor (Subscribers.Completion<Failure>) -> Void) -> AnyCancellable
+    /// What a Combine subscriber's subscription does with values it hasn't asked for.
+    let _policy: _DemandPolicy
     public init(_ subscribe: @escaping (_ receive: @escaping @MainActor (Output) -> Void,
                                         _ complete: @escaping @MainActor (Subscribers.Completion<Failure>) -> Void) -> AnyCancellable) {
+        self.init(policy: .hold, subscribe)
+    }
+    init(policy: _DemandPolicy,
+         _ subscribe: @escaping (_ receive: @escaping @MainActor (Output) -> Void,
+                                 _ complete: @escaping @MainActor (Subscribers.Completion<Failure>) -> Void) -> AnyCancellable) {
         self.subscribe = subscribe
+        _policy = policy
     }
     @MainActor public func _subscribe(_ receive: @escaping @MainActor (Output) -> Void,
                                       _ complete: @escaping @MainActor (Subscribers.Completion<Failure>) -> Void) -> AnyCancellable {
@@ -29,12 +37,17 @@ extension Publisher {
     }
 }
 
+extension _Pipe: _CarriesDemandPolicy {
+    var _carriedDemandPolicy: _DemandPolicy { _policy }
+}
+
 /// A publisher that performs type erasure by wrapping another publisher.
-public struct AnyPublisher<Output, Failure: Error>: Publisher {
+public struct AnyPublisher<Output, Failure: Error>: Publisher, _CarriesDemandPolicy {
     private let pipe: _Pipe<Output, Failure>
     public init<P: Publisher>(_ publisher: P) where P.Output == Output, P.Failure == Failure {
-        pipe = _Pipe { receive, complete in publisher._subscribeOnMain(receive, complete) }
+        pipe = _Pipe(policy: publisher._demandPolicy) { receive, complete in publisher._subscribeOnMain(receive, complete) }
     }
+    var _carriedDemandPolicy: _DemandPolicy { pipe._policy }
     @MainActor public func _subscribe(_ receive: @escaping @MainActor (Output) -> Void,
                                       _ complete: @escaping @MainActor (Subscribers.Completion<Failure>) -> Void) -> AnyCancellable {
         pipe.subscribe(receive, complete)
@@ -53,7 +66,7 @@ extension Publisher {
     // MARK: Transforming
 
     public func map<T>(_ transform: @escaping @MainActor (Output) -> T) -> _Pipe<T, Failure> {
-        _Pipe { receive, complete in self._subscribeOnMain({ receive(transform($0)) }, complete) }
+        _Pipe(policy: _demandPolicy) { receive, complete in self._subscribeOnMain({ receive(transform($0)) }, complete) }
     }
     public func map<T>(_ keyPath: KeyPath<Output, T>) -> _Pipe<T, Failure> {
         nonisolated(unsafe) let keyPath = keyPath
@@ -76,7 +89,7 @@ extension Publisher {
         }
     }
     public func compactMap<T>(_ transform: @escaping @MainActor (Output) -> T?) -> _Pipe<T, Failure> {
-        _Pipe { receive, complete in self._subscribeOnMain({ if let value = transform($0) { receive(value) } }, complete) }
+        _Pipe(policy: _demandPolicy) { receive, complete in self._subscribeOnMain({ if let value = transform($0) { receive(value) } }, complete) }
     }
     public func scan<T>(_ initial: T, _ nextPartial: @escaping @MainActor (T, Output) -> T) -> _Pipe<T, Failure> {
         _Pipe { receive, complete in
@@ -123,7 +136,7 @@ extension Publisher {
     // MARK: Filtering
 
     public func filter(_ isIncluded: @escaping @MainActor (Output) -> Bool) -> _Pipe<Output, Failure> {
-        _Pipe { receive, complete in self._subscribeOnMain({ if isIncluded($0) { receive($0) } }, complete) }
+        _Pipe(policy: _demandPolicy) { receive, complete in self._subscribeOnMain({ if isIncluded($0) { receive($0) } }, complete) }
     }
     public func removeDuplicates(by predicate: @escaping @MainActor (Output, Output) -> Bool) -> _Pipe<Output, Failure> {
         _Pipe { receive, complete in
@@ -199,7 +212,7 @@ extension Publisher {
     // MARK: Errors
 
     public func mapError<E: Error>(_ transform: @escaping @MainActor (Failure) -> E) -> _Pipe<Output, E> {
-        _Pipe { receive, complete in
+        _Pipe(policy: _demandPolicy) { receive, complete in
             self._subscribeOnMain(receive) { completion in
                 switch completion {
                 case .finished: complete(.finished)
@@ -209,7 +222,7 @@ extension Publisher {
         }
     }
     public func setFailureType<E: Error>(to failureType: E.Type) -> _Pipe<Output, E> where Failure == Never {
-        _Pipe { receive, complete in self._subscribeOnMain(receive) { _ in complete(.finished) } }
+        _Pipe(policy: _demandPolicy) { receive, complete in self._subscribeOnMain(receive) { _ in complete(.finished) } }
     }
     public func assertNoFailure(_ prefix: String = "") -> _Pipe<Output, Never> {
         _Pipe { receive, complete in
