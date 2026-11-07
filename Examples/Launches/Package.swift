@@ -28,6 +28,7 @@ let package = Package(
                 .product(name: "Foundation", package: "Shadows", condition: .when(platforms: [.wasi])),
                 .product(name: "Combine", package: "Shadows", condition: .when(platforms: [.wasi])),
                 .product(name: "FoundationNetworking", package: "Shadows", condition: .when(platforms: [.wasi])),
+                .product(name: "FoundationXML", package: "Shadows", condition: .when(platforms: [.wasi])),
             ],
             // Swift 5 mode, as the apps of decision 0021 build (a nonisolated model captured by a dispatch closure).
             swiftSettings: [.swiftLanguageMode(.v5)],
