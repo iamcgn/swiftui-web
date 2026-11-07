@@ -17,6 +17,8 @@ const probe = async (name) => {
   return frames && frames[name];
 };
 let failures = 0;
+// Polls until the semantics hold `label` (a CI runner can take more than one frame to update).
+const hasLabel = (label, ms = 3000) => page.waitForFunction(l => window.__swiftuiwebDebug.semantics().some(n => n.label === l), label, { timeout: ms, polling: 50 }).then(() => true, () => false);
 const check = async (name, ok) => { console.log((ok ? 'PASS ' : 'FAIL ') + name); if (!ok) { failures++; console.log('  labels:', (await labels()).join(' | ')); } };
 // Boxes are laid out below their labels: use the label's overlay element to find each box.
 const below = async (label, dy) => { const b = await page.locator(`[aria-label="${label}"]`).boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height + dy }; };
@@ -84,9 +86,9 @@ const gestureEvent = async (type, scale, rotation) => page.evaluate(([type, x, y
 await gestureEvent('gesturestart', 1, 0);
 await gestureEvent('gesturechange', 1.5, 30);
 await page.waitForTimeout(100);
-await check('gesture events scale and rotate', (await labels()).includes('Scale 1.50, 30°'));
+await check('gesture events scale and rotate', await hasLabel('Scale 1.50, 30°'));
 await gestureEvent('gestureend', 1.5, 30);
-await page.waitForTimeout(100);
+await page.waitForFunction(() => window.__swiftuiwebDebug.semantics().some(n => n.label === 'Scale 1.00, 0°'), null, { timeout: 1000 }).catch(() => {});
 await check('gesture end resets', (await labels()).includes('Scale 1.00, 0°'));
 
 const stateBox = await below('Rest', 14 + 20);
@@ -95,10 +97,10 @@ const touchPoints = (spread) => [{ x: stateBox.x - spread, y: stateBox.y }, { x:
 await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: touchPoints(20) });
 await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: touchPoints(30) });
 await page.waitForTimeout(100);
-await check('two touches pinch and set the gesture state', (await labels()).includes('Pinching'));
+await check('two touches pinch and set the gesture state', await hasLabel('Pinching'));
 await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
 await page.waitForTimeout(100);
-await check('lifting the touches resets the gesture state', (await labels()).includes('Rest'));
+await check('lifting the touches resets the gesture state', await hasLabel('Rest'));
 await browser.close();
 console.log(failures === 0 ? 'gesture probe: all passed' : `gesture probe: ${failures} failed`);
 process.exit(failures === 0 ? 0 : 1);

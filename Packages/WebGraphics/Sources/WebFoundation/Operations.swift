@@ -145,6 +145,8 @@ open class OperationQueue: NSObject, @unchecked Sendable {
     private var _pending: [Operation] = []
     private var _running: [Operation] = []
     private var _scheduled = false
+    /// The newest barrier not yet finished: operations added after it wait for it.
+    private weak var _barrier: Operation?
 
     /// The dispatch queue operations run on.
     open var underlyingQueue: DispatchQueue? = .main
@@ -165,6 +167,7 @@ open class OperationQueue: NSObject, @unchecked Sendable {
     open func addOperation(_ op: Operation) {
         guard op._queue == nil, !op.isFinished else { return }
         op._queue = self
+        if let barrier = _barrier, barrier !== op, !barrier.isFinished { op.addDependency(barrier) }
         _pending.append(op)
         _schedule()
     }
@@ -178,11 +181,13 @@ open class OperationQueue: NSObject, @unchecked Sendable {
         addOperation(BlockOperation(block: block))
     }
 
-    /// Runs the block once every operation added before it has finished.
+    /// Runs the block once every operation added before it has finished. Operations added
+    /// after it wait until it has run.
     open func addBarrierBlock(_ barrier: @escaping @Sendable () -> Void) {
         let op = BlockOperation(block: barrier)
         for earlier in operations { op.addDependency(earlier) }
         addOperation(op)
+        _barrier = op
     }
 
     open func cancelAllOperations() {
