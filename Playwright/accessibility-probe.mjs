@@ -50,12 +50,14 @@ await page.waitForTimeout(100);
 check('the named action runs', (await semantics()).some(t => t.label === 'Archived: 1'));
 await page.locator('[aria-label="Archived: 1"]').first().dispatchEvent('click');
 await page.waitForTimeout(100);
-check('activation runs the default action', (await semantics()).some(t => t.label === 'Archived: 11'));
+// Polls until a semantics label appears (a CI runner can take more than one frame to update).
+const until = async (label, ms = 3000) => { const end = Date.now() + ms; let ok = (await semantics()).some(t => t.label === label); while (!ok && Date.now() < end) { await page.waitForTimeout(50); ok = (await semantics()).some(t => t.label === label); } return ok; };
+check('activation runs the default action', await until('Archived: 11'));
 // The adjustable text is a spinbutton the arrow keys step.
 const level = page.locator('[role="spinbutton"][aria-label="Level: 3"]').first();
 await level.focus();
 await page.keyboard.press('ArrowUp'); await page.waitForTimeout(100);
-check('arrow up on the adjustable element increments', (await semantics()).some(t => t.label === 'Level: 4'));
+check('arrow up on the adjustable element increments', await until('Level: 4'));
 // The rotor is a nav landmark whose links focus their entries.
 check('the rotor is a nav with its entries', await page.evaluate(() => Array.from(document.querySelectorAll('nav[aria-label="Fruit"] a')).map(a => a.getAttribute('aria-label')).join(',')) === 'Apple,Banana');
 await page.locator('nav[aria-label="Fruit"] a[aria-label="Banana"]').first().dispatchEvent('click');

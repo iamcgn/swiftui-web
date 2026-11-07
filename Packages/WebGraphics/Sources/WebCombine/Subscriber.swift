@@ -107,9 +107,8 @@ extension Publisher {
     /// this; WebCombine's own get it from `_subscribe`.
     public func receive<S: Subscriber>(subscriber: S) where S.Input == Output, S.Failure == Failure {
         nonisolated(unsafe) let publisher = self
-        let policy: _DemandPolicy = (self as? any _SubjectDemand).map { $0._keepsLatestWithoutDemand ? .keepLatest : .drop } ?? .hold
         let bridge = _DemandBridge<Output, Failure>(
-            policy: policy,
+            policy: _demandPolicy,
             receive: { subscriber.receive($0) },
             complete: { subscriber.receive(completion: $0) })
         subscriber.receive(subscription: bridge)
@@ -143,6 +142,21 @@ enum _DemandPolicy {
 /// A subject, whose values go to the subscribers that have asked for them as they are sent.
 protocol _SubjectDemand {
     var _keepsLatestWithoutDemand: Bool { get }
+}
+
+/// A publisher that passes its upstream's values on one for one (`map`, `filter`, type
+/// erasure), and so its upstream's policy for values nobody has asked for.
+protocol _CarriesDemandPolicy {
+    var _carriedDemandPolicy: _DemandPolicy { get }
+}
+
+extension Publisher {
+    /// The policy a subscription to this publisher follows for values its subscriber hasn't
+    /// asked for: a subject's own, or the one an operator carries from its subject.
+    var _demandPolicy: _DemandPolicy {
+        if let subject = self as? any _SubjectDemand { return subject._keepsLatestWithoutDemand ? .keepLatest : .drop }
+        return (self as? any _CarriesDemandPolicy)?._carriedDemandPolicy ?? .hold
+    }
 }
 
 /// The subscription a WebCombine publisher hands a Combine subscriber: values reach the
