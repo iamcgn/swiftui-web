@@ -35,6 +35,60 @@ public let kSecAttrSynchronizable: CFString = "sync"
 public let kSecAttrAccessible: CFString = "pdmn"
 public let kSecAttrCreationDate: CFString = "cdat"
 public let kSecAttrModificationDate: CFString = "mdat"
+public let kSecAttrCreator: CFString = "crtr"
+public let kSecAttrType: CFString = "type"
+public let kSecAttrIsInvisible: CFString = "invi"
+public let kSecAttrIsNegative: CFString = "nega"
+public let kSecAttrAccessControl: CFString = "accc"
+
+// Internet passwords: the server's protocol, port, path, security domain and authentication
+// type join the account and server as the item's identity.
+public let kSecAttrSecurityDomain: CFString = "sdmn"
+public let kSecAttrProtocol: CFString = "ptcl"
+public let kSecAttrAuthenticationType: CFString = "atyp"
+public let kSecAttrPort: CFString = "port"
+public let kSecAttrPath: CFString = "path"
+
+public let kSecAttrProtocolFTP: CFString = "ftp "
+public let kSecAttrProtocolFTPAccount: CFString = "ftpa"
+public let kSecAttrProtocolHTTP: CFString = "http"
+public let kSecAttrProtocolIRC: CFString = "irc "
+public let kSecAttrProtocolNNTP: CFString = "nntp"
+public let kSecAttrProtocolPOP3: CFString = "pop3"
+public let kSecAttrProtocolSMTP: CFString = "smtp"
+public let kSecAttrProtocolSOCKS: CFString = "sox "
+public let kSecAttrProtocolIMAP: CFString = "imap"
+public let kSecAttrProtocolLDAP: CFString = "ldap"
+public let kSecAttrProtocolAppleTalk: CFString = "atlk"
+public let kSecAttrProtocolAFP: CFString = "afp "
+public let kSecAttrProtocolTelnet: CFString = "teln"
+public let kSecAttrProtocolSSH: CFString = "ssh "
+public let kSecAttrProtocolFTPS: CFString = "ftps"
+public let kSecAttrProtocolHTTPS: CFString = "htps"
+public let kSecAttrProtocolHTTPProxy: CFString = "htpx"
+public let kSecAttrProtocolHTTPSProxy: CFString = "htsx"
+public let kSecAttrProtocolFTPProxy: CFString = "ftpx"
+public let kSecAttrProtocolSMB: CFString = "smb "
+public let kSecAttrProtocolRTSP: CFString = "rtsp"
+public let kSecAttrProtocolRTSPProxy: CFString = "rtsx"
+public let kSecAttrProtocolDAAP: CFString = "daap"
+public let kSecAttrProtocolEPPC: CFString = "eppc"
+public let kSecAttrProtocolIPP: CFString = "ipp "
+public let kSecAttrProtocolNNTPS: CFString = "ntps"
+public let kSecAttrProtocolLDAPS: CFString = "ldps"
+public let kSecAttrProtocolTelnetS: CFString = "tels"
+public let kSecAttrProtocolIMAPS: CFString = "imps"
+public let kSecAttrProtocolIRCS: CFString = "ircs"
+public let kSecAttrProtocolPOP3S: CFString = "pops"
+
+public let kSecAttrAuthenticationTypeNTLM: CFString = "ntlm"
+public let kSecAttrAuthenticationTypeMSN: CFString = "msna"
+public let kSecAttrAuthenticationTypeDPA: CFString = "dpaa"
+public let kSecAttrAuthenticationTypeRPA: CFString = "rpaa"
+public let kSecAttrAuthenticationTypeHTTPBasic: CFString = "http"
+public let kSecAttrAuthenticationTypeHTTPDigest: CFString = "httd"
+public let kSecAttrAuthenticationTypeHTMLForm: CFString = "form"
+public let kSecAttrAuthenticationTypeDefault: CFString = "dflt"
 
 public let kSecAttrAccessibleWhenUnlocked: CFString = "ak"
 public let kSecAttrAccessibleAfterFirstUnlock: CFString = "ck"
@@ -60,6 +114,52 @@ public let kSecMatchLimitAll: CFString = "m_LimitAll"
 
 public let kSecUseDataProtectionKeychain: CFString = "nleg"
 public let kSecAttrSynchronizableAny: CFString = "syna"
+
+// Asking the user: a page has no keychain prompt, so these are accepted and change nothing.
+public let kSecUseOperationPrompt: CFString = "u_OpPrompt"
+public let kSecUseNoAuthenticationUI: CFString = "u_NoAuthUI"
+public let kSecUseAuthenticationUI: CFString = "u_AuthUI"
+public let kSecUseAuthenticationUIAllow: CFString = "u_AuthUIA"
+public let kSecUseAuthenticationUIFail: CFString = "u_AuthUIF"
+public let kSecUseAuthenticationUISkip: CFString = "u_AuthUIS"
+public let kSecUseAuthenticationContext: CFString = "u_AuthCtx"
+
+// MARK: - Access control
+
+/// When an item may be read and what must be shown first. Kept with the item; the browser
+/// asks for no presence, biometry or passcode, so it gates nothing here.
+public final class SecAccessControl: @unchecked Sendable {
+    public let protection: CFTypeRef
+    public let flags: SecAccessControlCreateFlags
+    fileprivate init(protection: CFTypeRef, flags: SecAccessControlCreateFlags) {
+        self.protection = protection
+        self.flags = flags
+    }
+}
+
+public struct SecAccessControlCreateFlags: OptionSet, Hashable, Sendable {
+    public let rawValue: CFOptionFlags
+    public init(rawValue: CFOptionFlags) { self.rawValue = rawValue }
+    public static let userPresence = SecAccessControlCreateFlags(rawValue: 1 << 0)
+    public static let biometryAny = SecAccessControlCreateFlags(rawValue: 1 << 1)
+    public static let touchIDAny = biometryAny
+    public static let biometryCurrentSet = SecAccessControlCreateFlags(rawValue: 1 << 3)
+    public static let touchIDCurrentSet = biometryCurrentSet
+    public static let devicePasscode = SecAccessControlCreateFlags(rawValue: 1 << 4)
+    public static let watch = SecAccessControlCreateFlags(rawValue: 1 << 5)
+    public static let companion = watch
+    public static let or = SecAccessControlCreateFlags(rawValue: 1 << 14)
+    public static let and = SecAccessControlCreateFlags(rawValue: 1 << 15)
+    public static let privateKeyUsage = SecAccessControlCreateFlags(rawValue: 1 << 30)
+    public static let applicationPassword = SecAccessControlCreateFlags(rawValue: 1 << 31)
+}
+
+/// An access control for `protection` (one of the `kSecAttrAccessible` values) and `flags`.
+public func SecAccessControlCreateWithFlags(_ allocator: CFAllocator?, _ protection: CFTypeRef,
+                                            _ flags: SecAccessControlCreateFlags,
+                                            _ error: UnsafeMutablePointer<Unmanaged<CFError>?>?) -> SecAccessControl? {
+    SecAccessControl(protection: protection, flags: flags)
+}
 
 // MARK: - Result codes
 
@@ -97,9 +197,10 @@ enum _Keychain {
     static func identity(of attributes: CFDictionary) -> String {
         let itemClass = attributes[kSecClass] as? String ?? kSecClassGenericPassword
         let keys: [String] = itemClass == kSecClassInternetPassword
-            ? [kSecAttrAccount, kSecAttrServer, kSecAttrAccessGroup]
+            ? [kSecAttrAccount, kSecAttrServer, kSecAttrAccessGroup, kSecAttrProtocol, kSecAttrPort, kSecAttrPath,
+               kSecAttrSecurityDomain, kSecAttrAuthenticationType]
             : [kSecAttrAccount, kSecAttrService, kSecAttrAccessGroup]
-        return ([itemClass] + keys.map { (attributes[$0] as? String) ?? "" }).joined(separator: "\u{1F}")
+        return ([itemClass] + keys.map { attributes[$0].map { "\($0)" } ?? "" }).joined(separator: "\u{1F}")
     }
 
     nonisolated(unsafe) private static var memory: [String: String] = [:]
@@ -136,6 +237,8 @@ enum _Keychain {
                 item[key] = Data(base64Encoded: value) ?? Data()
             } else if value == "\u{1D}true" || value == "\u{1D}false" {
                 item[key] = value == "\u{1D}true"
+            } else if value.hasPrefix("\u{1D}#"), let number = Int(value.dropFirst(2)) {
+                item[key] = number
             } else {
                 item[key] = value
             }
@@ -150,7 +253,7 @@ enum _Keychain {
             case let data as Data: lines.append("\(key)=\(data.base64EncodedString())")
             case let flag as Bool: lines.append("\(key)=\u{1D}\(flag)")
             case let string as String: lines.append("\(key)=\(string)")
-            case let number as Int: lines.append("\(key)=\(number)")
+            case let number as Int: lines.append("\(key)=\u{1D}#\(number)")
             default: continue
             }
         }
@@ -167,7 +270,9 @@ enum _Keychain {
     /// The stored items a query's class and attributes match (every attribute given must equal).
     static func matches(_ query: CFDictionary) -> [(id: String, item: [String: Any])] {
         let itemClass = query[kSecClass] as? String ?? kSecClassGenericPassword
-        let attributeKeys: Set<String> = [kSecAttrAccount, kSecAttrService, kSecAttrServer, kSecAttrLabel, kSecAttrAccessGroup, kSecAttrGeneric, kSecAttrDescription, kSecAttrComment]
+        let attributeKeys: Set<String> = [kSecAttrAccount, kSecAttrService, kSecAttrServer, kSecAttrLabel, kSecAttrAccessGroup, kSecAttrGeneric,
+                                          kSecAttrDescription, kSecAttrComment, kSecAttrProtocol, kSecAttrPort, kSecAttrPath,
+                                          kSecAttrSecurityDomain, kSecAttrAuthenticationType, kSecAttrType, kSecAttrCreator]
         return identities().compactMap { id in
             guard id.hasPrefix(itemClass + "\u{1F}"), let item = read(id) else { return nil }
             for key in attributeKeys {
@@ -175,6 +280,7 @@ enum _Keychain {
                 let stored = item[key]
                 if let wanted = wanted as? String { if stored as? String != wanted { return nil } }
                 else if let wanted = wanted as? Data { if stored as? Data != wanted { return nil } }
+                else if let wanted = wanted as? Int { if stored as? Int != wanted { return nil } }
             }
             return (id, item)
         }
