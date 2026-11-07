@@ -5,7 +5,7 @@ import Testing
 #if !canImport(Darwin)
 import WebFoundation
 #endif
-#if canImport(FoundationNetworking)
+#if canImport(FoundationNetworking) && !os(WASI)
 import FoundationNetworking
 #endif
 @testable import WebCombine

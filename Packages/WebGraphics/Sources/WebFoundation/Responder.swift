@@ -18,6 +18,10 @@ public struct CharacterSet: @unchecked Sendable {
         predicate = { scalars.contains($0) }
     }
 
+    /// The scalars in `range` (`"a"..."z"`).
+    public init(charactersIn range: ClosedRange<Unicode.Scalar>) { predicate = { range.contains($0) } }
+    public init(charactersIn range: Range<Unicode.Scalar>) { predicate = { range.contains($0) } }
+
     public func contains(_ member: Unicode.Scalar) -> Bool { predicate(member) }
 
     public var inverted: CharacterSet { CharacterSet { !self.predicate($0) } }
@@ -49,6 +53,14 @@ public struct CharacterSet: @unchecked Sendable {
         }
     }
     public static let controlCharacters = CharacterSet { $0.properties.generalCategory == .control }
+}
+
+/// `["\""]`, as `trimmingCharacters(in:)` and `components(separatedBy:)` take a set.
+extension CharacterSet: ExpressibleByArrayLiteral {
+    public init(arrayLiteral elements: Unicode.Scalar...) {
+        let scalars = Set(elements)
+        self.init { scalars.contains($0) }
+    }
 }
 
 #endif
