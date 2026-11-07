@@ -47,7 +47,7 @@ jobs:
               scripts/size-gate.sh "$APP" 99999999 | sed "s|^|$side: |"
               # The map flag goes in the app's wasm-only linker settings (a command-line -Xlinker
               # also reaches the host macro tools' Apple ld, which has no --Map), as size-repro does.
-              sed -i '' "s|\"stack-size=4194304\"|\"stack-size=4194304\", \"-Xlinker\", \"--Map=$GITHUB_WORKSPACE/size/$side.map\"|" "$APP/Package.swift"
+              sed -i '' "s|\"stack-size=4194304\"|\"stack-size=4194304\", \"-Xlinker\", \"--Map=$GITHUB_WORKSPACE/size/$side.map\", \"-Xlinker\", \"--why-extract=$GITHUB_WORKSPACE/size/$side.why\"|" "$APP/Package.swift"
               # The same build script again, so the map's link has the side's own flags; only the
               # link reruns.
               scripts/build-wasm.sh "$APP" > "$GITHUB_WORKSPACE/size/$side-build.log" 2>&1 \
@@ -64,5 +64,27 @@ jobs:
             python3 head/Tools/Size/exports.py size/$side-linked.wasm --show 15
             python3 head/Tools/Size/exports.py size/$side.wasm --show 15
           done
+      - name: Why the head pulled in archive members the base did not
+        # wasm-ld's --why-extract lists, per extracted archive member, the object and symbol that
+        # pulled it in. A member new at head whose reference is outside its own archive names the
+        # caller that brought a library in.
+        run: |
+          . ~/.swiftly/env.sh
+          python3 - size/base.why size/head.why <<'PY' | swift demangle --simplified | head -300
+          import sys
+          def rows(p):
+              out = []
+              for line in open(p):
+                  parts = line.rstrip('\n').split('\t')
+                  if len(parts) == 3 and parts[0] != 'reference':
+                      out.append(parts)
+              return out
+          base = {r[1] for r in rows(sys.argv[1])}
+          lib = lambda path: path.split('(')[0].rsplit('/', 1)[-1]
+          for ref, member, sym in rows(sys.argv[2]):
+              if member in base or lib(ref) == lib(member):
+                  continue
+              print(f"{ref.rsplit('/', 1)[-1]}  ->  {member.rsplit('/', 1)[-1]}  via {sym}")
+          PY
       - name: What changed
         run: . ~/.swiftly/env.sh && python3 head/Tools/Size/map-diff.py size/base.map size/head.map --top 80
