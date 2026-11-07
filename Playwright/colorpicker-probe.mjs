@@ -15,6 +15,8 @@ await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiweb
 await page.waitForFunction(() => window.__galleryFrames !== undefined, null, { timeout: 60000 });
 let failures = 0;
 const check = (name, ok) => { console.log((ok ? 'PASS ' : 'FAIL ') + name); if (!ok) failures++; };
+// Polls a condition for up to 3 s: a slow runner can lag a frame behind the event.
+const until = async (ok, ms = 3000) => { const end = Date.now() + ms; do { if (await ok()) return true; await page.waitForTimeout(50); } while (Date.now() < end); return false; };
 const frames = await page.evaluate(() => window.__galleryFrames);
 const canvas = await page.locator('canvas').first().boundingBox();
 const picker = frames.picker;
@@ -24,29 +26,25 @@ const wellFill = () => page.evaluate(() => window.__swiftuiwebDebug.displayList(
 check('the well starts grey', (await wellFill())?.includes('#000000@0.098'));
 // Chromium's colour picker UI is native: the click must create the input, set it and ask to open it.
 await page.mouse.click(wellX, wellY);
-await page.waitForTimeout(100);
 const input = page.locator('input[type=color]');
-check('a click creates the colour input', await input.count() === 1);
+check('a click creates the colour input', await until(async () => (await input.count()) === 1));
 check('the input carries the well colour (#ff383c)', (await input.inputValue()) === '#ff383c');
-check('the well frame turns the focus blue', (await wellFill())?.includes('#4791F8'));
+check('the well frame turns the focus blue', await until(async () => (await wellFill())?.includes('#4791F8')));
 const left = await input.evaluate(e => parseFloat(e.style.left));
 check('the input sits under the well', Math.abs(left - (picker.x + picker.width - 48)) < 1);
 // The picker's `input` and `change` events (dispatched as the native UI would).
 await input.evaluate(e => { e.value = '#0080ff'; e.dispatchEvent(new Event('input', { bubbles: true })); });
-await page.waitForTimeout(100);
 const swatch = () => page.evaluate(() => window.__swiftuiwebDebug.displayList().filter(c => c.startsWith('fillPath')).map(c => c.split(' ').pop()));
-check('an input event recolours the swatch (#0080FF)', (await swatch()).some(c => c.startsWith('#0080FF')));
+check('an input event recolours the swatch (#0080FF)', await until(async () => (await swatch()).some(c => c.startsWith('#0080FF'))));
 await input.evaluate(e => { e.dispatchEvent(new Event('change', { bubbles: true })); });
-await page.waitForTimeout(100);
-check('change closes the chooser: the frame is grey again', (await wellFill())?.includes('#000000@0.098'));
+check('change closes the chooser: the frame is grey again', await until(async () => (await wellFill())?.includes('#000000@0.098')));
 // Space on the focused well: a click in the canvas's blank corner gives it focus, Tab reaches
 // the well (the first focusable control), Space asks again.
 await page.mouse.click(canvas.x + 5, canvas.y + 5);
 await page.keyboard.press('Tab');
 await page.waitForTimeout(50);
 await page.keyboard.press('Space');
-await page.waitForTimeout(100);
-check('Space on the focused well activates it', (await wellFill())?.includes('#4791F8'));
+check('Space on the focused well activates it', await until(async () => (await wellFill())?.includes('#4791F8')));
 await browser.close();
 console.log(failures === 0 ? 'colorpicker probe: all passed' : `colorpicker probe: ${failures} failure(s)`);
 process.exit(failures === 0 ? 0 : 1);
