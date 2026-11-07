@@ -8,7 +8,7 @@ import SwiftUIWebHeadless
 import MapKit
 import AVKit
 import WebKit
-#if canImport(FoundationNetworking)
+#if canImport(FoundationNetworking) && !os(WASI)
 import FoundationNetworking   // Linux keeps URLRequest here
 #endif
 

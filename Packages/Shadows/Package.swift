@@ -10,7 +10,8 @@
 // `ImageIO` (image sources over WebImageIO), `CoreImage` (SwiftUIWeb's WebCoreImage),
 // `MobileCoreServices` (the `kUTType` names and tag functions), `SystemConfiguration` (network
 // reachability over the browser's online state), `LocalAuthentication` (an `LAContext` that
-// reports no biometry, as on a device without it) and
+// reports no biometry, as on a device without it), `FoundationNetworking` (the URLSession names,
+// where Linux's Foundation keeps them) and
 // `UniformTypeIdentifiers` (`UTType`) are here for the same reason as the rest, and so is
 // `CoreData` (WebCoreData; the app's models go through SwiftUIWeb's CoreDataModel plugin). With
 // `CoreGraphics` importable on wasm, SwiftUIWeb's own sources test for Apple's with
@@ -44,6 +45,7 @@ let package = Package(
         .library(name: "MobileCoreServices", targets: ["MobileCoreServices"]),
         .library(name: "SystemConfiguration", targets: ["SystemConfiguration"]),
         .library(name: "LocalAuthentication", targets: ["LocalAuthentication"]),
+        .library(name: "FoundationNetworking", targets: ["FoundationNetworking"]),
         .library(name: "UniformTypeIdentifiers", targets: ["UniformTypeIdentifiers"]),
         .library(name: "CoreData", targets: ["CoreData"]),
         .library(name: "Dispatch", targets: ["Dispatch"]),
@@ -124,6 +126,11 @@ let package = Package(
         .target(
             name: "SystemConfiguration",
             dependencies: ["CoreFoundation", .product(name: "WebFoundation", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "FoundationNetworking",
+            dependencies: ["Foundation", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

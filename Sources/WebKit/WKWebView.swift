@@ -14,7 +14,7 @@ import WebFoundation
 #else
 import Foundation
 #endif
-#if canImport(FoundationNetworking)
+#if canImport(FoundationNetworking) && !os(WASI)
 import FoundationNetworking
 #endif
 import SwiftUI

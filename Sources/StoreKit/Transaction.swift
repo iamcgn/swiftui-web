@@ -6,7 +6,7 @@ import WebFoundation
 #else
 import Foundation
 #endif
-#if canImport(FoundationNetworking)
+#if canImport(FoundationNetworking) && !os(WASI)
 import FoundationNetworking   // Linux keeps URLError's networking codes here
 #endif
 import SwiftUI

@@ -2292,6 +2292,12 @@
           "noFixture": "Foundation API with nothing on screen; WasmNetworkingTests checks the wasm forms against a host that answers at once."
         },
         {
+          "api": "FoundationNetworking module / replacingOccurrences(of:with:options:range:) / CharacterSet array literal and scalar ranges",
+          "status": "full",
+          "notes": "On wasm: FoundationNetworking names WebFoundation's URLSession, URLRequest, URLResponse and the rest, so a package's canImport(FoundationNetworking) path and its one-by-one class imports both find the same types Foundation gives. A replacement with a range changes only what lies inside it (2026-11-07).",
+          "noFixture": "Imports and Foundation API with nothing on screen; the Launches app compiles both import forms in CI, and OpenAPIRuntimeGapsTests holds the API to Foundation on macOS and Linux."
+        },
+        {
           "api": "LocalAuthentication: LAContext / LAPolicy / LAError / LABiometryType",
           "status": "partial",
           "notes": "On wasm: a page can't ask for Face ID, Touch ID or the device passcode, so a context reports biometryType none, canEvaluatePolicy answers false with biometryNotAvailable (passcodeNotSet for the owner policy), and evaluatePolicy replies false with the same error on the main queue's next turn, or throws in its async form. Apps take their path for a device without biometry. LAError matches its codes in catch and case patterns and bridges to NSError in its own domain (2026-11-06).",

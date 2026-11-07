@@ -3,7 +3,7 @@
 // subscription, as Combine's does. Apple's Foundation declares its own with Combine.
 #if !canImport(Darwin)
 import WebFoundation
-#if canImport(FoundationNetworking)
+#if canImport(FoundationNetworking) && !os(WASI)
 import FoundationNetworking   // Linux keeps URLSession here
 #endif
 
