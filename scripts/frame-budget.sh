@@ -17,3 +17,5 @@ SERVER=$!
 trap 'kill $SERVER 2>/dev/null || true' EXIT
 for i in $(seq 1 60); do curl -sf "http://127.0.0.1:$PORT/index.html" >/dev/null && break; sleep 1; done
 (cd "$ROOT/Playwright" && node frame-budget.mjs "http://127.0.0.1:$PORT/index.html" --first-frame-ms "${FIRST_FRAME_MS:-3000}" --frame-ms "${FRAME_MS:-40}" --gzip-bytes "$GZIP")
+# The Controls demo (issue 54): Notifications toggles off and on again by keyboard, and Name follows it.
+(cd "$ROOT/Playwright" && node landing-controls-probe.mjs "http://127.0.0.1:$PORT/index.html")

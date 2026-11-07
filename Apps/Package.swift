@@ -28,10 +28,11 @@ let package = Package(
         .executable(name: "SwiftUI2048", targets: ["SwiftUI2048"]),
         .executable(name: "Scrumdinger", targets: ["Scrumdinger"]),
         .executable(name: "Ember", targets: ["Ember"]),
+        .executable(name: "ChartsExamples", targets: ["ChartsExamples"]),
     ],
     dependencies: [
-        .package(name: "SwiftUIWeb", path: ".."),
-        .package(name: "Shadows", path: "../Packages/Shadows"),
+        .package(name: "SwiftUIWeb", path: "..", traits: ["FoundationFormats"]),
+        .package(name: "Shadows", path: "../Packages/Shadows", traits: ["DecimalFormatting"]),
         .package(name: "UIKitWeb", path: "../Packages/UIKitWeb"),
         // Direct dependency so the PackageToJS command plugin (`swift package js`) is available here.
         .package(url: "https://github.com/swiftwasm/JavaScriptKit.git", from: "0.49.0"),
@@ -113,6 +114,22 @@ let package = Package(
                       "Resources/Info.plist", "Resources/PrivacyInfo.xcprivacy"],
             sources: ["Sources"],
             resources: [.process("Resources/Assets.xcassets"), .process("Resources/Fonts")],
+            swiftSettings: [.swiftLanguageMode(.v5)],
+            linkerSettings: stack
+        ),
+
+        // MARK: jordibruin/Swift-Charts-Examples — one Xcode target (SWIFT_VERSION 5.7, iOS 16):
+        // the app folder as the target path; the entitlements and the preview assets are
+        // Xcode's, the asset catalog the app's resources.
+        .executableTarget(
+            name: "ChartsExamples",
+            dependencies: swiftUI + [uiKit] + host + [
+                .product(name: "Charts", package: "SwiftUIWeb"),
+                .product(name: "AVFoundation", package: "SwiftUIWeb"),
+            ],
+            path: "upstream/Swift-Charts-Examples/Swift Charts Examples",
+            exclude: ["Swift_Charts_Examples.entitlements", "Preview Content"],
+            resources: [.process("Assets.xcassets")],
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: stack
         ),

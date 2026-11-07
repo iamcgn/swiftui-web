@@ -65,6 +65,14 @@ public struct Binding<Value> {
         copy.transaction = transaction
         return copy
     }
+
+    /// The binding with writes animated by `animation`: the state changes it makes run under a
+    /// transaction carrying that animation, as inside `withAnimation`.
+    public func animation(_ animation: Animation? = .default) -> Binding<Value> {
+        var copy = self
+        copy.transaction.animation = animation
+        return copy
+    }
 }
 
 extension Binding: DynamicProperty {

@@ -24,6 +24,8 @@ const source = frames.source, target = frames.target;
 const sourceX = canvas.x + source.x + source.width / 2, sourceY = canvas.y + source.y + source.height / 2;
 const targetX = canvas.x + target.x + target.width / 2, targetY = canvas.y + target.y + target.height / 2;
 const list = () => page.evaluate(() => window.__swiftuiwebDebug.displayList());
+// Polls until `ok` holds (a CI runner can take more than one frame to repaint).
+const until = async (ok, ms = 3000) => { const end = Date.now() + ms; let v = await ok(); while (!v && Date.now() < end) { await page.waitForTimeout(50); v = await ok(); } return v; };
 const targetFill = async () => (await list()).find(c => c.startsWith('fillPath') && (c.includes('#0088FF') || c.includes('#34C759') || c.includes('#007AFF')));
 // Dispatches a DragEvent of `type` on the canvas at client (x, y) carrying `transfer` (a
 // DataTransfer kept in the page); returns whether the default was prevented.
@@ -55,19 +57,19 @@ check('the scene is dragging', await page.evaluate(() => window.__swiftuiwebDebu
 const overPrevented = await drag('dragover', targetX, targetY, 'own');
 await page.waitForTimeout(100);
 check('dragover over the destination is accepted', overPrevented);
-check('the destination turns green while targeted', (await targetFill())?.includes('#34C759'));
+check('the destination turns green while targeted', await until(async () => (await targetFill())?.includes('#34C759')));
 await drag('drop', targetX, targetY, 'own');
 await drag('dragend', targetX, targetY, 'own');
 await page.mouse.up();
 await page.waitForTimeout(100);
 check('the drop shows the dropped text', (await list()).some(c => c.startsWith('drawText("Drag me"') && !c.includes('#')) || (await list()).filter(c => c.startsWith('drawText("Drag me"')).length >= 2);
-check('the destination is blue again', (await targetFill())?.includes('#0088FF') || (await targetFill())?.includes('#007AFF'));
+check('the destination is blue again', await until(async () => { const f = await targetFill(); return f?.includes('#0088FF') || f?.includes('#007AFF'); }));
 check('the canvas is no longer draggable', !(await page.evaluate(() => document.querySelector('canvas').draggable)));
 // 2. A drag from outside the page.
 await setTransfer('outside', 'text/plain', 'From outside');
 check('an outside dragover is accepted', await drag('dragover', targetX, targetY, 'outside'));
 await page.waitForTimeout(50);
-check('the destination turns green for it', (await targetFill())?.includes('#34C759'));
+check('the destination turns green for it', await until(async () => (await targetFill())?.includes('#34C759')));
 await drag('drop', targetX, targetY, 'outside');
 await page.waitForTimeout(100);
 check('its text is dropped', (await list()).some(c => c.startsWith('drawText("From outside"')));

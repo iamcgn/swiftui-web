@@ -14,6 +14,9 @@ public protocol Publisher<Output, Failure> {
     /// the subscription. Every delivery is on the main actor.
     @MainActor func _subscribe(_ receive: @escaping @MainActor (Output) -> Void,
                                _ complete: @escaping @MainActor (Subscribers.Completion<Failure>) -> Void) -> AnyCancellable
+    /// Combine's entry point; each of the two has a default in terms of the other
+    /// (Subscriber.swift), so a publisher implements one.
+    func receive<S: Subscriber>(subscriber: S) where S.Input == Output, S.Failure == Failure
 }
 
 public enum Subscribers {
@@ -171,6 +174,10 @@ public final class PassthroughSubject<Output, Failure: Error>: Subject, @uncheck
     }
 }
 
+extension PassthroughSubject: _SubjectDemand {
+    var _keepsLatestWithoutDemand: Bool { false }
+}
+
 extension PassthroughSubject where Output == Void {
     public func send() { send(()) }
 }
@@ -190,6 +197,10 @@ public final class CurrentValueSubject<Output, Failure: Error>: Subject, @unchec
         if subscribers.completion == nil { receive(value) }
         return subscribers.add(receive, complete)
     }
+}
+
+extension CurrentValueSubject: _SubjectDemand {
+    var _keepsLatestWithoutDemand: Bool { true }
 }
 
 // MARK: - Objects and published properties

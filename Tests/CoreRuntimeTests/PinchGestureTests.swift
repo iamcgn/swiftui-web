@@ -93,6 +93,27 @@ import SwiftUIWebHeadless
         #expect(presses.events == ["button", "tap", "drag 3"])
     }
 
+    /// The gallery's gesture/pinch demo: magnify and rotate together, `onEnded` resetting both.
+    /// A pinch that turned as well as scaled must still reach `onEnded` (Safari's gesture events).
+    @Test func simultaneousMagnifyAndRotateEnd() {
+        let log = Log()
+        let runtime = runtime(Color.teal.frame(width: 40, height: 20).gesture(
+            MagnifyGesture().simultaneously(with: RotateGesture())
+                .onChanged { log.events.append("changed \(f2($0.first?.magnification ?? 0)) \(Int(($0.second?.rotation.degrees ?? 0).rounded()))") }
+                .onEnded { _ in log.events.append("ended") }))
+        runtime.pinch(.began, scale: 1, rotation: 0, at: centre, time: 0)
+        runtime.pinch(.changed, scale: 1.5, rotation: .pi / 6, at: centre, time: 0.1)
+        runtime.pinch(.ended, scale: 1.5, rotation: .pi / 6, at: centre, time: 0.2)
+        #expect(log.events.first == "changed 150 0" && log.events.contains("changed 150 30"))
+        #expect(log.events.last == "ended")
+        // Scale alone (a control-wheel pinch) ends the same way.
+        log.events = []
+        runtime.pinch(.began, scale: 1, rotation: 0, at: centre, time: 1)
+        runtime.pinch(.changed, scale: 1.8, rotation: 0, at: centre, time: 1.1)
+        runtime.pinch(.ended, scale: 1.8, rotation: 0, at: centre, time: 1.2)
+        #expect(log.events == ["changed 180 0", "ended"])
+    }
+
     @Test func gestureMasks() {
         let log = Log()
         func run(_ mask: GestureMask) -> [String] {

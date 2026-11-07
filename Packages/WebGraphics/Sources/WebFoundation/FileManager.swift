@@ -204,6 +204,16 @@ extension URL {
     public static var desktopDirectory: URL { _directory(.desktopDirectory) }
     public static var temporaryDirectory: URL { FileManager.default.temporaryDirectory }
     public static var homeDirectory: URL { FileManager.default.homeDirectoryForCurrentUser }
+
+    /// True when the file is in the store; throws the no-such-file error otherwise, as
+    /// Foundation does (a URL that names no file is never reachable).
+    public func checkResourceIsReachable() throws -> Bool {
+        guard isFileURL, _MemoryFiles.exists(self) || _MemoryFiles.isDirectory(self) else { throw FileManager._FileError.noSuchFile(self) }
+        return true
+    }
+
+    /// The same check: no file here is promised by another process.
+    public func checkPromisedItemIsReachable() throws -> Bool { try checkResourceIsReachable() }
 }
 
 #endif

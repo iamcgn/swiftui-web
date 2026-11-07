@@ -43,7 +43,7 @@ public enum AxisMarkPosition: Hashable, Sendable {
 
 /// Preset arrangements of an axis's marks.
 public enum AxisMarkPreset: Hashable, Sendable {
-    case automatic, aligned, extended
+    case automatic, aligned, extended, inset
 }
 
 /// The parts of an axis mark (`AxisGridLine`, `AxisTick`, `AxisValueLabel`).
@@ -123,6 +123,27 @@ public struct AxisValueLabel: AxisMark {
     }
 }
 
+/// An axis mark with a changed part (`AxisGridLine().foregroundStyle(.gray)`).
+public struct _ModifiedAxisMark: AxisMark {
+    public let _part: _AxisPart
+}
+
+extension AxisMark {
+    /// Colours the grid line, tick or label (a colour; other styles keep the default).
+    public func foregroundStyle<S: ShapeStyle>(_ style: S) -> _ModifiedAxisMark {
+        var part = _part
+        if let color = style as? Color { part.color = color }
+        else if let erased = style as? AnyShapeStyle, let color = erased.base as? Color { part.color = color }
+        return _ModifiedAxisMark(_part: part)
+    }
+
+    /// Accepted; labels keep the chart's label font.
+    public func font(_ font: Font?) -> _ModifiedAxisMark { _ModifiedAxisMark(_part: _part) }
+
+    /// Accepted; the part stays at its position.
+    public func offset(x: CGFloat = 0, y: CGFloat = 0) -> _ModifiedAxisMark { _ModifiedAxisMark(_part: _part) }
+}
+
 public enum AxisValueLabelOrientation: Hashable, Sendable { case horizontal, vertical, verticalReversed }
 
 /// Converts a scale's value back to a plottable type (for formatted labels).
@@ -157,11 +178,13 @@ public struct AxisContentBuilder {
 
 @resultBuilder
 public struct AxisMarkBuilder {
-    public static func buildBlock(_ parts: any AxisMark...) -> [any AxisMark] { parts }
+    public static func buildBlock(_ parts: [any AxisMark]...) -> [any AxisMark] { parts.flatMap { $0 } }
     public static func buildOptional(_ parts: [any AxisMark]?) -> [any AxisMark] { parts ?? [] }
     public static func buildEither(first: [any AxisMark]) -> [any AxisMark] { first }
     public static func buildEither(second: [any AxisMark]) -> [any AxisMark] { second }
-    public static func buildExpression(_ part: any AxisMark) -> any AxisMark { part }
+    public static func buildArray(_ parts: [[any AxisMark]]) -> [any AxisMark] { parts.flatMap { $0 } }
+    public static func buildLimitedAvailability(_ parts: [any AxisMark]) -> [any AxisMark] { parts }
+    public static func buildExpression(_ part: any AxisMark) -> [any AxisMark] { [part] }
 }
 
 /// A group of axis marks: grid lines, ticks and labels at the values chosen.
@@ -245,6 +268,22 @@ package struct _AxisConfiguration {
     package var labelPosition: AxisMarkPosition = .automatic
 }
 
+/// The part of the plot's width or height a position scale maps onto.
+public struct PlotDimensionScaleRange: Sendable {
+    package var startPadding: CGFloat
+    package var endPadding: CGFloat
+
+    /// The plot's whole dimension, padded at each end.
+    public static func plotDimension(startPadding: CGFloat = 0, endPadding: CGFloat = 0) -> PlotDimensionScaleRange {
+        PlotDimensionScaleRange(startPadding: startPadding, endPadding: endPadding)
+    }
+
+    /// The plot's whole dimension, padded the same at both ends.
+    public static func plotDimension(padding: CGFloat) -> PlotDimensionScaleRange {
+        PlotDimensionScaleRange(startPadding: padding, endPadding: padding)
+    }
+}
+
 /// A scale's domain as `chartXScale` / `chartYScale` set it.
 package enum _ScaleDomain {
     case numbers(ClosedRange<Double>)
@@ -269,6 +308,9 @@ package struct _ChartConfiguration {
     /// `chartForegroundStyleScale`: colours by series value, or the palette in order.
     package var foregroundStyles: [(String, AnyShapeStyle)]?
     package var foregroundPalette: [AnyShapeStyle]?
+    /// `chartForegroundStyleScale(range: Gradient)`, and the values its ends stand for.
+    package var foregroundGradient: Gradient?
+    package var foregroundGradientDomain: ClosedRange<Double>?
     package var plotStyle: ((ChartPlotContent) -> AnyView)?
     package var overlay: ((ChartProxy) -> AnyView)?
     package var background: ((ChartProxy) -> AnyView)?
@@ -407,10 +449,28 @@ extension View {
         _chart { _ in }
     }
 
+    /// The span of the plot a position scale covers (accepted; the padding is not applied).
+    public func chartXScale(range: PlotDimensionScaleRange, type: ScaleType? = nil) -> some View { _chart { _ in } }
+    public func chartYScale(range: PlotDimensionScaleRange, type: ScaleType? = nil) -> some View { _chart { _ in } }
+
     /// Colours per series value (`["Online": .blue, "Store": .green]`) or a palette in order.
-    public func chartForegroundStyleScale<S: ShapeStyle>(_ mapping: KeyValuePairs<String, S>) -> some View {
-        let styles = mapping.map { ($0.key, AnyShapeStyle($0.value)) }
+    public func chartForegroundStyleScale<D: Plottable, S: ShapeStyle>(_ mapping: KeyValuePairs<D, S>) -> some View {
+        let styles = mapping.map { ($0.key.primitivePlottable._plotValue.label, AnyShapeStyle($0.value)) }
         return _chart { $0.foregroundStyles = styles }
+    }
+
+    /// Colours sampled from a gradient: numeric series by their value across the gradient,
+    /// the others evenly in order.
+    public func chartForegroundStyleScale(range: Gradient, type: ScaleType? = nil) -> some View {
+        _chart { $0.foregroundGradient = range }
+    }
+
+    public func chartForegroundStyleScale<D: Plottable>(domain: ClosedRange<D>, range: Gradient, type: ScaleType? = nil) -> some View {
+        let bounds = (domain.lowerBound.primitivePlottable._plotValue.number, domain.upperBound.primitivePlottable._plotValue.number)
+        return _chart {
+            $0.foregroundGradient = range
+            if let low = bounds.0, let high = bounds.1 { $0.foregroundGradientDomain = low...high }
+        }
     }
 
     public func chartForegroundStyleScale<S: ShapeStyle>(range: [S]) -> some View {
@@ -418,8 +478,8 @@ extension View {
         return _chart { $0.foregroundPalette = palette }
     }
 
-    public func chartForegroundStyleScale<S: ShapeStyle>(domain: [String], range: [S]) -> some View {
-        let styles = zip(domain, range).map { ($0, AnyShapeStyle($1)) }
+    public func chartForegroundStyleScale<D: Plottable, S: ShapeStyle>(domain: [D], range: [S]) -> some View {
+        let styles = zip(domain, range).map { ($0.primitivePlottable._plotValue.label, AnyShapeStyle($1)) }
         return _chart { $0.foregroundStyles = styles }
     }
 
@@ -428,7 +488,7 @@ extension View {
     }
 
     public func chartSymbolScale<S: ChartSymbolShape>(_ mapping: KeyValuePairs<String, S>) -> some View {
-        let scale = mapping.map { ($0.key, $0.value._symbol) }
+        let scale = mapping.map { ($0.key, $0.value._symbol ?? .circle) }
         return _chart { $0.symbolScale = scale }
     }
 

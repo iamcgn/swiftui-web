@@ -154,4 +154,14 @@ public struct RectangleMark: _RecordMark {
     public init<X: Plottable, Y: Plottable>(xStart: PlottableValue<X>, xEnd: PlottableValue<X>, y: PlottableValue<Y>, height: MarkDimension = .automatic) {
         var r = _MarkRecord(kind: .rectangle); r.setXRange(xStart, xEnd); r.setY(y); r.height = height; _record = r
     }
+
+    /// A span between two x values across the plot's whole height.
+    public init<X: Plottable>(xStart: PlottableValue<X>, xEnd: PlottableValue<X>) {
+        var r = _MarkRecord(kind: .rectangle); r.setXRange(xStart, xEnd); _record = r
+    }
+
+    /// A span between two y values across the plot's whole width.
+    public init<Y: Plottable>(yStart: PlottableValue<Y>, yEnd: PlottableValue<Y>) {
+        var r = _MarkRecord(kind: .rectangle); r.setYRange(yStart, yEnd); _record = r
+    }
 }

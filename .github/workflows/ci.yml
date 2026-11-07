@@ -94,7 +94,18 @@ jobs:
           python3 -m http.server 8770 --bind 127.0.0.1 --directory Examples/Gallery >/dev/null 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8770/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node frameworks-probe.mjs http://127.0.0.1:8770/index.html)
-      - name: Landing frame budget (pf-perf)
+      - name: Interaction suite in Chromium (the gallery, Tier B's build) — focus, typing, keys, menus, sheets, toolbar, gestures, hover, scrolling, selection, drag and drop, the colour well, accessibility, UIKit pickers, AsyncImage, animation, timelines
+        run: |
+          # 8767, the port the probes and the AsyncImage fixture's served URL name; the server
+          # stops here, as the UIKit counter takes 8767 later.
+          python3 -m http.server 8767 --bind 127.0.0.1 --directory Examples/Gallery >/dev/null 2>&1 &
+          server=$!
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8767/index.html >/dev/null && break; sleep 1; done
+          status=0
+          (cd Playwright && node interactions.mjs http://127.0.0.1:8767/index.html --out ../.build/interactions) || status=$?
+          kill $server
+          exit $status
+      - name: Landing frame budget (pf-perf) and the Controls demo probe
         run: . ~/.swiftly/env.sh && scripts/frame-budget.sh
       - name: Counter smoke test and size gate
         run: |
@@ -167,6 +178,16 @@ jobs:
           python3 -m http.server 8780 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8780/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node ember-probe.mjs "http://127.0.0.1:8780/index.html?platform=ios" --out ../.build/apps/ember)
+      - name: Apps — Swift Charts Examples compiles for wasm from its unmodified sources (Charts, ImageRenderer previews, accessibility chart descriptors; a release build, as the launch renders every chart into an image)
+        run: |
+          . ~/.swiftly/env.sh
+          scripts/build-wasm.sh Apps --product ChartsExamples
+      - name: Apps — Swift Charts Examples in Chromium (the Charts list and its previews, scrolling, a chart pushed, its slider, Back, the Filter menu)
+        id: charts
+        run: |
+          python3 -m http.server 8781 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8781/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node charts-probe.mjs "http://127.0.0.1:8781/index.html?platform=ios" --out ../.build/apps/charts)
       # SwiftUI-2048 needs `@objc`/`#selector`, which the stock wasm SDK cannot compile: it is
       # built with the Objective-C runtime SDK of decision 0023 (swift-objc-wasm's v0.1.1
       # release, pinned by URL and checksum; its own patched compilers over the same swiftly
@@ -190,14 +211,15 @@ jobs:
           (cd Playwright && node 2048-probe.mjs "http://127.0.0.1:8775/index.html?platform=ios" --out ../.build/apps/2048)
       - name: Apps — the evidence the probe must leave (report.json with full_app_pass, screenshots, trace)
         if: always() && steps.scrumdinger.outcome != 'skipped'
-        env: { EMBER_PROBE: "${{ steps.ember.outcome }}", SWIFTUI2048_PROBE: "${{ steps.swiftui2048.outcome }}" }
+        env: { EMBER_PROBE: "${{ steps.ember.outcome }}", SWIFTUI2048_PROBE: "${{ steps.swiftui2048.outcome }}", CHARTS_PROBE: "${{ steps.charts.outcome }}" }
         run: |
-          for app in scrumdinger ember 2048; do
+          for app in scrumdinger ember charts 2048; do
             # A probe is skipped when its build step failed: its evidence is then the build log.
             if [ "$app" = ember ] && [ "$EMBER_PROBE" = skipped ]; then echo "ember: probe not run"; continue; fi
             if [ "$app" = 2048 ] && [ "$SWIFTUI2048_PROBE" = skipped ]; then echo "2048: probe not run"; continue; fi
+            if [ "$app" = charts ] && [ "$CHARTS_PROBE" = skipped ]; then echo "charts: probe not run"; continue; fi
             test -s .build/apps/$app/report.json && test -s .build/apps/$app/trace.zip && ls .build/apps/$app/*.png >/dev/null
-            # All three are full passes (Scrumdinger's meeting since decision 0022's recogniser).
+            # All four are full passes (Scrumdinger's meeting since decision 0022's recogniser).
             python3 -c "import json; r=json.load(open('.build/apps/$app/report.json')); assert r['full_app_pass'] is True, r['full_app_pass']; print('$app', {k: v['outcome'] for k, v in r['flows'].items()})"
           done
       # Evidence, kept whatever the steps above did: Tier B's renders and diffs
@@ -209,6 +231,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: tier-b, path: .build/tier-b-chromium, if-no-files-found: error, include-hidden-files: true }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: interactions, path: .build/interactions, if-no-files-found: warn, include-hidden-files: true }
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: apps-evidence, path: .build/apps, if-no-files-found: error, include-hidden-files: true }

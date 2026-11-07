@@ -189,6 +189,12 @@ extension ShapeStyle {
         if let gradient = self as? AnyGradient, let color = gradient.baseColor {
             return color.resolve(in: environment)
         }
+        if let gradient = self as? Gradient, let color = gradient.stops.first?.color {
+            return color.resolve(in: environment)
+        }
+        if self is BackgroundStyle {
+            return Color(storage: .system(.windowBackground)).resolve(in: environment)
+        }
         if self is TintShapeStyle {
             return (environment._tint ?? .accentColor).resolve(in: environment)
         }

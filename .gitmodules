@@ -7,3 +7,6 @@
 [submodule "Apps/upstream/ember-hackernews"]
 	path = Apps/upstream/ember-hackernews
 	url = https://github.com/DatanoiseTV/ember-hackernews
+[submodule "Apps/upstream/Swift-Charts-Examples"]
+	path = Apps/upstream/Swift-Charts-Examples
+	url = https://github.com/jordibruin/Swift-Charts-Examples

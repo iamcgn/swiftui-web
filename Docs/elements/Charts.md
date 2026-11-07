@@ -21,7 +21,12 @@ glyphs are the same, the axis and mark geometry follows the measurements below.
 | `chartXScale` / `chartYScale(domain:)` (numbers, dates, categories), `chartForegroundStyleScale` (mapping, range, domain + range), `chartSymbolScale` | implemented |
 | `chartLegend(.hidden)`, `chartLegend(position:)` (bottom, top, leading, trailing) | implemented |
 | `chartXAxisLabel` / `chartYAxisLabel` | implemented (approximate: the x title centred below the labels, the y title above the axis column) |
-| `chartPlotStyle`, `chartOverlay`, `chartBackground` with `ChartProxy` (`plotSize`, `plotFrame` as a `CGRect`, `position(forX:)`, `position(forY:)`, `value(atX:)`, `value(atY:)`) | implemented (the proxy's geometry estimates label widths at 0.56 em; `plotFrame` is a rectangle, not an `Anchor`) |
+| `chartPlotStyle`, `chartOverlay`, `chartBackground` with `ChartProxy` (`plotSize`, `plotFrame` / `plotAreaFrame` as an `Anchor<CGRect>` read with `GeometryProxy`'s subscript, `position(forX:)`, `position(forY:)`, `value(atX:)`, `value(atY:)`) | implemented (the proxy's geometry estimates label widths at 0.56 em) |
+| `Plot { }`; `mask { }` (the mask's marks drawn in the masked content's style, at their own opacity); `RectangleMark(xStart:xEnd:)` and `(yStart:yEnd:)` across the whole plot | implemented |
+| `symbol(_:)` with an app's own `ChartSymbolShape` (scaled so its `perceptualUnitRect` fills the symbol), `symbol { view }` and `symbol(view)` (the view centred on the point, a canvas symbol) | implemented |
+| `chartForegroundStyleScale(range: Gradient)` (numeric series by value across the gradient, others evenly in order, mixed in sRGB), mappings keyed by any `Plottable`, `Decimal` values, `NumberBins` | implemented |
+| `AxisMarks` content with `if` / `switch` / loops, `AxisMarkPreset.inset`, `foregroundStyle` on grid lines, ticks and labels (colours) | implemented (`inset` is drawn as the default; `font` and `offset` on axis marks accepted) |
+| `chartXScale` / `chartYScale(range: .plotDimension(...))` | accepted, the padding is not applied |
 | Temporal axes: the domain is the data's extent; ticks at years, months, days or hours by the span, labelled "2026", "Jan", "12", "3 PM" | implemented (approximate: Swift Charts' label formats vary with the span) |
 | `chartScrollableAxes`, `chartXSelection`, `chartGesture`, `chartXVisibleDomain`, the accessibility modifiers, `clipShape`, `shadow`, `blur` on marks | accepted, no effect |
 | `SectorMark` (pies), `MapKit`-style `chartPlotStyle` gestures, log scales, `AxisTick` rendering, `MarkStackingMethod` other than standard, label collision handling beyond dropping the one past the plot's end | missing |
@@ -56,4 +61,4 @@ resolves series, stacking and the scales, and `_ChartPainter` paints grid, marks
 annotations into a `Canvas` that is not clipped to its bounds (`Canvas._unclipped`, so the top
 label and round caps spill as Apple's do). Annotations and axis titles are the canvas's
 symbols. `ChartsTests` (10 tests) holds the records, scales, stacking, the measured geometry
-and the proxy; `charts/*` the pixels in Tiers B and C.
+and the proxy, `ChartsParityTests` what Swift Charts Examples uses; `charts/*` the pixels in Tiers B and C.
