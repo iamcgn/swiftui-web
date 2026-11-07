@@ -371,6 +371,8 @@ public final class URLSessionConfiguration: @unchecked Sendable {
     public var isDiscretionary = false
     public var sessionSendsLaunchEvents = false
     public var networkServiceType: URLRequest.NetworkServiceType = .default
+    /// Recorded: the browser answers HTTP authentication itself, so nothing reads it.
+    public var urlCredentialStorage: URLCredentialStorage? = .shared
     public var identifier: String? { nil }
     public init() {}
 
@@ -403,8 +405,15 @@ public final class URLCache: @unchecked Sendable {
     public func removeAllCachedResponses() {}
 }
 
-/// A task that retrieves the contents of a URL (cancellable; `resume` sends it).
-open class URLSessionTask: @unchecked Sendable {
+/// The size of a body that is not known (Foundation's `NSURLSessionTransferSizeUnknown`).
+public let NSURLSessionTransferSizeUnknown: Int64 = -1
+/// The user-info key of a failed download's resume data (never set: see
+/// `URLSessionDownloadTask.cancel(byProducingResumeData:)`).
+public let NSURLSessionDownloadTaskResumeData = "NSURLSessionDownloadTaskResumeData"
+
+/// A task that retrieves the contents of a URL (cancellable; `resume` sends it). An `NSObject`,
+/// so tasks key dictionaries by identity, as Alamofire's request map does.
+open class URLSessionTask: NSObject, @unchecked Sendable {
     public enum State: Int, Sendable { case running = 0, suspended = 1, canceling = 2, completed = 3 }
     public let taskIdentifier: Int
     public let originalRequest: URLRequest?
@@ -425,13 +434,22 @@ open class URLSessionTask: @unchecked Sendable {
         originalRequest = request
         currentRequest = request
         self.start = start
+        super.init()
     }
 
-    /// Sends the request (a new task waits for this, as Foundation's does).
+    /// Sends the request (a new task waits for this, as Foundation's does), or marks a
+    /// suspended one running again.
     public func resume() {
         guard state == .suspended else { return }
         state = .running
-        core = start()
+        if core == nil { core = start() }
+    }
+
+    /// Marks the task suspended. A fetch the browser has started can't be paused, so its
+    /// outcome still arrives; one not yet resumed waits, as it would anyway.
+    public func suspend() {
+        guard state == .running else { return }
+        state = .suspended
     }
 
     public func cancel() {
@@ -447,9 +465,17 @@ open class URLSessionTask: @unchecked Sendable {
     }
 }
 
-public final class URLSessionDataTask: URLSessionTask, @unchecked Sendable {}
-public final class URLSessionDownloadTask: URLSessionTask, @unchecked Sendable {}
-public final class URLSessionUploadTask: URLSessionTask, @unchecked Sendable {}
+open class URLSessionDataTask: URLSessionTask, @unchecked Sendable {}
+open class URLSessionUploadTask: URLSessionDataTask, @unchecked Sendable {}
+
+open class URLSessionDownloadTask: URLSessionTask, @unchecked Sendable {
+    /// Cancels the download. The browser keeps no partial body to resume from, so the resume
+    /// data is always nil and a download starts again from the beginning.
+    public func cancel(byProducingResumeData completionHandler: @escaping @Sendable (Data?) -> Void) {
+        cancel()
+        completionHandler(nil)
+    }
+}
 
 /// An object that coordinates a group of related, network data transfer tasks.
 public final class URLSession: @unchecked Sendable {
@@ -494,21 +520,30 @@ public final class URLSession: @unchecked Sendable {
         }
     }
 
-    func makeTask(_ request: URLRequest, completionHandler: @escaping @Sendable (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
+    /// A task of the kind `make` builds (a data, upload or download task), which sends
+    /// `request` when resumed and hands its outcome to `completionHandler`. `body`, when given,
+    /// supplies the body at that moment (a streamed upload's, from the delegate).
+    func makeTask<Kind: URLSessionTask>(_ request: URLRequest,
+                                        as make: (Int, URLRequest, @escaping @Sendable () -> _WebURLSession.Task) -> Kind,
+                                        failure: URLError? = nil,
+                                        body: (@Sendable (Kind) -> Data?)? = nil,
+                                        completionHandler: @escaping @Sendable (Data?, URLResponse?, Error?) -> Void) -> Kind {
         let identifier = nextTaskIdentifier
         nextTaskIdentifier += 1
-        guard let url = request.url, url.scheme != nil else {
-            let task = URLSessionDataTask(identifier: identifier, request: request) { _WebURLSession.Task(identifier: 0) { _ in } }
-            task.finished(response: nil, error: URLError(.badURL))
-            completionHandler(nil, nil, URLError(.badURL))
+        guard let url = request.url, url.scheme != nil, failure == nil else {
+            let error = failure ?? URLError(.badURL)
+            let task = make(identifier, request) { _WebURLSession.Task(identifier: 0) { _ in } }
+            task.finished(response: nil, error: error)
+            completionHandler(nil, nil, error)
             return task
         }
-        nonisolated(unsafe) var task: URLSessionDataTask!
+        nonisolated(unsafe) var task: Kind!
         let core = self.core
         let timeout = request.timeoutInterval == 60 ? nil : request.timeoutInterval
-        task = URLSessionDataTask(identifier: identifier, request: request) {
-            core.send(url: url.absoluteString, method: request.httpMethod, headers: request.allHTTPHeaderFields,
-                      body: request.httpBody.map { Array($0) }, timeout: timeout) { outcome in
+        task = make(identifier, request) {
+            let sent = body.map { $0(task) } ?? request.httpBody
+            return core.send(url: url.absoluteString, method: request.httpMethod, headers: request.allHTTPHeaderFields,
+                             body: sent.map { Array($0) }, timeout: timeout) { outcome in
                 switch Self.outcome(outcome, for: url) {
                 case .success(let (data, response)):
                     task.finished(response: response, error: nil)
@@ -523,14 +558,88 @@ public final class URLSession: @unchecked Sendable {
     }
 
     public func dataTask(with request: URLRequest, completionHandler: @escaping @Sendable (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
-        makeTask(request, completionHandler: completionHandler)
+        makeTask(request, as: URLSessionDataTask.init(identifier:request:start:), completionHandler: completionHandler)
     }
     public func dataTask(with url: URL, completionHandler: @escaping @Sendable (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
-        makeTask(URLRequest(url: url), completionHandler: completionHandler)
+        makeTask(URLRequest(url: url), as: URLSessionDataTask.init(identifier:request:start:), completionHandler: completionHandler)
     }
     /// A task that reports to the delegate (URLSessionDelegate.swift).
     public func dataTask(with request: URLRequest) -> URLSessionDataTask { delegatedTask(request) }
     public func dataTask(with url: URL) -> URLSessionDataTask { delegatedTask(URLRequest(url: url)) }
+
+    // MARK: Download and upload tasks
+
+    /// Downloads to a file under the temporary directory and hands its URL to the handler; the
+    /// file is removed once the handler returns, as Foundation removes it, so a handler that
+    /// keeps it moves it first.
+    public func downloadTask(with request: URLRequest, completionHandler: @escaping @Sendable (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
+        makeTask(request, as: URLSessionDownloadTask.init(identifier:request:start:)) { data, response, error in
+            guard let data, let response else { completionHandler(nil, response, error); return }
+            do {
+                let file = try Self.temporaryDownload(data)
+                completionHandler(file, response, nil)
+                try? FileManager.default.removeItem(at: file)
+            } catch {
+                completionHandler(nil, response, error)
+            }
+        }
+    }
+    public func downloadTask(with url: URL, completionHandler: @escaping @Sendable (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
+        downloadTask(with: URLRequest(url: url), completionHandler: completionHandler)
+    }
+    /// A download that reports to the delegate (`URLSessionDownloadDelegate`).
+    public func downloadTask(with request: URLRequest) -> URLSessionDownloadTask { delegatedDownload(request) }
+    public func downloadTask(with url: URL) -> URLSessionDownloadTask { delegatedDownload(URLRequest(url: url)) }
+    /// No resume data is ever produced here, so a task made from some fails with
+    /// `URLError.cannotDecodeContentData` once resumed.
+    public func downloadTask(withResumeData resumeData: Data) -> URLSessionDownloadTask {
+        delegatedDownload(Self.resumeRequest, failure: URLError(.cannotDecodeContentData))
+    }
+    public func downloadTask(withResumeData resumeData: Data, completionHandler: @escaping @Sendable (URL?, URLResponse?, Error?) -> Void) -> URLSessionDownloadTask {
+        makeTask(Self.resumeRequest, as: URLSessionDownloadTask.init(identifier:request:start:), failure: URLError(.cannotDecodeContentData)) { _, response, error in
+            completionHandler(nil, response, error)
+        }
+    }
+    static var resumeRequest: URLRequest { URLRequest(url: URL(fileURLWithPath: "/")) }
+
+    /// Sends `bodyData` as the request's body (POST unless the request names another method).
+    public func uploadTask(with request: URLRequest, from bodyData: Data?, completionHandler: @escaping @Sendable (Data?, URLResponse?, Error?) -> Void) -> URLSessionUploadTask {
+        makeTask(Self.uploading(request, bodyData), as: URLSessionUploadTask.init(identifier:request:start:), completionHandler: completionHandler)
+    }
+    /// Sends the file's contents; a file missing from the store fails with
+    /// `URLError.fileDoesNotExist`.
+    public func uploadTask(with request: URLRequest, fromFile fileURL: URL, completionHandler: @escaping @Sendable (Data?, URLResponse?, Error?) -> Void) -> URLSessionUploadTask {
+        let body = try? Data(contentsOf: fileURL)
+        return makeTask(Self.uploading(request, body), as: URLSessionUploadTask.init(identifier:request:start:),
+                        failure: body == nil ? URLError(.fileDoesNotExist) : nil, completionHandler: completionHandler)
+    }
+    /// An upload that reports to the delegate.
+    public func uploadTask(with request: URLRequest, from bodyData: Data) -> URLSessionUploadTask {
+        delegatedUpload(Self.uploading(request, bodyData), bodyCount: bodyData.count)
+    }
+    public func uploadTask(with request: URLRequest, fromFile fileURL: URL) -> URLSessionUploadTask {
+        let body = try? Data(contentsOf: fileURL)
+        return delegatedUpload(Self.uploading(request, body), bodyCount: body?.count ?? 0, failure: body == nil ? URLError(.fileDoesNotExist) : nil)
+    }
+    /// Asks the delegate for the body (`urlSession(_:task:needNewBodyStream:)`) when resumed,
+    /// reads the whole stream, then sends it.
+    public func uploadTask(withStreamedRequest request: URLRequest) -> URLSessionUploadTask { streamedUpload(request) }
+
+    static func uploading(_ request: URLRequest, _ body: Data?) -> URLRequest {
+        var uploading = request
+        uploading.httpBody = body
+        if uploading.httpMethod == nil || uploading.httpMethod == "GET" { uploading.httpMethod = "POST" }
+        return uploading
+    }
+
+    /// Writes a download's body to a new file under the temporary directory (the in-memory file
+    /// system on wasm).
+    static func temporaryDownload(_ data: Data) throws -> URL {
+        let name = "CFNetworkDownload_" + String(UInt64(Date().timeIntervalSince1970 * 1000), radix: 36) + "_" + String(data.count) + ".tmp"
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        try data.write(to: file)
+        return file
+    }
 
     /// Retrieves the contents of a URL request and delivers the data asynchronously; a
     /// cancelled Swift task cancels the request (`URLError.cancelled`).
@@ -566,18 +675,13 @@ public final class URLSession: @unchecked Sendable {
     /// its URL with the response; an HTTP error status is still a response.
     public func download(for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (URL, URLResponse) {
         let (data, response) = try await data(for: request)
-        let name = "CFNetworkDownload_" + String(UInt64(Date().timeIntervalSince1970 * 1000), radix: 36) + "_" + String(data.count) + ".tmp"
-        let file = FileManager.default.temporaryDirectory.appendingPathComponent(name)
-        try data.write(to: file)
-        return (file, response)
+        return (try Self.temporaryDownload(data), response)
     }
     public func download(from url: URL, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (URL, URLResponse) { try await download(for: URLRequest(url: url)) }
 
     /// Uploads `bodyData` with the request's method (POST unless the request says otherwise).
     public func upload(for request: URLRequest, from bodyData: Data, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {
-        var uploading = request
-        uploading.httpBody = bodyData
-        if uploading.httpMethod == nil || uploading.httpMethod == "GET" { uploading.httpMethod = "POST" }
+        let uploading = Self.uploading(request, bodyData)
         let result = try await data(for: uploading)
         if let delegate {
             let task = URLSessionUploadTask(identifier: nextTaskIdentifier, request: uploading) { _WebURLSession.Task(identifier: 0) { _ in } }
