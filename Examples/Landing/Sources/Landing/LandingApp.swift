@@ -497,19 +497,23 @@ struct ControlsDemo: View {
         Columns(secondWidth: 360) {
             Form {
                 TextField("Name", text: $model.name)
+                    .disabled(!model.enabled)
+                // The switch stays live, so a visitor who turns it off can turn it back on.
                 Toggle("Notifications", isOn: $model.enabled)
-                Slider(value: $model.volume, in: 0...1) { Text("Volume") }
-                Stepper("Quantity: \(model.quantity)", value: $model.quantity, in: 0...12)
-                Picker("Flavour", selection: $model.flavour) {
-                    Text("Vanilla").tag("Vanilla")
-                    Text("Chocolate").tag("Chocolate")
-                    Text("Pistachio").tag("Pistachio")
+                Group {
+                    Slider(value: $model.volume, in: 0...1) { Text("Volume") }
+                    Stepper("Quantity: \(model.quantity)", value: $model.quantity, in: 0...12)
+                    Picker("Flavour", selection: $model.flavour) {
+                        Text("Vanilla").tag("Vanilla")
+                        Text("Chocolate").tag("Chocolate")
+                        Text("Pistachio").tag("Pistachio")
+                    }
+                    DatePicker("Delivery", selection: $model.date, displayedComponents: .date)
+                    ColorPicker("Accent", selection: $model.accent)
                 }
-                DatePicker("Delivery", selection: $model.date, displayedComponents: .date)
-                ColorPicker("Accent", selection: $model.accent)
+                .disabled(!model.enabled)
             }
             .frame(maxWidth: 420)
-            .disabled(!model.enabled)
         } second: {
             VStack(alignment: .leading, spacing: 14) {
                 Text("Reads back").font(.headline)
