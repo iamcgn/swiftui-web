@@ -166,11 +166,16 @@ try {
     await page.waitForTimeout(600);
     await shot('06-code');
     expect(snippet(t), `the code panel did not open; painted: ${t.slice(-30).join(' | ')}`);
-    expect(t.some(s => s.includes('.scaleEffect(configuration.isPressed ? CGFloat(0.85)')), 'the snippet does not carry the scale 0.85');
-    // The copy button sits at the code panel's bottom trailing corner, above "just like that".
+    // The snippet's lines may wrap at the panel's width: the scale is looked for in all of it.
+    const code = (await texts()).join(' ');
+    expect(code.includes('CGFloat(0.85)'), `the snippet does not carry the scale 0.85; its scale line: ${(await texts()).filter(s => s.includes('scaleEffect') || s.includes('CGFloat')).join(' | ')}`);
+    // The copy button sits at the code panel's bottom trailing corner: below the snippet's
+    // first line and above "just like that" (the reset button is trailing too, at the top).
+    const top = (await drawn()).find(d => d.text.includes('struct MyButtonStyle'));
     const below = (await drawn()).find(d => d.text === 'just like that');
-    const copy = await button('doc.on.doc', b => centre(b).x > 250 && (!below || centre(b).y < below.y) && centre(b).y > 0);
+    const copy = await button('doc.on.doc', b => centre(b).x > 250 && centre(b).y > 200 && (!top || centre(b).y > top.y) && (!below || centre(b).y < below.y) && centre(b).y < 844);
     if (expect(!!copy, `no copy button; buttons: ${(await buttons()).map(b => `${b.label}@${Math.round(b.x)},${Math.round(b.y)}`).join(' | ')}`)) {
+      note(`copy button "${copy.label}" at ${Math.round(copy.x)},${Math.round(copy.y)}; buttons: ${(await buttons()).map(b => b.label).join(' | ')}`);
       await tapBox(copy);
       let copied = false;
       for (let i = 0; i < 20 && !copied; i++) { copied = (await texts()).includes('Copied'); if (!copied) await page.waitForTimeout(50); }
