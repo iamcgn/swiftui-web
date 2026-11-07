@@ -95,4 +95,13 @@ import UIKitFixtureKit
         let action = UIAccessibilityCustomAction(attributedName: NSAttributedString(string: "Named")) { _ in false }
         #expect(action.name == "Named" && !action.perform())
     }
+
+    @Test func colorNames() {
+        #expect(UIColor.black.accessibilityName == "black" && UIColor.white.accessibilityName == "white")
+        #expect(UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1).accessibilityName == "gray")
+        #expect(UIColor(red: 1, green: 0, blue: 0, alpha: 1).accessibilityName == "vibrant red")
+        #expect(UIColor(red: 0, green: 0, blue: 0.3, alpha: 1).accessibilityName == "dark blue")
+        #expect(UIColor(red: 1, green: 0.75, blue: 0.8, alpha: 1).accessibilityName == "pale pink")
+        #expect(UIColor(red: 0.2, green: 0.6, blue: 0.2, alpha: 1).accessibilityName == "green")
+    }
 }

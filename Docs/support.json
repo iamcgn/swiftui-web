@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-11",
+  "generated": "2026-11-06",
   "sections": [
     {
       "title": "App lifecycle",
@@ -2415,7 +2415,7 @@
         {
           "api": "chartXScale / chartYScale / chartForegroundStyleScale / chartSymbolScale / chartLegend / chartXAxisLabel / chartYAxisLabel / chartPlotStyle / chartOverlay / chartBackground / ChartProxy",
           "status": "partial",
-          "notes": "Fixed domains, colour mappings and palettes, the legend's visibility and side, axis titles (approximate), the plot styled by a closure, overlays with a proxy whose geometry estimates label widths and whose plotFrame is a CGRect; selection, scrolling and gesture modifiers accepted without effect",
+          "notes": "Fixed domains, colour mappings and palettes, the legend's visibility and side, axis titles (approximate), the plot styled by a closure, overlays with a proxy whose geometry estimates label widths and whose plotFrame is an Anchor a GeometryProxy reads; selection, scrolling and gesture modifiers accepted without effect",
           "fixtures": [
             "charts/scales"
           ]
@@ -2435,9 +2435,9 @@
           ]
         },
         {
-          "api": "AVAudioPlayer / AVAudioSession / AVAudioApplication / AVAudioEngine / AVAudioInputNode / AVAudioPCMBuffer / AVAudioFormat (AVFoundation)",
+          "api": "AVAudioPlayer / AVAudioSession / AVAudioApplication / AVAudioEngine / AVAudioInputNode / AVAudioPCMBuffer / AVAudioFormat / AVAudioRecorder (AVFoundation)",
           "status": "partial",
-          "notes": "decision 0021, pf-avfoundation-audio (2026-10-12), against Scrumdinger's AudioService and SpeechService: a player over the browser's <audio> element (play, pause, stop, currentTime, duration, volume, rate, loops, the delegate's finish); the session records its category, mode, options and activation, and the record permission is the browser's microphone (getUserMedia, remembered); the engine's input node is the microphone through an AudioContext, mono float buffers to installTap at the browser's sample rate, prepare/start/stop/removeTap; floatChannelData is real memory. A host installs _AVAudioHost (MediaHost.swift in the browser; none natively yet). Not done: AVAudioPlayer(data:) beyond a data URL, output through the engine (mainMixerNode is inert), AVAudioFile, AVAudioRecorder, interruptions and route notifications",
+          "notes": "decision 0021, pf-avfoundation-audio (2026-10-12), against Scrumdinger's AudioService and SpeechService: a player over the browser's <audio> element (play, pause, stop, currentTime, duration, volume, rate, loops, the delegate's finish); the session records its category, mode, options and activation, and the record permission is the browser's microphone (getUserMedia, remembered); the engine's input node is the microphone through an AudioContext, mono float buffers to installTap at the browser's sample rate, prepare/start/stop/removeTap; floatChannelData is real memory; AVAudioRecorder meters the microphone (record, updateMeters, averagePower and peakPower in dBFS) without writing a file. A host installs _AVAudioHost (MediaHost.swift in the browser; none natively yet). Not done: AVAudioPlayer(data:) beyond a data URL, output through the engine (mainMixerNode is inert), AVAudioFile and the recorder's file, interruptions and route notifications",
           "noFixture": "Audio has no pixels; AVAudioAndSpeechTests drive the API against a fake host, and the browser host runs in Playwright/scrumdinger-probe.mjs"
         },
         {

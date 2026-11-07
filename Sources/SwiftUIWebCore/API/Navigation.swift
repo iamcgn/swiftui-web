@@ -197,7 +197,7 @@ public struct NavigationLink<Label: View, Destination: View>: View {
     private var isEnabled: Bool { destination != nil || value != nil }
 
     public var body: some View {
-        let action = _ActionBox { [context, destination, value] in
+        let action = _ActionBox(linkValue: value) { [context, destination, value] in
             guard let stack = context?.stack else { return }
             if let value { stack.push(value: value) } else if let destination { stack.push(view: destination) }
         }
@@ -451,6 +451,9 @@ public struct _NavigationBackButton: View {
 @MainActor
 package final class _NavigationContext {
     package weak var stack: NavigationStackNode?
+    /// A split view's: a sidebar list selected a value link's value, so a compact width shows
+    /// the detail; the closure clears that selection when the detail's back returns.
+    package var showDetail: ((@escaping @MainActor () -> Void) -> Void)?
     package init(stack: NavigationStackNode) { self.stack = stack }
 }
 

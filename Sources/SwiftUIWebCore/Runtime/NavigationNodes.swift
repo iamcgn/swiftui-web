@@ -162,15 +162,43 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     /// The bar over screen `index` whose nodes are `nodes`, or nil when nothing shows one: an
     /// untitled root, or a pushed screen with neither a title nor a back button (ios/nav/push-noback
     /// fills the whole stack). `.automatic` inherits the previous screen's large title.
+    /// A back at the root (a compact split view's detail, shown by a sidebar selection): its
+    /// bar carries a back button, and popping the root runs this.
+    package var rootBack: (@MainActor () -> Void)? {
+        didSet { if (oldValue == nil) != (rootBack == nil) { runtime.requestLayout() } }
+    }
+
+    /// The back at the root: this stack's own or, for a stack that is the content of an
+    /// enclosing stack's root with nothing pushed (an app's `NavigationStack` in a split view's
+    /// detail), the enclosing stack's.
+    private var effectiveRootBack: (@MainActor () -> Void)? {
+        if let rootBack { return rootBack }
+        var node = parent
+        while let current = node, !(current is PresentationNode) {
+            if let stack = current as? NavigationStackNode { return stack.entries.isEmpty ? stack.rootBack : nil }
+            node = current.parent
+        }
+        return nil
+    }
+
+    /// Whether a navigation stack sits in `node`'s subtree outside any presentation: that stack
+    /// draws the screen's bar (a split view's detail wrapping its own `NavigationStack`).
+    private static func holdsStack(_ node: ViewNode) -> Bool {
+        node.structuralChildren.contains { child in
+            !(child is PresentationNode) && (child is NavigationStackNode || holdsStack(child))
+        }
+    }
+
     private func bar(over nodes: [ViewNode], index: Int, previousLarge: Bool, collapsed: Bool = false, hiddenBySearch: Bool = true) -> Bar? {
         guard environment.platformProfile.isIOS, let top = nodes.first else { return nil }
+        if nodes.contains(where: Self.holdsStack) { return nil }
         // A presented search hides the bar (ios/search/active) unless the search keeps it; the
         // content still lays out as under its bar (`settleBarModes`: the list keeps no top inset).
         if hiddenBySearch, let search = search(over: nodes), search.isPresented, !search.searchSource.keepsBar { return nil }
         let title = (top.descendants(where: { $0 is any _NavigationTitleProviding }).first as? any _NavigationTitleProviding)?._navigationTitle
         let mode = (top.descendants(where: { $0 is any _NavigationTitleDisplayModeProviding }).first as? any _NavigationTitleDisplayModeProviding)?._titleDisplayMode ?? .automatic
         let hidesBack = (top.descendants(where: { $0 is any _NavigationBackButtonHiddenProviding }).first as? any _NavigationBackButtonHiddenProviding)?._hidesBackButton ?? false
-        let back = index > 0 && !hidesBack
+        let back = (index > 0 || effectiveRootBack != nil) && !hidesBack
         let items = toolbarItems(over: nodes)
         guard title != nil || back || !items.isEmpty else { return nil }
         var large: Bool
@@ -490,7 +518,11 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     /// Pops the top entry. Returns false when the stack shows its root.
     @discardableResult
     package func pop() -> Bool {
-        guard let top = entries.last else { return false }
+        guard let top = entries.last else {
+            guard let rootBack = effectiveRootBack else { return false }
+            rootBack()
+            return true
+        }
         switch top.kind {
         case .value:
             view.path.set(Array(view.values.dropLast()))

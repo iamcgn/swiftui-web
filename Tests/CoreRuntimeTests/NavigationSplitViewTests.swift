@@ -236,5 +236,48 @@ import SwiftUIWebHeadless
         r.layout(in: CGSize(width: 320, height: 480))
         #expect(box.column == .sidebar && r.probeFrames["menu"] != nil && r.probeFrames["pushed"] == nil, "\(r.probeFrames)")
     }
+
+    /// iOS compact (Swift Charts Examples' root): the sidebar's title shows in a bar; a tap on a
+    /// row of value links in a `List(selection:)` selects the link's value (not the row's id)
+    /// and the detail shows it; its back clears the selection and returns to the list.
+    @Test func compactSelectionShowsTheDetail() {
+        let r = Runtime()
+        r.hostPlatformProfile = .iOS
+        r.textEngine = MetricsTextEngine()
+        r.mount(FruitSplit())
+        let size = CGSize(width: 320, height: 480)
+        r.layout(in: size)
+        #expect(commands(r).contains { $0.hasPrefix("drawText(\"Fruit\"") }, "the sidebar's title is drawn")
+        #expect(r.probeFrames["Banana"] != nil && r.probeFrames["detail"] == nil, "\(r.probeFrames)")
+        for _ in 0..<2 {
+            let row = r.probeFrames["Banana"]!
+            r.pointerDown(at: CGPoint(x: row.midX, y: row.midY)); r.pointerUp(at: CGPoint(x: row.midX, y: row.midY))
+            r.layout(in: size); r.layout(in: size)
+            #expect(r.probeFrames["detail"] != nil && r.probeFrames["Apple"] == nil, "\(r.probeFrames)")
+            let labels = r.semanticsTree().map(\.label)
+            #expect(labels.contains("Eating Banana") && labels.contains("Back"), "\(labels)")
+            #expect(r.navigateBack())
+            r.layout(in: size); r.layout(in: size)
+            #expect(r.probeFrames["Apple"] != nil && r.probeFrames["detail"] == nil, "\(r.probeFrames)")
+        }
+    }
+}
+
+/// Value links whose values (names) differ in type from the rows' ids (offsets).
+private struct FruitSplit: View {
+    @State private var selected: String?
+
+    var body: some View {
+        NavigationSplitView {
+            List(selection: $selected) {
+                ForEach(Array(["Apple", "Banana"].enumerated()), id: \.offset) { _, fruit in
+                    NavigationLink(value: fruit) { Text(fruit)._probe(fruit) }
+                }
+            }
+            .navigationTitle("Fruit")
+        } detail: {
+            if let selected { Text("Eating \(selected)")._probe("detail") } else { Text("Pick one") }
+        }
+    }
 }
 #endif

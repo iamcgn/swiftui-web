@@ -710,7 +710,7 @@ package final class SliderTrackNode: LeafNode<_SliderTrack>, _Interactive {
     package var dragAxes: Axis.Set { .horizontal }
 
     package var semantics: SemanticsNode {
-        var node = SemanticsNode(role: .slider, label: "", frame: frameInRoot, identifier: identifier)
+        var node = SemanticsNode(role: .slider, label: view.accessibilityName ?? "", frame: frameInRoot, identifier: identifier)
         let current = view.value.get()
         node.range = SemanticsRange(minimum: view.range.lowerBound, maximum: view.range.upperBound, value: current, step: view.step)
         let span = view.range.upperBound - view.range.lowerBound

@@ -71,6 +71,9 @@ import Foundation
     @Test @MainActor func aHostsReadingReachesTheNotifications() {
         let scene = UIKitScene.shared
         scene.keyboardFrame = nil
+        // A phone-sized screen of its own: another suite can leave the shared scene's screen
+        // shorter than the 300-point keyboard (AnimationTests' 200 × 200), which clamps the band.
+        scene.configureScreen(size: CGSize(width: 390, height: 844), scale: 3)
         var heights: [CGFloat] = []
         let center = NotificationCenter.default
         let tokens = [UIResponder.keyboardWillShowNotification, UIResponder.keyboardWillHideNotification].map { name in

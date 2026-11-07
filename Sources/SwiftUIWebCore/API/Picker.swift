@@ -28,6 +28,14 @@ public struct Picker<Label: View, SelectionValue: Hashable, Content: View>: View
         self.content = content()
     }
 
+    /// Creates a picker with a label view given first (deprecated on Apple platforms, still in
+    /// use).
+    public init(selection: Binding<SelectionValue>, label: Label, @ViewBuilder content: () -> Content) {
+        self.label = label
+        self.selection = selection
+        self.content = content()
+    }
+
     @Environment(\.pickerStyle) private var style
     @Environment(\.labelsHidden) private var labelsHidden
     @Environment(\._formStyle) private var formStyle

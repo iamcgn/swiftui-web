@@ -42,14 +42,16 @@ extension Chart {
 public struct ChartProxy {
     package let model: _ChartModel
     package let geometry: _ChartGeometry
+    /// Where the chart's plot coordinates start, in the root view's.
+    package var origin: CGPoint = .zero
 
     /// The plot area's size.
     public var plotSize: CGSize { geometry.plot.size }
     public var plotAreaSize: CGSize { geometry.plot.size }
-    /// The plot area's frame in the chart's coordinates (SwiftUIWeb gives the rectangle
-    /// itself; Swift Charts an `Anchor<CGRect>`).
-    public var plotFrame: CGRect? { geometry.plot }
-    public var plotAreaFrame: CGRect? { geometry.plot }
+    /// The plot area's frame, read in a view's coordinates with `GeometryProxy`'s subscript
+    /// (`geometry[proxy.plotFrame!]`).
+    public var plotFrame: Anchor<CGRect>? { plotAreaFrame }
+    public var plotAreaFrame: Anchor<CGRect> { Anchor(rootRect: geometry.plot.offsetBy(dx: origin.x, dy: origin.y)) }
 
     /// The x position (in the plot's coordinates) for a value.
     public func position<X: Plottable>(forX value: X) -> CGFloat? {
@@ -121,7 +123,7 @@ struct _ChartBody: View {
                 if legendVisible && legendPosition == .leading { legend(model) }
                 if needsProxy {
                     GeometryReader { geometry in
-                        let proxy = proxy(model, size: geometry.size)
+                        let proxy = proxy(model, size: geometry.size, origin: geometry.frame(in: .global).origin)
                         ZStack {
                             if let background = configuration.background { background(proxy) }
                             plot
@@ -139,15 +141,16 @@ struct _ChartBody: View {
 
     /// The proxy for a plot size: the geometry with estimated label widths and the scales
     /// finished for it.
-    private func proxy(_ model: _ChartModel, size: CGSize) -> ChartProxy {
+    private func proxy(_ model: _ChartModel, size: CGSize, origin: CGPoint) -> ChartProxy {
         var finished = model
         let geometry = _ChartPainter.geometry(finishing: &finished, configuration: configuration, size: size, labelHeight: _axisLabelLineHeight(platform), labelWidth: { estimatedWidth($0) })
-        return ChartProxy(model: finished, geometry: geometry)
+        return ChartProxy(model: finished, geometry: geometry, origin: origin)
     }
 
     /// The canvas's symbols: the annotations and the axis titles.
     private func symbolEntries(_ model: _ChartModel) -> [_SymbolEntry] {
         var entries = model.records.flatMap { r in r.annotations.enumerated().map { _SymbolEntry(id: "\(r.index).\($0.offset)", view: $0.element.content) } }
+        entries += model.records.compactMap { r in r.symbolView.map { _SymbolEntry(id: "symbol.\(r.index)", view: $0) } }
         if let title = configuration.xAxisLabel { entries.append(_SymbolEntry(id: "axis.x", view: title)) }
         if let title = configuration.yAxisLabel { entries.append(_SymbolEntry(id: "axis.y", view: title)) }
         return entries
@@ -488,6 +491,21 @@ struct _ChartPainter {
             withOpacity(r) { ctx in ctx.fill(r.cornerRadius > 0 ? Path(roundedRect: rect, cornerRadius: r.cornerRadius) : Path(rect), with: shading(r)) }
             return rect
         }
+        else if r.kind == .rectangle, (r.xStart != nil && r.xEnd != nil && yValue == nil) || (r.yStart != nil && r.yEnd != nil && xValue == nil) {
+            // A span across the whole plot on the axis without values.
+            var x0 = plot.minX, x1 = plot.maxX, y0 = plot.maxY, y1 = plot.minY
+            if let s = r.xStart, let e = r.xEnd {
+                guard let a = geometry.x(model, s), let b = geometry.x(model, e) else { return nil }
+                x0 = a; x1 = b
+            }
+            if let s = r.yStart, let e = r.yEnd {
+                guard let a = geometry.y(model, s), let b = geometry.y(model, e) else { return nil }
+                y0 = a; y1 = b
+            }
+            let rect = CGRect(x: min(x0, x1), y: min(y0, y1), width: abs(x1 - x0), height: abs(y1 - y0)).offsetBy(dx: r.offset.width, dy: r.offset.height)
+            withOpacity(r) { ctx in ctx.fill(r.cornerRadius > 0 ? Path(roundedRect: rect, cornerRadius: r.cornerRadius) : Path(rect), with: shading(r)) }
+            return rect
+        }
         else if r.xStart != nil, r.xEnd != nil { horizontalBand = false }
         else { horizontalBand = true }
         if horizontalBand, let xv = xValue {
@@ -582,8 +600,20 @@ struct _ChartPainter {
         guard let xv = r.x, let yv = r.y, let x = geometry.x(model, xv), let y = geometry.y(model, yv) else { return nil }
         let d = symbolDiameter(r)
         let rect = CGRect(x: x - d / 2 + r.offset.width, y: y - d / 2 + r.offset.height, width: d, height: d)
-        withOpacity(r) { ctx in ctx.fill(_symbolPath(r.symbol, in: rect), with: shading(r)) }
+        paintSymbol(r, in: rect)
         return rect
+    }
+
+    /// A record's symbol in `rect`: its view, its own shape or a basic symbol.
+    private func paintSymbol(_ r: _MarkRecord, in rect: CGRect) {
+        if r.symbolView != nil {
+            guard let symbol = context.resolveSymbol(id: "symbol.\(r.index)") else { return }
+            withOpacity(r) { ctx in ctx.draw(symbol, at: CGPoint(x: rect.midX, y: rect.midY), anchor: .center) }
+            return
+        }
+        guard rect.width > 0, rect.height > 0 else { return }
+        let path = r.customSymbol?.path(rect) ?? _symbolPath(r.symbol, in: rect)
+        withOpacity(r) { ctx in ctx.fill(path, with: shading(r)) }
     }
 
     /// A rule: across the plot at a value, or between two values; 2 pt with round caps.
@@ -630,12 +660,14 @@ struct _ChartPainter {
         let records = members.map { model.records[$0] }
         guard let first = records.first else { return nil }
         var points: [CGPoint] = []
+        var pointRecords: [_MarkRecord] = []
         var lows: [CGPoint] = []
         for r in records {
             guard let xv = r.x, let x = geometry.x(model, xv) else { continue }
             let top = (r.yEnd ?? r.y).flatMap { geometry.y(model, $0) }
             guard let y = top else { continue }
             points.append(CGPoint(x: x + r.offset.width, y: y + r.offset.height))
+            pointRecords.append(r)
             let low = r.yStart.flatMap { geometry.y(model, $0) } ?? (model.y.isNominal ? plot.maxY : (geometry.y(model, .number(0)) ?? plot.maxY))
             lows.append(CGPoint(x: x + r.offset.width, y: min(max(low, plot.minY), plot.maxY) + r.offset.height))
         }
@@ -645,11 +677,9 @@ struct _ChartPainter {
         if kind == .line {
             let style = first.lineStyle ?? StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round)
             withOpacity(first) { ctx in ctx.stroke(upper, with: shading(first), style: style) }
-            if first.symbolSize != nil {
-                let d = symbolDiameter(first)
-                for p in points {
-                    withOpacity(first) { ctx in ctx.fill(_symbolPath(first.symbol, in: CGRect(x: p.x - d / 2, y: p.y - d / 2, width: d, height: d)), with: shading(first)) }
-                }
+            for (p, r) in zip(points, pointRecords) where r.symbolSize != nil || r.symbolView != nil {
+                let d = symbolDiameter(r)
+                paintSymbol(r, in: CGRect(x: p.x - d / 2, y: p.y - d / 2, width: d, height: d))
             }
             frame = frame.insetBy(dx: -style.lineWidth / 2, dy: -style.lineWidth / 2)
         } else {

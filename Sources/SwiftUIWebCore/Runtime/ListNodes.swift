@@ -306,9 +306,19 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     // MARK: Painting
 
     private func isSelected(_ element: Element) -> Bool {
-        guard let id = element.id, let selection = view.selection else { return false }
+        guard let selection = view.selection else { return false }
+        if let value = linkValue(of: element), selection.accepts(value) { return selection.isSelected(value) }
+        guard let id = element.id else { return false }
         return selection.isSelected(id)
     }
+
+    /// The value of the value link a row is or holds (`NavigationLink(value:)`).
+    private func linkActivation(of element: Element) -> _ActionBox? {
+        element.node.layoutValue(for: NavigationLinkActivationKey.self)
+            ?? element.node.descendants(where: { $0.layoutValue(for: NavigationLinkActivationKey.self) != nil }).first?.layoutValue(for: NavigationLinkActivationKey.self)
+    }
+
+    private func linkValue(of element: Element) -> AnyHashable? { linkActivation(of: element)?.linkValue }
 
     /// iOS inset grouped: the runs of rows between headers and footers, each a white card.
     private var cardFrames: [CGRect] {
@@ -966,8 +976,15 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         // which SwiftUI's list activates from a tap anywhere in the row); a selectable row
         // toggles its selection. On macOS a multiple selection follows the modifier keys: a
         // plain click selects the row alone, ⌘ toggles it, ⇧ extends the range from the anchor row.
-        let activation = element.node.layoutValue(for: NavigationLinkActivationKey.self)
-            ?? element.node.descendants(where: { $0.layoutValue(for: NavigationLinkActivationKey.self) != nil }).first?.layoutValue(for: NavigationLinkActivationKey.self)
+        let activation = linkActivation(of: element)
+        // In a list with a selection, a value link's value is the row's tag (SwiftUI): the press
+        // selects it rather than pushing, and a split view's compact width shows the detail.
+        if let value = activation?.linkValue, let selection = view.selection, selection.accepts(value) {
+            selection.select([value])
+            environment._navigationContext?.showDetail? { selection.select([]) }
+            runtime.setNeedsDisplay()
+            return
+        }
         activation?.run()
         if let selection = view.selection, let id = element.id {
             let rows = elements.filter { $0.kind == .row && $0.id != nil }

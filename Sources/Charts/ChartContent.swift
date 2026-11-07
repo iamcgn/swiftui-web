@@ -54,6 +54,10 @@ public struct _MarkRecord {
     package var interpolation: InterpolationMethod = .linear
     package var symbol: _SymbolShape = .circle
     package var symbolSize: CGFloat?
+    /// An app's symbol shape (`symbol(_:)` with its own `ChartSymbolShape`).
+    package var customSymbol: _CustomSymbol?
+    /// A view drawn at the point in place of the symbol (`symbol { … }`).
+    package var symbolView: AnyView?
     package var width: MarkDimension?
     package var height: MarkDimension?
     package var offset: CGSize = .zero
@@ -132,6 +136,37 @@ public struct _ArrayChartContent<C: ChartContent>: ChartContent {
     }
 }
 
+/// Groups marks so modifiers apply to all of them (Swift Charts uses it to give a group one
+/// accessibility label).
+public struct Plot<Content: ChartContent>: ChartContent {
+    let content: Content
+    public init(@ChartContentBuilder content: () -> Content) { self.content = content() }
+    public var body: Never { fatalError() }
+    @MainActor public func _collect(into records: inout [_MarkRecord]) { content._collect(into: &records) }
+}
+
+/// Content shown through the marks of a mask: the mask's marks drawn in the content's style,
+/// with the mask's opacity (an alpha mask over a fill that covers them).
+public struct _MaskedChartContent<C: ChartContent, M: ChartContent>: ChartContent {
+    let content: C
+    let mask: M
+    public var body: Never { fatalError() }
+    @MainActor public func _collect(into records: inout [_MarkRecord]) {
+        var own: [_MarkRecord] = []
+        content._collect(into: &own)
+        var shapes: [_MarkRecord] = []
+        mask._collect(into: &shapes)
+        let style = own.first(where: { $0.style != nil })?.style
+        let opacity = own.first?.opacity ?? 1
+        for var shape in shapes {
+            if let style { shape.style = style }
+            shape.opacity *= opacity
+            shape.index = records.count
+            records.append(shape)
+        }
+    }
+}
+
 /// A type-erased chart content.
 public struct AnyChartContent: ChartContent {
     let collect: @MainActor (inout [_MarkRecord]) -> Void
@@ -185,8 +220,21 @@ public struct _ModifiedChartContent<C: ChartContent>: ChartContent {
 }
 
 /// How a line or area connects its points.
-public enum InterpolationMethod: Hashable, Sendable {
+public enum InterpolationMethod: Hashable, Sendable, CustomStringConvertible {
     case linear, monotone, catmullRom, cardinal, stepStart, stepCenter, stepEnd
+
+    /// The method's name ("linear", "catmullRom").
+    public var description: String {
+        switch self {
+        case .linear: return "linear"
+        case .monotone: return "monotone"
+        case .catmullRom: return "catmullRom"
+        case .cardinal: return "cardinal"
+        case .stepStart: return "stepStart"
+        case .stepCenter: return "stepCenter"
+        case .stepEnd: return "stepEnd"
+        }
+    }
 }
 
 /// The shape of a point mark or a line's symbols.
@@ -221,13 +269,31 @@ public struct AnnotationOverflowResolution: Sendable {
     public static let automatic = AnnotationOverflowResolution()
 }
 
-/// The symbol shapes `symbol(_:)` takes.
-public protocol ChartSymbolShape {
-    var _symbol: _SymbolShape { get }
+/// A shape a point mark or a line draws at each of its points: one of the basic symbols or an
+/// app's own `Shape`, scaled so its `perceptualUnitRect` fills the symbol's size.
+public protocol ChartSymbolShape: Shape {
+    /// The part of the unit square that should look as big as the other symbols.
+    var perceptualUnitRect: CGRect { get }
+    /// The basic symbol this is, if it is one (the legend and the symbol scale draw those).
+    var _symbol: _SymbolShape? { get }
+}
+
+extension ChartSymbolShape {
+    public var _symbol: _SymbolShape? { nil }
 }
 
 public struct BasicChartSymbolShape: ChartSymbolShape, Sendable {
-    public let _symbol: _SymbolShape
+    let shape: _SymbolShape
+    init(_symbol: _SymbolShape) { shape = _symbol }
+    public var _symbol: _SymbolShape? { shape }
+    public func path(in rect: CGRect) -> Path { _symbolPath(shape, in: rect) }
+    public var perceptualUnitRect: CGRect {
+        switch shape {
+        case .circle: return CGRect(x: 0, y: 0, width: 1, height: 1)
+        case .square: return CGRect(x: 0.1, y: 0.1, width: 0.8, height: 0.8)
+        default: return CGRect(x: 0.05, y: 0.05, width: 0.9, height: 0.9)
+        }
+    }
     public static let circle = BasicChartSymbolShape(_symbol: .circle)
     public static let square = BasicChartSymbolShape(_symbol: .square)
     public static let triangle = BasicChartSymbolShape(_symbol: .triangle)
@@ -236,6 +302,20 @@ public struct BasicChartSymbolShape: ChartSymbolShape, Sendable {
     public static let plus = BasicChartSymbolShape(_symbol: .plus)
     public static let asterisk = BasicChartSymbolShape(_symbol: .asterisk)
     public static let pentagon = BasicChartSymbolShape(_symbol: .pentagon)
+}
+
+/// A symbol drawn by an app's shape: the path for the symbol's frame, scaled from the shape's
+/// perceptual unit rectangle.
+public struct _CustomSymbol {
+    package let path: @Sendable (CGRect) -> Path
+    package init<S: ChartSymbolShape>(_ shape: S) {
+        let unit = shape.perceptualUnitRect
+        path = { rect in
+            let w = unit.width > 0 ? rect.width / unit.width : rect.width
+            let h = unit.height > 0 ? rect.height / unit.height : rect.height
+            return shape.path(in: CGRect(x: rect.minX - unit.minX * w, y: rect.minY - unit.minY * h, width: w, height: h))
+        }
+    }
 }
 
 extension ChartSymbolShape where Self == BasicChartSymbolShape {
@@ -268,6 +348,11 @@ extension ChartContent {
         return _modified { $0.style = erased }
     }
 
+    /// Masks the content by other marks: it shows where they are drawn.
+    public func mask<M: ChartContent>(@ChartContentBuilder content: () -> M) -> some ChartContent {
+        _MaskedChartContent(content: self, mask: content())
+    }
+
     public func opacity(_ opacity: Double) -> some ChartContent {
         _modified { $0.opacity *= opacity }
     }
@@ -286,8 +371,29 @@ extension ChartContent {
 
     /// Shows a symbol at each point of a line (`PointMark` draws one already).
     public func symbol<S: ChartSymbolShape>(_ shape: S) -> some ChartContent {
-        let symbol = shape._symbol
-        return _modified { $0.symbol = symbol; if $0.kind == .line, $0.symbolSize == nil { $0.symbolSize = _defaultSymbolArea } }
+        let basic = shape._symbol
+        let custom = basic == nil ? _CustomSymbol(shape) : nil
+        return _modified {
+            if let basic { $0.symbol = basic }
+            $0.customSymbol = custom
+            $0.symbolView = nil
+            if $0.kind == .line, $0.symbolSize == nil { $0.symbolSize = _defaultSymbolArea }
+        }
+    }
+
+    /// Draws a view at each point (centred on it) in place of a symbol shape.
+    public func symbol<V: View>(@ViewBuilder symbol: () -> V) -> some ChartContent {
+        let view = AnyView(symbol())
+        return _modified {
+            $0.symbolView = view
+            $0.customSymbol = nil
+            if $0.kind == .line, $0.symbolSize == nil { $0.symbolSize = _defaultSymbolArea }
+        }
+    }
+
+    /// Draws a view at each point, as `symbol(symbol:)` with the view given directly.
+    public func symbol<V: View>(_ symbol: V) -> some ChartContent {
+        self.symbol { symbol }
     }
 
     public func symbol(by value: PlottableValue<some Plottable>) -> some ChartContent {
@@ -338,6 +444,10 @@ extension ChartContent {
     /// Accepted; the hosts do not shade by a second style yet.
     public func accessibilityLabel(_ label: String) -> some ChartContent { _modified { _ in } }
     public func accessibilityValue(_ value: String) -> some ChartContent { _modified { _ in } }
+    public func accessibilityLabel(_ label: LocalizedStringKey) -> some ChartContent { _modified { _ in } }
+    public func accessibilityValue(_ value: LocalizedStringKey) -> some ChartContent { _modified { _ in } }
+    public func accessibilityLabel(_ label: Text) -> some ChartContent { _modified { _ in } }
+    public func accessibilityValue(_ value: Text) -> some ChartContent { _modified { _ in } }
     public func accessibilityHidden(_ hidden: Bool) -> some ChartContent { _modified { _ in } }
     public func clipShape<S: Shape>(_ shape: S, style: FillStyle = FillStyle()) -> some ChartContent { _modified { _ in } }
     public func shadow(color: Color = .black, radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> some ChartContent { _modified { _ in } }

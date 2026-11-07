@@ -69,3 +69,13 @@ extension ImageRenderer {
         return UIImage(drawing: UIImageDrawing(commands: drawn.commands, size: drawn.size, scale: scale))
     }
 }
+
+extension UIColor {
+    /// Creates a UIKit color from a SwiftUI color, resolved for the light and dark appearances.
+    public convenience init(_ color: Color) {
+        var light = EnvironmentValues(), dark = EnvironmentValues()
+        light.colorScheme = .light
+        dark.colorScheme = .dark
+        self.init(light: color.resolve(in: light), dark: color.resolve(in: dark))
+    }
+}

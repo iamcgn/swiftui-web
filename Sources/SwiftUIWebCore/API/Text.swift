@@ -18,6 +18,18 @@ public struct LocalizedStringKey: Equatable, Sendable, ExpressibleByStringInterp
         public mutating func appendInterpolation<T: CustomStringConvertible>(_ value: T) { output += value.description }
         public mutating func appendInterpolation<T>(_ value: T) { output += String(describing: value) }
         public mutating func appendInterpolation(_ text: Text) { output += text.resolvedString }
+        /// A number written with a printf specifier: `"\(value, specifier: "%.1f")"`.
+        public mutating func appendInterpolation<T: CVarArg>(_ value: T, specifier: String) {
+            output += String(format: specifier, value)
+        }
+        /// A value written by a format style: `"\(date, format: .dateTime.year())"`.
+        public mutating func appendInterpolation<F: FormatStyle>(_ input: F.FormatInput, format: F) where F.FormatOutput == String {
+            output += format.format(input)
+        }
+        /// A value written by a formatter; nothing when the formatter cannot represent it.
+        public mutating func appendInterpolation<Subject: AnyObject>(_ subject: Subject, formatter: Formatter?) {
+            output += formatter?.string(for: subject) ?? String(describing: subject)
+        }
     }
 }
 

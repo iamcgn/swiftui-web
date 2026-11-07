@@ -123,6 +123,15 @@ accessible tree over the fixture), the UIKitSettings smoke test's accessible-tre
   it (iOS 26: the tint at 30 % under a white title, 4.5 pt beside and 4.25 above and below the
   title, 5 pt continuous corners), and a slider keeps the frame height it is given.
 
+## Chart descriptors
+
+`AXChartDescriptor` and its parts (`AXNumericDataAxisDescriptor`, `AXCategoricalDataAxisDescriptor`,
+`AXDataSeriesDescriptor`, `AXDataPoint` and its values), `AXChartDescriptorRepresentable` and
+`accessibilityChartDescriptor(_:)` compile as on Apple platforms (the Swift Charts examples use
+them on every chart). The modifier keeps the representable and makes the descriptor only when
+asked, as VoiceOver would; the browser has no audio graph to give it to, so nothing is announced
+yet. UIKit's `UIColor.accessibilityName` names a colour in plain words ("dark blue", "pale pink").
+
 ## Not yet covered
 
 VoiceOver and IME sessions by hand (`pf-browser-sessions`), the semantics of ghosts and

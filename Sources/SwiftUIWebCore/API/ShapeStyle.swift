@@ -1,3 +1,9 @@
+#if os(WASI)
+import WebFoundation
+#else
+import Foundation
+#endif
+
 /// A color or pattern to use when rendering a shape.
 public protocol ShapeStyle: Sendable {}
 
@@ -156,4 +162,51 @@ package final class _GradientBox: Equatable, @unchecked Sendable {
     package let style: any _GradientStyle
     package init(_ style: any _GradientStyle) { self.style = style }
     package static func == (lhs: _GradientBox, rhs: _GradientBox) -> Bool { lhs === rhs }
+}
+
+/// The background style: the window's ground (white in the light appearance, black in the
+/// dark one on iOS), as `.fill(.background)` paints it.
+public struct BackgroundStyle: ShapeStyle, Hashable, Sendable {
+    public init() {}
+}
+
+extension ShapeStyle where Self == BackgroundStyle {
+    /// The current background style.
+    nonisolated public static var background: BackgroundStyle { BackgroundStyle() }
+}
+
+/// A shadow a shape style casts: dropped behind the shape, or inside its edge.
+public struct ShadowStyle: Equatable, Sendable {
+    package enum Kind: Equatable, Sendable { case drop, inner }
+    package let kind: Kind
+    package let color: Color
+    package let radius: CGFloat
+    package let x: CGFloat
+    package let y: CGFloat
+
+    /// A shadow behind the shape.
+    public static func drop(color: Color = Color(.sRGBLinear, white: 0, opacity: 0.33), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> ShadowStyle {
+        ShadowStyle(kind: .drop, color: color, radius: radius, x: x, y: y)
+    }
+
+    /// A shadow inside the shape's edge.
+    public static func inner(color: Color = Color(.sRGBLinear, white: 0, opacity: 0.55), radius: CGFloat, x: CGFloat = 0, y: CGFloat = 0) -> ShadowStyle {
+        ShadowStyle(kind: .inner, color: color, radius: radius, x: x, y: y)
+    }
+}
+
+/// A style with a shadow (`.white.shadow(.drop(radius: 2))`). The shape paints in the base
+/// style; the shadow is kept for the painter but not drawn yet (Docs/elements/Shape.md).
+public struct _ShadowShapeStyle<Base: ShapeStyle>: ShapeStyle, _ModifiedStyle {
+    package let base: Base
+    package let shadow: ShadowStyle
+    package var _alpha: Double { 1 }
+    package func _resolveBaseColor(in environment: EnvironmentValues) -> RGBA { base.resolveColor(in: environment) }
+}
+
+extension ShapeStyle {
+    /// The style with a shadow.
+    nonisolated public func shadow(_ style: ShadowStyle) -> _ShadowShapeStyle<Self> {
+        _ShadowShapeStyle(base: self, shadow: style)
+    }
 }

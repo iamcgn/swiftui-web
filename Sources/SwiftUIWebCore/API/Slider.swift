@@ -29,9 +29,12 @@ public struct Slider<Label: View, ValueLabel: View>: View {
 
     public var body: some View {
         let current = value.get()   // read here so observation tracks it
+        // A label that is not drawn (iOS outside a form, `labelsHidden`) still names the slider.
+        let unlabelled = labelsHidden || (formStyle == nil && profile.isIOS)
+        let name = unlabelled ? (label as? Text)?.resolvedString : nil
         let track = HStack(alignment: .center, spacing: PlatformMetrics.controlLabelSpacing) {
             minimumValueLabel.font(.footnote).foregroundStyle(Color.secondary)._pixelAligned()
-            _SliderTrack(value: value, current: current, range: range, step: step, onEditingChanged: onEditingChanged)._pixelAligned()
+            _SliderTrack(value: value, current: current, range: range, step: step, onEditingChanged: onEditingChanged, accessibilityName: name)._pixelAligned()
             maximumValueLabel.font(.footnote).foregroundStyle(Color.secondary)._pixelAligned()
         }
         switch formStyle {
@@ -124,8 +127,11 @@ public struct _SliderTrack: View {
     package let range: ClosedRange<Double>
     package let step: Double?
     package let onEditingChanged: _EditingBox
+    /// The slider's name when its label is not drawn.
+    package let accessibilityName: String?
 
-    package init(value: _SliderValue, current: Double, range: ClosedRange<Double>, step: Double?, onEditingChanged: _EditingBox) {
+    package init(value: _SliderValue, current: Double, range: ClosedRange<Double>, step: Double?, onEditingChanged: _EditingBox, accessibilityName: String? = nil) {
+        self.accessibilityName = accessibilityName
         self.value = value
         self.current = current
         self.range = range

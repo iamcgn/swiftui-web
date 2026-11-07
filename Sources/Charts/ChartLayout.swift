@@ -115,8 +115,9 @@ package struct _ChartModel {
             names = ordered
         }
         let palette = configuration.foregroundPalette ?? Self.palette.map { AnyShapeStyle($0) }
+        let sampled = configuration.foregroundGradient.map { Self.sample($0, names: names, domain: configuration.foregroundGradientDomain) }
         for (i, name) in names.enumerated() {
-            let style = configuration.foregroundStyles?.first { $0.0 == name }?.1 ?? palette[i % max(palette.count, 1)]
+            let style = configuration.foregroundStyles?.first { $0.0 == name }?.1 ?? sampled?[i] ?? palette[i % max(palette.count, 1)]
             series.append((name, style))
         }
         if let symbols = configuration.symbolScale {
@@ -126,6 +127,32 @@ package struct _ChartModel {
             if let s = records[i].series, let entry = series.first(where: { $0.name == s }) { records[i].style = entry.style }
             if let s = records[i].series, let symbol = symbolsBySeries[s] { records[i].symbol = symbol }
         }
+    }
+
+    /// A colour per series from a gradient: where every series value is a number, by where it
+    /// falls between the smallest and largest (or the scale's domain); otherwise evenly in order.
+    /// The stops are mixed in sRGB in the light appearance.
+    static func sample(_ gradient: Gradient, names: [String], domain: ClosedRange<Double>?) -> [AnyShapeStyle] {
+        let stops = gradient.stops.sorted { $0.location < $1.location }
+        guard !stops.isEmpty else { return [] }
+        let environment = EnvironmentValues()
+        let colors = stops.map { $0.color.resolve(in: environment) }
+        func color(at t: Double) -> AnyShapeStyle {
+            let t = min(max(t, 0), 1)
+            var upper = stops.firstIndex { Double($0.location) >= t } ?? stops.count - 1
+            if upper == 0 { upper = min(1, stops.count - 1) }
+            let lower = max(upper - 1, 0)
+            let a = Double(stops[lower].location), b = Double(stops[upper].location)
+            let f = b > a ? min(max((t - a) / (b - a), 0), 1) : 0
+            let c0 = colors[lower], c1 = colors[upper]
+            return AnyShapeStyle(Color(red: c0.red + (c1.red - c0.red) * f, green: c0.green + (c1.green - c0.green) * f,
+                                       blue: c0.blue + (c1.blue - c0.blue) * f, opacity: c0.alpha + (c1.alpha - c0.alpha) * f))
+        }
+        let numbers = names.compactMap { Double($0) }
+        if numbers.count == names.count, let low = domain?.lowerBound ?? numbers.min(), let high = domain?.upperBound ?? numbers.max() {
+            return numbers.map { color(at: high > low ? ($0 - low) / (high - low) : 0) }
+        }
+        return names.indices.map { color(at: names.count > 1 ? Double($0) / Double(names.count - 1) : 0) }
     }
 
     /// Bars and areas sharing a position stack by their series (positive values up, negative
