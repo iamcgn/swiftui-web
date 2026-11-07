@@ -101,6 +101,12 @@ extension StringProtocol {
         return result
     }
 
+    /// The occurrences inside `searchRange` only (all of the string when it is nil).
+    public func replacingOccurrences<Target: StringProtocol, Replacement: StringProtocol>(of target: Target, with replacement: Replacement, options: String.CompareOptions = [], range searchRange: Range<Index>?) -> String {
+        guard let searchRange else { return replacingOccurrences(of: target, with: replacement, options: options) }
+        return String(self[..<searchRange.lowerBound]) + self[searchRange].replacingOccurrences(of: target, with: replacement, options: options) + self[searchRange.upperBound...]
+    }
+
     /// The substring in the NSString range.
     public func substring(with range: NSRange) -> String {
         guard let r = Range(range, in: self) else { return "" }
