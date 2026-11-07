@@ -6,7 +6,7 @@ brings `NSPredicate` and `NSSortDescriptor`. Here those live in WebCoreData, whi
 module and the `Foundation` shadow re-export only when the app enables the `CoreData` trait on
 the SwiftUIWeb and Shadows packages. `Decimal`'s formatting (`.formatted(.currency(code:))`) lives
 in WebDecimalFormats, which the `Foundation` shadow re-exports only with the `DecimalFormatting`
-trait on Shadows. `DateComponentsFormatter`, `ByteCountFormatter` and the list and duration
+trait on Shadows; the same trait on SwiftUIWeb makes Charts plot a `Decimal`. `DateComponentsFormatter`, `ByteCountFormatter` and the list and duration
 styles live in WebFoundationFormats, which `import Foundation` always re-exports and `import
 SwiftUI` re-exports with the `FoundationFormats` trait on SwiftUIWeb. Every other app's bundle
 leaves them out (decision 0006's size budget).
@@ -47,8 +47,8 @@ FORMATS_NAMES = re.compile(
 TRAITS = {
     "CoreData": (CORE_DATA_NAMES, ("SwiftUIWeb", "Shadows"), "uses Core Data",
                  "files that import only SwiftUI or Foundation will not see @FetchRequest or NSPredicate"),
-    "DecimalFormatting": (DECIMAL_NAMES, ("Shadows",), "uses Decimal",
-                          "files that import Foundation will not see Decimal.formatted or Decimal.FormatStyle"),
+    "DecimalFormatting": (DECIMAL_NAMES, ("Shadows", "SwiftUIWeb"), "uses Decimal",
+                          "files that import Foundation will not see Decimal.formatted or Decimal.FormatStyle, and Charts will not plot a Decimal"),
     "FoundationFormats": (FORMATS_NAMES, ("SwiftUIWeb",), "uses Foundation's extra formatting",
                           "files that import only SwiftUI will not see DateComponentsFormatter, ByteCountFormatter or list formatting"),
 }

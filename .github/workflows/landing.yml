@@ -5,6 +5,9 @@ name: Landing page
 # https://iamcgn.github.io/swiftui-web/ (repository settings: Pages source "Deploy from a branch",
 # gh-pages, /). The same as running scripts/deploy-landing.sh locally. A macOS runner: SwiftUI-2048
 # needs the Objective-C runtime wasm SDK (decision 0023), which exists for macOS arm64 only.
+# A pull request builds the same site without publishing it, so the size gates in
+# build-landing.sh (the gallery's 4 MB, the progress page's 3.5 MB) fail the pull request rather
+# than the deploy after it merges.
 on:
   push:
     branches: [main]
@@ -26,9 +29,29 @@ on:
       - scripts/assets.py
       - Apps/**
       - .github/workflows/landing.yml
+  pull_request:
+    paths:
+      - Examples/Landing/**
+      - Examples/Gallery/**
+      - Examples/Progress/**
+      - Fixtures/**
+      - Sources/**
+      - Packages/**
+      - Package.swift
+      - Package.resolved
+      - Docs/support.json
+      - scripts/build-landing.sh
+      - scripts/build-wasm.sh
+      - scripts/deploy-landing.sh
+      - scripts/gen-progress.py
+      - Docs/todo.json
+      - scripts/assets.py
+      - Apps/**
+      - .github/workflows/landing.yml
   workflow_dispatch:
 concurrency:
-  group: landing-pages
+  # One deploy at a time on main; a pull request's build only replaces its own earlier one.
+  group: ${{ github.event_name == 'pull_request' && format('landing-pr-{0}', github.event.pull_request.number) || 'landing-pages' }}
   cancel-in-progress: true
 permissions:
   contents: write
@@ -66,6 +89,7 @@ jobs:
       - name: Build the site
         run: . ~/.swiftly/env.sh && scripts/build-landing.sh
       - name: Publish gh-pages
+        if: github.event_name != 'pull_request'
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
           GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
