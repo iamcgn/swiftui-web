@@ -31,7 +31,7 @@ let package = Package(
         .executable(name: "ChartsExamples", targets: ["ChartsExamples"]),
     ],
     dependencies: [
-        .package(name: "SwiftUIWeb", path: "..", traits: ["FoundationFormats"]),
+        .package(name: "SwiftUIWeb", path: "..", traits: ["FoundationFormats", "DecimalFormatting"]),
         .package(name: "Shadows", path: "../Packages/Shadows", traits: ["DecimalFormatting"]),
         .package(name: "UIKitWeb", path: "../Packages/UIKitWeb"),
         // Direct dependency so the PackageToJS command plugin (`swift package js`) is available here.

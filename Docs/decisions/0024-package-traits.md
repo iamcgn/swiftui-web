@@ -53,6 +53,11 @@ The app sweep enables each trait its apps need, and the surface build enables al
 (`sweep.py prepare --all-traits`) so the coverage diff counts their keys. Counter enables
 neither.
 
+SwiftUIWeb has the same trait since 2026-11-07, for Charts: `Decimal`'s conformance to
+`Plottable` is compiled on wasm only with it. A conformance record is always linked, so without
+the condition every bundle that links Charts carried Decimal (the gallery: 790 KB brotli, over
+its 4 MB budget). `traits.py` asks for it on both packages for an app that names `Decimal`.
+
 ## Later: `FoundationFormats` (2026-11-01)
 `DateComponentsFormatter`, `ByteCountFormatter`, `NSCalendar` and the list and duration styles
 live in WebFoundationFormats, which the `Foundation` shadow always re-exports. Apple's SwiftUI

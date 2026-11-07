@@ -71,8 +71,14 @@ extension UInt32: PrimitivePlottableProtocol { public var _plotValue: _PlotValue
 extension UInt64: PrimitivePlottableProtocol { public var _plotValue: _PlotValue { .number(Double(self)) } }
 extension String: PrimitivePlottableProtocol { public var _plotValue: _PlotValue { .category(self) } }
 extension Date: PrimitivePlottableProtocol { public var _plotValue: _PlotValue { .date(self) } }
+#if !os(WASI) || DecimalFormatting
 /// A decimal plots as its double (through its exact text: no bridge to `NSNumber` on wasm).
+/// On wasm only with the DecimalFormatting trait (decision 0024), which Tools/Traits/traits.py
+/// asks of an app that names Decimal: a conformance record is always linked, and this one drags
+/// FoundationEssentials' `Decimal` and, through its conformances, most of the library into every
+/// bundle that imports Charts (the gallery grew 790 KB brotli, 2026-11-07).
 extension Decimal: PrimitivePlottableProtocol { public var _plotValue: _PlotValue { .number(Double(description) ?? 0) } }
+#endif
 
 /// Enums with a plottable raw value plot as that value (`enum Kind: String, Plottable`).
 extension Plottable where Self: RawRepresentable, RawValue: PrimitivePlottableProtocol {
