@@ -105,7 +105,7 @@ jobs:
           (cd Playwright && node interactions.mjs http://127.0.0.1:8767/index.html --out ../.build/interactions) || status=$?
           kill $server
           exit $status
-      - name: Landing frame budget (pf-perf)
+      - name: Landing frame budget (pf-perf) and the Controls demo probe
         run: . ~/.swiftly/env.sh && scripts/frame-budget.sh
       - name: Counter smoke test and size gate
         run: |
