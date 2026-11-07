@@ -19,7 +19,9 @@ enum NetworkingImports {
         var request = URLRequest(url: URL(string: "https://example.com/launches")!)
         request.httpMethod = "HEAD"
         return session.dataTask(with: request) { _, response, _ in
-            _ = (response as? HTTPURLResponse)?.statusCode ?? (response as URLResponse?)?.expectedContentLength
+            let status = (response as? HTTPURLResponse)?.statusCode
+            let length = (response as URLResponse?)?.expectedContentLength
+            _ = (status, length)
         }
     }
 }
