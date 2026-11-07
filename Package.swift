@@ -51,6 +51,7 @@ let package = Package(
     traits: [
         .trait(name: "CoreData", description: "`import SwiftUI` re-exports WebCoreData on wasm (`@FetchRequest`, `FetchedResults`), as Apple's SwiftUI declares them."),
         .trait(name: "FoundationFormats", description: "`import SwiftUI` re-exports WebFoundationFormats on wasm (`DateComponentsFormatter`, `ByteCountFormatter`, list and duration formatting), as Apple's SwiftUI re-exports Foundation."),
+        .trait(name: "DecimalFormatting", description: "Charts plots `Decimal` values on wasm (`.value(\"Price\", price)` with a `Decimal` price)."),
     ],
     dependencies: [
         // The graphics substrate shared with UIKitWeb (decision 0014), and UIKitWeb itself: the
