@@ -577,6 +577,15 @@ extension AnyGradient: _GradientStyle {
     }
 }
 
+/// A `Gradient` used as a style draws from the top of the bounds to the bottom, as SwiftUI's.
+extension Gradient: ShapeStyle {}
+
+extension Gradient: _GradientStyle {
+    package func _resolveGradient(in bounds: CGRect, environment: EnvironmentValues) -> DisplayGradient {
+        AnyGradient(self)._resolveGradient(in: bounds, environment: environment)
+    }
+}
+
 extension Color {
     /// A gradient from this colour, a little lighter at the top.
     public var gradient: AnyGradient { AnyGradient(color: self) }

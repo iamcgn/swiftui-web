@@ -164,3 +164,43 @@ public final class UIColor: Hashable, @unchecked Sendable {
     /// The default tint: the system blue.
     public static let tintColor = systemBlue
 }
+
+extension UIColor {
+    /// A spoken name for the colour (its light appearance): a hue in plain words, made lighter,
+    /// darker or paler by its brightness and saturation ("dark blue", "pale pink", "gray").
+    public var accessibilityName: String {
+        let (r, g, b) = (light.red, light.green, light.blue)
+        let high = max(r, g, b), low = min(r, g, b), chroma = high - low
+        let brightness = high, saturation = high == 0 ? 0 : chroma / high
+        if saturation < 0.12 || chroma < 0.06 {
+            switch brightness {
+            case ..<0.12: return "black"
+            case ..<0.4: return "dark gray"
+            case ..<0.75: return "gray"
+            case ..<0.95: return "light gray"
+            default: return "white"
+            }
+        }
+        var hue: Double
+        if high == r { hue = (g - b) / chroma }
+        else if high == g { hue = (b - r) / chroma + 2 }
+        else { hue = (r - g) / chroma + 4 }
+        hue *= 60
+        if hue < 0 { hue += 360 }
+        let name: String
+        switch hue {
+        case ..<15, 345...: name = brightness > 0.8 && saturation < 0.45 ? "pink" : "red"
+        case ..<40: name = brightness < 0.6 ? "brown" : "orange"
+        case ..<65: name = brightness < 0.55 ? "olive" : "yellow"
+        case ..<150: name = "green"
+        case ..<190: name = "teal"
+        case ..<250: name = "blue"
+        case ..<290: name = "purple"
+        default: name = "pink"
+        }
+        if brightness < 0.45 { return "dark " + name }
+        if saturation < 0.45, brightness > 0.8 { return "pale " + name }
+        if saturation > 0.85, brightness > 0.85 { return "vibrant " + name }
+        return name
+    }
+}

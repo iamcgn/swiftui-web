@@ -9,7 +9,14 @@ public struct ButtonRole: Equatable, Sendable {
 /// reflection stays warning-free (the runtime cannot demangle `@MainActor` function types).
 package final class _ActionBox: @unchecked Sendable {
     package let run: @MainActor () -> Void
+    /// A value link's value (`NavigationLink(value:)`): in a list with a selection it is the
+    /// row's selection tag.
+    package private(set) var linkValue: AnyHashable?
     package init(_ run: @escaping @MainActor () -> Void) { self.run = run }
+    package init(linkValue: AnyHashable?, _ run: @escaping @MainActor () -> Void) {
+        self.run = run
+        self.linkValue = linkValue
+    }
     /// A plain closure, as Apple's `onTapGesture`, `onAppear`, `onSubmit` and the like take
     /// (a Swift 6 app passes a stored `() -> Void` to them); it runs on the main actor.
     package init(plain run: @escaping () -> Void) {

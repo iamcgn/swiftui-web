@@ -146,9 +146,12 @@ package final class _ListSelection {
     package let read: () -> Void
     /// Whether several rows can be selected (Command and Shift clicks on macOS).
     package let isMultiple: Bool
+    /// Whether a value is of the selection's type (a value link's value can be a row's tag).
+    package let accepts: (AnyHashable) -> Bool
 
     package init<V: Hashable>(single binding: Binding<V?>) {
         isMultiple = false
+        accepts = { $0.base is V }
         read = { _ = binding.wrappedValue }
         isSelected = { id in (id.base as? V).map { $0 == binding.wrappedValue } ?? false }
         toggle = { id in
@@ -170,6 +173,7 @@ package final class _ListSelection {
 
     package init<V: Hashable>(multiple binding: Binding<Set<V>>) {
         isMultiple = true
+        accepts = { $0.base is V }
         read = { _ = binding.wrappedValue }
         isSelected = { id in (id.base as? V).map { binding.wrappedValue.contains($0) } ?? false }
         toggle = { id in

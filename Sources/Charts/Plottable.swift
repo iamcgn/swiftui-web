@@ -71,6 +71,8 @@ extension UInt32: PrimitivePlottableProtocol { public var _plotValue: _PlotValue
 extension UInt64: PrimitivePlottableProtocol { public var _plotValue: _PlotValue { .number(Double(self)) } }
 extension String: PrimitivePlottableProtocol { public var _plotValue: _PlotValue { .category(self) } }
 extension Date: PrimitivePlottableProtocol { public var _plotValue: _PlotValue { .date(self) } }
+/// A decimal plots as its double (through its exact text: no bridge to `NSNumber` on wasm).
+extension Decimal: PrimitivePlottableProtocol { public var _plotValue: _PlotValue { .number(Double(description) ?? 0) } }
 
 /// Enums with a plottable raw value plot as that value (`enum Kind: String, Plottable`).
 extension Plottable where Self: RawRepresentable, RawValue: PrimitivePlottableProtocol {
@@ -105,6 +107,12 @@ public struct PlottableValue<Value: Plottable> {
 }
 
 extension PlottableValue where Value == Date {
+    /// A date value. Where a call could make a `Date` or a `Double` (an overloaded function, as
+    /// on wasm `CGFloat` is `Double` and so plottable), the date is meant, as on Apple platforms.
+    public static func value(_ label: String, _ value: Date) -> PlottableValue<Date> {
+        PlottableValue(label: label, value: value)
+    }
+
     /// A date value standing for a calendar unit: the mark covers the whole unit.
     public static func value(_ label: String, _ value: Date, unit: Calendar.Component, calendar: Calendar? = nil) -> PlottableValue<Date> {
         PlottableValue(label: label, value: value, unit: unit)

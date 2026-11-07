@@ -225,5 +225,28 @@ import WebFoundation
         #expect(fileFailure != nil)
         withoutHost()
     }
+
+    @Test func recorderMetersTheMicrophoneWithoutAFile() throws {
+        withoutHost()
+        let url = URL(fileURLWithPath: "/tmp/level.caf")
+        let settings: [String: Any] = [AVFormatIDKey: NSNumber(value: kAudioFormatAppleLossless), AVSampleRateKey: 44100.0,
+                                       AVNumberOfChannelsKey: 1, AVEncoderAudioQualityKey: AVAudioQuality.min.rawValue]
+        let silent = try AVAudioRecorder(url: url, settings: settings)
+        #expect(silent.format.sampleRate == 44100 && !silent.record() && silent.averagePower(forChannel: 0) == -160)
+        var deliver: (@MainActor ([Float], Double) -> Void)?
+        let capture = FakeCapture()
+        _AVAudioHost.openMicrophone = { _, send, _ in deliver = send; return capture }
+        let recorder = try AVAudioRecorder(url: url, settings: settings)
+        recorder.isMeteringEnabled = true
+        #expect(recorder.record() && recorder.isRecording)
+        deliver?([0.5, -0.5, 0.5, -0.5], 16_000)
+        recorder.updateMeters()
+        // An RMS of 0.5 is -6.02 dBFS; the peak is the same here.
+        #expect(abs(recorder.averagePower(forChannel: 0) + 6.0206) < 0.01 && abs(recorder.peakPower(forChannel: 0) + 6.0206) < 0.01)
+        #expect(recorder.currentTime == 4.0 / 16_000)
+        recorder.stop()
+        #expect(capture.stopped && !recorder.isRecording && !recorder.deleteRecording())
+        withoutHost()
+    }
 }
 #endif
