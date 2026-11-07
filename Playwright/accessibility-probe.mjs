@@ -61,8 +61,7 @@ check('arrow up on the adjustable element increments', await until('Level: 4'));
 // The rotor is a nav landmark whose links focus their entries.
 check('the rotor is a nav with its entries', await page.evaluate(() => Array.from(document.querySelectorAll('nav[aria-label="Fruit"] a')).map(a => a.getAttribute('aria-label')).join(',')) === 'Apple,Banana');
 await page.locator('nav[aria-label="Fruit"] a[aria-label="Banana"]').first().dispatchEvent('click');
-await page.waitForTimeout(100);
-check('a rotor entry focuses its element', await page.evaluate(() => document.activeElement?.getAttribute('aria-label')) === 'Banana');
+check('a rotor entry focuses its element', await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Banana', null, { timeout: 3000, polling: 50 }).then(() => true, () => false));
 // The browser's own accessibility tree (what a screen reader is given).
 const snapshot = JSON.stringify(await page.accessibility.snapshot({ interestingOnly: false }));
 check('the browser accessible tree has the level-one heading', snapshot.includes('"role":"heading","name":"Overview","level":1'));
