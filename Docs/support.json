@@ -2144,8 +2144,8 @@
         {
           "api": "URL (international host names) / URLComponents / URLQueryItem",
           "status": "partial",
-          "notes": "Hosts are Punycoded and lower-cased (RFC 3492; Cherokee folds to capitals; UTS #46 compatibility mapping and normalisation are not carried), URLComponents reads and writes every component decoded and percent-encoded with Foundation's allowed sets, queryItems split and compose as Foundation's (`+` kept, `&`, `=`, `#` encoded), url(relativeTo:), appending(queryItems:), a string with stray characters repaired as URLComponents(string:) repairs it (2026-10-09)",
-          "noFixture": "PunycodeTests and URLComponentsCoreTests hold the cores to Foundation on macOS; WasmFoundationTests the public type."
+          "notes": "URLComponents gives each component's range in its string (rangeOfScheme through rangeOfFragment, an IPv6 host with its brackets; 2026-11-06). Hosts are Punycoded and lower-cased (RFC 3492; Cherokee folds to capitals; UTS #46 compatibility mapping and normalisation are not carried), URLComponents reads and writes every component decoded and percent-encoded with Foundation's allowed sets, queryItems split and compose as Foundation's (`+` kept, `&`, `=`, `#` encoded), url(relativeTo:), appending(queryItems:), a string with stray characters repaired as URLComponents(string:) repairs it (2026-10-09)",
+          "noFixture": "PunycodeTests and URLComponentsCoreTests hold the cores to Foundation on macOS; WasmFoundationTests the public type; URLComponentsRangeTests the ranges on every platform."
         },
         {
           "api": "TimeZone (named zones, daylight saving) / Locale.current",
