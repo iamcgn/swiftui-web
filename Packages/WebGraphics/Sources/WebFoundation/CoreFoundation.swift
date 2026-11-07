@@ -31,6 +31,13 @@ public let kCFAllocatorDefault: CFAllocator! = CFAllocator()
 /// The result code for success.
 public let noErr: OSStatus = 0
 
+/// A `CFError`'s domain, code and user info (a `CFError` is an `NSError`).
+public typealias CFErrorDomain = CFString
+public func CFErrorGetDomain(_ err: CFError!) -> CFErrorDomain! { err.domain }
+public func CFErrorGetCode(_ err: CFError!) -> CFIndex { err.code }
+public func CFErrorCopyUserInfo(_ err: CFError!) -> CFDictionary! { err.userInfo }
+public func CFErrorCopyDescription(_ err: CFError!) -> CFString! { err.localizedDescription }
+
 // Implicitly unwrapped, as Apple's Swift overlay declares them.
 public let kCFBooleanTrue: CFBoolean! = true
 public let kCFBooleanFalse: CFBoolean! = false

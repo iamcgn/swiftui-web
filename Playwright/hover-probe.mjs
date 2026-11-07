@@ -15,6 +15,9 @@ const box = async (label) => (await page.locator(`[aria-label="${label}"]`).boun
 const centre = (b) => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 });
 let failures = 0;
 const check = (name, ok) => { console.log((ok ? 'PASS ' : 'FAIL ') + name); if (!ok) failures++; };
+// Polls a condition for up to 3 s: a slow runner can lag a frame or two behind the pointer.
+const until = async (ok, ms = 3000) => { const end = Date.now() + ms; do { if (await ok()) return true; await page.waitForTimeout(50); } while (Date.now() < end); return false; };
+const has = (...want) => until(async () => { const now = await labels(); return want.every(w => now.includes(w)); });
 // The cursor of the canvas under a point (the gallery has more than one canvas).
 const cursorAt = (p) => page.evaluate(({ x, y }) => {
   const canvases = [...document.querySelectorAll('canvas')];
@@ -25,31 +28,26 @@ const cursorAt = (p) => page.evaluate(({ x, y }) => {
 check('resting: Outside', (await labels()).includes('Outside'));
 const outside = centre(await box('Outside'));
 await page.mouse.move(outside.x, outside.y);
-await page.waitForTimeout(100);
-check('onHover enters', (await labels()).includes('Inside') && (await labels()).includes('Entries: 1'));
+check('onHover enters', await has('Inside', 'Entries: 1'));
 const cont = centre(await box('No pointer'));
 await page.mouse.move(cont.x, cont.y);
-await page.waitForTimeout(100);
+check('onHover leaves', await has('Outside'));
+await until(async () => (await labels()).some(l => /^At \d+, \d+$/.test(l)));
 let now = await labels();
-check('onHover leaves', now.includes('Outside'));
 check('continuous hover reports a point', now.some(l => /^At \d+, \d+$/.test(l)));
 if (!now.some(l => /^At \d+, \d+$/.test(l))) console.log('  labels:', now.join(' | '));
 await page.mouse.move(outside.x, outside.y);
-await page.waitForTimeout(100);
-check('continuous hover ends', (await labels()).includes('No pointer'));
+check('continuous hover ends', await has('No pointer'));
 
 const link = centre(await box('Link'));
 await page.mouse.move(link.x, link.y);
-await page.waitForTimeout(50);
-check('pointerStyle link → pointer cursor', await cursorAt(link) === 'pointer');
+check('pointerStyle link → pointer cursor', await until(async () => await cursorAt(link) === 'pointer'));
 if (await cursorAt(link) !== 'pointer') console.log('  cursor:', await cursorAt(link));
 const ibeam = centre(await box('Text'));
 await page.mouse.move(ibeam.x, ibeam.y);
-await page.waitForTimeout(50);
-check('pointerStyle horizontalText → text cursor', await cursorAt(ibeam) === 'text');
+check('pointerStyle horizontalText → text cursor', await until(async () => await cursorAt(ibeam) === 'text'));
 await page.mouse.move(outside.x, outside.y);
-await page.waitForTimeout(50);
-check('cursor restored', ['auto', 'default'].includes(await cursorAt(outside)));
+check('cursor restored', await until(async () => ['auto', 'default'].includes(await cursorAt(outside))));
 
 // Tooltip: the pixels below the pointer change once it has rested for a second.
 const help = centre(await box('Help me'));
@@ -59,14 +57,10 @@ await page.mouse.move(help.x, help.y);
 await page.waitForTimeout(300);
 const early = await page.screenshot({ clip: region });
 check('no tooltip before the delay', Buffer.compare(before, early) === 0);
-await page.waitForTimeout(1200);
-const after = await page.screenshot({ clip: region });
-check('tooltip after the delay', Buffer.compare(before, after) !== 0);
+check('tooltip after the delay', await until(async () => Buffer.compare(before, await page.screenshot({ clip: region })) !== 0, 4000));
 // Leave towards a view whose hover changes nothing in the region (the link only sets the cursor).
 await page.mouse.move(link.x, link.y);
-await page.waitForTimeout(150);
-const gone = await page.screenshot({ clip: region });
-check('tooltip hides on leave', Buffer.compare(before, gone) === 0);
+check('tooltip hides on leave', await until(async () => Buffer.compare(before, await page.screenshot({ clip: region })) === 0));
 await browser.close();
 console.log(failures === 0 ? 'hover probe: all passed' : `hover probe: ${failures} failed`);
 process.exit(failures === 0 ? 0 : 1);
