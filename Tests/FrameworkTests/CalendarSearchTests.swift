@@ -68,6 +68,12 @@ import WebFoundationFormats
     @Test func settingATimeKeepsTheDay() {
         #expect(calendar.date(bySettingHour: 7, minute: 15, second: 0, of: date(2027, 1, 12, 20), matchingPolicy: .nextTime,
                               repeatedTimePolicy: .first, direction: .forward) == date(2027, 1, 12, 7, 15))
+        // Every policy has a default, as Foundation's form has.
+        let evening = date(2027, 1, 12, 20)
+        #expect(calendar.date(bySettingHour: 7, minute: 15, second: 0, of: evening) == date(2027, 1, 12, 7, 15))
+        #expect(calendar.date(bySettingHour: 7, minute: 15, second: 0, of: evening, direction: .forward) == date(2027, 1, 12, 7, 15))
+        #expect(calendar.date(bySettingHour: 7, minute: 15, second: 0, of: evening, repeatedTimePolicy: .first) == date(2027, 1, 12, 7, 15))
+        #expect(calendar.date(bySettingHour: 7, minute: 15, second: 0, of: evening, matchingPolicy: .strict) == date(2027, 1, 12, 7, 15))
     }
 
     @Test func urlErrorNamesItsCodes() {
