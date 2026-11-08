@@ -154,6 +154,8 @@ extension CGRect {
     }
 }
 
+// Linux Foundation has its own edges and division; wasm gets these.
+#if os(WASI)
 /// A side of a rectangle, as `CGRect.divided(atDistance:from:)` names it.
 public enum CGRectEdge: UInt32, Sendable {
     case minXEdge, minYEdge, maxXEdge, maxYEdge
@@ -179,6 +181,7 @@ extension CGRect {
         }
     }
 }
+#endif
 
 public struct CGAffineTransform: Equatable, Hashable, Sendable {
     public var a: CGFloat, b: CGFloat, c: CGFloat, d: CGFloat, tx: CGFloat, ty: CGFloat
