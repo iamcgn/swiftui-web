@@ -75,6 +75,21 @@ import SwiftUIWebHeadless
         #expect(!r.isAnimating && commands(r).contains("fillRect(110, 76, 100, 40) \(Self.red)"))
     }
 
+    /// Nonisolated code animates, as combine-schedulers' animated schedulers do.
+    nonisolated static func animateFromNonisolatedCode(_ change: () -> Void) {
+        withAnimation(.linear(duration: 1), change)
+    }
+
+    @Test func withAnimationIsCallableFromNonisolatedCode() {
+        let model = Model()
+        let r = runtime(Growing(model: model))
+        Self.animateFromNonisolatedCode { model.expanded = true }
+        relayout(r)
+        #expect(r.isAnimating)
+        r.advanceAnimations(elapsed: 0.5)
+        #expect(commands(r).contains("fillRect(85, 76, 150, 40) \(Self.red)"))
+    }
+
     struct Scoped: View {
         let model: Model
         var body: some View {

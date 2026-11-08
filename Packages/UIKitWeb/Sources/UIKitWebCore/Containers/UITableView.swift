@@ -234,7 +234,11 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
 
     open func register(_ cellClass: AnyClass?, forCellReuseIdentifier identifier: String) {
         guard let type = cellClass as? UITableViewCell.Type else { return }
+        #if canImport(ObjectiveC)
+        registeredCells[identifier] = { _makeRegisteredCell(type, reuseIdentifier: identifier) }
+        #else
         registeredCells[identifier] = { type.init(style: .default, reuseIdentifier: identifier) }
+        #endif
     }
 
     open func dequeueReusableCell(withIdentifier identifier: String) -> UITableViewCell? {
@@ -1002,7 +1006,11 @@ open class UITableViewCell: UIView {
     public required init?(coder: NSCoder) { return nil }
 
     override open var canBecomeFocused: Bool { (closestCollectionContainer as? UITableView)?.allowsFocus ?? true }
+    #if canImport(ObjectiveC)
+    @objc public enum CellStyle: Int, Sendable { case `default` = 0, value1, value2, subtitle }
+    #else
     public enum CellStyle: Int, Sendable { case `default` = 0, value1, value2, subtitle }
+    #endif
     public enum AccessoryType: Int, Sendable { case none = 0, disclosureIndicator, detailDisclosureButton, checkmark, detailButton }
     public enum SelectionStyle: Int, Sendable { case none = 0, blue, gray, `default` }
     public enum SeparatorStyle: Int, Sendable { case none = 0, singleLine }
@@ -1134,10 +1142,28 @@ open class UITableViewCell: UIView {
         }
     }
 
+    #if canImport(ObjectiveC)
+    /// Not `required`, as UIKit's isn't, so a subclass may have only initializers of its own;
+    /// `register(_:forCellReuseIdentifier:)` makes a registered class through the runtime, as
+    /// UIKit does, which reaches a subclass's override.
+    @objc(initWithStyle:reuseIdentifier:)
+    public init(style: CellStyle, reuseIdentifier: String?) {
+        self.style = style
+        self.reuseIdentifier = reuseIdentifier
+        super.init(frame: .zero)
+        setUpCell()
+    }
+    #else
+    /// Required without the Objective-C runtime: registration makes the class through its type.
     public required init(style: CellStyle, reuseIdentifier: String?) {
         self.style = style
         self.reuseIdentifier = reuseIdentifier
         super.init(frame: .zero)
+        setUpCell()
+    }
+    #endif
+
+    private func setUpCell() {
         backgroundColor = .systemBackground
         addSubview(contentView)
         // The labels use the body and subheadline text styles, as UIKit's do (a wrapping
@@ -1491,3 +1517,31 @@ open class UITableViewCell: UIView {
     }
 }
 
+#if canImport(ObjectiveC)
+/// A registered cell made as UIKit makes one: `+alloc`, then `-initWithStyle:reuseIdentifier:`
+/// sent to the new object, so the subclass's own override runs. Each method is looked up and
+/// called with its own signature (WebAssembly checks the type of every indirect call).
+@MainActor
+func _makeRegisteredCell(_ type: UITableViewCell.Type, reuseIdentifier: String) -> UITableViewCell {
+    typealias Alloc = @convention(c) (UnsafeRawPointer, Selector) -> UnsafeMutableRawPointer?
+    typealias Initialize = @convention(c) (UnsafeMutableRawPointer, Selector, Int, UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer?
+    let cls: AnyClass = type
+    let alloc = sel_registerName("alloc")   // Swift's `#selector` cannot name +alloc
+    let initialize = #selector(UITableViewCell.init(style:reuseIdentifier:))
+    // The class object as an object (no bridging): its class is the metaclass, which holds `+alloc`.
+    guard let metaclass = object_getClass(unsafeBitCast(cls, to: AnyObject.self)),
+          let allocate = class_getMethodImplementation(metaclass, alloc),
+          let initializer = class_getMethodImplementation(cls, initialize),
+          let instance = unsafeBitCast(allocate, to: Alloc.self)(unsafeBitCast(cls, to: UnsafeRawPointer.self), alloc) else {
+        fatalError("UITableView: cannot make a \(type) cell")
+    }
+    // `init` consumes the allocated object and returns the initialized one retained.
+    let identifier = reuseIdentifier._bridgeToObjectiveC()
+    let made = withExtendedLifetime(identifier) {
+        unsafeBitCast(initializer, to: Initialize.self)(instance, initialize, UITableViewCell.CellStyle.default.rawValue,
+                                                        Unmanaged.passUnretained(identifier).toOpaque())
+    }
+    guard let made else { fatalError("UITableView: \(type).init(style:reuseIdentifier:) returned nil") }
+    return Unmanaged<UITableViewCell>.fromOpaque(made).takeRetainedValue()
+}
+#endif
