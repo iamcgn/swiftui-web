@@ -147,8 +147,10 @@ open class XMLParser: @unchecked Sendable {
     }
 
     /// Parses the document, reporting to the delegate; false when it is not well formed or
-    /// the parse was aborted.
-    open func parse() -> Bool {
+    /// the parse was aborted. Final here, unlike Foundation's, and so are the parsing helpers:
+    /// an overridable method sits in the class's table, which keeps the whole parser in every
+    /// app that links WebFoundation, even one that never names `XMLParser`.
+    public final func parse() -> Bool {
         aborted = false
         parserError = nil
         let reader = _XMLReader(Self.scalars(of: data))
@@ -204,7 +206,7 @@ open class XMLParser: @unchecked Sendable {
     private var entities: [String: String] = [:]
     private var namespaces: [[String: String]] = []
 
-    private func run(_ r: _XMLReader) throws {
+    private final func run(_ r: _XMLReader) throws {
         entities = ["lt": "<", "gt": ">", "amp": "&", "quot": "\"", "apos": "'"]
         namespaces = [["xml": "http://www.w3.org/XML/1998/namespace"]]
         r.skipWhitespace()
@@ -238,15 +240,15 @@ open class XMLParser: @unchecked Sendable {
         delegate?.parserDidEndDocument(self)
     }
 
-    private func check() throws { if aborted { throw _XMLFailure(.delegateAbortedParseError) } }
+    private final func check() throws { if aborted { throw _XMLFailure(.delegateAbortedParseError) } }
 
-    private func comment(_ r: _XMLReader) throws {
+    private final func comment(_ r: _XMLReader) throws {
         r.advance(4)
         guard let text = r.take(until: "-->") else { throw _XMLFailure(.commentNotFinishedError) }
         delegate?.parser(self, foundComment: text)
     }
 
-    private func instruction(_ r: _XMLReader) throws {
+    private final func instruction(_ r: _XMLReader) throws {
         r.advance(2)
         let target = r.name()
         guard !target.isEmpty else { throw _XMLFailure(.processingInstructionNotStartedError) }
@@ -257,7 +259,7 @@ open class XMLParser: @unchecked Sendable {
     }
 
     /// The document type: its identifiers, and the entities its internal subset declares.
-    private func doctype(_ r: _XMLReader) throws {
+    private final func doctype(_ r: _XMLReader) throws {
         r.advance(9)
         r.skipWhitespace()
         guard !r.name().isEmpty else { throw _XMLFailure(.nameRequiredError) }
@@ -310,7 +312,7 @@ open class XMLParser: @unchecked Sendable {
     }
 
     /// One element, its content and its end tag; elements nest by a stack, not by recursion.
-    private func element(_ r: _XMLReader) throws {
+    private final func element(_ r: _XMLReader) throws {
         var open: [(name: String, prefixes: [String], local: String, uri: String?)] = []
         repeat {
             if r.starts(with: "</") {
@@ -379,7 +381,7 @@ open class XMLParser: @unchecked Sendable {
     }
 
     /// Reports an element's start, with its namespaces when they are processed.
-    private func start(_ name: String, _ attributes: [(String, String)]) -> (name: String, prefixes: [String], local: String, uri: String?) {
+    private final func start(_ name: String, _ attributes: [(String, String)]) -> (name: String, prefixes: [String], local: String, uri: String?) {
         guard shouldProcessNamespaces || shouldReportNamespacePrefixes else {
             delegate?.parser(self, didStartElement: name, namespaceURI: nil, qualifiedName: nil, attributes: Dictionary(attributes, uniquingKeysWith: { a, _ in a }))
             return (name, [], name, nil)
@@ -406,7 +408,7 @@ open class XMLParser: @unchecked Sendable {
         return (name, prefixes, local, uri)
     }
 
-    private func end(_ element: (name: String, prefixes: [String], local: String, uri: String?)) {
+    private final func end(_ element: (name: String, prefixes: [String], local: String, uri: String?)) {
         if shouldProcessNamespaces {
             delegate?.parser(self, didEndElement: element.local, namespaceURI: element.uri, qualifiedName: element.name)
         } else {
@@ -426,7 +428,7 @@ open class XMLParser: @unchecked Sendable {
     }
 
     /// Replaces character and entity references; an attribute's whitespace becomes spaces.
-    private func decode(_ raw: String, attribute: Bool, depth: Int = 0) throws -> String {
+    private final func decode(_ raw: String, attribute: Bool, depth: Int = 0) throws -> String {
         guard raw.unicodeScalars.contains(where: { $0 == "&" || (attribute && ($0 == "\n" || $0 == "\t" || $0 == "\r")) }) else { return raw }
         var out = String.UnicodeScalarView()
         let scalars = Array(raw.unicodeScalars)
