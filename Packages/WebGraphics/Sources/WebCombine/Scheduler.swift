@@ -90,18 +90,6 @@ public struct _SecondsStride: _SchedulerStride, Sendable {
     public static func _raw(seconds: Double) -> Double { seconds }
 }
 
-/// A point in time on a date-based scheduler (`RunLoop`, `OperationQueue`).
-public struct _DateSchedulerTime: Strideable, Hashable, Sendable {
-    public typealias Stride = _SecondsStride
-    public var date: Date
-    public init(_ date: Date) { self.date = date }
-    public func distance(to other: _DateSchedulerTime) -> Stride { Stride(other.date.timeIntervalSince(date)) }
-    public func advanced(by n: Stride) -> _DateSchedulerTime { _DateSchedulerTime(date.addingTimeInterval(n.timeInterval)) }
-}
-
-/// Options for the date-based schedulers; they have none.
-public struct _DateSchedulerOptions: Sendable {}
-
 /// Marks a repeating schedule cancelled.
 private final class _RepeatToken: @unchecked Sendable { var cancelled = false }
 
@@ -239,8 +227,17 @@ extension DispatchQueue: Scheduler {
 // MARK: - RunLoop and OperationQueue
 
 extension RunLoop: Scheduler {
-    public typealias SchedulerTimeType = _DateSchedulerTime
-    public typealias SchedulerOptions = _DateSchedulerOptions
+    /// A point in time on the run loop. Each date-based scheduler has its own, as Apple's do,
+    /// since packages extend `AnyScheduler` once for each (combine-schedulers' `.main`).
+    public struct SchedulerTimeType: Strideable, Hashable, Sendable {
+        public typealias Stride = _SecondsStride
+        public var date: Date
+        public init(_ date: Date) { self.date = date }
+        public func distance(to other: Self) -> Stride { Stride(other.date.timeIntervalSince(date)) }
+        public func advanced(by n: Stride) -> Self { Self(date.addingTimeInterval(n.timeInterval)) }
+    }
+    /// The run loop's options; it has none.
+    public struct SchedulerOptions: Sendable {}
 
     public var now: SchedulerTimeType { SchedulerTimeType(Date()) }
     public var minimumTolerance: SchedulerTimeType.Stride { .zero }
@@ -260,8 +257,17 @@ extension RunLoop: Scheduler {
 }
 
 extension OperationQueue: Scheduler {
-    public typealias SchedulerTimeType = _DateSchedulerTime
-    public typealias SchedulerOptions = _DateSchedulerOptions
+    /// A point in time on the operation queue. Each date-based scheduler has its own, as Apple's do,
+    /// since packages extend `AnyScheduler` once for each (combine-schedulers' `.main`).
+    public struct SchedulerTimeType: Strideable, Hashable, Sendable {
+        public typealias Stride = _SecondsStride
+        public var date: Date
+        public init(_ date: Date) { self.date = date }
+        public func distance(to other: Self) -> Stride { Stride(other.date.timeIntervalSince(date)) }
+        public func advanced(by n: Stride) -> Self { Self(date.addingTimeInterval(n.timeInterval)) }
+    }
+    /// The operation queue's options; it has none.
+    public struct SchedulerOptions: Sendable {}
 
     // Every action runs as an operation on this queue, as Apple's do, so the queue's
     // suspension, concurrency limit and cancellation apply to it; a delay waits on the main
