@@ -2166,6 +2166,12 @@
           "noFixture": "Foundation API with nothing on screen; CalendarSearchTests holds the answers to Foundation on macOS and Linux."
         },
         {
+          "api": "Calendar.minimumRange(of:) / maximumRange(of:) / NSDateComponentUndefined / NumberFormatter.Style.ordinal / Locale.collatorIdentifier / NSString.substring(to:)",
+          "status": "partial",
+          "notes": "On wasm: the Gregorian ranges of each unit, as Foundation gives them, for every calendar; ordinals with English suffixes ('1st', '11th', '1,000th'); the collator identifier is the locale's own. Formatter is an NSObject, as Apple's is, so a struct holding one stays Hashable (2026-11-08).",
+          "noFixture": "Foundation API with nothing on screen; SwiftDateGapsTests holds the answers to Foundation on macOS and Linux."
+        },
+        {
           "api": "Date.FormatStyle / Date.VerbatimFormatStyle / Date.RelativeFormatStyle / Date.ParseStrategy / Date.FormatString / .iso8601",
           "status": "partial",
           "notes": "The date and time styles (numeric, abbreviated, long, complete; shortened, standard, complete) and every field symbol as en patterns (CLDR en availableFormats with ICU's width rules, ', ' after a numeric date and ' at ' after a month name, the hmsz quirk included), parsing back through the pattern, ISO 8601 with its separators and fractional seconds, relative dates rounded as Date.RelativeFormatStyle rounds them ('yesterday', 'in 2 hours'), FormatString interpolation; English symbols in every locale (Locale is an identifier); `Date.ISO8601FormatStyle` names FoundationEssentials' type, `.iso8601` and `Date.ISO8601Style` this module's (2026-10-09)",
@@ -2174,7 +2180,7 @@
         {
           "api": "DateFormatter / RelativeDateTimeFormatter",
           "status": "partial",
-          "notes": "dateStyle and timeStyle (short 'M/d/yy', medium, long, full with ' at ' from medium on), dateFormat patterns with every LDML letter and quoting, setLocalizedDateFormatFromTemplate and dateFormat(fromTemplate:), date(from:) through the pattern, the symbol arrays; RelativeDateTimeFormatter in whole units (full, spellOut, short, abbreviated) with named days, weeks, months and years (2026-10-09)",
+          "notes": "dateStyle and timeStyle (short 'M/d/yy', medium, long, full with ' at ' from medium on), dateFormat patterns with every LDML letter and quoting, setLocalizedDateFormatFromTemplate and dateFormat(fromTemplate:), date(from:) through the pattern, the symbol arrays (the standalone very short months and weekdays and the standalone quarters too, 2026-11-08); RelativeDateTimeFormatter in whole units (full, spellOut, short, abbreviated) with named days, weeks, months and years (2026-10-09)",
           "noFixture": "DateFormattingTests holds the patterns to Foundation on macOS; WasmFoundationTests the classes."
         },
         {
