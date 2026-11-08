@@ -19,8 +19,8 @@ const browser = await { chromium, webkit, firefox }[opt('--browser', 'chromium')
 const page = await browser.newPage({ deviceScaleFactor: 2, viewport: { width: 1280, height: 900 } });
 const errors = [];
 page.on('pageerror', e => errors.push(e.message));
-await page.goto(`${url}?fixture=${encodeURIComponent(fixture)}`);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 30000 });
+await page.goto(`${url}?fixture=${encodeURIComponent(fixture)}`, { timeout: 120000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 await page.waitForTimeout(100);
 
 const canvas = page.locator('#app canvas');

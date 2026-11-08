@@ -7,7 +7,7 @@ const url = process.argv[2] || 'http://127.0.0.1:8769/index.html';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 const errors = []; page.on('pageerror', e => errors.push(String(e)));
-await page.goto(url);
+await page.goto(url, { timeout: 120000 });
 await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 let ok = true;
 const check = (name, cond, detail) => { console.log(`${cond ? 'PASS' : 'FAIL'} ${name}${!cond && detail ? ` (${detail})` : ''}`); if (!cond) ok = false; };

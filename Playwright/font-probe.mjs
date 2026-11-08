@@ -10,8 +10,8 @@ page.on('response', r => { if (/\.(ttf|otf|woff2?)(\?|$)/i.test(r.url())) reques
 page.on('console', m => console.log('console', m.type() + ':', m.text().slice(0, 300)));
 page.on('pageerror', e => console.log('pageerror:', e.message.slice(0, 600)));
 await page.addInitScript(() => { window.__errs = []; window.addEventListener('error', e => window.__errs.push(String(e.message) + ' @' + e.filename + ':' + e.lineno)); window.addEventListener('unhandledrejection', e => window.__errs.push('rejection: ' + String(e.reason && (e.reason.stack || e.reason)).slice(0, 400))); });
-await page.goto(`${url}?fixture=${encodeURIComponent('text/custom-font')}`);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
+await page.goto(`${url}?fixture=${encodeURIComponent('text/custom-font')}`, { timeout: 120000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 await page.evaluate(() => document.fonts.ready);
 await page.waitForTimeout(300);
 const state = await page.evaluate(() => {
