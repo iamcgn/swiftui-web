@@ -349,6 +349,60 @@ public struct URLError: Error, Hashable, @unchecked Sendable, CustomStringConver
     public func hash(into hasher: inout Hasher) { hasher.combine(code) }
 }
 
+/// Foundation names every code on `URLError` itself too (`URLError.cancelled`); computed, so an
+/// app ships only the ones it names.
+extension URLError {
+    public static var unknown: Code { .unknown }
+    public static var cancelled: Code { .cancelled }
+    public static var badURL: Code { .badURL }
+    public static var timedOut: Code { .timedOut }
+    public static var unsupportedURL: Code { .unsupportedURL }
+    public static var cannotFindHost: Code { .cannotFindHost }
+    public static var cannotConnectToHost: Code { .cannotConnectToHost }
+    public static var networkConnectionLost: Code { .networkConnectionLost }
+    public static var resourceUnavailable: Code { .resourceUnavailable }
+    public static var notConnectedToInternet: Code { .notConnectedToInternet }
+    public static var badServerResponse: Code { .badServerResponse }
+    public static var userCancelledAuthentication: Code { .userCancelledAuthentication }
+    public static var cannotDecodeRawData: Code { .cannotDecodeRawData }
+    public static var cannotParseResponse: Code { .cannotParseResponse }
+    public static var secureConnectionFailed: Code { .secureConnectionFailed }
+    public static var backgroundSessionRequiresSharedContainer: Code { .backgroundSessionRequiresSharedContainer }
+    public static var backgroundSessionInUseByAnotherProcess: Code { .backgroundSessionInUseByAnotherProcess }
+    public static var backgroundSessionWasDisconnected: Code { .backgroundSessionWasDisconnected }
+    public static var dnsLookupFailed: Code { .dnsLookupFailed }
+    public static var httpTooManyRedirects: Code { .httpTooManyRedirects }
+    public static var redirectToNonExistentLocation: Code { .redirectToNonExistentLocation }
+    public static var userAuthenticationRequired: Code { .userAuthenticationRequired }
+    public static var zeroByteResource: Code { .zeroByteResource }
+    public static var cannotDecodeContentData: Code { .cannotDecodeContentData }
+    public static var internationalRoamingOff: Code { .internationalRoamingOff }
+    public static var callIsActive: Code { .callIsActive }
+    public static var dataNotAllowed: Code { .dataNotAllowed }
+    public static var requestBodyStreamExhausted: Code { .requestBodyStreamExhausted }
+    public static var appTransportSecurityRequiresSecureConnection: Code { .appTransportSecurityRequiresSecureConnection }
+    public static var fileDoesNotExist: Code { .fileDoesNotExist }
+    public static var fileIsDirectory: Code { .fileIsDirectory }
+    public static var noPermissionsToReadFile: Code { .noPermissionsToReadFile }
+    public static var dataLengthExceedsMaximum: Code { .dataLengthExceedsMaximum }
+    public static var fileOutsideSafeArea: Code { .fileOutsideSafeArea }
+    public static var serverCertificateHasBadDate: Code { .serverCertificateHasBadDate }
+    public static var serverCertificateUntrusted: Code { .serverCertificateUntrusted }
+    public static var serverCertificateHasUnknownRoot: Code { .serverCertificateHasUnknownRoot }
+    public static var serverCertificateNotYetValid: Code { .serverCertificateNotYetValid }
+    public static var clientCertificateRejected: Code { .clientCertificateRejected }
+    public static var clientCertificateRequired: Code { .clientCertificateRequired }
+    public static var cannotLoadFromNetwork: Code { .cannotLoadFromNetwork }
+    public static var cannotCreateFile: Code { .cannotCreateFile }
+    public static var cannotOpenFile: Code { .cannotOpenFile }
+    public static var cannotCloseFile: Code { .cannotCloseFile }
+    public static var cannotWriteToFile: Code { .cannotWriteToFile }
+    public static var cannotRemoveFile: Code { .cannotRemoveFile }
+    public static var cannotMoveFile: Code { .cannotMoveFile }
+    public static var downloadDecodingFailedMidStream: Code { .downloadDecodingFailedMidStream }
+    public static var downloadDecodingFailedToComplete: Code { .downloadDecodingFailedToComplete }
+}
+
 /// A configuration object that defines behavior and policies for a URL session.
 public final class URLSessionConfiguration: @unchecked Sendable {
     public static var `default`: URLSessionConfiguration { URLSessionConfiguration() }
