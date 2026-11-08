@@ -94,6 +94,9 @@ private final class Recorder: NSObject, XMLParserDelegate {
         #expect(plain.events.contains("<media:thumbnail url=a.png>"))
     }
 
+    // Linux's FoundationXML returns true from parse() for these documents and reports another
+    // code for an abort, so they hold WebFoundation to Apple's Foundation (macOS) only.
+    #if !os(Linux)
     @Test func malformedDocumentsStop() {
         let mismatch = parse("<a><b></a>")
         #expect(!mismatch.ok && mismatch.code == XMLParser.ErrorCode.tagNameMismatchError.rawValue)
@@ -108,6 +111,7 @@ private final class Recorder: NSObject, XMLParserDelegate {
         #expect(!result.ok && result.code == XMLParser.ErrorCode.delegateAbortedParseError.rawValue)
         #expect(!result.events.contains("<c>"))
     }
+    #endif
 
     #if os(WASI)
     @Test func internalEntitiesAreReplaced() {

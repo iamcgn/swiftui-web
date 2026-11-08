@@ -60,8 +60,9 @@ extension XMLParserDelegate {
     public func parser(_ parser: XMLParser, validationErrorOccurred validationError: Error) {}
 }
 
-/// An event-driven parser of XML documents.
-open class XMLParser: NSObject, @unchecked Sendable {
+/// An event-driven parser of XML documents. (Not an `NSObject` here, as WebFoundation's other
+/// parsers aren't, so an app that never names it doesn't link it.)
+open class XMLParser: @unchecked Sendable {
     /// The error domain of `parserError`.
     public static let errorDomain = "NSXMLParserErrorDomain"
 
@@ -119,7 +120,6 @@ open class XMLParser: NSObject, @unchecked Sendable {
 
     public init(data: Data) {
         self.data = data
-        super.init()
     }
 
     public convenience init?(contentsOf url: URL) {
