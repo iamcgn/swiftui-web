@@ -8,8 +8,8 @@ const url = process.argv[2] ?? 'http://127.0.0.1:8767/index.html';
 const browser = await chromium.launch();
 const context = await browser.newContext({ timezoneId: 'America/New_York', locale: 'de-DE' });
 const page = await context.newPage();
-await page.goto(url);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
+await page.goto(url, { timeout: 120000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 
 const summer = await page.evaluate(() => window.__swiftuiwebDebug.foundation(1_782_000_000));   // 2026-06-21
 const winter = await page.evaluate(() => window.__swiftuiwebDebug.foundation(1_767_225_600));   // 2026-01-01

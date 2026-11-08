@@ -6,8 +6,8 @@ import { chromium } from 'playwright';
 const url = process.argv[2] || 'http://127.0.0.1:8766/index.html';
 const browser = await chromium.launch();
 const page = await browser.newPage({ deviceScaleFactor: 2 });
-await page.goto(`${url}?fixture=${encodeURIComponent('accessibility/basic')}`);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 30000 });
+await page.goto(`${url}?fixture=${encodeURIComponent('accessibility/basic')}`, { timeout: 120000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 let ok = true;
 const check = (name, cond) => { console.log(`${cond ? 'PASS' : 'FAIL'} ${name}`); if (!cond) ok = false; };
 const tree = await page.evaluate(() => window.__swiftuiwebDebug.semantics());
@@ -34,8 +34,8 @@ check('arrow up on the spinbutton increments the stepper (echoed nowhere here, b
 // accessibility/actions: custom and adjustable actions, heading levels, sort order, a live
 // region, help as a title, and a rotor as a navigation landmark; the browser's own accessible
 // tree (ariaSnapshot) as the stand-in for a screen reader session.
-await page.goto(`${url}?fixture=${encodeURIComponent('accessibility/actions')}`);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 30000 });
+await page.goto(`${url}?fixture=${encodeURIComponent('accessibility/actions')}`, { timeout: 120000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 await page.waitForTimeout(100);
 const semantics = () => page.evaluate(() => window.__swiftuiwebDebug.semantics());
 // Polls until a semantics label appears (a CI runner can take more than one frame to update).

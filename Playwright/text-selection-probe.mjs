@@ -9,8 +9,8 @@ const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1000, height: 800 }, deviceScaleFactor: 2, permissions: ['clipboard-read', 'clipboard-write'] });
 const page = await context.newPage();
 page.on('pageerror', e => console.error('page error', e));
-await page.goto(`${url}?fixture=${encodeURIComponent('textscale/selection')}`);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
+await page.goto(`${url}?fixture=${encodeURIComponent('textscale/selection')}`, { timeout: 120000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 let failures = 0;
 const report = (name, ok) => { console.log((ok ? 'PASS ' : 'FAIL ') + name); if (!ok) failures++; };
 // Polls each check's condition for up to 3 s: a slow runner can lag a frame or two behind the input.

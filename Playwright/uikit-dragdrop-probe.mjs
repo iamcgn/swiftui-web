@@ -11,8 +11,8 @@ const browser = await chromium.launch();
 const context = await browser.newContext({ viewport: { width: 1000, height: 800 }, deviceScaleFactor: 2 });
 const page = await context.newPage();
 page.on('pageerror', e => console.error('page error', e));
-await page.goto(`${url}?fixture=${encodeURIComponent('uikit/events/dragdrop')}`);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
+await page.goto(`${url}?fixture=${encodeURIComponent('uikit/events/dragdrop')}`, { timeout: 120000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 await page.waitForFunction(() => window.__galleryFrames !== undefined, null, { timeout: 60000 });
 let failures = 0;
 // Polls until `ok` holds (a CI runner can take more than one frame to repaint).

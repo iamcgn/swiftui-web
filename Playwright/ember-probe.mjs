@@ -51,7 +51,13 @@ const isFramedSiteError = (stack) => {
   const origins = [...(stack || '').matchAll(/https?:\/\/[^/\s)]+/g)].map(m => m[0]);
   return origins.length > 0 && origins.every(o => o !== appOrigin);
 };
+// A framed article's minified script can throw a value with no stack at all (seen: "t"), so
+// nothing names its origin. While a page of another origin is framed, such an error is counted
+// as that site's; with none framed, it is the app's.
+const framesAnotherSite = () => page.frames().some(f => /^https?:/.test(f.url()) && !f.url().startsWith(appOrigin));
 page.on('pageerror', e => {
+  const stackless = !/https?:\/\//.test(e.stack || '');
+  if (stackless && framesAnotherSite()) { report.framed_site_errors.push('stackless while a site was framed: ' + e.message); return; }
   if (isFramedSiteError(e.stack)) { report.framed_site_errors.push(e.message + ' ' + (e.stack || '').split('\n').slice(1, 3).join(' <- ')); return; }
   problems.push('pageerror: ' + e.message + ' ' + (e.stack || '').split('\n').slice(1, 6).join(' <- '));
 });

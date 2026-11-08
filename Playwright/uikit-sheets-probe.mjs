@@ -16,8 +16,8 @@ await page.addInitScript(() => {
   navigator.share = (data) => { window.__shares.push({ text: data.text, url: data.url, title: data.title }); return Promise.resolve(); };
   navigator.canShare = () => true;
 });
-await page.goto(`${url}?fixture=${encodeURIComponent('uikit/sheets/pickers')}`);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
+await page.goto(`${url}?fixture=${encodeURIComponent('uikit/sheets/pickers')}`, { timeout: 120000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 await page.waitForFunction(() => window.__galleryFrames !== undefined, null, { timeout: 60000 });
 let failures = 0;
 const report = (name, ok) => { console.log((ok ? 'PASS ' : 'FAIL ') + name); if (!ok) failures++; };

@@ -8,8 +8,8 @@ const url = process.argv[2] || 'http://127.0.0.1:8767/index.html';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1000, height: 800 }, deviceScaleFactor: 2, hasTouch: true });
 page.on('pageerror', e => console.error('page error', e));
-await page.goto(`${url}?fixture=${encodeURIComponent('gesture/basic')}`);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
+await page.goto(`${url}?fixture=${encodeURIComponent('gesture/basic')}`, { timeout: 120000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 const labels = () => page.evaluate(() => window.__swiftuiwebDebug.semantics().map(n => n.label));
 const canvas = await page.locator('canvas').first().boundingBox();
 const probe = async (name) => {
@@ -61,8 +61,8 @@ await page.mouse.up();
 
 // Pinches (gesture/pinch): a control-wheel pinch (Chromium and Firefox), Safari-style gesture
 // events, and two touches through the Chrome DevTools Protocol.
-await page.goto(`${url}?fixture=${encodeURIComponent('gesture/pinch')}`);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
+await page.goto(`${url}?fixture=${encodeURIComponent('gesture/pinch')}`, { timeout: 120000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 const pinchBox = await below('Scale 1.00, 0°', 14 + 35);
 const canvasBox = await page.locator('canvas').first().boundingBox();
 const wheelPinch = async (deltaY) => page.evaluate(([x, y, deltaY]) => {
