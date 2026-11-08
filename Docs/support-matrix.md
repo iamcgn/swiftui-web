@@ -14,8 +14,8 @@ Generated from `Docs/support.json` (last edited 2026-11-06) by `scripts/gen-prog
 |---|---|---|---|---|---|---|
 | SwiftUI | 164 | 42 | 112 | 3 | 6 | 1 |
 | UIKit | 58 | 20 | 34 | 4 | 0 | 0 |
-| Interop | 47 | 4 | 43 | 0 | 0 | 0 |
-| **All** | **269** | 66 | 189 | 7 | 6 | 1 |
+| Interop | 48 | 4 | 44 | 0 | 0 | 0 |
+| **All** | **270** | 66 | 190 | 7 | 6 | 1 |
 
 ## App lifecycle
 
