@@ -2304,6 +2304,12 @@
           "noFixture": "Imports and Foundation API with nothing on screen; the Launches app compiles both import forms in CI, and OpenAPIRuntimeGapsTests holds the API to Foundation on macOS and Linux."
         },
         {
+          "api": "XMLParser / XMLParserDelegate / FoundationXML module",
+          "status": "partial",
+          "notes": "On wasm: a streaming parser written here reports the document, elements with their attributes, text, CDATA, comments and processing instructions in order; character references, the five predefined entities and those an internal DOCTYPE subset declares are replaced; namespaces are split and mapped when asked; a malformed document stops with the error code naming what was wrong and its line (current macOS reports 111, a stopped parse, for some of them). FoundationXML names the parser where Linux's Foundation keeps it. parse() cannot be overridden, which keeps the parser out of apps that never use it. No validation, and no external entities or DTDs are read; text comes in runs between markup; documents are UTF-8, UTF-16 by byte-order mark, or Latin-1 when declared (2026-11-07).",
+          "noFixture": "Foundation API with nothing on screen; XMLParserTests holds the events to Foundation on macOS and Linux, and the Launches app compiles both import forms in CI."
+        },
+        {
           "api": "LocalAuthentication: LAContext / LAPolicy / LAError / LABiometryType",
           "status": "partial",
           "notes": "On wasm: a page can't ask for Face ID, Touch ID or the device passcode, so a context reports biometryType none, canEvaluatePolicy answers false with biometryNotAvailable (passcodeNotSet for the owner policy), and evaluatePolicy replies false with the same error on the main queue's next turn, or throws in its async form. Apps take their path for a device without biometry. LAError matches its codes in catch and case patterns and bridges to NSError in its own domain (2026-11-06).",
