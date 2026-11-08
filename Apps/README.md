@@ -21,10 +21,10 @@ not a claim in the others. The flows leave `report.json` (commit, pin, every flo
 `full_app_pass`), screenshots and a trace under `.build/apps/<app>`, uploaded as the
 `apps-evidence` artifact; `full_app_pass` is true only when every flow passed, and a blocked
 flow records what blocks it rather than being stubbed around (Scrumdinger's meeting was
-blocked on speech until decision 0022's recogniser, 2026-10-23; all four apps pass now). The flows (`Playwright/scrumdinger-probe.mjs`, `Playwright/ember-probe.mjs`,
-`Playwright/2048-probe.mjs`, `Playwright/charts-probe.mjs`) are each a CI step of their own.
+blocked on speech until decision 0022's recogniser, 2026-10-23; all five apps pass now). The flows (`Playwright/scrumdinger-probe.mjs`, `Playwright/ember-probe.mjs`,
+`Playwright/2048-probe.mjs`, `Playwright/charts-probe.mjs`, `Playwright/buttoncraft-probe.mjs`) are each a CI step of their own.
 
-To run an app by hand: `scripts/build-wasm.sh Apps --debug --product <SwiftUI2048|Scrumdinger|Ember|ChartsExamples>`
+To run an app by hand: `scripts/build-wasm.sh Apps --debug --product <SwiftUI2048|Scrumdinger|Ember|ChartsExamples|Buttoncraft>`
 (the last product built is what `Apps/index.html` loads; SwiftUI2048 needs the Objective-C
 runtime SDK, `SWIFTUIWEB_WASM_SDK=swift-6.3.3-RELEASE_wasm-objc`, decision 0023; Ember is
 built in release, `--debug` lays out a comment thread in tens of seconds), serve `Apps/` and
@@ -55,6 +55,7 @@ link to the page in a tab of its own; favicons show the app's globe fallback
 | Scrumdinger | [Sedlacek-Solutions/Scrumdinger](https://github.com/Sedlacek-Solutions/Scrumdinger) | `d575833721b0428ab407ceef10a7d43cffb7ad9f` | 2025-05-17 | MIT |
 | Ember | [DatanoiseTV/ember-hackernews](https://github.com/DatanoiseTV/ember-hackernews) | `1ed87d7fcf2f3a6eeb466595f45300e10aba5267` | 2026-06-24 | MIT |
 | Swift Charts Examples | [jordibruin/Swift-Charts-Examples](https://github.com/jordibruin/Swift-Charts-Examples) | `5134bcfff65ce169ef0b23412d95daef383ea537` | 2025-05-25 | MIT |
+| buttoncraft | [atrinh0/buttoncraft](https://github.com/atrinh0/buttoncraft) | `fe0bbb84bc62fdf84f3f3ed97ba1bf194e4e13b8` | 2024-11-13 | MIT |
 
 Retired 2026-10-22: [nalexn/clean-architecture-swiftui](https://github.com/nalexn/clean-architecture-swiftui)
 (CountriesSwiftUI, pinned `9eca97b8`, with its EnvironmentOverrides dependency) — the app
@@ -84,6 +85,7 @@ through other build phases:
 | Configuration, Resources, Scrum | `Scrumdinger/Library/Sources/*` (Library/Package.swift) | — | Resources: `Media.xcassets` (theme colours), as upstream |
 | Ember | `ember-hackernews` (XcodeGen `project.yml`: `Sources` + `Resources`, SWIFT_VERSION 5.0, iOS 18) | `EmberSkip/` (the Skip port), `Tools/`, `docs/`, `project.yml`, the text files, `Resources/Info.plist`, `Resources/PrivacyInfo.xcprivacy` | `Resources/Assets.xcassets` (accent, icon, launch colour), `Resources/Fonts` (Inter), as the target's |
 | ChartsExamples | `Swift Charts Examples` (Xcode target, Swift 5 mode) | `Swift_Charts_Examples.entitlements`, `Preview Content/` | `Assets.xcassets` |
+| Buttoncraft | `buttoncraft/buttoncraft` (Xcode target, SWIFT_VERSION 5.0, iOS 14) | `Info.plist`, `Launch Screen.storyboard`, `Preview Content/` | `Assets.xcassets` (accent, icon, the GitHub mark PDF) |
 
 Not compiled from any app: the apps' Xcode test targets (`ScrumdingerUITests`,
 `Models/Tests`), their `SwiftUI2048-mac` Catalyst target, Ember's `EmberSkip` (its Skip/Android

@@ -10,3 +10,6 @@
 [submodule "Apps/upstream/Swift-Charts-Examples"]
 	path = Apps/upstream/Swift-Charts-Examples
 	url = https://github.com/jordibruin/Swift-Charts-Examples
+[submodule "Apps/upstream/buttoncraft"]
+	path = Apps/upstream/buttoncraft
+	url = https://github.com/atrinh0/buttoncraft

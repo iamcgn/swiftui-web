@@ -114,6 +114,12 @@ extension Color {
         switch storage {
         case .rgba(let r, let g, let b, let a):
             base = RGBA(red: r, green: g, blue: b, alpha: a)
+        case .system(.accentColor) where environment._accentColor != nil:
+            // `accentColor(_:)` on an enclosing view, resolved outside it (it may itself be
+            // `.accentColor`).
+            var outer = environment
+            outer._accentColor = nil
+            base = environment._accentColor!.resolve(in: outer)
         case .system(.accentColor):
             // The app's accent: its catalog's `AccentColor` set (Xcode's ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME)
             // when it has one, the platform's blue otherwise.
