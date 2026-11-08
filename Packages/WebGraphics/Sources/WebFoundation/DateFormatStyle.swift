@@ -502,15 +502,19 @@ open class DateFormatter: Formatter {
     open var standaloneMonthSymbols = _DatePattern.monthNames
     open var shortStandaloneMonthSymbols = _DatePattern.shortMonthNames
     open var veryShortMonthSymbols = _DatePattern.monthNames.map { String($0.prefix(1)) }
+    open var veryShortStandaloneMonthSymbols = _DatePattern.monthNames.map { String($0.prefix(1)) }
     open var weekdaySymbols = _DatePattern.weekdayNames
     open var shortWeekdaySymbols = _DatePattern.shortWeekdayNames
     open var standaloneWeekdaySymbols = _DatePattern.weekdayNames
     open var shortStandaloneWeekdaySymbols = _DatePattern.shortWeekdayNames
     open var veryShortWeekdaySymbols = _DatePattern.weekdayNames.map { String($0.prefix(1)) }
+    open var veryShortStandaloneWeekdaySymbols = _DatePattern.weekdayNames.map { String($0.prefix(1)) }
     open var eraSymbols = ["BC", "AD"]
     open var longEraSymbols = ["Before Christ", "Anno Domini"]
     open var quarterSymbols = ["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"]
     open var shortQuarterSymbols = ["Q1", "Q2", "Q3", "Q4"]
+    open var standaloneQuarterSymbols = ["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"]
+    open var shortStandaloneQuarterSymbols = ["Q1", "Q2", "Q3", "Q4"]
 
     public override init() { super.init() }
 
