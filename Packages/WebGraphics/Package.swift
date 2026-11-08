@@ -39,8 +39,8 @@ let package = Package(
             name: "WebFoundation",
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
-        // Foundation's less used formatting on wasm, re-exported by `import Foundation` only
-        // (Packages/Shadows), so an app that never formats a list or a duration does not ship it.
+        // Foundation's less used formatting, calendar search and XMLParser on wasm, re-exported by
+        // `import Foundation` only (Packages/Shadows), so an app that never uses them does not ship them.
         .target(
             name: "WebFoundationFormats",
             dependencies: ["WebFoundation"],

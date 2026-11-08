@@ -452,10 +452,9 @@ public struct Calendar: Hashable, Sendable, Codable, CustomStringConvertible {
         return Date(timeIntervalSince1970: time)
     }
 
-    /// The date on the same day at the time (the policies are accepted: the time the zone
-    /// gives for it).
-    public func date(bySettingHour hour: Int, minute: Int, second: Int, of date: Date, matchingPolicy: MatchingPolicy = .nextTime,
-                     repeatedTimePolicy: RepeatedTimePolicy = .first, direction: SearchDirection = .forward) -> Date? {
+    /// The date on the same day at the time (WebFoundationFormats adds the form that takes the
+    /// search policies).
+    public func date(bySettingHour hour: Int, minute: Int, second: Int, of date: Date) -> Date? {
         let f = math.fields(date.timeIntervalSince1970)
         return Date(timeIntervalSince1970: math.time(year: f.year, month: f.month, day: f.day, hour: hour, minute: minute, second: second, era: f.era))
     }

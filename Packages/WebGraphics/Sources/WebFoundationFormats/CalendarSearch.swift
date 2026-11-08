@@ -9,9 +9,16 @@
 // first of the two (`RepeatedTimePolicy` is accepted), and a time skipped by a change is the
 // time the zone gives for it, except under `.strict`, which looks for the next day that has it.
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 
 extension Calendar {
+    /// The date on the same day at the time; the policies are accepted, and the time is the one
+    /// the zone gives for it.
+    public func date(bySettingHour hour: Int, minute: Int, second: Int, of date: Date, matchingPolicy: MatchingPolicy,
+                     repeatedTimePolicy: RepeatedTimePolicy = .first, direction: SearchDirection = .forward) -> Date? {
+        self.date(bySettingHour: hour, minute: minute, second: second, of: date)
+    }
+
     /// What a search does when the components name a date that doesn't exist, such as
     /// February 30.
     public enum MatchingPolicy: Hashable, Sendable {

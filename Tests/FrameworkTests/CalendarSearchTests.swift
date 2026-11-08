@@ -3,6 +3,7 @@
 // cases run against Foundation on macOS and Linux too, which holds WebFoundation's answers to it.
 import Testing
 import WebFoundation
+import WebFoundationFormats
 
 @Suite struct CalendarSearchTests {
     private var calendar: Calendar {

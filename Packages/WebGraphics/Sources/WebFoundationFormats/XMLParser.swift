@@ -9,7 +9,7 @@
 // delivered in runs between markup (Foundation may split a run at a reference); documents are
 // read as UTF-8 or UTF-16 by their byte-order mark, or as Latin-1 when the declaration says so.
 #if os(WASI)
-import FoundationEssentials
+import WebFoundation
 
 /// The interface an XML parser uses to inform its delegate about the content of the document.
 public protocol XMLParserDelegate: AnyObject {
