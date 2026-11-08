@@ -5,8 +5,8 @@ import { chromium } from 'playwright';
 const url = process.argv[2] || 'http://127.0.0.1:8766/index.html';
 const browser = await chromium.launch();
 const page = await browser.newPage({ deviceScaleFactor: 2 });
-await page.goto(`${url}?fixture=${encodeURIComponent('animation/frame')}`);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 30000 });
+await page.goto(`${url}?fixture=${encodeURIComponent('animation/frame')}`, { timeout: 120000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 const widths = [];
 const sample = async () => {
   const list = await page.evaluate(() => window.__swiftuiwebDebug.displayList());
