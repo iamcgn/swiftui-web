@@ -7,6 +7,7 @@ import WebGraphics
 import WebFoundation
 import WebFoundationFormats
 
+// The edges are named in full: Linux Foundation also gives `divided` an `NSRectEdge` form.
 @Suite struct SmallGapsTests {
     @Test func indexSetRuns() {
         let set: IndexSet = [1, 2, 3, 7, 9, 10]
@@ -19,15 +20,15 @@ import WebFoundationFormats
 
     @Test func dividingARectangle() {
         let rect = CGRect(x: 0, y: 0, width: 100, height: 50)
-        let left = rect.divided(atDistance: 30, from: .minXEdge)
+        let left = rect.divided(atDistance: 30, from: CGRectEdge.minXEdge)
         #expect(left.slice == CGRect(x: 0, y: 0, width: 30, height: 50) && left.remainder == CGRect(x: 30, y: 0, width: 70, height: 50))
-        let right = rect.divided(atDistance: 30, from: .maxXEdge)
+        let right = rect.divided(atDistance: 30, from: CGRectEdge.maxXEdge)
         #expect(right.slice == CGRect(x: 70, y: 0, width: 30, height: 50) && right.remainder == CGRect(x: 0, y: 0, width: 70, height: 50))
-        let top = rect.divided(atDistance: 20, from: .minYEdge)
+        let top = rect.divided(atDistance: 20, from: CGRectEdge.minYEdge)
         #expect(top.slice == CGRect(x: 0, y: 0, width: 100, height: 20) && top.remainder == CGRect(x: 0, y: 20, width: 100, height: 30))
-        let bottom = rect.divided(atDistance: 20, from: .maxYEdge)
+        let bottom = rect.divided(atDistance: 20, from: CGRectEdge.maxYEdge)
         #expect(bottom.slice == CGRect(x: 0, y: 30, width: 100, height: 20) && bottom.remainder == CGRect(x: 0, y: 0, width: 100, height: 30))
-        let all = rect.divided(atDistance: 200, from: .minXEdge)
+        let all = rect.divided(atDistance: 200, from: CGRectEdge.minXEdge)
         #expect(all.slice == rect && all.remainder.isEmpty)
     }
 
