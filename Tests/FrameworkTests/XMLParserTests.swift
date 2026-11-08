@@ -99,7 +99,8 @@ private final class Recorder: NSObject, XMLParserDelegate {
     #if !os(Linux)
     @Test func malformedDocumentsStop() {
         let mismatch = parse("<a><b></a>")
-        #expect(!mismatch.ok && mismatch.code == XMLParser.ErrorCode.tagNameMismatchError.rawValue)
+        #expect(!mismatch.ok)
+        #expect(mismatch.code == XMLParser.ErrorCode.tagNameMismatchError.rawValue)
         #expect(!parse("").ok)
         #expect(!parse("<a>&nbsp;</a>").ok)
         #expect(!parse("<a>").ok)
