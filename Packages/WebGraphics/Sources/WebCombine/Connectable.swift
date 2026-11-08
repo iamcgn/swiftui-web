@@ -69,23 +69,12 @@ extension Publishers {
             return upstream._subscribeFromAnywhere({ subject.send($0) }, { subject.send(completion: $0) })
         }
     }
+}
 
-    /// A connectable publisher over an upstream that never fails, shared through a
-    /// `PassthroughSubject`.
-    public struct MakeConnectable<Upstream: Publisher>: ConnectablePublisher {
-        public typealias Output = Upstream.Output
-        public typealias Failure = Upstream.Failure
-        private let inner: Multicast<Upstream, PassthroughSubject<Output, Failure>>
-
-        public init(upstream: Upstream) { inner = Multicast(upstream: upstream) { PassthroughSubject() } }
-
-        @MainActor public func _subscribe(_ receive: @escaping @MainActor (Output) -> Void,
-                                          _ complete: @escaping @MainActor (Subscribers.Completion<Failure>) -> Void) -> AnyCancellable {
-            inner._subscribe(receive, complete)
-        }
-
-        public func connect() -> any Cancellable { inner.connect() }
-    }
+extension Publishers {
+    /// A connectable wrapper around a publisher, shared through a `PassthroughSubject` (a
+    /// multicast here rather than a type of its own, one publisher type fewer to link).
+    public typealias MakeConnectable<Upstream: Publisher> = Multicast<Upstream, PassthroughSubject<Upstream.Output, Upstream.Failure>>
 }
 
 extension Publisher {
@@ -104,7 +93,7 @@ extension Publisher {
 
 extension Publisher where Failure == Never {
     /// A connectable wrapper around this publisher.
-    public func makeConnectable() -> Publishers.MakeConnectable<Self> { Publishers.MakeConnectable(upstream: self) }
+    public func makeConnectable() -> Publishers.MakeConnectable<Self> { multicast { PassthroughSubject() } }
 }
 
 /// A type-erasing subscriber.
