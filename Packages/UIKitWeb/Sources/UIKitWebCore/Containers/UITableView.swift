@@ -1526,7 +1526,7 @@ func _makeRegisteredCell(_ type: UITableViewCell.Type, reuseIdentifier: String) 
     typealias Alloc = @convention(c) (UnsafeRawPointer, Selector) -> UnsafeMutableRawPointer?
     typealias Initialize = @convention(c) (UnsafeMutableRawPointer, Selector, Int, UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer?
     let cls: AnyClass = type
-    let alloc = Selector(("alloc"))   // +alloc is unavailable to `#selector` in Swift
+    let alloc = sel_registerName("alloc")   // Swift's `#selector` cannot name +alloc
     let initialize = #selector(UITableViewCell.init(style:reuseIdentifier:))
     // The class object as an object (no bridging): its class is the metaclass, which holds `+alloc`.
     guard let metaclass = object_getClass(unsafeBitCast(cls, to: AnyObject.self)),
