@@ -11,6 +11,7 @@
 @_exported import struct WebGraphics.CGPoint
 @_exported import struct WebGraphics.CGSize
 @_exported import struct WebGraphics.CGRect
+@_exported import enum WebGraphics.CGRectEdge
 @_exported import struct WebGraphics.CGVector
 @_exported import struct WebGraphics.CGAffineTransform
 @_exported import class WebGraphics.CGColor

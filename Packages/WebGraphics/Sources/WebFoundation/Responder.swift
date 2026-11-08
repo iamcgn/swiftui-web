@@ -53,6 +53,19 @@ public struct CharacterSet: @unchecked Sendable {
         }
     }
     public static let controlCharacters = CharacterSet { $0.properties.generalCategory == .control }
+    /// Titlecase letters (category Lt): "ǅ".
+    public static let capitalizedLetters = CharacterSet { $0.properties.generalCategory == .titlecaseLetter }
+    /// Combining marks (categories Mn, Mc and Me), which attach to the character before them.
+    public static let nonBaseCharacters = CharacterSet {
+        switch $0.properties.generalCategory {
+        case .nonspacingMark, .spacingMark, .enclosingMark: return true
+        default: return false
+        }
+    }
+    /// Scalars with a canonical decomposition, such as "é" (e and a combining acute accent).
+    public static let decomposables = CharacterSet { !String($0).decomposedStringWithCanonicalMapping.unicodeScalars.elementsEqual([$0]) }
+    /// Scalars Unicode leaves unassigned, the noncharacters among them.
+    public static let illegalCharacters = CharacterSet { $0.properties.generalCategory == .unassigned }
 }
 
 /// `["\""]`, as `trimmingCharacters(in:)` and `components(separatedBy:)` take a set.

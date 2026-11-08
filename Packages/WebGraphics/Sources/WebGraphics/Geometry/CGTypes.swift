@@ -154,6 +154,32 @@ extension CGRect {
     }
 }
 
+/// A side of a rectangle, as `CGRect.divided(atDistance:from:)` names it.
+public enum CGRectEdge: UInt32, Sendable {
+    case minXEdge, minYEdge, maxXEdge, maxYEdge
+}
+
+extension CGRect {
+    /// The strip `distance` wide along `edge` (clamped to the rectangle) and what is left, as
+    /// CoreGraphics divides a standardized rectangle.
+    public func divided(atDistance distance: CGFloat, from edge: CGRectEdge) -> (slice: CGRect, remainder: CGRect) {
+        if isNull { return (.null, .null) }
+        let r = standardized
+        switch edge {
+        case .minXEdge, .maxXEdge:
+            let d = min(max(distance, 0), r.width)
+            let sliceX = edge == .minXEdge ? r.minX : r.maxX - d
+            let restX = edge == .minXEdge ? r.minX + d : r.minX
+            return (CGRect(x: sliceX, y: r.minY, width: d, height: r.height), CGRect(x: restX, y: r.minY, width: r.width - d, height: r.height))
+        case .minYEdge, .maxYEdge:
+            let d = min(max(distance, 0), r.height)
+            let sliceY = edge == .minYEdge ? r.minY : r.maxY - d
+            let restY = edge == .minYEdge ? r.minY + d : r.minY
+            return (CGRect(x: r.minX, y: sliceY, width: r.width, height: d), CGRect(x: r.minX, y: restY, width: r.width, height: r.height - d))
+        }
+    }
+}
+
 public struct CGAffineTransform: Equatable, Hashable, Sendable {
     public var a: CGFloat, b: CGFloat, c: CGFloat, d: CGFloat, tx: CGFloat, ty: CGFloat
 

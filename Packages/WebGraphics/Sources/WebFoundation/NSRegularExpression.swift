@@ -38,6 +38,13 @@ public final class _WebNSString: Hashable, CustomStringConvertible, ExpressibleB
         return NSRange(found, in: string)
     }
     public func replacingOccurrences(of target: String, with replacement: String) -> String { string.replacingOccurrences(of: target, with: replacement) }
+    /// The string with the UTF-16 range replaced, as a text field's delegate builds the text an
+    /// edit would leave.
+    public func replacingCharacters(in range: NSRange, with replacement: String) -> String {
+        var units = utf16
+        units.replaceSubrange(range.location..<range.location + range.length, with: Array(replacement.utf16))
+        return String(decoding: units, as: UTF16.self)
+    }
     public var lastPathComponent: String { URL(fileURLWithPath: string).lastPathComponent }
     public var pathExtension: String { URL(fileURLWithPath: string).pathExtension }
     public var lowercased: String { string.lowercased() }
