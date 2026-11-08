@@ -202,7 +202,6 @@ private final class OneAtATime: Subscriber {
         #expect(OperationQueue.SchedulerTimeType.Stride.seconds(2) == 2)
         #expect(RunLoop.SchedulerTimeType.Stride.nanoseconds(1_000).timeInterval == 1e-6)
     }
-    #endif
 
     // combine-schedulers extends `AnyScheduler` once for each scheduler's time and options
     // types; they have to be distinct types for both extensions to compile.
@@ -210,8 +209,10 @@ private final class OneAtATime: Subscriber {
         #expect(SchedulerName<RunLoop>.name == "run loop")
         #expect(SchedulerName<OperationQueue>.name == "operation queue")
     }
+    #endif
 }
 
+#if !canImport(Darwin)
 private enum SchedulerName<S: Scheduler> {}
 extension SchedulerName where S.SchedulerTimeType == RunLoop.SchedulerTimeType, S.SchedulerOptions == RunLoop.SchedulerOptions {
     static var name: String { "run loop" }
@@ -219,3 +220,4 @@ extension SchedulerName where S.SchedulerTimeType == RunLoop.SchedulerTimeType, 
 extension SchedulerName where S.SchedulerTimeType == OperationQueue.SchedulerTimeType, S.SchedulerOptions == OperationQueue.SchedulerOptions {
     static var name: String { "operation queue" }
 }
+#endif
