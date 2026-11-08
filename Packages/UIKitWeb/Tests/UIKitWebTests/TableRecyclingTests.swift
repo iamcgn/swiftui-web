@@ -51,6 +51,59 @@ import UIKit
     }
 }
 
+/// Registered cell classes are made through their own `init(style:reuseIdentifier:)`.
+@Suite @MainActor struct RegisteredCellTests {
+    /// Overrides the style initializer and has a stored property of its own.
+    final class Badged: UITableViewCell {
+        var badge = "new"
+        var madeWith: String?
+        #if canImport(ObjectiveC)
+        override init(style: CellStyle, reuseIdentifier: String?) {
+            madeWith = reuseIdentifier
+            super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
+        }
+        #else
+        required init(style: CellStyle, reuseIdentifier: String?) {
+            madeWith = reuseIdentifier
+            super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
+        }
+        #endif
+        required init?(coder: NSCoder) { nil }
+    }
+
+    #if canImport(ObjectiveC)
+    /// Only an initializer of its own, as SwiftyFORM's cells have: it compiles because the
+    /// style initializer is not required, as in UIKit.
+    final class OwnInitializer: UITableViewCell {
+        let value: Int
+        init(value: Int) {
+            self.value = value
+            super.init(style: .value1, reuseIdentifier: nil)
+        }
+        required init?(coder: NSCoder) { nil }
+    }
+    #endif
+
+    @Test func registeredSubclassRunsItsOwnInitializer() throws {
+        let table = UITableView(frame: CGRect(x: 0, y: 0, width: 320, height: 400), style: .plain)
+        table.register(Badged.self, forCellReuseIdentifier: "badged")
+        let cell = try #require(table.dequeueReusableCell(withIdentifier: "badged") as? Badged)
+        #expect(cell.madeWith == "badged")
+        #expect(cell.badge == "new")
+        #expect(cell.style == .subtitle)
+        #expect(cell.reuseIdentifier == "badged")
+        #expect(cell.detailTextLabel != nil)
+        // The plain class still registers and dequeues.
+        table.register(UITableViewCell.self, forCellReuseIdentifier: "plain")
+        let plain = try #require(table.dequeueReusableCell(withIdentifier: "plain"))
+        #expect(type(of: plain) == UITableViewCell.self && plain.style == .default && plain.reuseIdentifier == "plain")
+        #if canImport(ObjectiveC)
+        let own = OwnInitializer(value: 3)
+        #expect(own.value == 3 && own.style == .value1)
+        #endif
+    }
+}
+
 /// Collection view headers and footers: laid out from the reference sizes, dequeued and pooled.
 @Suite @MainActor struct CollectionSupplementaryTests {
     final class Source: NSObject, UICollectionViewDataSource {

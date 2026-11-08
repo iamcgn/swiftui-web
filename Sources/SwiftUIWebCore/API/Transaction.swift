@@ -58,8 +58,8 @@ public struct Transaction {
 /// Executes a closure with the specified transaction and returns the result.
 ///
 /// The runtime consults `Transaction.current` while flushing the state changes made inside
-/// `body`.
-@MainActor
+/// `body`. Not isolated to the main actor, as SwiftUI's isn't: schedulers and reducers call it
+/// from nonisolated code (combine-schedulers' animated schedulers).
 public func withTransaction<Result>(
     _ transaction: Transaction,
     _ body: () throws -> Result
@@ -70,8 +70,8 @@ public func withTransaction<Result>(
     return try body()
 }
 
-/// Returns the result of recomputing the view's body with the provided animation.
-@MainActor
+/// Returns the result of recomputing the view's body with the provided animation. Not
+/// isolated to the main actor, as SwiftUI's isn't.
 public func withAnimation<Result>(_ animation: Animation? = .default, _ body: () throws -> Result) rethrows -> Result {
     var transaction = Transaction()
     transaction.animation = animation
@@ -119,7 +119,8 @@ public final class _AnimationCompletion {
 }
 
 extension Transaction {
-    /// The transaction in effect for state changes made on the main actor right now, if any.
-    @MainActor
-    package static var _current: Transaction? = nil
+    /// The transaction in effect for the state changes being made right now, if any. Set and
+    /// restored synchronously by `withTransaction`, which may run off the main actor; the
+    /// runtime reads it on the main actor (a page has one thread).
+    nonisolated(unsafe) package static var _current: Transaction? = nil
 }
