@@ -26,6 +26,25 @@ private struct Reader: View {
     }
 }
 
+/// The reader inside the scroll view it drives, as many apps place it.
+private struct InnerReader: View {
+    let target: Target
+    var body: some View {
+        ScrollView {
+            ScrollViewReader { proxy in
+                VStack(spacing: 0) {
+                    ForEach(0..<20, id: \.self) { index in
+                        Color.blue.frame(width: 100, height: 20)._probe("row\(index)").id(index)
+                    }
+                }
+                .onChange(of: target.row) { _, row in
+                    if let row { proxy.scrollTo(row, anchor: .bottom) }
+                }
+            }
+        }
+    }
+}
+
 @Observable
 private final class ValueBox {
     var value = 0.0
@@ -156,6 +175,22 @@ private struct Changing: View {
         target.row = 99                       // unknown id: nothing moves
         runtime.layout(in: CGSize(width: 300, height: 200))
         #expect(runtime.probeFrames["row0"]?.minY == 0)
+    }
+
+    @Test func scrollToReachesTheScrollViewAroundTheReader() {
+        let target = Target()
+        let runtime = Runtime()
+        runtime.mount(InnerReader(target: target))
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["row15"]?.minY == 300)
+
+        target.row = 15                       // anchor .bottom: the row ends at the bottom edge
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["row15"]?.minY == 180)
+
+        target.row = 99                       // unknown id: nothing moves
+        runtime.layout(in: CGSize(width: 300, height: 200))
+        #expect(runtime.probeFrames["row15"]?.minY == 180)
     }
 
     @Test func onChangeRunsAfterUpdatesWithOldAndNewValues() {

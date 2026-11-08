@@ -64,8 +64,8 @@ public struct ScrollViewProxy: Sendable {
         self.reader = reader
     }
 
-    /// Scans all scroll views contained by the proxy for the first with a child view with
-    /// identifier `id`, and then scrolls to that view. Without an anchor the view is scrolled
+    /// Scans all scroll views contained by the proxy, then those containing it, for the first
+    /// with a child view with identifier `id`, and then scrolls to that view. Without an anchor the view is scrolled
     /// into view with the smallest possible offset change; with one, the anchor of the view is
     /// aligned with the same anchor of the scroll view's visible area.
     @MainActor
@@ -74,6 +74,13 @@ public struct ScrollViewProxy: Sendable {
         let key = AnyHashable(id)
         for target in reader.descendants(where: { $0 is _ScrollTarget }) {
             if (target as! _ScrollTarget).scrollTo(id: key, anchor: anchor) { return }
+        }
+        // A reader placed inside its scroll view (`ScrollView { ScrollViewReader { ... } }`)
+        // scrolls the scroll views around it, nearest first.
+        var node = reader.parent
+        while let current = node {
+            if let target = current as? _ScrollTarget, target.scrollTo(id: key, anchor: anchor) { return }
+            node = current.parent
         }
     }
 }

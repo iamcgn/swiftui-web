@@ -435,6 +435,10 @@ package struct TintKey: EnvironmentKey {
     package static let defaultValue: Color? = nil
 }
 
+package struct AccentColorKey: EnvironmentKey {
+    package static let defaultValue: Color? = nil
+}
+
 extension EnvironmentValues {
     /// The size class of controls in this environment (progress spinners follow it).
     public var controlSize: ControlSize {
@@ -448,6 +452,12 @@ extension EnvironmentValues {
         get { self[TintKey.self] }
         set { self[TintKey.self] = newValue }
     }
+
+    /// The accent set by `accentColor(_:)`: what `Color.accentColor` draws inside it.
+    package var _accentColor: Color? {
+        get { self[AccentColorKey.self] }
+        set { self[AccentColorKey.self] = newValue }
+    }
 }
 
 extension View {
@@ -459,5 +469,12 @@ extension View {
     /// Sets the tint of controls in this view.
     nonisolated public func tint(_ tint: Color?) -> some View {
         environment(\._tint, tint)
+    }
+
+    /// Sets the accent color for this view and the views it contains: `Color.accentColor`
+    /// draws it, and so do the controls that use the accent (Apple's deprecated form of
+    /// `tint(_:)`). nil keeps the app's accent.
+    nonisolated public func accentColor(_ accentColor: Color?) -> some View {
+        environment(\._accentColor, accentColor)
     }
 }

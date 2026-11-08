@@ -109,5 +109,22 @@ private struct Item {
         #expect(active.contains { $0.hasPrefix("strokePath") && $0.hasSuffix("#FFFFFF") })
         #expect(active.contains { $0.hasPrefix("fillRRect") && $0.hasSuffix("#0088FF") })
     }
+
+    @Test func switchStyleTintAndAccentColor() {
+        // SwitchToggleStyle(tint:) colours the on track, as `.tint(_:)` does.
+        let red = Color(red: 1, green: 0, blue: 0)
+        let ios = runtime(Toggle("Enabled", isOn: .constant(true)).toggleStyle(SwitchToggleStyle(tint: red)).labelsHidden(), iOS: true)
+        #expect(commands(ios).contains { $0.hasPrefix("fillRRect") && $0.hasSuffix("#FF0000") })
+        // accentColor(_:): an active window's checkbox fills with it, not the platform's blue;
+        // `.accentColor(.accentColor)` is the app's accent again (and resolves).
+        let accented = runtime(VStack(spacing: 8) {
+            Toggle("Enabled", isOn: .constant(true)).labelsHidden().accentColor(Color(red: 0, green: 1, blue: 0))
+            Toggle("Enabled", isOn: .constant(true)).labelsHidden().accentColor(.accentColor)
+        })
+        accented.windowIsActive = true
+        let fills = commands(accented).filter { $0.hasPrefix("fillPath") }
+        #expect(fills.contains { $0.hasSuffix("#00FF00") })
+        #expect(fills.contains { $0.hasSuffix("#0088FF") })
+    }
 }
 #endif

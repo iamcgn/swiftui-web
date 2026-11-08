@@ -144,8 +144,9 @@ for (let i = 0; i < 10; i++) {
     await settle(t => t.includes('Choose your look'), 20);
     await idle();
     await tapText('Dark', 0, -20);
-    await page.waitForTimeout(800);
-    coverDark = await mostlyDark(195, 600);
+    // Polled: the scheme change repaints the cover on a later frame, which a busy runner can
+    // take past a fixed wait (the feed after it was dark when one look at 800 ms missed it).
+    for (let i = 0; i < 20 && !coverDark; i++) { await page.waitForTimeout(200); coverDark = await mostlyDark(195, 600); }
     await shot('1b-dark-cover');
   }
   if (button === 'Start Reading') break;

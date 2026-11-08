@@ -202,9 +202,13 @@ public struct CheckboxToggleStyle: ToggleStyle {
 
 /// A toggle style that displays a leading label and a trailing switch.
 public struct SwitchToggleStyle: ToggleStyle {
+    private var tint: Color?
     nonisolated public init() {}
+    /// A switch whose on track is `tint` (Apple's deprecated form of `.tint(_:)` on the toggle).
+    nonisolated public init(tint: Color) { self.tint = tint }
     public func makeBody(configuration: Configuration) -> some View {
         _PlatformToggleBody(configuration: configuration, switchStyle: true)
+            .transformEnvironment(\._tint) { [tint] value in if let tint { value = tint } }
     }
 }
 
