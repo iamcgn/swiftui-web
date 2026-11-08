@@ -3,6 +3,7 @@
 // malformed document stops with. The cases run against Foundation on macOS and Linux too.
 import Testing
 import WebFoundation
+import WebFoundationFormats
 #if canImport(FoundationXML) && !os(WASI)
 import FoundationXML
 #endif

@@ -1,6 +1,6 @@
 // How feed readers reach XMLParser off Apple platforms: the module beside Foundation
 // (`#if canImport(FoundationXML)`, as FeedKit writes), and the class by name. On wasm both
-// have to find WebFoundation's parser without an ambiguity; compiled by
+// have to find the one parser without an ambiguity; compiled by
 // `scripts/build-wasm.sh Examples/Launches` in CI, so one is a build error.
 import Foundation
 #if canImport(FoundationXML)

@@ -136,7 +136,7 @@ let package = Package(
         ),
         .target(
             name: "FoundationXML",
-            dependencies: ["Foundation", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["Foundation", .product(name: "WebFoundationFormats", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
