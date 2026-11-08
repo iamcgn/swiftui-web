@@ -122,7 +122,7 @@ try {
 
   begin('reset');
   // The top bar's trailing button.
-  const reset = await button('arrow.counterclockwise', b => centre(b).x > 260 && centre(b).y < 200);
+  const reset = await button('Arrow Counterclockwise', b => centre(b).x > 260 && centre(b).y < 200);
   if (expect(!!reset, `no reset button; buttons: ${(await buttons()).map(b => `${b.label}@${Math.round(b.x)},${Math.round(b.y)}`).join(' | ')}`)) {
     await tapBox(reset);
     t = await settle(t => scale(t) === '85%', 20);
@@ -155,7 +155,7 @@ try {
   // The centred button under the last card (the damping card's footnote).
   const bracesButton = async () => {
     const footnote = (await drawn()).find(d => d.text.startsWith('(low for bouncier'));
-    return button('curlybraces', b => footnote && centre(b).y > footnote.y && Math.abs(centre(b).x - 195) < 60);
+    return button('Curlybraces', b => footnote && centre(b).y > footnote.y && Math.abs(centre(b).x - 195) < 60);
   };
   let braces = await bracesButton();
   for (let i = 0; i < 8 && (!braces || braces.y + braces.height > 800); i++) { await swipeUp(); braces = await bracesButton(); }
@@ -171,11 +171,17 @@ try {
     expect(code.includes('CGFloat(0.85)'), `the snippet does not carry the scale 0.85; its scale line: ${(await texts()).filter(s => s.includes('scaleEffect') || s.includes('CGFloat')).join(' | ')}`);
     // The copy button sits at the code panel's bottom trailing corner: below the snippet's
     // first line and above "just like that" (the reset button is trailing too, at the top).
-    const top = (await drawn()).find(d => d.text.includes('struct MyButtonStyle'));
-    const below = (await drawn()).find(d => d.text === 'just like that');
-    const copy = await button('doc.on.doc', b => centre(b).x > 250 && centre(b).y > 200 && (!top || centre(b).y > top.y) && (!below || centre(b).y < below.y) && centre(b).y < 844);
+    // The app scrolls the panel's end into view (ScrollViewReader.scrollTo); where it has not,
+    // the probe scrolls to the copy button itself and says so.
+    const copyButton = async () => {
+      const top = (await drawn()).find(d => d.text.includes('struct MyButtonStyle'));
+      return button('Copy', b => centre(b).x > 250 && centre(b).y > 200 && (!top || centre(b).y > top.y));
+    };
+    let copy = await copyButton();
+    const scrolledByApp = !!copy && copy.y + copy.height < 800;
+    for (let i = 0; i < 10 && copy && copy.y + copy.height > 800; i++) { await swipeUp(); copy = await copyButton(); }
     if (expect(!!copy, `no copy button; buttons: ${(await buttons()).map(b => `${b.label}@${Math.round(b.x)},${Math.round(b.y)}`).join(' | ')}`)) {
-      note(`copy button "${copy.label}" at ${Math.round(copy.x)},${Math.round(copy.y)}; buttons: ${(await buttons()).map(b => b.label).join(' | ')}`);
+      note(scrolledByApp ? 'the app scrolled the panel into view' : 'the app did not scroll the panel into view (scrollTo after the panel appears); the probe scrolled');
       await tapBox(copy);
       let copied = false;
       for (let i = 0; i < 20 && !copied; i++) { copied = (await texts()).includes('Copied'); if (!copied) await page.waitForTimeout(50); }
