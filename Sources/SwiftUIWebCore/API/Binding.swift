@@ -127,11 +127,20 @@ extension Binding: Collection where Value: MutableCollection {
 
     public func index(after i: Value.Index) -> Value.Index { wrappedValue.index(after: i) }
 
+    /// A binding to the element at `position`. Once the position is gone (a row of a `ForEach`
+    /// over the binding, drawn while it leaves after its element was removed), it reads the
+    /// element it last had, and its writes go nowhere.
     public subscript(position: Value.Index) -> Binding<Value.Element> {
-        Binding<Value.Element>(
-            get: { self.wrappedValue[position] },
+        var last = wrappedValue[position]
+        return Binding<Value.Element>(
+            get: {
+                let value = self.wrappedValue
+                if position >= value.startIndex, position < value.endIndex { last = value[position] }
+                return last
+            },
             set: { newValue, transaction in
                 var value = self.getter()
+                guard position >= value.startIndex, position < value.endIndex else { return }
                 value[position] = newValue
                 self.setter(value, transaction)
             })

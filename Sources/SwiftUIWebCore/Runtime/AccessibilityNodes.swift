@@ -147,8 +147,8 @@ extension Runtime {
             result.append(entry)
             // A text field being edited inside keeps its own element: the keyboard types into it,
             // as a first responder takes the keyboard whatever its accessibility grouping.
-            if let editing = parts.first(where: { $0.element.textInput != nil && $0.element.identifier == focusedTextFieldIdentifier }) {
-                result.append(editing)
+            if let editing = focusedTextFieldIdentifier {
+                for part in parts where part.element.identifier == editing { result.append(part) }
             }
             return
         }
