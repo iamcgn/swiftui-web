@@ -751,7 +751,7 @@ extension PersistentModel {
     public func _relationshipDidChange(_ name: String) {
         if let context = modelContext { context._relationshipDidChange(self, name); return }
         guard let property = Self._persistedProperties.first(where: { $0.name == name }), property.kind != .attribute,
-              let context = property.related?(self)?.lazy.compactMap({ $0.modelContext }).first else { return }
+              let context = property.related?(self).lazy.compactMap({ $0.modelContext }).first else { return }
         context._relationshipDidChange(self, name)
     }
 }
