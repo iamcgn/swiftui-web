@@ -733,11 +733,26 @@ public final class ModelContext: @unchecked Sendable {
     public func _relationshipDidChange(_ model: any PersistentModel, _ name: String) {
         guard let property = type(of: model)._persistedProperties.first(where: { $0.name == name }), property.kind != .attribute,
               let related = property.related?(model) else { return }
+        // A model given a relationship to one in this context joins it (and its relationships
+        // set before then link as at any insert).
+        if model._storage.context !== self { insert(model); return }
         // A model assigned to a relationship joins the context (SwiftData inserts the graph).
         let resolved = related.map { resolveUnique($0) }
         if zip(resolved, related).contains(where: { $0 !== $1 }) { property.setRelated?(model, resolved) }
         for other in resolved where other._storage.context !== self { insert(other) }
         link(model, property, resolved)
+    }
+}
+
+extension PersistentModel {
+    /// A `@Model` setter: a relationship's change reaches this model's context, or, for a model
+    /// not inserted yet, the context of a model it now relates to (SwiftData inserts the graph
+    /// from either end: `task.project = project` saves the task with the project).
+    public func _relationshipDidChange(_ name: String) {
+        if let context = modelContext { context._relationshipDidChange(self, name); return }
+        guard let property = Self._persistedProperties.first(where: { $0.name == name }), property.kind != .attribute,
+              let context = property.related?(self)?.lazy.compactMap({ $0.modelContext }).first else { return }
+        context._relationshipDidChange(self, name)
     }
 }
 

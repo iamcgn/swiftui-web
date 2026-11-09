@@ -217,7 +217,7 @@ public struct ModelPropertyMacro: AccessorMacro, PeerMacro {
             get { access(keyPath: \\.\(raw: name)); return _\(raw: name) }
             """,
             """
-            set { withMutation(keyPath: \\.\(raw: name)) { _\(raw: name) = newValue }; _storage.didChange(); modelContext?._relationshipDidChange(self, "\(raw: name)") }
+            set { withMutation(keyPath: \\.\(raw: name)) { _\(raw: name) = newValue }; _storage.didChange(); _relationshipDidChange("\(raw: name)") }
             """,
         ]
     }

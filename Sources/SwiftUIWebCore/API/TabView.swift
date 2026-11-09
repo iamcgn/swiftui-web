@@ -85,10 +85,16 @@ public struct Tab<Value: Hashable, Content: View, Label: View>: TabContent {
 
     public var body: some View {
         if let value {
-            content.tabItem { label }.tag(value)
+            leaf.tabItem { label }.tag(value)
         } else {
-            content.tabItem { label }
+            leaf.tabItem { label }
         }
+    }
+
+    /// The content, or a clear view when it is empty: an empty tab (a `.search` tab often is)
+    /// still has its place in the bar, and the tab view finds tabs by their views.
+    @ViewBuilder private var leaf: some View {
+        if Content.self == EmptyView.self { Color.clear } else { content }
     }
 }
 
