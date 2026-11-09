@@ -69,7 +69,27 @@ private struct Bound: View {
     }
 }
 
+/// A row that keeps its binding, for reading it after its element is gone.
+private struct BoundRow: View {
+    @Binding var item: Item
+    var body: some View { Leaf(id: item.value) }
+}
+
 @Suite @MainActor struct ForEachTests {
+    /// A row's binding read after its element was removed (a list emptied while its rows leave,
+    /// SimpleScores' Remove All) gives the element it last had; a write to it changes nothing.
+    @Test func aRowsBindingOutlivesItsElement() {
+        var items = [Item(id: "a", value: 1), Item(id: "b", value: 2)]
+        let source = Binding(get: { items }, set: { items = $0 })
+        let each = ForEach(source) { $item in BoundRow(item: $item) }
+        let rows = each.data.map { each.content($0) }
+        rows[1].item.value = 3
+        #expect(items.map(\.value) == [1, 3])
+        items.removeAll()
+        #expect(rows.map(\.item.value) == [1, 3])
+        rows[0].item.value = 9
+        #expect(items.isEmpty)
+    }
     private func leafIDs(_ node: ViewNode) -> [Int] {
         node.layoutChildren.compactMap { ($0 as? LeafNode<Leaf>)?.view.id }
     }

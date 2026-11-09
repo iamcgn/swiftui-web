@@ -119,6 +119,11 @@ try {
   if (expect(first, 'no "New Player" name to rename')) {
     await tapAt(first.x + 20, first.y - 8);
     await page.waitForTimeout(300);
+    await record('name pressed');
+    // The row is one accessibility element; the field being edited gets an input of its own.
+    const field = (await controls()).find(c => (c.role === 'input' || c.role === 'textbox' || c.role === 'textarea') && Math.abs(c.y + c.height / 2 - (first.y - 8)) < 30);
+    expect(field, 'pressing the name gave no text input: ' + JSON.stringify(await controls()));
+    if (field && !(await page.evaluate(() => ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)))) await tapAt(field.x + field.width / 2, field.y + field.height / 2);
     await page.keyboard.press('End');
     for (let i = 0; i < 'New Player'.length; i++) await page.keyboard.press('Backspace');
     await page.keyboard.type(NAME);

@@ -145,6 +145,11 @@ extension Runtime {
             var entry = SemanticsEntry(node: node, element: element)
             apply(merged, to: &entry, rotors: true)
             result.append(entry)
+            // A text field being edited inside keeps its own element: the keyboard types into it,
+            // as a first responder takes the keyboard whatever its accessibility grouping.
+            if let editing = parts.first(where: { $0.element.textInput != nil && $0.element.identifier == focusedTextFieldIdentifier }) {
+                result.append(editing)
+            }
             return
         }
         var elements: [SemanticsEntry] = []

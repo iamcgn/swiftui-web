@@ -117,7 +117,24 @@ extension ForEach where Content: View {
     {
         let collection = data.wrappedValue
         let pairs = collection.indices.lazy.map { index in (index, collection[index][keyPath: id]) }
-        self.init(data: pairs, id: \.1, content: { pair in content(data[pair.0]) })
+        self.init(data: pairs, id: \.1, content: { pair in
+            // A row whose element was removed (drawn while it leaves) reads the element it last
+            // had, and its writes go nowhere.
+            let index = pair.0
+            var last = collection[index]
+            var element = Binding<C.Element>(get: {
+                let current = data.wrappedValue
+                if index >= current.startIndex, index < current.endIndex { last = current[index] }
+                return last
+            }, set: { newValue, transaction in
+                var value = data.getter()
+                guard index >= value.startIndex, index < value.endIndex else { return }
+                value[index] = newValue
+                data.setter(value, transaction)
+            })
+            element.transaction = data.transaction
+            return content(element)
+        })
     }
 }
 
