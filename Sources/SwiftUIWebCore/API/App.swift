@@ -296,9 +296,23 @@ extension Scene {
     /// Sets the default storage of `AppStorage` in every window.
     public func defaultAppStorage(_ store: UserDefaults) -> some Scene { environment(\.defaultAppStorage, store) }
 
-    /// Adds an action to perform when the given value changes (accepted: scenes are read once).
-    public func onChange<V: Equatable>(of value: V, initial: Bool = false, _ action: @escaping () -> Void) -> some Scene { self }
-    public func onChange<V: Equatable>(of value: V, initial: Bool = false, _ action: @escaping (V, V) -> Void) -> some Scene { self }
+    /// Adds an action to perform when the given value changes. A scene's value that changes is
+    /// its phase (an app's `@Environment(\.scenePhase)`): the action runs as the page's phase
+    /// changes, with the old and new phases. Other values are read once, as scenes are.
+    public func onChange<V: Equatable>(of value: V, initial: Bool = false, _ action: @escaping () -> Void) -> some Scene {
+        _onScenePhase(V.self) { _, _ in action() }
+    }
+    public func onChange<V: Equatable>(of value: V, initial: Bool = false, _ action: @escaping (V, V) -> Void) -> some Scene {
+        _onScenePhase(V.self) { action($0 as! V, $1 as! V) }
+    }
+    @available(*, deprecated, message: "Use `onChange` with a two or zero parameter action closure instead.")
+    public func onChange<V: Equatable>(of value: V, perform action: @escaping (_ newValue: V) -> Void) -> some Scene {
+        _onScenePhase(V.self) { action($1 as! V) }
+    }
+    private func _onScenePhase<V>(_: V.Type, _ action: @escaping (ScenePhase, ScenePhase) -> Void) -> Self {
+        if V.self == ScenePhase.self { _scenePhaseActions.append(action) }
+        return self
+    }
 
     /// Specifies the external events this scene handles (accepted: one window takes them all).
     public func handlesExternalEvents(matching conditions: Set<String>) -> some Scene { self }
@@ -337,6 +351,21 @@ public protocol App {
 /// it (decision 0021). Read when the windows are described.
 @MainActor public var _appEnvironmentObjects: [any WebCombine.ObservableObject] = []
 
+/// The scene `onChange(of: scenePhase)` actions of the app's body as last read, and the phase
+/// they last saw; one host lifecycle observer runs them.
+@MainActor private var _scenePhaseActions: [(ScenePhase, ScenePhase) -> Void] = []
+@MainActor private var _scenePhaseSeen: ScenePhase?
+@MainActor private func _observeScenePhase() {
+    guard _scenePhaseSeen == nil else { return }
+    _scenePhaseSeen = .active
+    Runtime._hostLifecycleObservers.append { visible, focused in
+        let phase: ScenePhase = !visible ? .background : (focused ? .active : .inactive)
+        guard let old = _scenePhaseSeen, old != phase else { return }
+        _scenePhaseSeen = phase
+        for action in _scenePhaseActions { action(old, phase) }
+    }
+}
+
 @MainActor final class _AppPropertyNode: ViewNode {
     private var pending = false
     override package func invalidate() {
@@ -372,7 +401,9 @@ extension App {
     /// every root.
     @MainActor
     public static func _windows() -> [_WindowDescriptor] {
+        _scenePhaseActions.removeAll()
         let windows = Body._windows(of: _instance.body)   // the instance first: its adaptor may register an object
+        if !_scenePhaseActions.isEmpty { _observeScenePhase() }
         let objects = _appEnvironmentObjects
         guard !objects.isEmpty else { return windows }
         return windows.map { descriptor in

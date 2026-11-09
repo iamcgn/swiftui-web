@@ -278,6 +278,13 @@ extension Data {
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let atomic = WritingOptions(rawValue: 1)
         public static let withoutOverwriting = WritingOptions(rawValue: 2)
+        /// File protection classes: accepted, as the host's store has no device lock to follow.
+        public static let noFileProtection = WritingOptions(rawValue: 0x10000000)
+        public static let completeFileProtection = WritingOptions(rawValue: 0x20000000)
+        public static let completeFileProtectionUnlessOpen = WritingOptions(rawValue: 0x30000000)
+        public static let completeFileProtectionUntilFirstUserAuthentication = WritingOptions(rawValue: 0x40000000)
+        public static let completeFileProtectionWhenUserInactive = WritingOptions(rawValue: 0x50000000)
+        public static let fileProtectionMask = WritingOptions(rawValue: 0xf0000000)
     }
 }
 #endif

@@ -12,6 +12,17 @@ private final class Counter: ObservableObject {
     @Published var count = 0
 }
 
+private struct PhaseApp: App {
+    @MainActor static let log = Log()
+    @Environment(\.scenePhase) var scenePhase
+    var body: some Scene {
+        WindowGroup { Text("Hi") }
+            .onChange(of: scenePhase) { phase in
+                Self.log.entries.append(phase == .active ? "active" : phase == .inactive ? "inactive" : "background")
+            }
+    }
+}
+
 @Suite @MainActor struct LifecycleEventsTests {
     private static let body = ResolvedFont(family: "system", size: 13, weight: .regular, italic: false, textStyle: nil)
 
@@ -87,6 +98,19 @@ private final class Counter: ObservableObject {
         runtime.hostIsFocused = true
         runtime.layout(in: CGSize(width: 200, height: 100))
         #expect(shown() == "active")
+    }
+
+    /// An app's `onChange(of: scenePhase)` on its window group, in the deprecated one-parameter
+    /// form SimpleScores saves from: it runs as the page is hidden and shown again.
+    @Test func aScenesOnChangeOfItsPhaseRuns() {
+        PhaseApp.log.entries = []
+        _ = PhaseApp._windows()
+        let runtime = Runtime()
+        runtime.hostIsVisible = false
+        runtime.hostIsVisible = true
+        runtime.hostIsFocused = false
+        #expect(PhaseApp.log.entries == ["background", "active", "inactive"])
+        runtime.hostIsFocused = true
     }
 
     @Test func urlsAndActivitiesReachTheirHandlers() {

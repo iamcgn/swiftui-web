@@ -152,13 +152,14 @@ let package = Package(
         ),
         // MARK: twostraws/simple-swiftui — the SimpleScores Xcode target (SWIFT_VERSION 5.0, iOS
         // 15.2): its app folder as the target path, the asset catalog (the players' named colours)
-        // its resources. The preview assets are Xcode's; the .lproj folders hold the translations,
-        // which this target leaves out, as the English strings are the keys themselves.
+        // its resources. `Preview Content`'s Swift file is compiled (the previews use its
+        // example), its asset catalog is Xcode's; the .lproj folders hold the translations, which
+        // this target leaves out, as the English strings are the keys themselves.
         .executableTarget(
             name: "SimpleScores",
             dependencies: swiftUI + host,
             path: "upstream/simple-swiftui/SimpleScores/SimpleScores",
-            exclude: ["Preview Content", "Resources/de.lproj", "Resources/en.lproj", "Resources/es.lproj",
+            exclude: ["Preview Content/Preview Assets.xcassets", "Resources/de.lproj", "Resources/en.lproj", "Resources/es.lproj",
                       "Resources/fr.lproj", "Resources/nl.lproj"],
             resources: [.process("Resources/Assets.xcassets")],
             swiftSettings: [.swiftLanguageMode(.v5)],
