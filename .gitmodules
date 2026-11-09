@@ -22,3 +22,6 @@
 [submodule "Apps/upstream/swiftdata-transferrable"]
 	path = Apps/upstream/swiftdata-transferrable
 	url = https://github.com/Whiffer/swiftdata-transferrable
+[submodule "Apps/upstream/simple-swiftui"]
+	path = Apps/upstream/simple-swiftui
+	url = https://github.com/twostraws/simple-swiftui

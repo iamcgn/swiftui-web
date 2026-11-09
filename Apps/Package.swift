@@ -32,6 +32,7 @@ let package = Package(
         .executable(name: "ChartsExamples", targets: ["ChartsExamples"]),
         .executable(name: "Buttoncraft", targets: ["Buttoncraft"]),
         .executable(name: "Pompaddo", targets: ["Pompaddo"]),
+        .executable(name: "SimpleScores", targets: ["SimpleScores"]),
     ],
     dependencies: [
         .package(name: "SwiftUIWeb", path: "..", traits: ["FoundationFormats", "DecimalFormatting"]),
@@ -146,6 +147,20 @@ let package = Package(
             path: "upstream/buttoncraft/buttoncraft/buttoncraft",
             exclude: ["Info.plist", "Launch Screen.storyboard", "Preview Content"],
             resources: [.process("Assets.xcassets")],
+            swiftSettings: [.swiftLanguageMode(.v5)],
+            linkerSettings: stack
+        ),
+        // MARK: twostraws/simple-swiftui — the SimpleScores Xcode target (SWIFT_VERSION 5.0, iOS
+        // 15.2): its app folder as the target path, the asset catalog (the players' named colours)
+        // its resources. The preview assets are Xcode's; the .lproj folders hold the translations,
+        // which this target leaves out, as the English strings are the keys themselves.
+        .executableTarget(
+            name: "SimpleScores",
+            dependencies: swiftUI + host,
+            path: "upstream/simple-swiftui/SimpleScores/SimpleScores",
+            exclude: ["Preview Content", "Resources/de.lproj", "Resources/en.lproj", "Resources/es.lproj",
+                      "Resources/fr.lproj", "Resources/nl.lproj"],
+            resources: [.process("Resources/Assets.xcassets")],
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: stack
         ),
