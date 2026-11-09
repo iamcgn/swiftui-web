@@ -1,0 +1,3 @@
+# Apps whose `#if os(iOS)` code is the app the browser runs (decision 0025): built from
+# Apps/ios-sources/<name>, which scripts/ios-conditions.py makes from Apps/upstream/<name>.
+pompaddo

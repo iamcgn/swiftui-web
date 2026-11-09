@@ -166,7 +166,9 @@ expect(logs.some(l => l.includes('Audio engine started successfully')), 'the Spe
 // recording loops, so the words recur. The service logs each result it gets.
 begin('meeting-transcription');
 const transcription = () => logs.filter(l => l.includes('New transcription: ')).map(l => l.slice(l.indexOf('New transcription: ') + 'New transcription: '.length).trim());
-const saysOne = (t) => { const w = t.toLowerCase().replace(/[^a-z0-9 ]/g, '').split(/\s+/); return (w.includes('1') || w.includes('one')) && (w.includes('2') || w.includes('two')) && (w.includes('3') || w.includes('three')); };
+// The recording says one, two, three: as words, as digits, or (when the app joins results
+// that are single digits) as one run of digits such as "12345".
+const saysOne = (t) => { const w = t.toLowerCase().replace(/[^a-z0-9 ]/g, '').split(/\s+/); return w.some(x => /^\d*123\d*$/.test(x)) || ((w.includes('1') || w.includes('one')) && (w.includes('2') || w.includes('two')) && (w.includes('3') || w.includes('three'))); };
 for (let i = 0; i < 300 && !transcription().some(saysOne); i++) await page.waitForTimeout(100);
 const heard = transcription();
 expect(heard.some(saysOne), 'no transcription of the recording reached the app within 30 s; results: ' + JSON.stringify(heard.slice(-3)));

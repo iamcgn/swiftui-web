@@ -3,9 +3,10 @@
 // `Apps/upstream/*` (git submodules; `scripts/check-apps.sh` verifies the pins and that no
 // upstream file differs). This manifest is the only thing that is not upstream's: it names each
 // app's targets, where their sources are, and the SwiftUIWeb products they link in place of
-// Apple's frameworks. Every Swift file of each app is compiled; `exclude:` lists only the
-// non-Swift files Xcode would process (plists, storyboards, entitlements), `resources:` mirrors
-// upstream's own manifests. The mapping is tabulated in `Apps/README.md`.
+// Apple's frameworks. (An app listed in `ios-conditions.txt` builds from a generated copy of
+// its upstream tree in which `os(iOS)` reads as true, decision 0025.) Every Swift file of each
+// app is compiled; `exclude:` lists only the non-Swift files Xcode would process (plists,
+// storyboards, entitlements), `resources:` mirrors upstream's own manifests. The mapping is tabulated in `Apps/README.md`.
 import PackageDescription
 
 let shadows: [Target.Dependency] = [
@@ -30,6 +31,7 @@ let package = Package(
         .executable(name: "Ember", targets: ["Ember"]),
         .executable(name: "ChartsExamples", targets: ["ChartsExamples"]),
         .executable(name: "Buttoncraft", targets: ["Buttoncraft"]),
+        .executable(name: "Pompaddo", targets: ["Pompaddo"]),
     ],
     dependencies: [
         .package(name: "SwiftUIWeb", path: "..", traits: ["FoundationFormats", "DecimalFormatting"]),
@@ -147,5 +149,49 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: stack
         ),
+        // MARK: amikhaylin/pompaddo — the iOS app target `PomPadDo.mobile` (SWIFT_VERSION 6.2,
+        // approachable concurrency): its synchronized folder `PomPadDo.mobile` plus the files of
+        // `Shared` the target lists as members (every Swift file there), with the two packages it
+        // links, CloudStorage and swiftdata-transferrable, at the versions its Package.resolved
+        // pins. The repository root is the target path so both folders are its; of them, the files
+        // Xcode handles through other phases are excluded. The macOS, watchOS, widget, share and
+        // Safari targets are not the iOS app's and are left out.
+        .executableTarget(
+            name: "Pompaddo",
+            dependencies: swiftUI + [uiKit] + host + [
+                "CloudStorage", "SwiftDataTransferrable",
+                .product(name: "SwiftData", package: "SwiftUIWeb"),
+                .product(name: "UserNotifications", package: "SwiftUIWeb"),
+                .product(name: "WidgetKit", package: "SwiftUIWeb"),
+                .product(name: "StoreKit", package: "SwiftUIWeb"),
+                .product(name: "Charts", package: "SwiftUIWeb"),
+                .product(name: "AVFoundation", package: "SwiftUIWeb"),
+                .product(name: "EventKit", package: "SwiftUIWeb"),
+                .product(name: "AudioToolbox", package: "SwiftUIWeb"),
+            ],
+            // Its upstream tree with `os(iOS)` read as true (decision 0025): `ios-sources/pompaddo`,
+            // which scripts/build-wasm.sh makes from `upstream/pompaddo` before every build.
+            path: "ios-sources/pompaddo",
+            exclude: ["PomPadDo.mobile/Info.plist", "PomPadDo.mobile/LaunchScreen.storyboard",
+                      "PomPadDo.mobile/PomPadDo_mobile.entitlements", "PomPadDo.mobile/Preview Content",
+                      "Shared/Tests", "Shared/Localizable.xcstrings"],
+            // The folder's Swift, not the folder: its asset catalog is a resource of its own.
+            sources: ["PomPadDo.mobile/Activities", "PomPadDo.mobile/CustomViews", "PomPadDo.mobile/Settings",
+                      "PomPadDo.mobile/MainTabsView.swift", "PomPadDo.mobile/MainView.swift",
+                      "PomPadDo.mobile/PomPadDo_mobileApp.swift", "Shared"],
+            resources: [.process("PomPadDo.mobile/Assets.xcassets")],
+            swiftSettings: [.swiftLanguageMode(.v6), .enableUpcomingFeature("InferIsolatedConformances"),
+                            .enableUpcomingFeature("NonisolatedNonsendingByDefault")],
+            linkerSettings: stack
+        ),
+        // tomlokhorst/CloudStorage 0.7.0 (its Package.swift: one target, tools 5.9).
+        .target(name: "CloudStorage", dependencies: swiftUI + [uiKit], path: "upstream/CloudStorage/Sources/CloudStorage",
+                swiftSettings: [.swiftLanguageMode(.v5)]),
+        // Whiffer/swiftdata-transferrable 3.0.2 (its Package.swift: one target, tools 5.9).
+        .target(name: "SwiftDataTransferrable",
+                dependencies: swiftUI + [.product(name: "SwiftData", package: "SwiftUIWeb"),
+                                         .product(name: "UniformTypeIdentifiers", package: "Shadows", condition: .when(platforms: [.wasi]))],
+                path: "upstream/swiftdata-transferrable/Sources/SwiftDataTransferrable",
+                swiftSettings: [.swiftLanguageMode(.v5)]),
     ]
 )
