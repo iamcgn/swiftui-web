@@ -60,9 +60,10 @@ public enum TabContentBuilder<SelectionValue: Hashable> {
 }
 
 /// The role of a tab: `.search`, the tab iOS sets apart at the end of the bar.
-public struct TabRole: Hashable, Sendable {
-    package let name: String
-    public static let search = TabRole(name: "search")
+/// As in SwiftUI, only `Sendable`.
+public struct TabRole: Sendable {
+    package let tag: UInt8
+    public static let search = TabRole(tag: 0)
 }
 
 /// A tab of a tab view: its label (a title with a symbol or image) and its content, selected by
@@ -72,7 +73,6 @@ public struct Tab<Value: Hashable, Content: View, Label: View>: TabContent {
     package let value: Value?
     package let content: Content
     package let label: Label
-    package var role: TabRole?
 
     /// Creates a tab with a custom label (a role sets it apart: `.search` is the last tab, as
     /// on iOS, where it already is in the builder's order).
@@ -80,7 +80,6 @@ public struct Tab<Value: Hashable, Content: View, Label: View>: TabContent {
         self.value = value
         self.content = content()
         self.label = label()
-        self.role = role
     }
 
     public var body: some View {
@@ -126,7 +125,6 @@ extension Tab where Value == Never {
         value = nil
         self.content = content()
         self.label = label()
-        self.role = role
     }
 }
 

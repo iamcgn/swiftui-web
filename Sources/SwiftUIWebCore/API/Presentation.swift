@@ -624,13 +624,14 @@ public enum PresentationDetent: Hashable, Sendable {
 }
 
 /// How a presentation adapts when the size class is compact (`presentationCompactAdaptation`).
-public struct PresentationAdaptation: Hashable, Sendable {
-    package let name: String
-    public static let automatic = PresentationAdaptation(name: "automatic")
-    public static let none = PresentationAdaptation(name: "none")
-    public static let popover = PresentationAdaptation(name: "popover")
-    public static let sheet = PresentationAdaptation(name: "sheet")
-    public static let fullScreenCover = PresentationAdaptation(name: "fullScreenCover")
+/// As in SwiftUI, only `Sendable`; its cases are told apart by a tag.
+public struct PresentationAdaptation: Sendable {
+    package let tag: UInt8
+    public static let automatic = PresentationAdaptation(tag: 0)
+    public static let none = PresentationAdaptation(tag: 1)
+    public static let popover = PresentationAdaptation(tag: 2)
+    public static let sheet = PresentationAdaptation(tag: 3)
+    public static let fullScreenCover = PresentationAdaptation(tag: 4)
 }
 
 /// `presentationDetents` and `presentationDragIndicator`: the sheet's options, told to the
