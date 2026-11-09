@@ -100,8 +100,8 @@ private func comparator<C: TableColumnContent>(of content: C.Type) -> Any.Type {
         let outputs = TrackedContent<Never>._makeContent(content: _GraphValue { fatalError("never read") }, inputs: _TableColumnInputs())
         #expect(outputs.columns.isEmpty)
         // The content types name the row value and the comparator their columns sort with.
-        #expect(rowValue(of: TrackedContent<Never>.self) == Never.self)
-        #expect(comparator(of: TrackedContent<Never>.self) == Never.self)
+        #expect(ObjectIdentifier(rowValue(of: TrackedContent<Never>.self)) == ObjectIdentifier(Never.self))
+        #expect(ObjectIdentifier(comparator(of: TrackedContent<Never>.self)) == ObjectIdentifier(Never.self))
     }
 }
 #endif
