@@ -204,9 +204,8 @@ extension View {
     /// user shows them; a secondary click on the bar offers every item to show or hide
     /// (`Runtime.setToolbarItem(_:visible:in:)` keeps the choices for the session).
     /// Puts the views in the toolbar at the automatic placement, each its own item.
-    nonisolated public func toolbar<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        let items = MainActor.assumeIsolated { [_ToolbarItemData(id: nil, placement: .automatic, view: AnyView(content()), isGroup: true)] }
-        return modifier(_ToolbarModifier(items: items))
+    public func toolbar<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        modifier(_ToolbarModifier(items: [_ToolbarItemData(id: nil, placement: .automatic, view: AnyView(content()), isGroup: true)]))
     }
 
     nonisolated public func toolbar<C: CustomizableToolbarContent>(id: String, @ToolbarContentBuilder content: () -> C) -> some View {
