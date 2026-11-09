@@ -1,6 +1,8 @@
 # Builds one app of Apps/ for wasm with the Objective-C runtime SDK (decision 0023) and prints
 # every compile error, without the rest of CI's browser job: the quick loop while bringing a new
-# unmodified app up (its errors list what SwiftUI Web still lacks). Runs on a push to a
+# unmodified app up (its errors list what SwiftUI Web still lacks). When the build passes and
+# Playwright/<product, lowercased>-probe.mjs exists, the probe runs in Chromium and its report
+# (with what each step saw) is printed. Runs on a push to a
 # `claude/app-*` branch that changes Apps/ or this file, or by hand with a product name.
 name: App build
 on:
@@ -46,3 +48,12 @@ jobs:
           SWIFTUIWEB_WASM_SDK=swift-6.3.3-RELEASE_wasm-objc scripts/build-wasm.sh Apps --debug --product "$PRODUCT" 2>&1 | tee build.log || {
             echo "::group::errors"; grep -E "error:" build.log | sed "s|$GITHUB_WORKSPACE/||" | sort -u; echo "::endgroup::"
             echo "$(grep -E 'error:' build.log | sed "s|$GITHUB_WORKSPACE/||" | sort -u | wc -l) distinct errors"; exit 1; }
+      - name: The app's probe in Chromium, when it has one (its report is printed)
+        id: probe
+        run: |
+          probe="Playwright/$(echo "$PRODUCT" | tr '[:upper:]' '[:lower:]')-probe.mjs"
+          if [ ! -f "$probe" ]; then echo "no $probe"; exit 0; fi
+          (cd Playwright && npm install && npx playwright install chromium)
+          python3 -m http.server 8783 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8783/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node "$(basename "$probe")" "http://127.0.0.1:8783/index.html?platform=ios" --out ../.build/apps/probe)
