@@ -19,6 +19,21 @@ extension Calendar {
         self.date(bySettingHour: hour, minute: minute, second: second, of: date)
     }
 
+    // Foundation's form defaults the matching policy too. WebFoundation's own
+    // `date(bySettingHour:minute:second:of:)` takes the call that names no policy, so these two
+    // take the calls that name a later policy without the matching one, and no call fits two.
+
+    /// The date on the same day at the time, with the default matching policy.
+    public func date(bySettingHour hour: Int, minute: Int, second: Int, of date: Date, repeatedTimePolicy: RepeatedTimePolicy,
+                     direction: SearchDirection = .forward) -> Date? {
+        self.date(bySettingHour: hour, minute: minute, second: second, of: date)
+    }
+
+    /// The date on the same day at the time, with the default policies.
+    public func date(bySettingHour hour: Int, minute: Int, second: Int, of date: Date, direction: SearchDirection) -> Date? {
+        self.date(bySettingHour: hour, minute: minute, second: second, of: date)
+    }
+
     /// What a search does when the components name a date that doesn't exist, such as
     /// February 30.
     public enum MatchingPolicy: Hashable, Sendable {

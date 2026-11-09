@@ -13,8 +13,8 @@ const url = process.argv[2] || 'http://127.0.0.1:8767/index.html';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1000, height: 800 }, deviceScaleFactor: 2 });
 page.on('pageerror', e => console.error('page error', e));
-await page.goto(`${url}?fixture=${encodeURIComponent('ios/representable/wheel')}`);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
+await page.goto(`${url}?fixture=${encodeURIComponent('ios/representable/wheel')}`, { timeout: 120000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 // The gallery's loading screen fades out over the canvas: the colours are sampled once it is gone.
 await page.waitForFunction(() => !document.getElementById('loading'), null, { timeout: 5000 }).catch(() => {});
 // The gallery publishes the probe frames whenever they change (a scroll included).

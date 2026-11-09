@@ -363,9 +363,11 @@ extension BinaryFloatingPoint {
 
 // MARK: - Formatter
 
-/// Foundation's `Formatter` on wasm: string conversions of arbitrary values, overridable.
-open class Formatter {
-    public init() {}
+/// Foundation's `Formatter` on wasm: string conversions of arbitrary values, overridable. An
+/// `NSObject`, as Apple's is, so formatters hash and compare by identity (a struct holding one
+/// stays `Hashable`, as SwiftDate's `DateInRegion` is).
+open class Formatter: NSObject {
+    public override init() { super.init() }
     /// The string for `obj`, nil when the formatter cannot represent it.
     open func string(for obj: Any?) -> String? { nil }
     /// The string shown while editing (the same by default).
@@ -374,9 +376,9 @@ open class Formatter {
     open func value(from string: String) -> Any? { nil }
 }
 
-/// Foundation's `NumberFormatter` on wasm: the none, decimal, percent and currency styles.
+/// Foundation's `NumberFormatter` on wasm: the none, decimal, percent, currency and ordinal styles.
 open class NumberFormatter: Formatter {
-    public enum Style: Int, Sendable { case none = 0, decimal, currency, percent, scientific, spellOut }
+    public enum Style: Int, Sendable { case none = 0, decimal, currency, percent, scientific, spellOut, ordinal }
 
     open var numberStyle: Style = .none
     open var minimumFractionDigits = 0
@@ -397,6 +399,9 @@ open class NumberFormatter: Formatter {
         case .decimal:
             core = _NumberFormatting(style: .decimal)
             core.maximumFractionDigits = max(maximumFractionDigits, 3)
+        case .ordinal:
+            core = _NumberFormatting(style: .decimal)
+            core.maximumFractionDigits = 0
         case .percent:
             core = _NumberFormatting(style: .percent)
             core.maximumFractionDigits = maximumFractionDigits
@@ -413,22 +418,43 @@ open class NumberFormatter: Formatter {
     /// The string for a number of any integer or floating-point type.
     open override func string(for obj: Any?) -> String? {
         switch obj {
-        case let value as Double: return core.format(value)
-        case let value as Float: return core.format(Double(value))
-        case let value as Int: return core.format(value)
-        case let value as Int64: return core.format(value)
-        case let value as UInt: return core.format(value)
-        case let value as Int32: return core.format(value)
+        case let value as Double: return format(value)
+        case let value as Float: return format(Double(value))
+        case let value as Int: return format(value)
+        case let value as Int64: return format(value)
+        case let value as UInt: return format(value)
+        case let value as Int32: return format(value)
         case let value as NSNumber: return string(from: value)
         default: return nil
         }
     }
 
     @_disfavoredOverload
-    public func string(from value: Double) -> String? { core.format(value) }
+    public func string(from value: Double) -> String? { format(value) }
 
     /// The string for a number (Foundation's only `string(from:)`).
-    public func string(from number: NSNumber) -> String? { core.format(number.doubleValue) }
+    public func string(from number: NSNumber) -> String? { format(number.doubleValue) }
+
+    private func format(_ value: Double) -> String {
+        guard numberStyle == .ordinal else { return core.format(value) }
+        let rounded = value.rounded(.toNearestOrEven)
+        guard let whole = Int(exactly: rounded) else { return core.format(value) }
+        return format(whole)
+    }
+
+    private func format<I: BinaryInteger>(_ value: I) -> String {
+        guard numberStyle == .ordinal else { return core.format(value) }
+        // English suffixes: 1st, 2nd, 3rd, then th, with 11th to 13th in every hundred.
+        let lastTwo = Int(value.magnitude % 100)
+        let suffix: String
+        switch (lastTwo / 10 == 1 ? 0 : lastTwo % 10) {
+        case 1: suffix = "st"
+        case 2: suffix = "nd"
+        case 3: suffix = "rd"
+        default: suffix = "th"
+        }
+        return core.format(value) + suffix
+    }
 
     /// The number in `string`, nil when it does not parse.
     public func number(from string: String) -> Double? { core.parse(string) }

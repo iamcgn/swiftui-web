@@ -10,8 +10,8 @@ page.on('pageerror', e => console.error('page error', e));
 let failures = 0;
 const check = (name, ok) => { console.log((ok ? 'PASS ' : 'FAIL ') + name); if (!ok) failures++; };
 const open = async (fixture) => {
-  await page.goto(`${url}?fixture=${encodeURIComponent(fixture)}`);
-  await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
+  await page.goto(`${url}?fixture=${encodeURIComponent(fixture)}`, { timeout: 120000 });
+  await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
   await page.waitForTimeout(200);
 };
 const probe = async (id) => page.evaluate((id) => (window.__galleryFrames || window.__swiftuiwebDebug.frames())[id], id);

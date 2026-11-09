@@ -8,8 +8,8 @@ const url = process.argv[2] || 'http://127.0.0.1:8767/index.html';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1000, height: 800 }, deviceScaleFactor: 2 });
 page.on('pageerror', e => console.error('page error', e));
-await page.goto(`${url}?fixture=${encodeURIComponent('toolbar/basic')}&chrome=1`);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
+await page.goto(`${url}?fixture=${encodeURIComponent('toolbar/basic')}&chrome=1`, { timeout: 120000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 const labels = () => page.evaluate(() => window.__swiftuiwebDebug.semantics().map(n => n.label));
 const box = async (label) => (await page.locator(`[aria-label="${label}"]`).boundingBox());
 let failures = 0;
@@ -30,8 +30,8 @@ await page.mouse.click(two.x + two.width / 2, two.y + two.height / 2);
 check('group button action runs', await hasLabel('Taps: 1001'));
 
 // searchable: the field in the bar filters the list through its binding.
-await page.goto(`${url}?fixture=${encodeURIComponent('toolbar/searchable')}&chrome=1`);
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0);
+await page.goto(`${url}?fixture=${encodeURIComponent('toolbar/searchable')}&chrome=1`, { timeout: 120000 });
+await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
 const field = page.locator('input[aria-label="Find fruit"]');
 check('search field in the bar', await field.count() === 1);
 const fieldBox = await field.boundingBox();

@@ -32,6 +32,7 @@ public final class _WebNSString: Hashable, CustomStringConvertible, ExpressibleB
 
     public func substring(with range: NSRange) -> String { string.substring(with: range) }
     public func substring(from index: Int) -> String { string.substring(from: index) }
+    public func substring(to index: Int) -> String { string.substring(to: index) }
     public func character(at index: Int) -> UInt16 { utf16[index] }
     public func range(of searchString: String) -> NSRange {
         guard let found = string.range(of: searchString) else { return .notFound }
