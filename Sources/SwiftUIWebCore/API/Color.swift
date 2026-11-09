@@ -8,7 +8,7 @@ import Foundation
 ///
 /// Step 5 provides the value type and its role as a flexible view (ideal size 10×10, fills its
 /// proposal); the system colour table and painting arrive in step 7.
-public struct Color: Hashable, Sendable {
+public struct Color: Hashable, Sendable, _ExpressibleByColorLiteral {
     /// Resolved RGBA components in sRGB, 0…1.
     package enum Storage: Hashable, Sendable {
         case rgba(red: Double, green: Double, blue: Double, opacity: Double)
@@ -44,6 +44,11 @@ public struct Color: Hashable, Sendable {
     package init(storage: Storage, opacityMultiplier: Double = 1) {
         self.storage = storage
         self.opacityMultiplier = opacityMultiplier
+    }
+
+    /// `#colorLiteral(red:green:blue:alpha:)` where a `Color` is expected, as in SwiftUI.
+    public init(_colorLiteralRed red: Float, green: Float, blue: Float, alpha: Float) {
+        self.init(red: Double(red), green: Double(green), blue: Double(blue), opacity: Double(alpha))
     }
 
     /// Creates a constant color from red, green, and blue component values.
