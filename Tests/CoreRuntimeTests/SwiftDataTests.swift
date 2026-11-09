@@ -121,9 +121,10 @@ extension Schema {
 final actor MainDBRepository {}
 
 extension MainDBRepository {
-    /// A predicate an app names by its type, in a file that imports SwiftUI and SwiftData (and
-    /// so Foundation, which has a `Predicate` of its own): the name is SwiftData's.
-    static func alpha3(_ code: String) -> Predicate<DBModel.CountryDetails> {
+    /// A predicate an app names by its type. A wasm app writes the bare `Predicate` (Pompaddo's
+    /// build is the check for that); natively Foundation's own `Predicate` is visible here by
+    /// another path, so the test names the module.
+    static func alpha3(_ code: String) -> WebFoundation.Predicate<DBModel.CountryDetails> {
         #Predicate<DBModel.CountryDetails> { $0.alpha3Code == code }
     }
 

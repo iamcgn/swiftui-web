@@ -246,16 +246,17 @@ public struct TransientMacro: PeerMacro {
     public static func expansion(of node: AttributeSyntax, providingPeersOf declaration: some DeclSyntaxProtocol, in context: some MacroExpansionContext) throws -> [DeclSyntax] { [] }
 }
 
-/// `#Predicate<T> { closure }` → `Predicate<T>(closure)`: the closure runs as written against
+/// `#Predicate<T> { closure }` → `WebFoundation.Predicate<T>(closure)` (named by its module so
+/// the expansion never meets Foundation's own `Predicate`): the closure runs as written against
 /// each model in memory (there is no SQL to translate it into here).
 public struct PredicateMacro: ExpressionMacro {
     public static func expansion(of node: some FreestandingMacroExpansionSyntax, in context: some MacroExpansionContext) throws -> ExprSyntax {
         let generics = node.genericArgumentClause?.trimmedDescription ?? ""
         guard let closure = node.trailingClosure ?? node.arguments.first?.expression.as(ClosureExprSyntax.self) else {
             context.diagnose(Diagnostic(node: Syntax(node), message: ModelMessage("'#Predicate' takes a closure")))
-            return "Predicate { _ in true }"
+            return "WebFoundation.Predicate { _ in true }"
         }
-        return "Predicate\(raw: generics)(\(closure))"
+        return "WebFoundation.Predicate\(raw: generics)(\(closure))"
     }
 }
 

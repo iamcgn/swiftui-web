@@ -43,7 +43,7 @@ public macro Relationship(_ options: Schema.Relationship.Option..., deleteRule: 
 public macro Transient() = #externalMacro(module: "SwiftDataMacros", type: "TransientMacro")
 
 @freestanding(expression)
-public macro Predicate<T>(_ body: (T) -> Bool) -> Predicate<T> = #externalMacro(module: "SwiftDataMacros", type: "PredicateMacro")
+public macro Predicate<T>(_ body: (T) -> Bool) -> WebFoundation.Predicate<T> = #externalMacro(module: "SwiftDataMacros", type: "PredicateMacro")
 
 @attached(member, names: named(modelExecutor), named(modelContainer), named(init(modelContainer:)))
 @attached(extension, conformances: ModelActor)
@@ -56,19 +56,19 @@ public macro ModelActor() = #externalMacro(module: "SwiftDataMacros", type: "Mod
 public macro Query() = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
 @attached(accessor)
 @attached(peer, names: prefixed(`_`))
-public macro Query<Value: Comparable, Element: PersistentModel>(filter: Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
+public macro Query<Value: Comparable, Element: PersistentModel>(filter: WebFoundation.Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
 @attached(accessor)
 @attached(peer, names: prefixed(`_`))
-public macro Query<Value: Comparable, Element: PersistentModel>(filter: Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value?>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
+public macro Query<Value: Comparable, Element: PersistentModel>(filter: WebFoundation.Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value?>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
 @attached(accessor)
 @attached(peer, names: prefixed(`_`))
-public macro Query<Value: Comparable, Element: PersistentModel>(filter: Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, animation: Animation) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
+public macro Query<Value: Comparable, Element: PersistentModel>(filter: WebFoundation.Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, animation: Animation) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
 @attached(accessor)
 @attached(peer, names: prefixed(`_`))
-public macro Query<Element: PersistentModel>(filter: Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], transaction: Transaction? = nil) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
+public macro Query<Element: PersistentModel>(filter: WebFoundation.Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], transaction: Transaction? = nil) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
 @attached(accessor)
 @attached(peer, names: prefixed(`_`))
-public macro Query<Element: PersistentModel>(filter: Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], animation: Animation) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
+public macro Query<Element: PersistentModel>(filter: WebFoundation.Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], animation: Animation) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
 @attached(accessor)
 @attached(peer, names: prefixed(`_`))
 public macro Query<Element: PersistentModel>(_ descriptor: FetchDescriptor<Element>, transaction: Transaction? = nil) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
@@ -441,18 +441,19 @@ public final class ModelContainer: @unchecked Sendable {
 /// A type that describes the criteria, sort order, and any additional configuration to use
 /// when performing a fetch.
 public struct FetchDescriptor<T: PersistentModel> {
-    public var predicate: Predicate<T>?
+    public var predicate: WebFoundation.Predicate<T>?
     public var sortBy: [SortDescriptor<T>]
     public var fetchLimit: Int?
     public var fetchOffset: Int?
     public var includePendingChanges = true
-    public init(predicate: Predicate<T>? = nil, sortBy: [SortDescriptor<T>] = []) {
+    public init(predicate: WebFoundation.Predicate<T>? = nil, sortBy: [SortDescriptor<T>] = []) {
         self.predicate = predicate
         self.sortBy = sortBy
     }
 }
 
-// `Predicate` itself is WebFoundation's, which shadows Foundation's for every importer.
+// `Predicate` itself is WebFoundation's. This module names it `WebFoundation.Predicate`, because
+// on macOS and Linux other modules import Foundation directly and the bare name is ambiguous.
 
 /// A description of how to order models by one of their properties.
 public struct SortDescriptor<Compared>: @unchecked Sendable {
@@ -648,7 +649,7 @@ public final class ModelContext: @unchecked Sendable {
         noteChange()
     }
 
-    public func delete<T: PersistentModel>(model: T.Type, where predicate: Predicate<T>? = nil) throws {
+    public func delete<T: PersistentModel>(model: T.Type, where predicate: WebFoundation.Predicate<T>? = nil) throws {
         for model in try fetch(FetchDescriptor<T>(predicate: predicate)) { delete(model) }
     }
 
@@ -1109,22 +1110,22 @@ public struct Query<Element: PersistentModel, Result>: DynamicProperty {
         { (try? $0.fetch(descriptor)) ?? [] }
     }
 
-    public init<Value: Comparable>(filter: Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, animation: Animation) where Result == [Element] {
+    public init<Value: Comparable>(filter: WebFoundation.Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, animation: Animation) where Result == [Element] {
         fetch = Self.fetching(FetchDescriptor(predicate: filter, sortBy: [SortDescriptor(keyPath, order: order)])); self.animation = animation
     }
-    public init<Value: Comparable>(filter: Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value?>, order: SortDescriptor<Element>.Order = .forward, animation: Animation) where Result == [Element] {
+    public init<Value: Comparable>(filter: WebFoundation.Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value?>, order: SortDescriptor<Element>.Order = .forward, animation: Animation) where Result == [Element] {
         fetch = Self.fetching(FetchDescriptor(predicate: filter, sortBy: [SortDescriptor(keyPath, order: order)])); self.animation = animation
     }
-    public init<Value: Comparable>(filter: Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) where Result == [Element] {
+    public init<Value: Comparable>(filter: WebFoundation.Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) where Result == [Element] {
         fetch = Self.fetching(FetchDescriptor(predicate: filter, sortBy: [SortDescriptor(keyPath, order: order)])); animation = transaction?.animation
     }
-    public init<Value: Comparable>(filter: Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value?>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) where Result == [Element] {
+    public init<Value: Comparable>(filter: WebFoundation.Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value?>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) where Result == [Element] {
         fetch = Self.fetching(FetchDescriptor(predicate: filter, sortBy: [SortDescriptor(keyPath, order: order)])); animation = transaction?.animation
     }
-    public init(filter: Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], animation: Animation) where Result == [Element] {
+    public init(filter: WebFoundation.Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], animation: Animation) where Result == [Element] {
         fetch = Self.fetching(FetchDescriptor(predicate: filter, sortBy: descriptors)); self.animation = animation
     }
-    public init(filter: Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], transaction: Transaction? = nil) where Result == [Element] {
+    public init(filter: WebFoundation.Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], transaction: Transaction? = nil) where Result == [Element] {
         fetch = Self.fetching(FetchDescriptor(predicate: filter, sortBy: descriptors)); animation = transaction?.animation
     }
     public init(_ descriptor: FetchDescriptor<Element>, transaction: Transaction? = nil) where Result == [Element] {
