@@ -153,6 +153,7 @@ import WebCombine
         #expect(ui.light == UIColor(red: 1, green: 0.5, blue: 0.25, alpha: 1).light)
         let color: Color = #colorLiteral(red: 1, green: 0.5, blue: 0.25, alpha: 0.5)
         #expect(color == Color(red: 1, green: 0.5, blue: 0.25, opacity: 0.5))
-        #expect(Color(#colorLiteral(red: 1, green: 0.5, blue: 0.25, alpha: 1)) == Color(uiColor: ui))
+        // The literal here is a Color (one constant sRGB colour), the same colour as the UIColor.
+        #expect(Color(#colorLiteral(red: 1, green: 0.5, blue: 0.25, alpha: 1)) == Color(red: 1, green: 0.5, blue: 0.25))
     }
 }
