@@ -452,13 +452,7 @@ public struct FetchDescriptor<T: PersistentModel> {
     }
 }
 
-/// A predicate over a model type: a closure here (what `#Predicate` expands to), run against
-/// the models in memory.
-public struct Predicate<T>: @unchecked Sendable {
-    let test: (T) throws -> Bool
-    public init(_ test: @escaping (T) throws -> Bool) { self.test = test }
-    public func evaluate(_ value: T) throws -> Bool { try test(value) }
-}
+// `Predicate` itself is WebFoundation's, which shadows Foundation's for every importer.
 
 /// A description of how to order models by one of their properties.
 public struct SortDescriptor<Compared>: @unchecked Sendable {
