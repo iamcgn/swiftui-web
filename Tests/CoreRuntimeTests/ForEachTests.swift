@@ -77,16 +77,17 @@ private struct BoundRow: View {
 
 @Suite @MainActor struct ForEachTests {
     /// A row's binding read after its element was removed (a list emptied while its rows leave,
-    /// SimpleScores' Remove All) gives the element it last had; a write to it changes nothing.
+    /// SimpleScores' Remove All) gives the element it was made with; a write to it changes
+    /// nothing.
     @Test func aRowsBindingOutlivesItsElement() {
         var items = [Item(id: "a", value: 1), Item(id: "b", value: 2)]
         let source = Binding(get: { items }, set: { items = $0 })
         let each = ForEach(source) { $item in BoundRow(item: $item) }
         let rows = each.data.map { each.content($0) }
         rows[1].item.value = 3
-        #expect(items.map(\.value) == [1, 3])
+        #expect(items.map(\.value) == [1, 3] && rows[1].item.value == 3)
         items.removeAll()
-        #expect(rows.map(\.item.value) == [1, 3])
+        #expect(rows.map(\.item.value) == [1, 2])
         rows[0].item.value = 9
         #expect(items.isEmpty)
     }

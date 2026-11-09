@@ -138,10 +138,9 @@ extension Runtime {
         // One element for the whole subtree, with the labels of its parts; while a text field in
         // it is being edited, its parts stand alone, so the keyboard types into the field (a
         // first responder takes the keyboard whatever its accessibility grouping).
-        let combines = merged.children.map { $0.kind != .contain } ?? false
-        var parts: [SemanticsEntry] = []
-        collectElements(node, into: &parts)
-        if combines, !parts.contains(where: { $0.element.identifier == focusedTextFieldIdentifier }) {
+        if let behavior = merged.children, behavior.kind != .contain, !containsFocusedTextField(node) {
+            var parts: [SemanticsEntry] = []
+            collectElements(node, into: &parts)
             var element = SemanticsNode(role: .group, label: merged.label ?? parts.map(\.element.label).filter { !$0.isEmpty }.joined(separator: ", "),
                                         frame: node.frameInRoot, identifier: node.semanticsIdentifier)
             if let first = parts.first?.element, parts.count == 1 { element.role = first.role; element.isOn = first.isOn; element.range = first.range }
@@ -150,7 +149,8 @@ extension Runtime {
             result.append(entry)
             return
         }
-        var elements = parts
+        var elements: [SemanticsEntry] = []
+        collectElements(node, into: &elements)
         // A view with actions, a rotor or a focus target but no element of its own gets one.
         if elements.isEmpty, !merged.actions.isEmpty || merged.adjustable != nil || !merged.rotors.isEmpty || merged.focusable || merged.rotorEntry != nil {
             elements.append(SemanticsEntry(node: node, element: SemanticsNode(role: .group, label: merged.label ?? "", frame: node.frameInRoot, identifier: node.semanticsIdentifier)))
@@ -162,6 +162,14 @@ extension Runtime {
             if !merged.isEmpty, index == 0 || !containerOnly { apply(merged, to: &entry, rotors: index == 0) }
             result.append(entry)
         }
+    }
+
+    /// Whether the text field being edited is `node` or inside it.
+    private func containsFocusedTextField(_ node: ViewNode) -> Bool {
+        guard let focused = focusedTextFieldIdentifier else { return false }
+        var current: ViewNode? = interactiveNode(semanticsIdentifier: focused)
+        while let candidate = current { if candidate === node { return true }; current = candidate.parent }
+        return false
     }
 
     /// The elements of a layout node's subtree with modifiers inside it applied; children are
