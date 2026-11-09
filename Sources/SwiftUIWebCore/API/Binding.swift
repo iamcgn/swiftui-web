@@ -141,6 +141,7 @@ extension Binding: Collection where Value: MutableCollection {
             set: { newValue, transaction in
                 var value = self.getter()
                 guard position >= value.startIndex, position < value.endIndex else { return }
+                last = newValue
                 value[position] = newValue
                 self.setter(value, transaction)
             })

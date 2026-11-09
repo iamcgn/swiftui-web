@@ -135,25 +135,22 @@ extension Runtime {
         var merged = attributes ?? AccessibilityAttributes()
         for entry in chain.reversed() { merged = entry.merged(over: merged) }
         if merged.hidden == true { return }
-        if let behavior = merged.children, behavior.kind != .contain {
-            // One element for the whole subtree, with the labels of its parts.
-            var parts: [SemanticsEntry] = []
-            collectElements(node, into: &parts)
+        // One element for the whole subtree, with the labels of its parts; while a text field in
+        // it is being edited, its parts stand alone, so the keyboard types into the field (a
+        // first responder takes the keyboard whatever its accessibility grouping).
+        let combines = merged.children.map { $0.kind != .contain } ?? false
+        var parts: [SemanticsEntry] = []
+        collectElements(node, into: &parts)
+        if combines, !parts.contains(where: { $0.element.identifier == focusedTextFieldIdentifier }) {
             var element = SemanticsNode(role: .group, label: merged.label ?? parts.map(\.element.label).filter { !$0.isEmpty }.joined(separator: ", "),
                                         frame: node.frameInRoot, identifier: node.semanticsIdentifier)
             if let first = parts.first?.element, parts.count == 1 { element.role = first.role; element.isOn = first.isOn; element.range = first.range }
             var entry = SemanticsEntry(node: node, element: element)
             apply(merged, to: &entry, rotors: true)
             result.append(entry)
-            // A text field being edited inside keeps its own element: the keyboard types into it,
-            // as a first responder takes the keyboard whatever its accessibility grouping.
-            if let editing = focusedTextFieldIdentifier {
-                for part in parts where part.element.identifier == editing { result.append(part) }
-            }
             return
         }
-        var elements: [SemanticsEntry] = []
-        collectElements(node, into: &elements)
+        var elements = parts
         // A view with actions, a rotor or a focus target but no element of its own gets one.
         if elements.isEmpty, !merged.actions.isEmpty || merged.adjustable != nil || !merged.rotors.isEmpty || merged.focusable || merged.rotorEntry != nil {
             elements.append(SemanticsEntry(node: node, element: SemanticsNode(role: .group, label: merged.label ?? "", frame: node.frameInRoot, identifier: node.semanticsIdentifier)))

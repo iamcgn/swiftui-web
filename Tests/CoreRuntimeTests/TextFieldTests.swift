@@ -105,8 +105,8 @@ import SwiftUIWebHeadless
     }
 
     /// A field inside a view made one accessibility element (SimpleScores' rows): the row is
-    /// the one element until the field is pressed, then the field being edited has its own
-    /// element too, so the host's input types into it.
+    /// the one element until the field is pressed, then its parts stand alone while the field
+    /// is edited, so the host's input types into it.
     @Test func aFieldInsideOneElementTakesTheKeyboardWhileEdited() {
         let box = _TextBox("Hello")
         let binding = Binding(get: { box.value }, set: { box.value = $0 })
