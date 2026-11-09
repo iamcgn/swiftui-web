@@ -19,14 +19,6 @@
 // Apple's frameworks re-export Foundation: a file importing only this module names Data and URL.
 @_exported import WebFoundation
 @_exported import Observation
-// Imported directly, so this module's `Predicate` shadows Foundation's for a file that imports
-// both (a declaration shadows those of the modules its own module imports): an app's
-// `func predicateToday() -> Predicate<Todo>` names this one, the type `#Predicate` makes.
-#if os(WASI)
-import FoundationEssentials
-#else
-import Foundation
-#endif
 import SwiftUIWebCore
 import WebCombine
 
