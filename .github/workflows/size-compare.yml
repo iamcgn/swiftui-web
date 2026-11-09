@@ -98,8 +98,7 @@ jobs:
             echo "$side --large_window=26: $(brotli -q 11 --large_window=26 -c size/$side.wasm | wc -c | tr -d ' ')"
             echo "$side -q 10: $(brotli -q 10 -c size/$side.wasm | wc -c | tr -d ' ')"
           done
-      - name: Brotli against where sections fall
+      - name: The head's biggest modules and symbols
         run: |
-          python3 head/Tools/Size/brotli-shift.py size/head.wasm data 256 1024 3225 4096 8192 32768 131072
-          python3 head/Tools/Size/brotli-shift.py size/head.wasm start 1024 4096
-          python3 head/Tools/Size/brotli-shift.py size/base.wasm data 3225 8192
+          . ~/.swiftly/env.sh
+          python3 head/Tools/Size/map-top.py size/head.map --top 250 --modules WebFoundation,WebCombine,UIKitWebCore,SwiftUIWebCore,WebGraphics,SwiftUIWebDOM,SwiftUIWeb,JavaScriptKit
