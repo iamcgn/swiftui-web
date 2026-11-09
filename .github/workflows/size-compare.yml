@@ -88,3 +88,13 @@ jobs:
           PY
       - name: What changed
         run: . ~/.swiftly/env.sh && python3 head/Tools/Size/map-diff.py size/base.map size/head.map --top 80
+      - name: Brotli by section and window
+        # brotli -q 11 can swing ~25 KB on a few bytes of raw change near the budget; this shows
+        # which section's compressed size moved and whether the window size changes the jump.
+        run: |
+          python3 head/Tools/Size/section-diff.py size/base.wasm size/head.wasm | head -60
+          for side in base head; do
+            for w in 22 23 24; do echo "$side -w $w: $(brotli -q 11 -w $w -c size/$side.wasm | wc -c | tr -d ' ')"; done
+            echo "$side --large_window=26: $(brotli -q 11 --large_window=26 -c size/$side.wasm | wc -c | tr -d ' ')"
+            echo "$side -q 10: $(brotli -q 10 -c size/$side.wasm | wc -c | tr -d ' ')"
+          done
