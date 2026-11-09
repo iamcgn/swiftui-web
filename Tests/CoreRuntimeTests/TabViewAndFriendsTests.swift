@@ -165,6 +165,15 @@ import SwiftUIWebHeadless
         l.pointerMoved(to: CGPoint(x: link.midX, y: link.midY))
         #expect(l.pointerStyle == .link, "\(link)")
     }
+
+    @Test func shareLinkComparesItsTextsOnRerender() {
+        // The subject, message and preview title live in one box; a re-render compares the
+        // texts in it, not the box's identity.
+        let url = URL(string: "https://www.apple.com")!
+        #expect(!_valuesDifferMemberwise(ShareLink(item: url, subject: Text("Retry")), ShareLink(item: url, subject: Text("Retry"))))
+        #expect(_valuesDifferMemberwise(ShareLink(item: url, subject: Text("Retry")), ShareLink(item: url, subject: Text("Again"))))
+        #expect(ShareLink(item: url, subject: Text("Retry"), message: Text("Look")).message == Text("Look"))
+    }
 }
 
 private final class _ShareBox: @unchecked Sendable {
