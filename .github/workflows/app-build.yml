@@ -1,0 +1,48 @@
+# Builds one app of Apps/ for wasm with the Objective-C runtime SDK (decision 0023) and prints
+# every compile error, without the rest of CI's browser job: the quick loop while bringing a new
+# unmodified app up (its errors list what SwiftUI Web still lacks). Runs on a push to a
+# `claude/app-*` branch that changes Apps/ or this file, or by hand with a product name.
+name: App build
+on:
+  push:
+    branches: ['claude/app-*']
+    paths: ['Apps/**', '.github/workflows/app-build.yml']
+  workflow_dispatch:
+    inputs:
+      product:
+        description: "The Apps/Package.swift executable product to build (e.g. Pompaddo)"
+        type: string
+        required: true
+env:
+  SWIFT_VERSION: 6.3.3
+  # On a push, the branch name after `claude/app-` (claude/app-pompaddo builds Pompaddo).
+  PRODUCT: ${{ inputs.product }}
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: true }
+      - name: The product
+        run: |
+          p="$PRODUCT"
+          if [ -z "$p" ]; then
+            p=$(grep -o 'executable(name: "[^"]*"' Apps/Package.swift | cut -d'"' -f2 | grep -ix "${GITHUB_REF_NAME#claude/app-}" | head -1)
+          fi
+          test -n "$p" || { echo "no Apps product named after the branch ${GITHUB_REF_NAME}"; exit 1; }
+          echo "PRODUCT=$p" >> "$GITHUB_ENV"; echo "building $p"
+      - name: Install toolchain and the Objective-C runtime wasm SDK
+        run: |
+          brew install swiftly binaryen brotli
+          swiftly init --assume-yes --skip-install --no-modify-profile
+          . ~/.swiftly/env.sh
+          swiftly install $SWIFT_VERSION --use --assume-yes
+          swift sdk install https://github.com/iamcgn/swift-objc-wasm/releases/download/v0.1.1/swift-6.3.3-RELEASE_wasm-objc.artifactbundle.tar.gz \
+            --checksum d493aecef947d8a8a4d224264ace14d28a423677d949bcd756838c3080638328
+      - name: Build (every error is printed, then the step fails if there were any)
+        run: |
+          . ~/.swiftly/env.sh
+          set -o pipefail
+          SWIFTUIWEB_WASM_SDK=swift-6.3.3-RELEASE_wasm-objc scripts/build-wasm.sh Apps --debug --product "$PRODUCT" 2>&1 | tee build.log || {
+            echo "::group::errors"; grep -E "error:" build.log | sed "s|$GITHUB_WORKSPACE/||" | sort -u; echo "::endgroup::"
+            echo "$(grep -E 'error:' build.log | sed "s|$GITHUB_WORKSPACE/||" | sort -u | wc -l) distinct errors"; exit 1; }

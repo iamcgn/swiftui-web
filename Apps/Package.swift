@@ -30,6 +30,7 @@ let package = Package(
         .executable(name: "Ember", targets: ["Ember"]),
         .executable(name: "ChartsExamples", targets: ["ChartsExamples"]),
         .executable(name: "Buttoncraft", targets: ["Buttoncraft"]),
+        .executable(name: "Pompaddo", targets: ["Pompaddo"]),
     ],
     dependencies: [
         .package(name: "SwiftUIWeb", path: "..", traits: ["FoundationFormats", "DecimalFormatting"]),
@@ -147,5 +148,42 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: stack
         ),
+        // MARK: amikhaylin/pompaddo — the iOS app target `PomPadDo.mobile` (SWIFT_VERSION 6.2,
+        // approachable concurrency): its synchronized folder `PomPadDo.mobile` plus the files of
+        // `Shared` the target lists as members (every Swift file there), with the two packages it
+        // links, CloudStorage and swiftdata-transferrable, at the versions its Package.resolved
+        // pins. The repository root is the target path so both folders are its; of them, the files
+        // Xcode handles through other phases are excluded. The macOS, watchOS, widget, share and
+        // Safari targets are not the iOS app's and are left out.
+        .executableTarget(
+            name: "Pompaddo",
+            dependencies: swiftUI + [uiKit] + host + [
+                "CloudStorage", "SwiftDataTransferrable",
+                .product(name: "SwiftData", package: "SwiftUIWeb"),
+                .product(name: "UserNotifications", package: "SwiftUIWeb"),
+                .product(name: "WidgetKit", package: "SwiftUIWeb"),
+                .product(name: "StoreKit", package: "SwiftUIWeb"),
+                .product(name: "Charts", package: "SwiftUIWeb"),
+                .product(name: "AVFoundation", package: "SwiftUIWeb"),
+            ],
+            path: "upstream/pompaddo",
+            exclude: ["PomPadDo.mobile/Info.plist", "PomPadDo.mobile/LaunchScreen.storyboard",
+                      "PomPadDo.mobile/PomPadDo_mobile.entitlements", "PomPadDo.mobile/Preview Content",
+                      "Shared/Tests", "Shared/Localizable.xcstrings"],
+            sources: ["PomPadDo.mobile", "Shared"],
+            resources: [.process("PomPadDo.mobile/Assets.xcassets")],
+            swiftSettings: [.swiftLanguageMode(.v6), .enableUpcomingFeature("InferIsolatedConformances"),
+                            .enableUpcomingFeature("NonisolatedNonsendingByDefault")],
+            linkerSettings: stack
+        ),
+        // tomlokhorst/CloudStorage 0.7.0 (its Package.swift: one target, tools 5.9).
+        .target(name: "CloudStorage", dependencies: swiftUI + [uiKit], path: "upstream/CloudStorage/Sources/CloudStorage",
+                swiftSettings: [.swiftLanguageMode(.v5)]),
+        // Whiffer/swiftdata-transferrable 3.0.2 (its Package.swift: one target, tools 5.9).
+        .target(name: "SwiftDataTransferrable",
+                dependencies: swiftUI + [.product(name: "SwiftData", package: "SwiftUIWeb"),
+                                         .product(name: "UniformTypeIdentifiers", package: "Shadows", condition: .when(platforms: [.wasi]))],
+                path: "upstream/swiftdata-transferrable/Sources/SwiftDataTransferrable",
+                swiftSettings: [.swiftLanguageMode(.v5)]),
     ]
 )
