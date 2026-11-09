@@ -165,6 +165,8 @@ let package = Package(
                 .product(name: "StoreKit", package: "SwiftUIWeb"),
                 .product(name: "Charts", package: "SwiftUIWeb"),
                 .product(name: "AVFoundation", package: "SwiftUIWeb"),
+                .product(name: "EventKit", package: "SwiftUIWeb"),
+                .product(name: "AudioToolbox", package: "SwiftUIWeb"),
             ],
             path: "upstream/pompaddo",
             exclude: ["PomPadDo.mobile/Info.plist", "PomPadDo.mobile/LaunchScreen.storyboard",
