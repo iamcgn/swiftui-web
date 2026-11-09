@@ -12,20 +12,8 @@ import WebFoundation
 
 /// A type that can be dragged, dropped, copied and pasted.
 public protocol Transferable {
-    /// As in SwiftUI, not constrained to represent `Self`: a conformance may declare its
-    /// representation as a plain `some TransferRepresentation`, which the builder makes one of
-    /// `Self` (`_representationExporters` recovers that).
-    associatedtype Representation: TransferRepresentation
+    associatedtype Representation: TransferRepresentation where Representation.Item == Self
     @TransferRepresentationBuilder<Self> static var transferRepresentation: Representation { get }
-}
-
-extension Transferable {
-    /// The exporters of `transferRepresentation`, which the builder makes exporters of `Self`
-    /// (a representation of another item exports nothing for this type).
-    static var _representationExporters: [_TransferExporter<Self>] {
-        let exporters = transferRepresentation._exporters
-        return exporters as? [_TransferExporter<Self>] ?? []
-    }
 }
 
 /// How a transferable value is exported to, and imported from, other forms.
@@ -68,7 +56,7 @@ public struct ProxyRepresentation<Item, ProxyRepresentation: Transferable>: Tran
 /// Exports the item as JSON (`_TransferJSONEncoder`, the coder of `TransferJSON.swift`).
 public struct CodableRepresentation<Item: Codable>: TransferRepresentation {
     package let contentType: UTType
-    public init(for itemType: Item.Type = Item.self, contentType: UTType = .json) { self.contentType = contentType }
+    public init(contentType: UTType = .json) { self.contentType = contentType }
     public var _exporters: [_TransferExporter<Item>] {
         [_TransferExporter(contentType: contentType, exportedType: Data.self,
                            export: { try? _TransferJSONEncoder().encode($0) },
@@ -214,7 +202,7 @@ public struct _TransferItem {
     package init<T: Transferable>(_ value: T) {
         self.value = value
         external = []
-        exporters = T._representationExporters.map { exporter in
+        exporters = T.transferRepresentation._exporters.map { exporter in
             _TransferExporter<Any>(contentType: exporter.contentType, exportedType: exporter.exportedType,
                                    export: { ($0 as? T).flatMap(exporter.export) }, importer: nil)
         }
@@ -258,7 +246,7 @@ public struct _TransferItem {
             if T.self == String.self { return types.contains { $0.isText } }
             if T.self == URL.self { return types.contains { $0 == .url || $0 == .fileURL } }
             if T.self == Data.self { return true }
-            let wanted = T._representationExporters.filter { $0.importer != nil }.compactMap(\.contentType)
+            let wanted = T.transferRepresentation._exporters.filter { $0.importer != nil }.compactMap(\.contentType)
             return types.contains { type in wanted.contains { type.conforms(to: $0) || $0.conforms(to: type) } }
         }
         return load(as: T.self) != nil
@@ -272,7 +260,7 @@ public struct _TransferItem {
         for exporter in exporters where exporter.exportedType == T.self {
             if let exported = exporter.export(value) as? T { return exported }
         }
-        let importers: [(Any.Type, UTType?, (Any) -> T?)] = T._representationExporters.compactMap { exporter in
+        let importers: [(Any.Type, UTType?, (Any) -> T?)] = T.transferRepresentation._exporters.compactMap { exporter in
             exporter.importer.map { importer in (exporter.exportedType, exporter.contentType, importer) }
         }
         for exporter in exporters {
@@ -510,11 +498,9 @@ extension View {
         modifier(_DraggableModifier<T, EmptyView>(payload: payload, preview: nil))
     }
 
-    /// Makes this view a drag source for `payload`, dragging `preview`. As in SwiftUI the preview
-    /// closure is not escaping: it is built here, and the view it returns is what is dragged.
-    nonisolated public func draggable<T: Transferable, V: View>(_ payload: @autoclosure @escaping () -> T, @ViewBuilder preview: () -> V) -> some View {
-        let view = preview()
-        return modifier(_DraggableModifier(payload: payload, preview: { view }))
+    /// Makes this view a drag source for `payload`, dragging `preview`.
+    nonisolated public func draggable<T: Transferable, V: View>(_ payload: @autoclosure @escaping () -> T, @ViewBuilder preview: @escaping () -> V) -> some View {
+        modifier(_DraggableModifier(payload: payload, preview: preview))
     }
 
     /// Makes this view a drop destination for dragged values of `payloadType`. `action` gets the
