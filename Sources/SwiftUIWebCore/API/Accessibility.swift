@@ -508,8 +508,8 @@ public struct _RotorEntries: AccessibilityRotorContent {
 @resultBuilder
 public struct AccessibilityRotorContentBuilder {
     /// A body that never returns (`fatalError()`), as primitive content declares its body.
-    public static func buildExpression(_ never: Never) -> Never { never }
-    public static func buildBlock(_ never: Never) -> Never { never }
+    public static func buildExpression(_ never: Never) -> Never { switch never {} }
+    public static func buildBlock(_ never: Never) -> Never { switch never {} }
     public static func buildBlock(_ components: any AccessibilityRotorContent...) -> _RotorEntries { _RotorEntries(_rotorEntries: components.flatMap(\._rotorEntries)) }
     public static func buildExpression<C: AccessibilityRotorContent>(_ expression: C) -> any AccessibilityRotorContent { expression }
     public static func buildOptional(_ component: (any AccessibilityRotorContent)?) -> any AccessibilityRotorContent { component ?? _RotorEntries(_rotorEntries: []) }
