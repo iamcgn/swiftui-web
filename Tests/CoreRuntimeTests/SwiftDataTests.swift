@@ -121,12 +121,17 @@ extension Schema {
 final actor MainDBRepository {}
 
 extension MainDBRepository {
+    /// A predicate an app names by its type. A wasm app writes the bare `Predicate` (Pompaddo's
+    /// build is the check for that); natively Foundation's own `Predicate` is visible here by
+    /// another path, so the test names the module.
+    static func alpha3(_ code: String) -> WebFoundation.Predicate<DBModel.CountryDetails> {
+        #Predicate<DBModel.CountryDetails> { $0.alpha3Code == code }
+    }
+
     @MainActor
     func countryDetails(for country: DBModel.Country) async throws -> DBModel.CountryDetails? {
         let alpha3Code = country.alpha3Code
-        let fetchDescriptor = FetchDescriptor(predicate: #Predicate<DBModel.CountryDetails> {
-            $0.alpha3Code == alpha3Code
-        })
+        let fetchDescriptor = FetchDescriptor(predicate: Self.alpha3(alpha3Code))
         return try modelContainer.mainContext.fetch(fetchDescriptor).first
     }
 

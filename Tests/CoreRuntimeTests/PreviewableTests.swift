@@ -12,6 +12,13 @@ import SwiftUIWebHeadless
     Text("\(label) \(count)")
 }
 
+#Preview("Previewable return") {
+    @Previewable @State var count = 4
+    let label = "Returned"
+    return Text("\(label) \(count)")
+        .padding()
+}
+
 @Suite @MainActor struct PreviewableTests {
     @Test func previewableStateRenders() {
         #if canImport(MachO)
@@ -23,6 +30,16 @@ import SwiftUIWebHeadless
         r.mount(preview.makeView())
         r.layout(in: CGSize(width: 200, height: 100))
         #expect(r.render(scale: 1).commands.map(\.description).contains { $0.hasPrefix("drawText(\"Count 3\"") })
+        // A body that ends in an explicit `return` (no view builder) renders the same way.
+        let returning = _PreviewRegistry.all.filter { $0.name == "Previewable return" }
+        #expect(returning.count == 1)
+        if let preview = returning.first {
+            let q = Runtime()
+            q.textEngine = MonospaceTextEngine()
+            q.mount(preview.makeView())
+            q.layout(in: CGSize(width: 200, height: 100))
+            #expect(q.render(scale: 1).commands.map(\.description).contains { $0.hasPrefix("drawText(\"Returned 4\"") })
+        }
         #endif
         // A body of several statements passes through the view builder.
         let built = _Preview(name: nil, traits: [], file: "PreviewableTests.swift", line: 1) {

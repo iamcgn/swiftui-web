@@ -91,9 +91,10 @@ public final class NotificationCenter: @unchecked Sendable {
 
     public init() {}
 
-    /// Adds an observer (the queue is accepted; blocks run where `post` runs). Returns a token for `removeObserver`.
+    /// Adds an observer (the queue is accepted; blocks run where `post` runs, which is the main
+    /// thread, the only one here). Returns a token for `removeObserver`.
     @discardableResult
-    public func addObserver(forName name: Notification.Name?, object: AnyObject? = nil, queue: Any? = nil, using block: @escaping @Sendable (Notification) -> Void) -> any NSObjectProtocolToken {
+    public func addObserver(forName name: Notification.Name?, object: AnyObject? = nil, queue: OperationQueue? = nil, using block: @escaping @Sendable (Notification) -> Void) -> any NSObjectProtocolToken {
         nextID += 1
         let id = nextID
         observers[id] = Observer(name: name, object: object, filtersObject: object != nil, block: block)
@@ -115,11 +116,13 @@ public final class NotificationCenter: @unchecked Sendable {
     #if canImport(ObjectiveC)
     /// Sends `selector` to `observer` for each matching post while the observer lives (the
     /// notification is not passed: it is a struct here, so an `@objc` method cannot take it).
+    /// A selector with no argument (`synchronize`, `refresh`) is sent with none, one with an
+    /// argument (`didChange:`) with nil (`_send(_:passing:)`).
     public func addObserver(_ observer: Any, selector: Selector, name: Notification.Name?, object: Any?) {
         let target = _WeakTarget(observer as AnyObject)
         nextID += 1
         observers[nextID] = Observer(name: name, object: object.map { $0 as AnyObject }, filtersObject: object != nil,
-                                     block: { _ in _ = (target.object as? NSObject)?.perform(selector, with: nil) },
+                                     block: { _ in (target.object as? NSObject)?._send(selector, passing: nil) },
                                      owner: ObjectIdentifier(observer as AnyObject))
     }
     #endif

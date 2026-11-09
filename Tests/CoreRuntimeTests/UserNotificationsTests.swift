@@ -39,6 +39,15 @@ import WebFoundation
         UNUserNotificationCenter.current().delegate = nil
     }
 
+    @Test func badgeCountAnswersBothForms() async throws {
+        let center = UNUserNotificationCenter.current()
+        nonisolated(unsafe) var told: [Bool] = []
+        center.setBadgeCount(3) { error in told.append(error == nil) }
+        center.setBadgeCount(0, withCompletionHandler: nil)
+        try await center.setBadgeCount(1)
+        #expect(told == [true])
+    }
+
     @Test func withoutAHostNothingIsAuthorisedOrShown() async throws {
         withoutHost()
         let center = UNUserNotificationCenter.current()

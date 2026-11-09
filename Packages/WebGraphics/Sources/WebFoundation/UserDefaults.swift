@@ -25,9 +25,11 @@ public final class UserDefaults: @unchecked Sendable {
 
     // MARK: Reading
 
-    public func object(forKey key: String) -> Any? { value(forKey: key)?.any }
+    public func object(forKey key: String) -> Any? { _stored(forKey: key)?.any }
+    /// Key-value coding's read, which on Apple's platforms answers as `object(forKey:)`.
+    public func value(forKey key: String) -> Any? { object(forKey: key) }
     public func string(forKey key: String) -> String? {
-        switch value(forKey: key) {
+        switch _stored(forKey: key) {
         case .string(let s)?: return s
         case .int(let i)?: return String(i)
         case .double(let d)?: return String(d)
@@ -36,7 +38,7 @@ public final class UserDefaults: @unchecked Sendable {
         }
     }
     public func integer(forKey key: String) -> Int {
-        switch value(forKey: key) {
+        switch _stored(forKey: key) {
         case .int(let i)?: return i
         case .double(let d)?: return Int(d)
         case .bool(let b)?: return b ? 1 : 0
@@ -45,7 +47,7 @@ public final class UserDefaults: @unchecked Sendable {
         }
     }
     public func double(forKey key: String) -> Double {
-        switch value(forKey: key) {
+        switch _stored(forKey: key) {
         case .int(let i)?: return Double(i)
         case .double(let d)?: return d
         case .bool(let b)?: return b ? 1 : 0
@@ -55,7 +57,7 @@ public final class UserDefaults: @unchecked Sendable {
     }
     public func float(forKey key: String) -> Float { Float(double(forKey: key)) }
     public func bool(forKey key: String) -> Bool {
-        switch value(forKey: key) {
+        switch _stored(forKey: key) {
         case .bool(let b)?: return b
         case .int(let i)?: return i != 0
         case .double(let d)?: return d != 0
@@ -63,16 +65,16 @@ public final class UserDefaults: @unchecked Sendable {
         default: return false
         }
     }
-    public func data(forKey key: String) -> Data? { if case .data(let d)? = value(forKey: key) { return d } else { return nil } }
+    public func data(forKey key: String) -> Data? { if case .data(let d)? = _stored(forKey: key) { return d } else { return nil } }
     public func url(forKey key: String) -> URL? { string(forKey: key).flatMap { URL(string: $0) } }
-    public func array(forKey key: String) -> [Any]? { if case .array(let a)? = value(forKey: key) { return a.map(\.any) } else { return nil } }
+    public func array(forKey key: String) -> [Any]? { if case .array(let a)? = _stored(forKey: key) { return a.map(\.any) } else { return nil } }
     public func stringArray(forKey key: String) -> [String]? {
-        guard case .array(let a)? = value(forKey: key) else { return nil }
+        guard case .array(let a)? = _stored(forKey: key) else { return nil }
         var strings: [String] = []
         for element in a { if case .string(let s) = element { strings.append(s) } else { return nil } }
         return strings
     }
-    public func dictionary(forKey key: String) -> [String: Any]? { if case .dictionary(let d)? = value(forKey: key) { return d.mapValues(\.any) } else { return nil } }
+    public func dictionary(forKey key: String) -> [String: Any]? { if case .dictionary(let d)? = _stored(forKey: key) { return d.mapValues(\.any) } else { return nil } }
     public func dictionaryRepresentation() -> [String: Any] {
         load()
         return registered.merging(values) { $1 }.mapValues(\.any)
@@ -91,6 +93,8 @@ public final class UserDefaults: @unchecked Sendable {
     public func set(_ value: Bool, forKey key: String) { set(value as Any, forKey: key) }
     public func set(_ url: URL?, forKey key: String) { set(url?.absoluteString as Any?, forKey: key) }
     public func removeObject(forKey key: String) { set(nil, forKey: key) }
+    /// Key-value coding's write, which on Apple's platforms stores as `set(_:forKey:)`.
+    public func setValue(_ value: Any?, forKey key: String) { set(value, forKey: key) }
     public func register(defaults: [String: Any]) {
         for (key, value) in defaults { if let stored = _Value(value) { registered[key] = stored } }
     }
@@ -99,7 +103,7 @@ public final class UserDefaults: @unchecked Sendable {
 
     // MARK: Storage
 
-    private func value(forKey key: String) -> _Value? {
+    private func _stored(forKey key: String) -> _Value? {
         load()
         return values[key] ?? registered[key]
     }

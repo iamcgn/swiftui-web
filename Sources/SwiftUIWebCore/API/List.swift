@@ -644,7 +644,7 @@ extension EnvironmentValues {
 extension View {
     /// Marks this view as refreshable: a pull past the threshold on a scroll view (touch, iOS)
     /// runs the action and shows a spinner until it returns.
-    nonisolated public func refreshable(action: @escaping @Sendable () async -> Void) -> some View {
+    nonisolated public func refreshable(action: @escaping @MainActor @Sendable () async -> Void) -> some View {
         environment(\.refresh, RefreshAction(action))
     }
 }
