@@ -140,19 +140,37 @@ extension SharePreview where Image == Never, Icon == Never {
     public init<S: StringProtocol>(_ title: S) { self.init(Text(title)) }
 }
 
-/// A view that controls a sharing presentation.
-public struct ShareLink<Label: View>: View {
-    package let items: [_ShareItem]
-    package let subject: Text?
-    package let message: Text?
-    package let previewTitle: Text?
-    package let label: Label
+/// A share link's subject, message and preview title, in one box: three `Text?` fields held
+/// inline made `ShareLink`'s copy and assign witnesses about 60 KB of every bundle. Equatable,
+/// so a re-render compares the texts and not the box.
+private final class _ShareTexts: Equatable, Sendable {
+    let subject: Text?
+    let message: Text?
+    let previewTitle: Text?
 
-    package init(shareItems: [_ShareItem], subject: Text?, message: Text?, previewTitle: Text?, label: Label) {
-        items = shareItems
+    init(subject: Text?, message: Text?, previewTitle: Text?) {
         self.subject = subject
         self.message = message
         self.previewTitle = previewTitle
+    }
+
+    static func == (lhs: _ShareTexts, rhs: _ShareTexts) -> Bool {
+        lhs.subject == rhs.subject && lhs.message == rhs.message && lhs.previewTitle == rhs.previewTitle
+    }
+}
+
+/// A view that controls a sharing presentation.
+public struct ShareLink<Label: View>: View {
+    package let items: [_ShareItem]
+    private let texts: _ShareTexts
+    package let label: Label
+    package var subject: Text? { texts.subject }
+    package var message: Text? { texts.message }
+    package var previewTitle: Text? { texts.previewTitle }
+
+    package init(shareItems: [_ShareItem], subject: Text?, message: Text?, previewTitle: Text?, label: Label) {
+        items = shareItems
+        texts = _ShareTexts(subject: subject, message: message, previewTitle: previewTitle)
         self.label = label
     }
 
