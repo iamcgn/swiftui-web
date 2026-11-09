@@ -14,9 +14,17 @@ import Foundation
 /// The frame rate range a display link prefers (`CAFrameRateRange` in Core Animation).
 public typealias CAFrameRateRange = CADisplayLink.FrameRateRange
 
+#if canImport(ObjectiveC)
+/// The link's superclass: `NSObject` where there is an Objective-C runtime, as on iOS, so an
+/// `@objc` method can take the link (`@objc func tick(_ link: CADisplayLink)`).
+public typealias _CADisplayLinkBase = NSObject
+#else
+open class _CADisplayLinkBase { public init() {} }
+#endif
+
 /// A timer object that lets your app synchronize its drawing to the refresh rate of the display.
 @preconcurrency @MainActor
-public final class CADisplayLink {
+public final class CADisplayLink: _CADisplayLinkBase {
     public struct FrameRateRange: Equatable, Sendable {
         public var minimum: Float
         public var maximum: Float
@@ -44,11 +52,13 @@ public final class CADisplayLink {
         self.target = target
         self.requiresTarget = true
         self.handler = handler
+        super.init()
     }
 
     public init(handler: @escaping @MainActor (CADisplayLink) -> Void) {
         self.requiresTarget = false
         self.handler = handler
+        super.init()
     }
 
     #if canImport(ObjectiveC)

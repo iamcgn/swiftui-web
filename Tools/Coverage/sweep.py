@@ -76,6 +76,22 @@ EXCLUDE_DIR = re.compile(
 AUTO_RESOURCE_SUFFIXES = (".xcstrings", ".lproj", ".xcassets", ".storyboard", ".xib")
 
 
+def files_under(root, suffix=""):
+    """The files under `root` ending in `suffix`, sorted, into symlinked folders too: SwiftPM reads
+    a target's sources through them (swift-issue-reporting 2 links its package-support types into
+    IssueReporting from a "Symbolic Links" folder), and `Path.rglob` does not follow them. A folder
+    reached twice (a link back up the tree) is read once."""
+    found, seen = [], set()
+    for folder, subfolders, names in os.walk(root, followlinks=True):
+        real = os.path.realpath(folder)
+        if real in seen:
+            subfolders[:] = []
+            continue
+        seen.add(real)
+        found += [Path(folder) / n for n in names if n.endswith(suffix)]
+    return sorted(found)
+
+
 def auto_resources(source_root):
     """The resources SwiftPM picks up in a target's folder by their type, outermost only."""
     found = []
@@ -334,12 +350,12 @@ def describe_remote_packages(work: Path, keys, notes):
                 notes.append(f"package {identity}: target {t['name']} has no folder {path}")
                 left_out.add(t["name"]); continue
             excludes = [str(Path(path) / e) for e in t.get("exclude", [])]
-            files = [str(f.relative_to(root)) for f in sorted(src.rglob("*.swift"))
+            files = [str(f.relative_to(root)) for f in files_under(src, ".swift")
                      if f.is_file() and not any(str(f.relative_to(root)).startswith(e.rstrip("/") + "/") or str(f.relative_to(root)) == e for e in excludes)
                      and not (f.parent == root and is_manifest(f.name))]
             c_kind = None
             if not files:
-                found = [f for f in src.rglob("*") if f.is_file()]
+                found = [f for f in files_under(src) if f.is_file()]
                 sources = [f for f in found if f.suffix in C_SOURCES]
                 objc = [f for f in sources if f.suffix in (".m", ".mm")]
                 has_headers = any(f.suffix in C_HEADERS for f in found)
@@ -468,7 +484,7 @@ def describe_app(entry, root: Path, work: Path = None):
                     deps.extend(remote_names_by_product[name])
                 elif name:
                     third.append(name)
-            files = [str(f.relative_to(root)) for f in sorted((root / src).rglob("*.swift"))
+            files = [str(f.relative_to(root)) for f in files_under(root / src, ".swift")
                      if not any(EXCLUDE_DIR.match(x) for x in f.relative_to(root / src).parts[:-1])]
             files = [f for f in files if Path(f).name not in t.get("exclude", [])]
             # A target at the package's own folder (`path: "."`) holds its manifest, which is
