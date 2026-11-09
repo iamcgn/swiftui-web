@@ -13,3 +13,4 @@ Harness/.swiftpm/
 Playwright/test-results/
 Playwright/.speech-profile/
 __pycache__/
+Apps/ios-sources/
