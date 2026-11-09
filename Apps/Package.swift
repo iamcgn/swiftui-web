@@ -170,7 +170,10 @@ let package = Package(
             exclude: ["PomPadDo.mobile/Info.plist", "PomPadDo.mobile/LaunchScreen.storyboard",
                       "PomPadDo.mobile/PomPadDo_mobile.entitlements", "PomPadDo.mobile/Preview Content",
                       "Shared/Tests", "Shared/Localizable.xcstrings"],
-            sources: ["PomPadDo.mobile", "Shared"],
+            // The folder's Swift, not the folder: its asset catalog is a resource of its own.
+            sources: ["PomPadDo.mobile/Activities", "PomPadDo.mobile/CustomViews", "PomPadDo.mobile/Settings",
+                      "PomPadDo.mobile/MainTabsView.swift", "PomPadDo.mobile/MainView.swift",
+                      "PomPadDo.mobile/PomPadDo_mobileApp.swift", "Shared"],
             resources: [.process("PomPadDo.mobile/Assets.xcassets")],
             swiftSettings: [.swiftLanguageMode(.v6), .enableUpcomingFeature("InferIsolatedConformances"),
                             .enableUpcomingFeature("NonisolatedNonsendingByDefault")],
