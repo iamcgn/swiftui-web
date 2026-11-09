@@ -231,9 +231,9 @@ public struct TableRow<Value: Identifiable> {
 /// A result builder that creates table row content from closures.
 @resultBuilder
 public struct TableRowBuilder<Value: Identifiable> {
-    /// A body that never returns (`fatalError()`), as primitive content declares its body.
-    public static func buildExpression(_ never: Never) -> Never { switch never {} }
-    public static func buildBlock(_ never: Never) -> Never { switch never {} }
+    /// Content as itself: a body that never returns (`fatalError()`) is `Never`'s.
+    public static func buildExpression<Content: TableRowContent>(_ content: Content) -> Content { content }
+    public static func buildBlock<Content: TableRowContent>(_ content: Content) -> Content { content }
     public static func buildBlock(_ rows: [TableRow<Value>]...) -> [TableRow<Value>] { rows.flatMap { $0 } }
     public static func buildExpression(_ row: TableRow<Value>) -> [TableRow<Value>] { [row] }
     public static func buildExpression(_ rows: [TableRow<Value>]) -> [TableRow<Value>] { rows }
@@ -366,9 +366,9 @@ public struct TableColumn<RowValue: Identifiable> {
 /// A result builder that creates table column content from closures.
 @resultBuilder
 public struct TableColumnBuilder<RowValue: Identifiable, Sort> {
-    /// A body that never returns (`fatalError()`), as primitive content declares its body.
-    public static func buildExpression(_ never: Never) -> Never { switch never {} }
-    public static func buildBlock(_ never: Never) -> Never { switch never {} }
+    /// Content as itself: a body that never returns (`fatalError()`) is `Never`'s.
+    public static func buildExpression<Content: TableColumnContent>(_ content: Content) -> Content { content }
+    public static func buildBlock<Content: TableColumnContent>(_ content: Content) -> Content { content }
     public static func buildBlock(_ columns: TableColumn<RowValue>...) -> [TableColumn<RowValue>] { columns }
     public static func buildBlock(_ columns: [TableColumn<RowValue>]...) -> [TableColumn<RowValue>] { columns.flatMap { $0 } }
     public static func buildExpression(_ column: TableColumn<RowValue>) -> [TableColumn<RowValue>] { [column] }
