@@ -438,15 +438,32 @@ public struct AccessibilityFocusState<Value: Hashable>: DynamicProperty {
 
 // MARK: - Rotors
 
-/// Content of a rotor: entries, built by `AccessibilityRotorContentBuilder`.
+/// Content of a rotor: entries, built by `AccessibilityRotorContentBuilder`, or a custom type
+/// whose `body` is.
 @MainActor @preconcurrency
 public protocol AccessibilityRotorContent {
+    associatedtype Body: AccessibilityRotorContent
+    @AccessibilityRotorContentBuilder var body: Body { get }
+    /// The resolved entries (primitive content overrides this). Nonisolated as the rotor
+    /// modifiers resolve it eagerly; a conformer's `body` is main-actor isolated, like Apple's.
     nonisolated var _rotorEntries: [_AccessibilityRotor.Entry] { get }
+}
+
+extension AccessibilityRotorContent {
+    nonisolated public var _rotorEntries: [_AccessibilityRotor.Entry] {
+        nonisolated(unsafe) let content = self
+        return MainActor.assumeIsolated { content.body._rotorEntries }
+    }
+}
+
+extension Never: AccessibilityRotorContent {
+    nonisolated public var _rotorEntries: [_AccessibilityRotor.Entry] { [] }
 }
 
 /// One rotor entry: a label and the id of the view it points at (marked with
 /// `accessibilityRotorEntry(id:in:)`); `prepare` runs before focus moves there.
 public struct AccessibilityRotorEntry<ID: Hashable>: AccessibilityRotorContent {
+    public typealias Body = Never
     nonisolated package let label: String
     nonisolated(unsafe) package let id: ID?
     nonisolated package let namespace: Namespace.ID?
@@ -473,6 +490,7 @@ public struct AccessibilityRotorEntry<ID: Hashable>: AccessibilityRotorContent {
         self.prepare = prepare
     }
 
+    public var body: Never { fatalError("AccessibilityRotorEntry has no body") }
     nonisolated public var _rotorEntries: [_AccessibilityRotor.Entry] {
         nonisolated(unsafe) let id = id
         return [.init(label: label, id: id.map { AnyHashable($0) }, namespace: namespace, prepare: prepare)]
@@ -481,6 +499,8 @@ public struct AccessibilityRotorEntry<ID: Hashable>: AccessibilityRotorContent {
 
 /// Several rotor entries.
 public struct _RotorEntries: AccessibilityRotorContent {
+    public typealias Body = Never
+    public var body: Never { fatalError("_RotorEntries has no body") }
     nonisolated public let _rotorEntries: [_AccessibilityRotor.Entry]
     nonisolated public init(_rotorEntries: [_AccessibilityRotor.Entry]) { self._rotorEntries = _rotorEntries }
 }

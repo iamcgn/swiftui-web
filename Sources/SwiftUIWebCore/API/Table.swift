@@ -22,7 +22,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     @Environment(\._alternatingRowBackgrounds) private var rowBackgrounds
 
     /// Creates a table that computes its rows from a collection.
-    public init(_ data: Data, @TableColumnBuilder<Value> columns: () -> [TableColumn<Value>]) {
+    public init(_ data: Data, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         selection = nil
@@ -30,7 +30,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     }
 
     /// Creates a table with a single selection.
-    public init(_ data: Data, selection: Binding<Value.ID?>, @TableColumnBuilder<Value> columns: () -> [TableColumn<Value>]) {
+    public init(_ data: Data, selection: Binding<Value.ID?>, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         self.selection = _ListSelection(single: selection)
@@ -38,7 +38,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     }
 
     /// Creates a table with a multiple selection.
-    public init(_ data: Data, selection: Binding<Set<Value.ID>>, @TableColumnBuilder<Value> columns: () -> [TableColumn<Value>]) {
+    public init(_ data: Data, selection: Binding<Set<Value.ID>>, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         self.selection = _ListSelection(multiple: selection)
@@ -46,7 +46,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     }
 
     /// Creates a sortable table.
-    public init(_ data: Data, sortOrder: Binding<[KeyPathComparator<Value>]>, @TableColumnBuilder<Value> columns: () -> [TableColumn<Value>]) {
+    public init(_ data: Data, sortOrder: Binding<[KeyPathComparator<Value>]>, @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [TableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         selection = nil
@@ -54,7 +54,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     }
 
     public init(_ data: Data, selection: Binding<Value.ID?>, sortOrder: Binding<[KeyPathComparator<Value>]>,
-                @TableColumnBuilder<Value> columns: () -> [TableColumn<Value>]) {
+                @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [TableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         self.selection = _ListSelection(single: selection)
@@ -62,7 +62,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     }
 
     public init(_ data: Data, selection: Binding<Set<Value.ID>>, sortOrder: Binding<[KeyPathComparator<Value>]>,
-                @TableColumnBuilder<Value> columns: () -> [TableColumn<Value>]) {
+                @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [TableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         self.selection = _ListSelection(multiple: selection)
@@ -70,14 +70,14 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     }
 
     /// Creates a table from rows declared one by one (`TableRow`).
-    public init(of valueType: Value.Type, @TableColumnBuilder<Value> columns: () -> [TableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
+    public init(of valueType: Value.Type, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
         data = rows().map(\.value)
         self.columns = columns()
         selection = nil
         sortOrder = nil
     }
 
-    public init(of valueType: Value.Type, selection: Binding<Value.ID?>, @TableColumnBuilder<Value> columns: () -> [TableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
+    public init(of valueType: Value.Type, selection: Binding<Value.ID?>, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
         data = rows().map(\.value)
         self.columns = columns()
         self.selection = _ListSelection(single: selection)
@@ -86,7 +86,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
 
     /// Creates an outline table: rows with children show a disclosure triangle, their children
     /// indented when expanded.
-    public init(_ data: Data, children: KeyPath<Value, [Value]?>, @TableColumnBuilder<Value> columns: () -> [TableColumn<Value>]) {
+    public init(_ data: Data, children: KeyPath<Value, [Value]?>, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         selection = nil
@@ -94,7 +94,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
         self.children = children
     }
 
-    public init(_ data: Data, children: KeyPath<Value, [Value]?>, selection: Binding<Value.ID?>, @TableColumnBuilder<Value> columns: () -> [TableColumn<Value>]) {
+    public init(_ data: Data, children: KeyPath<Value, [Value]?>, selection: Binding<Value.ID?>, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         self.selection = _ListSelection(single: selection)
@@ -102,7 +102,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
         self.children = children
     }
 
-    public init(_ data: Data, children: KeyPath<Value, [Value]?>, selection: Binding<Set<Value.ID>>, @TableColumnBuilder<Value> columns: () -> [TableColumn<Value>]) {
+    public init(_ data: Data, children: KeyPath<Value, [Value]?>, selection: Binding<Set<Value.ID>>, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         self.selection = _ListSelection(multiple: selection)
@@ -153,6 +153,75 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     }
 }
 
+// MARK: - Column and row content
+
+/// Content of a table's columns, typed by the row value and the sort comparator its columns
+/// use. Primitive content (`Never`, a wrapper that forwards to its content) makes its columns
+/// in `_makeContent`; other content describes them in `tableColumnBody`. `Table` itself still
+/// takes the builder's `TableColumn` list.
+@MainActor @preconcurrency
+public protocol TableColumnContent<TableRowValue, TableColumnSortComparator> {
+    associatedtype TableRowValue: Identifiable
+    associatedtype TableColumnSortComparator
+    associatedtype TableColumnBody: TableColumnContent
+    @TableColumnBuilder<TableRowValue, TableColumnSortComparator> var tableColumnBody: TableColumnBody { get }
+    nonisolated static func _makeContent(content: _GraphValue<Self>, inputs: _TableColumnInputs) -> _TableColumnOutputs
+}
+
+extension TableColumnContent {
+    nonisolated public static func _makeContent(content: _GraphValue<Self>, inputs: _TableColumnInputs) -> _TableColumnOutputs {
+        TableColumnBody._makeContent(content: content._map { value in
+            // The body is main-actor isolated, like Apple's; content is made from a view body.
+            nonisolated(unsafe) let value = value
+            return MainActor.assumeIsolated { _MadeOnMain(value: value.tableColumnBody) }.value
+        }, inputs: inputs)
+    }
+}
+
+/// A value made on the main actor, handed back to the nonisolated code that asked for it.
+private struct _MadeOnMain<Value>: @unchecked Sendable { let value: Value }
+
+/// Content of a table's rows, typed by the row value.
+@MainActor @preconcurrency
+public protocol TableRowContent<TableRowValue> {
+    associatedtype TableRowValue: Identifiable
+    associatedtype TableRowBody: TableRowContent
+    @TableRowBuilder<TableRowValue> var tableRowBody: TableRowBody { get }
+}
+
+extension Never: TableColumnContent, TableRowContent {
+    public typealias TableRowValue = Never
+    public typealias TableColumnSortComparator = Never
+    public var tableColumnBody: Never { fatalError("Never has no columns") }
+    public var tableRowBody: Never { fatalError("Never has no rows") }
+    nonisolated public static func _makeContent(content: _GraphValue<Never>, inputs: _TableColumnInputs) -> _TableColumnOutputs {
+        _TableColumnOutputs()
+    }
+}
+
+/// A value of content being made, read when its parts are: `content[\.member]` reaches a part.
+public struct _GraphValue<Value> {
+    package let value: () -> Value
+    package init(_ value: @escaping () -> Value) { self.value = value }
+    public subscript<Member>(keyPath: KeyPath<Value, Member>) -> _GraphValue<Member> {
+        _GraphValue<Member> { value()[keyPath: keyPath] }
+    }
+    package func _map<Member>(_ transform: @escaping (Value) -> Member) -> _GraphValue<Member> {
+        _GraphValue<Member> { transform(value()) }
+    }
+}
+
+/// What column content is made with (nothing yet: the table's row type is in the content's).
+public struct _TableColumnInputs {
+    package init() {}
+}
+
+/// The columns column content made, as `TableColumn` values of the row type.
+public struct _TableColumnOutputs {
+    package var columns: [Any] = []
+    package init(columns: [Any] = []) { self.columns = columns }
+}
+
 /// A row of a table declared by hand (`Table(of:columns:rows:)`).
 public struct TableRow<Value: Identifiable> {
     package let value: Value
@@ -175,18 +244,18 @@ public struct TableRowBuilder<Value: Identifiable> {
 public struct TableColumnForEach<Data: RandomAccessCollection, ID: Hashable, RowValue: Identifiable> {
     package let columns: [TableColumn<RowValue>]
 
-    public init(_ data: Data, id: KeyPath<Data.Element, ID>, @TableColumnBuilder<RowValue> content: (Data.Element) -> [TableColumn<RowValue>]) {
+    public init(_ data: Data, id: KeyPath<Data.Element, ID>, @TableColumnBuilder<RowValue, Never> content: (Data.Element) -> [TableColumn<RowValue>]) {
         columns = data.flatMap { content($0) }
     }
 
-    public init(_ data: Data, @TableColumnBuilder<RowValue> content: (Data.Element) -> [TableColumn<RowValue>]) where Data.Element: Identifiable, ID == Data.Element.ID {
+    public init(_ data: Data, @TableColumnBuilder<RowValue, Never> content: (Data.Element) -> [TableColumn<RowValue>]) where Data.Element: Identifiable, ID == Data.Element.ID {
         columns = data.flatMap { content($0) }
     }
 }
 
 extension Group {
     /// A group of columns (a `Group` inside `TableColumnBuilder`).
-    public init<R: Identifiable>(@TableColumnBuilder<R> content: () -> [TableColumn<R>]) where Content == [TableColumn<R>] {
+    public init<R: Identifiable>(@TableColumnBuilder<R, Never> content: () -> [TableColumn<R>]) where Content == [TableColumn<R>] {
         self.init(_content: content())
     }
 }
@@ -293,7 +362,7 @@ public struct TableColumn<RowValue: Identifiable> {
 
 /// A result builder that creates table column content from closures.
 @resultBuilder
-public struct TableColumnBuilder<RowValue: Identifiable> {
+public struct TableColumnBuilder<RowValue: Identifiable, Sort> {
     public static func buildBlock(_ columns: TableColumn<RowValue>...) -> [TableColumn<RowValue>] { columns }
     public static func buildBlock(_ columns: [TableColumn<RowValue>]...) -> [TableColumn<RowValue>] { columns.flatMap { $0 } }
     public static func buildExpression(_ column: TableColumn<RowValue>) -> [TableColumn<RowValue>] { [column] }

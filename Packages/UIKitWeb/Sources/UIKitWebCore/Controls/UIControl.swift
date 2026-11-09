@@ -103,6 +103,10 @@ open class UIControl: UIView {
         public static let disabled = State(rawValue: 1 << 1)
         public static let selected = State(rawValue: 1 << 2)
         public static let focused = State(rawValue: 1 << 3)
+        /// The bits left for the app's own states.
+        public static let application = State(rawValue: 0x00FF0000)
+        /// The bits UIKit keeps for itself.
+        public static let reserved = State(rawValue: 0xFF000000)
     }
 
     public enum ContentVerticalAlignment: Int, Sendable { case center = 0, top, bottom, fill }
