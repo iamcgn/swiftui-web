@@ -253,6 +253,7 @@ import SwiftUIWebHeadless
                 Color.red.frame(width: 40, height: 40).draggingName("forwarded") { Color.red.frame(width: 40, height: 40) }._probe("source")
                 Color.blue.frame(width: 80, height: 80)
                     .dropDestination(for: String.self, action: { items, point in log.dropped.append((items[0], point)); return true })
+                    ._probe("target")
             }
         }
     }
@@ -262,11 +263,12 @@ import SwiftUIWebHeadless
     @Test func previewClosureForwardsFromAWrapper() {
         let log = Log()
         let r = runtime(ForwardedPreview(log: log))
-        r.pointerDown(at: CGPoint(x: 50, y: 90))
-        r.pointerMoved(to: CGPoint(x: 60, y: 100))
+        let source = r.probeFrames["source"]!, target = r.probeFrames["target"]!
+        r.pointerDown(at: CGPoint(x: source.midX, y: source.midY))
+        r.pointerMoved(to: CGPoint(x: source.midX + 10, y: source.midY + 10))
         #expect(r.isDragging)
-        r.pointerMoved(to: CGPoint(x: 160, y: 120))
-        r.pointerUp(at: CGPoint(x: 160, y: 120))
+        r.pointerMoved(to: CGPoint(x: target.midX, y: target.midY))
+        r.pointerUp(at: CGPoint(x: target.midX, y: target.midY))
         #expect(log.dropped.map(\.0) == ["forwarded"])
     }
 

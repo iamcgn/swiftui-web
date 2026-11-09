@@ -19,6 +19,14 @@
 // Apple's frameworks re-export Foundation: a file importing only this module names Data and URL.
 @_exported import WebFoundation
 @_exported import Observation
+// Imported directly, so this module's `Predicate` shadows Foundation's for a file that imports
+// both (a declaration shadows those of the modules its own module imports): an app's
+// `func predicateToday() -> Predicate<Todo>` names this one, the type `#Predicate` makes.
+#if os(WASI)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 import SwiftUIWebCore
 import WebCombine
 
@@ -210,6 +218,62 @@ public struct _PersistedProperty: @unchecked Sendable {
     }
 }
 
+/// The property table's entry for a property whose kind its spelling does not tell (`@Model`
+/// leaves it to these overloads): another model or an array of them is a relationship, a
+/// value type we persist directly an attribute, and any other Codable value an attribute
+/// kept as its JSON.
+extension _PersistedProperty {
+    public static func _inferred<M: PersistentModel, R: PersistentModel>(_ name: String, _ path: ReferenceWritableKeyPath<M, R?>, isUnique: Bool = false) -> _PersistedProperty {
+        _PersistedProperty(name: name, kind: .toOne, relatedEntity: R._entityName,
+                           read: { model in (model as! M)[keyPath: path].map { .reference($0.persistentModelID) } ?? .null },
+                           write: { model, value, context in
+                               if case .reference(let id) = value { (model as! M)[keyPath: path] = context?._resolve(id) as? R }
+                               else { (model as! M)[keyPath: path] = nil }
+                           },
+                           related: { model in (model as! M)[keyPath: path].map { [$0 as any PersistentModel] } ?? [] },
+                           setRelated: { model, related in (model as! M)[keyPath: path] = related.first as? R })
+    }
+
+    public static func _inferred<M: PersistentModel, R: PersistentModel>(_ name: String, _ path: ReferenceWritableKeyPath<M, [R]>, isUnique: Bool = false) -> _PersistedProperty {
+        _toMany(name, R.self, get: { model in (model as! M)[keyPath: path] }, set: { model, related in (model as! M)[keyPath: path] = related })
+    }
+
+    public static func _inferred<M: PersistentModel, R: PersistentModel>(_ name: String, _ path: ReferenceWritableKeyPath<M, [R]?>, isUnique: Bool = false) -> _PersistedProperty {
+        _toMany(name, R.self, get: { model in (model as! M)[keyPath: path] ?? [] }, set: { model, related in (model as! M)[keyPath: path] = related })
+    }
+
+    public static func _inferred<M: PersistentModel, V: _PersistableValue>(_ name: String, _ path: ReferenceWritableKeyPath<M, V>, isUnique: Bool = false) -> _PersistedProperty {
+        _PersistedProperty(name: name, kind: .attribute, isUnique: isUnique,
+                           read: { model in (model as! M)[keyPath: path]._storedValue },
+                           write: { model, value, _ in if let decoded = V._fromStoredValue(value) { (model as! M)[keyPath: path] = decoded } })
+    }
+
+    @_disfavoredOverload
+    public static func _inferred<M: PersistentModel, V: Codable>(_ name: String, _ path: ReferenceWritableKeyPath<M, V>, isUnique: Bool = false) -> _PersistedProperty {
+        _PersistedProperty(name: name, kind: .attribute, isUnique: isUnique,
+                           read: { model in
+                               guard let data = try? JSONEncoder().encode((model as! M)[keyPath: path]) else { return .null }
+                               return .data(Array(data))
+                           },
+                           write: { model, value, _ in
+                               guard case .data(let bytes) = value, let decoded = try? JSONDecoder().decode(V.self, from: Data(bytes)) else { return }
+                               (model as! M)[keyPath: path] = decoded
+                           })
+    }
+
+    private static func _toMany<R: PersistentModel>(_ name: String, _ related: R.Type, get: @escaping (any PersistentModel) -> [R],
+                                                    set: @escaping (any PersistentModel, [R]) -> Void) -> _PersistedProperty {
+        _PersistedProperty(name: name, kind: .toMany, relatedEntity: R._entityName,
+                           read: { model in .references(get(model).map { $0.persistentModelID }) },
+                           write: { model, value, context in
+                               guard case .references(let ids) = value else { return }
+                               set(model, ids.compactMap { context?._resolve($0) as? R })
+                           },
+                           related: { model in get(model).map { $0 as any PersistentModel } },
+                           setRelated: { model, related in set(model, related.compactMap { $0 as? R }) })
+    }
+}
+
 // MARK: - PersistentModel
 
 /// The interface that enables SwiftData to manage a Swift class as a stored model object.
@@ -320,6 +384,28 @@ public struct ModelConfiguration: Hashable, Sendable {
         self.allowsSave = allowsSave
     }
     public init(isStoredInMemoryOnly: Bool) { self.init(nil, isStoredInMemoryOnly: isStoredInMemoryOnly) }
+    /// The forms that name a CloudKit database or an app group: the browser store syncs with
+    /// neither, so both are accepted and the store is the app's own.
+    public init(_ name: String? = nil, schema: Schema? = nil, isStoredInMemoryOnly: Bool = false, allowsSave: Bool = true,
+                groupContainer: GroupContainer = .automatic, cloudKitDatabase: CloudKitDatabase) {
+        self.init(name, schema: schema, isStoredInMemoryOnly: isStoredInMemoryOnly, allowsSave: allowsSave)
+    }
+
+    /// The app group a store lives in.
+    public struct GroupContainer: Sendable, Hashable {
+        package let identifier: String?
+        public static let automatic = GroupContainer(identifier: nil)
+        public static let none = GroupContainer(identifier: nil)
+        public static func identifier(_ groupName: String) -> GroupContainer { GroupContainer(identifier: groupName) }
+    }
+
+    /// The CloudKit database a store syncs with.
+    public struct CloudKitDatabase: Sendable, Hashable {
+        package let identifier: String?
+        public static let automatic = CloudKitDatabase(identifier: nil)
+        public static let none = CloudKitDatabase(identifier: nil)
+        public static func `private`(_ containerIdentifier: String) -> CloudKitDatabase { CloudKitDatabase(identifier: containerIdentifier) }
+    }
     public static func == (lhs: ModelConfiguration, rhs: ModelConfiguration) -> Bool { lhs.name == rhs.name && lhs.isStoredInMemoryOnly == rhs.isStoredInMemoryOnly }
     public func hash(into hasher: inout Hasher) { hasher.combine(name) }
 }

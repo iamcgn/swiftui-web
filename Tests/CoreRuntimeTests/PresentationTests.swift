@@ -117,6 +117,35 @@ import SwiftUIWebHeadless
         #expect(!r.hasPresentations)
     }
 
+    struct InspectorPresenter: View {
+        let model: Model
+        var body: some View {
+            Text("Open")
+                .inspector(isPresented: Binding(get: { model.sheet }, set: { model.sheet = $0 })) {
+                    Text("Inside")._probe("inside")
+                        .inspectorColumnWidth(min: 300, ideal: 300, max: 600)
+                }
+                .popover(isPresented: Binding(get: { model.popover }, set: { model.popover = $0 })) {
+                    Text("Done")._probe("done").presentationCompactAdaptation(.popover)
+                }
+        }
+    }
+
+    @Test func inspectorShowsAsASheetAndCompactPopoversStayPopovers() {
+        let model = Model()
+        let r = runtime(InspectorPresenter(model: model))
+        #expect(!r.hasPresentations)
+        model.sheet = true
+        relayout(r)
+        #expect(r.probeFrames["window.sheet"] != nil && r.probeFrames["inside"] != nil)
+        model.sheet = false
+        relayout(r)
+        #expect(!r.hasPresentations)
+        model.popover = true
+        relayout(r)
+        #expect(r.probeFrames["window.popover"] != nil && r.probeFrames["done"] != nil)
+    }
+
     struct AlertPresenter: View {
         let model: Model
         var body: some View {

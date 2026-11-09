@@ -303,6 +303,10 @@ public final class UNUserNotificationCenter: @unchecked Sendable {
     public func removeDeliveredNotifications(withIdentifiers identifiers: [String]) { deliveredNotifications.removeAll { identifiers.contains($0.request.identifier) } }
     public func removeAllDeliveredNotifications() { deliveredNotifications.removeAll() }
     public func setBadgeCount(_ newBadgeCount: Int) async throws {}
+    /// The badge has nowhere to show in a browser tab; the handler is told it went through.
+    public func setBadgeCount(_ newBadgeCount: Int, withCompletionHandler completionHandler: (@Sendable (Error?) -> Void)? = nil) {
+        completionHandler?(nil)
+    }
 
     /// Tests: the host-less permission back to never asked.
     public static func _resetWithoutHost() { permissionWithoutHost = .notDetermined }

@@ -6,8 +6,9 @@ public struct TabView<SelectionValue: Hashable, Content: View>: View {
     package let selection: Binding<SelectionValue>?
     package let content: Content
 
-    /// Creates a tab view that switches by a selection binding matching the tabs' tags.
-    public init(selection: Binding<SelectionValue>?, @ViewBuilder content: () -> Content) {
+    /// Creates a tab view that switches by a selection binding matching the tabs' tags (or the
+    /// values of its `Tab`s, which the builder types by the selection).
+    public init(selection: Binding<SelectionValue>?, @TabContentBuilder<SelectionValue> content: () -> Content) {
         self.selection = selection
         self.content = content()
     }
@@ -23,7 +24,7 @@ public struct TabView<SelectionValue: Hashable, Content: View>: View {
 
 extension TabView where SelectionValue == Int {
     /// Creates a tab view that keeps its own selection (the first tab at first).
-    public init(@ViewBuilder content: () -> Content) {
+    public init(@TabContentBuilder<Int> content: () -> Content) {
         selection = nil
         self.content = content()
     }
@@ -31,25 +32,55 @@ extension TabView where SelectionValue == Int {
 
 // MARK: - The Tab API (iOS 18, macOS 15)
 
-/// A type that provides content for a tab view: `Tab` and the views the builder joins.
+/// A type that provides content for a tab view: `Tab` and the views the builder joins. Its
+/// `TabValue` is the selection value its tabs carry, so a tab's modifiers (`badge`) keep it.
 @MainActor @preconcurrency
-public protocol TabContent: View {}
+public protocol TabContent<TabValue>: View {
+    associatedtype TabValue: Hashable
+}
 
-/// The builder of a tab view's tabs: the view builder, as every tab is a view here.
-public typealias TabContentBuilder<SelectionValue> = ViewBuilder
+/// The builder of a tab view's tabs. Every tab is a view here, so it joins them as the view
+/// builder does; a `Tab` (or a modified one) is typed by the tab view's selection, so
+/// `Tab(value: .tasks)` names a case of the selection's type. Other views (`tabItem` content,
+/// `ForEach`, sections) pass through as views.
+@resultBuilder
+public enum TabContentBuilder<SelectionValue: Hashable> {
+    public static func buildExpression<C: TabContent>(_ content: C) -> C where C.TabValue == SelectionValue { content }
+    @_disfavoredOverload
+    public static func buildExpression<C: View>(_ content: C) -> C { content }
+
+    public static func buildBlock() -> EmptyView { EmptyView() }
+    public static func buildBlock<C: View>(_ content: C) -> C { content }
+    public static func buildBlock<each C: View>(_ content: repeat each C) -> TupleView<(repeat each C)> { TupleView((repeat each content)) }
+    public static func buildOptional<C: View>(_ content: C?) -> C? { content }
+    public static func buildIf<C: View>(_ content: C?) -> C? { content }
+    public static func buildEither<T: View, F: View>(first: T) -> _ConditionalContent<T, F> { _ConditionalContent(storage: .trueContent(first)) }
+    public static func buildEither<T: View, F: View>(second: F) -> _ConditionalContent<T, F> { _ConditionalContent(storage: .falseContent(second)) }
+    public static func buildLimitedAvailability<C: View>(_ content: C) -> AnyView { AnyView(content) }
+}
+
+/// The role of a tab: `.search`, the tab iOS sets apart at the end of the bar.
+public struct TabRole: Hashable, Sendable {
+    package let name: String
+    public static let search = TabRole(name: "search")
+}
 
 /// A tab of a tab view: its label (a title with a symbol or image) and its content, selected by
 /// its value. A tab without a value is selected by its position.
 public struct Tab<Value: Hashable, Content: View, Label: View>: TabContent {
+    public typealias TabValue = Value
     package let value: Value?
     package let content: Content
     package let label: Label
+    package var role: TabRole?
 
-    /// Creates a tab with a custom label.
-    public init(value: Value, @ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
+    /// Creates a tab with a custom label (a role sets it apart: `.search` is the last tab, as
+    /// on iOS, where it already is in the builder's order).
+    public init(value: Value, role: TabRole? = nil, @ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
         self.value = value
         self.content = content()
         self.label = label()
+        self.role = role
     }
 
     public var body: some View {
@@ -85,10 +116,11 @@ extension Tab where Label == SwiftUIWebCore.Label<Text, Image> {
 
 extension Tab where Value == Never {
     /// Creates a tab with a custom label, selected by its position.
-    public init(@ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
+    public init(role: TabRole? = nil, @ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
         value = nil
         self.content = content()
         self.label = label()
+        self.role = role
     }
 }
 
@@ -143,6 +175,31 @@ extension View {
     @_disfavoredOverload
     nonisolated public func badge<S: StringProtocol>(_ label: S?) -> some View {
         modifier(_BadgeModifier(text: label.map { String($0) }))
+    }
+}
+
+/// A tab with a badge: the view badge on the tab, keeping the tab's value for the builder.
+public struct _BadgedTab<Base: TabContent>: TabContent {
+    public typealias TabValue = Base.TabValue
+    package let base: Base
+    package let text: String?
+    public var body: some View { base.modifier(_BadgeModifier(text: text)) }
+}
+
+extension TabContent {
+    /// Generates a badge for the tab from an integer value (0 shows none).
+    public func badge(_ count: Int) -> some TabContent<TabValue> {
+        _BadgedTab(base: self, text: count == 0 ? nil : "\(count)")
+    }
+
+    /// Generates a badge for the tab from a text view (nil shows none).
+    public func badge(_ label: Text?) -> some TabContent<TabValue> {
+        _BadgedTab(base: self, text: label?.resolvedString)
+    }
+
+    /// Generates a badge for the tab from a localized string key (nil shows none).
+    public func badge(_ key: LocalizedStringKey?) -> some TabContent<TabValue> {
+        _BadgedTab(base: self, text: key?.key)
     }
 }
 

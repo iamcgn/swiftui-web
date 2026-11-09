@@ -69,6 +69,20 @@ public struct PreviewMacro: DeclarationMacro {
             }
         }
         guard !properties.isEmpty else { return nil }
+        // A body that ends in an explicit `return` is plain code, not a view builder's: it
+        // becomes a function the builder-free `body` calls.
+        let returns = closure.statements.contains { $0.item.is(ReturnStmtSyntax.self) }
+        if returns {
+            return """
+            struct _PreviewHost: View {
+                \(properties.joined(separator: "\n    "))
+                var body: some View { _previewBody() }
+                private func _previewBody() -> some View {
+                    \(statements.joined(separator: "\n        "))
+                }
+            }
+            """
+        }
         return """
         struct _PreviewHost: View {
             \(properties.joined(separator: "\n    "))

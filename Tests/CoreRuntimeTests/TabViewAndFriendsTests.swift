@@ -193,6 +193,25 @@ private struct TabAPIView: View {
     }
 }
 
+private enum TabAPISection: Hashable { case tasks, focus, inbox }
+
+/// Tabs whose values the builder types by the selection (`Tab(value: .focus)`), with badges
+/// that keep them tabs and a search-role tab, as PomPadDo writes its tab bar.
+private struct TypedTabsView: View {
+    @State var section: TabAPISection = .tasks
+    var count = 2
+    var running = true
+    var body: some View {
+        TabView(selection: $section) {
+            Tab(value: .tasks) { Text("Tasks content")._probe("tasks") } label: { Label("Tasks", systemImage: "checkmark.square") }
+                .badge(count)
+            Tab(value: .focus) { Text("Focus content")._probe("focus") } label: { Label("Focus", systemImage: "timer") }
+                .badge(running ? Text(verbatim: "24:59") : nil)
+            Tab(value: .inbox, role: .search) { EmptyView() } label: { Label("Add to Inbox", systemImage: "tray") }
+        }
+    }
+}
+
 private struct PagedView: View {
     let model: TabAPIModel
     var body: some View {
@@ -237,6 +256,16 @@ private struct PagedView: View {
         #expect(model.selection == 1)
         #expect(node.handleKey(KeyPress(phase: .down, key: .leftArrow, characters: "", modifiers: [])))
         #expect(model.selection == 0)
+    }
+
+    @Test func tabValuesAreTypedByTheSelection() {
+        let runtime = Runtime()
+        runtime.mount(TypedTabsView())
+        runtime.layout(in: size)
+        let node = runtime.root.descendants(where: { $0 is TabViewNode }).first as! TabViewNode
+        #expect(node.tabs.map(\.title) == ["Tasks", "Focus", "Add to Inbox"])
+        #expect(node.tabs.map(\.badge) == ["2", "24:59", nil])
+        #expect(runtime.probeFrames["tasks"] != nil && runtime.probeFrames["focus"] == nil)
     }
 
     @Test func badgeModifiersResolveTheirText() {

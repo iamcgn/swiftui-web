@@ -623,6 +623,16 @@ public enum PresentationDetent: Hashable, Sendable {
     case height(CGFloat)
 }
 
+/// How a presentation adapts when the size class is compact (`presentationCompactAdaptation`).
+public struct PresentationAdaptation: Hashable, Sendable {
+    package let name: String
+    public static let automatic = PresentationAdaptation(name: "automatic")
+    public static let none = PresentationAdaptation(name: "none")
+    public static let popover = PresentationAdaptation(name: "popover")
+    public static let sheet = PresentationAdaptation(name: "sheet")
+    public static let fullScreenCover = PresentationAdaptation(name: "fullScreenCover")
+}
+
 /// `presentationDetents` and `presentationDragIndicator`: the sheet's options, told to the
 /// presentation node above (`PresentationOptionsNode`).
 public struct _PresentationOptionsModifier {
@@ -659,6 +669,26 @@ extension View {
     nonisolated public func presentationDragIndicator(_ visibility: Visibility) -> some View {
         modifier(_PresentationOptionsModifier(dragIndicator: visibility))
     }
+
+    /// How a popover or sheet showing this view adapts at compact sizes. The runtime keeps a
+    /// popover a popover and a sheet a sheet at every size, which is what `.popover` and
+    /// `.none` ask for; the other adaptations show the presentation unchanged.
+    nonisolated public func presentationCompactAdaptation(_ adaptation: PresentationAdaptation) -> some View { self }
+
+    /// The adaptations for compact widths and heights separately (see the one-argument form).
+    nonisolated public func presentationCompactAdaptation(horizontal: PresentationAdaptation, vertical: PresentationAdaptation) -> some View { self }
+
+    /// An inspector: on iOS at compact width a sheet over the content while the binding is
+    /// true, which is how the runtime always shows it.
+    nonisolated public func inspector<V: View>(isPresented: Binding<Bool>, @ViewBuilder content: @escaping () -> V) -> some View {
+        sheet(isPresented: isPresented, content: content)
+    }
+
+    /// The inspector column's width when it shows as a column; a sheet ignores it.
+    nonisolated public func inspectorColumnWidth(min: CGFloat? = nil, ideal: CGFloat, max: CGFloat? = nil) -> some View { self }
+
+    /// The inspector column's width when it shows as a column; a sheet ignores it.
+    nonisolated public func inspectorColumnWidth(_ width: CGFloat) -> some View { self }
 
     /// Keeps the presentation this view is in from being dismissed by a press outside it or
     /// Escape (a swipe on iOS); programmatic dismissal still works.
