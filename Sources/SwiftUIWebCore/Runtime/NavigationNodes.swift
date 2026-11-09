@@ -235,14 +235,24 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     /// A `searchable` on the stack itself (outside it, above this node) is the root screen's.
     private func search(over nodes: [ViewNode]) -> (any _SearchProviding)? {
         guard environment.platformProfile.isIOS, let top = nodes.first else { return nil }
-        if let provider = top as? any _SearchProviding { return provider }
-        if let provider = top.descendants(where: { $0 is any _SearchProviding }).first as? any _SearchProviding { return provider }
+        if let provider = Self.nearestSearch(in: top) { return provider }
         guard root.layoutChildren.first === top else { return nil }
         var current = parent
         while let candidate = current {
             if candidate is NavigationStackNode || candidate is PresentationNode { return nil }
             if let provider = candidate as? any _SearchProviding { return provider }
             current = candidate.parent
+        }
+        return nil
+    }
+
+    /// The first `searchable` in `node`'s subtree outside any nested stack: a stack inside a
+    /// screen (a split view's detail that is a `NavigationStack` of its own) shows its own field.
+    private static func nearestSearch(in node: ViewNode) -> (any _SearchProviding)? {
+        if let provider = node as? any _SearchProviding { return provider }
+        if node is NavigationStackNode { return nil }
+        for child in node.structuralChildren {
+            if let provider = nearestSearch(in: child) { return provider }
         }
         return nil
     }

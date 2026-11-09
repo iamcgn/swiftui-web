@@ -118,6 +118,25 @@ private struct Root: View {
         #expect(runtime.probeFrames["suggest-Apple"] == nil)
     }
 
+    /// A stack inside a stack's screen (PomPadDo's split view detail is a `NavigationStack` of
+    /// its own) shows the field; the outer stack takes no band for it, so there is one field.
+    @Test func aNestedStackShowsTheOnlyField() {
+        struct Nested: View {
+            @State var query = ""
+            var body: some View {
+                NavigationStack {
+                    NavigationStack {
+                        List { Text("Row") }.searchable(text: $query, prompt: "Find fruit")
+                    }
+                }
+            }
+        }
+        let runtime = runtime(Nested())
+        let fields = runtime.semanticsTree().filter { $0.role == .textField }
+        #expect(fields.map(\.label) == ["Find fruit"])
+        #expect((fields.first?.frame.minY ?? 0) > 404)
+    }
+
     @Test func completionsFillTheFieldAndScopesSelect() {
         let model = SearchModel()
         model.presented = true
