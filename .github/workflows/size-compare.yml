@@ -88,3 +88,5 @@ jobs:
           PY
       - name: What changed
         run: . ~/.swiftly/env.sh && python3 head/Tools/Size/map-diff.py size/base.map size/head.map --top 80
+      - uses: actions/upload-artifact@v4
+        with: { name: size-wasm, path: "size/*.wasm", if-no-files-found: error }
