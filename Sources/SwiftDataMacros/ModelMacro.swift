@@ -324,6 +324,9 @@ public struct QueryMacro: AccessorMacro, PeerMacro {
                                  in context: some MacroExpansionContext) throws -> [DeclSyntax] {
         guard let parts = parts(declaration, in: context) else { return [] }
         let arguments = node.arguments?.as(LabeledExprListSyntax.self)?.trimmedDescription ?? ""
-        return ["private var _\(raw: parts.name): Query<\(raw: parts.element), \(raw: parts.result)> = Query<\(raw: parts.element), \(raw: parts.result)>(\(raw: arguments))"]
+        // Internal, not private: a stored `var` with a value still joins the view's memberwise
+        // initializer (as a defaulted argument), and a private one would make that initializer
+        // private, which Apple's property wrapper does not.
+        return ["var _\(raw: parts.name): Query<\(raw: parts.element), \(raw: parts.result)> = Query<\(raw: parts.element), \(raw: parts.result)>(\(raw: arguments))"]
     }
 }

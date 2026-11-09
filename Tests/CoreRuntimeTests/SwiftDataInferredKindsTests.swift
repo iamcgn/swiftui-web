@@ -55,6 +55,11 @@ class InferredTask {
         #expect(project["groups"]?.relatedEntity == "InferredGroup")
     }
 
+    @Test @MainActor func aViewWithAQueryKeepsItsMemberwiseInitializer() {
+        let view = QueryMemberwiseView(count: .constant(3))
+        #expect(view.count == 3)
+    }
+
     @Test @MainActor func aConfigurationNamingCloudKitOpensTheAppsOwnStore() throws {
         let schema = Schema([InferredProject.self, InferredTask.self, InferredGroup.self])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none)
