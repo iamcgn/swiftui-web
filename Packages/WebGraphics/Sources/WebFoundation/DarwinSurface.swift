@@ -25,6 +25,8 @@ public func dlerror() -> UnsafeMutablePointer<CChar>? { nil }
 
 /// The header of a loaded image, laid out as Mach-O's 32-bit header. No image is ever loaded,
 /// so these exist for code that walks an image's load commands behind `_dyld_image_count()`.
+/// wasm32 is a 32-bit target, so code that picks `mach_header_64` on 64-bit targets picks
+/// these; the 64-bit forms are left out.
 public struct mach_header {
     public var magic: UInt32 = 0
     public var cputype: Int32 = 0
@@ -33,19 +35,6 @@ public struct mach_header {
     public var ncmds: UInt32 = 0
     public var sizeofcmds: UInt32 = 0
     public var flags: UInt32 = 0
-    public init() {}
-}
-
-/// Mach-O's 64-bit image header.
-public struct mach_header_64 {
-    public var magic: UInt32 = 0
-    public var cputype: Int32 = 0
-    public var cpusubtype: Int32 = 0
-    public var filetype: UInt32 = 0
-    public var ncmds: UInt32 = 0
-    public var sizeofcmds: UInt32 = 0
-    public var flags: UInt32 = 0
-    public var reserved: UInt32 = 0
     public init() {}
 }
 
@@ -73,25 +62,7 @@ public struct segment_command {
     public init() {}
 }
 
-/// A segment load command (64-bit addresses).
-public struct segment_command_64 {
-    public var cmd: UInt32 = 0
-    public var cmdsize: UInt32 = 0
-    public var segname: (CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar,
-                         CChar, CChar, CChar, CChar, CChar, CChar, CChar, CChar) = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-    public var vmaddr: UInt64 = 0
-    public var vmsize: UInt64 = 0
-    public var fileoff: UInt64 = 0
-    public var filesize: UInt64 = 0
-    public var maxprot: Int32 = 0
-    public var initprot: Int32 = 0
-    public var nsects: UInt32 = 0
-    public var flags: UInt32 = 0
-    public init() {}
-}
-
 public let LC_SEGMENT: Int32 = 0x1
-public let LC_SEGMENT_64: Int32 = 0x19
 
 /// The number of loaded images: the page's module is not a Mach-O image, so none.
 public func _dyld_image_count() -> UInt32 { 0 }

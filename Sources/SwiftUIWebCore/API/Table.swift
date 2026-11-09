@@ -173,13 +173,10 @@ extension TableColumnContent {
         TableColumnBody._makeContent(content: content._map { value in
             // The body is main-actor isolated, like Apple's; content is made from a view body.
             nonisolated(unsafe) let value = value
-            return MainActor.assumeIsolated { _MadeOnMain(value: value.tableColumnBody) }.value
+            return _readOnMainActor { value.tableColumnBody }
         }, inputs: inputs)
     }
 }
-
-/// A value made on the main actor, handed back to the nonisolated code that asked for it.
-private struct _MadeOnMain<Value>: @unchecked Sendable { let value: Value }
 
 /// Content of a table's rows, typed by the row value.
 @MainActor @preconcurrency
@@ -192,8 +189,8 @@ public protocol TableRowContent<TableRowValue> {
 extension Never: TableColumnContent, TableRowContent {
     public typealias TableRowValue = Never
     public typealias TableColumnSortComparator = Never
-    public var tableColumnBody: Never { return fatalError("Never has no columns") }
-    public var tableRowBody: Never { return fatalError("Never has no rows") }
+    public var tableColumnBody: Never { return fatalError() }
+    public var tableRowBody: Never { return fatalError() }
     nonisolated public static func _makeContent(content: _GraphValue<Never>, inputs: _TableColumnInputs) -> _TableColumnOutputs {
         _TableColumnOutputs()
     }

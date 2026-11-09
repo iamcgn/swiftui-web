@@ -40,11 +40,9 @@ import Foundation
 @Suite struct MachOLayoutTests {
     @Test func structuresHaveDarwinsLayout() {
         #expect(MemoryLayout<mach_header>.size == 28)
-        #expect(MemoryLayout<mach_header_64>.size == 32)
         #expect(MemoryLayout<load_command>.size == 8)
         #expect(MemoryLayout<segment_command>.size == 56)
-        #expect(MemoryLayout<segment_command_64>.size == 72)
-        #expect(LC_SEGMENT == 0x1 && LC_SEGMENT_64 == 0x19)
+        #expect(LC_SEGMENT == 0x1)
     }
 
     @Test func segmentsWalkFromTheHeader() {

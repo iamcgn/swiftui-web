@@ -452,8 +452,13 @@ public protocol AccessibilityRotorContent {
 extension AccessibilityRotorContent {
     nonisolated public var _rotorEntries: [_AccessibilityRotor.Entry] {
         nonisolated(unsafe) let content = self
-        return MainActor.assumeIsolated { content.body._rotorEntries }
+        return _readOnMainActor { content.body._rotorEntries }
     }
+}
+
+extension AccessibilityRotorContent where Body == Never {
+    /// Primitive content (entries) has no body; its `_rotorEntries` is the content.
+    public var body: Never { return fatalError() }
 }
 
 extension Never: AccessibilityRotorContent {
@@ -490,7 +495,6 @@ public struct AccessibilityRotorEntry<ID: Hashable>: AccessibilityRotorContent {
         self.prepare = prepare
     }
 
-    public var body: Never { return fatalError("AccessibilityRotorEntry has no body") }
     nonisolated public var _rotorEntries: [_AccessibilityRotor.Entry] {
         nonisolated(unsafe) let id = id
         return [.init(label: label, id: id.map { AnyHashable($0) }, namespace: namespace, prepare: prepare)]
@@ -500,7 +504,6 @@ public struct AccessibilityRotorEntry<ID: Hashable>: AccessibilityRotorContent {
 /// Several rotor entries.
 public struct _RotorEntries: AccessibilityRotorContent {
     public typealias Body = Never
-    public var body: Never { return fatalError("_RotorEntries has no body") }
     nonisolated public let _rotorEntries: [_AccessibilityRotor.Entry]
     nonisolated public init(_rotorEntries: [_AccessibilityRotor.Entry]) { self._rotorEntries = _rotorEntries }
 }

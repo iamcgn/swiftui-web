@@ -2280,9 +2280,9 @@
           "noFixture": "Foundation API with nothing on screen; SmallGapsTests holds it to Foundation and CoreGraphics on macOS and Linux and checks the wasm forms; the mutex attributes build combine-schedulers' and Resolver's locks in the sweep."
         },
         {
-          "api": "mach_header / mach_header_64 / load_command / segment_command / segment_command_64 / LC_SEGMENT / LC_SEGMENT_64 / _dyld_get_image_vmaddr_slide / NSNumber.pointerValue",
+          "api": "mach_header / load_command / segment_command / LC_SEGMENT / _dyld_get_image_vmaddr_slide / NSNumber.pointerValue",
           "status": "full",
-          "notes": "On wasm: Mach-O's image structures with Darwin's layout, for code that walks an image's segments behind dyld's image list (which lists none on a page, so no image is walked), no slide, and a number read as an address (2026-11-09).",
+          "notes": "On wasm (a 32-bit target): Mach-O's 32-bit image structures with Darwin's layout (the 64-bit forms are left out, as 64-bit-only code never builds there), for code that walks an image's segments behind dyld's image list (which lists none on a page, so no image is walked), no slide, and a number read as an address (2026-11-09).",
           "noFixture": "Foundation API with nothing on screen; WasmDarwinSurfaceTests walks a built image against Darwin's own structures on macOS; the sweep builds swift-perception's PerceptionCore."
         },
         {
