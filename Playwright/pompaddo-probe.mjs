@@ -122,7 +122,10 @@ try {
   begin('focus-timer');
   if (!(await tapControl(byLabel('Focus')))) await tapText('Focus');
   const clock = s => /^\d{1,2}:\d{2}$/.test(s);
-  t = await settle(t => t.includes('Focus Timer') || t.filter(clock).length > 0);
+  t = await settle(t => t.includes('Focus Timer'));
+  // The Focus tab opens on its "Today tasks" segment; the timer is the other one.
+  if (!t.some(clock)) { if (!(await tapControl(byLabel('Focus Timer')))) await tapText('Focus Timer'); }
+  t = await settle(t => t.some(clock));
   await record('focus');
   const before = t.find(clock);
   if (expect(before, 'the Focus tab showed no time: ' + JSON.stringify(t))) {
