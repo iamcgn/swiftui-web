@@ -222,5 +222,77 @@ import SwiftUIWebHeadless
         r.externalDrop(items: [ExternalDragItem(type: "text/plain", text: "End")], at: CGPoint(x: 100, y: grace.midY + 8))
         #expect(log.inserted.last?.0 == 2)
     }
+
+    // MARK: The generic forms packages write over SwiftUI's (swiftdata-transferrable)
+
+    struct GenericRows: View {
+        let log: NoteLog
+        let names = ["Ada", "Grace"]
+        var body: some View {
+            List {
+                ForEach(names, id: \.self) { name in Text(name)._probe(name) }.takingNames(into: log)
+            }
+        }
+    }
+
+    /// A drop between the rows of content known only as `DynamicViewContent` (a package's
+    /// extension over it) reaches the `ForEach` underneath.
+    @Test func dropBetweenRowsOfAnyDynamicViewContent() {
+        let log = NoteLog()
+        let r = runtime(GenericRows(log: log))
+        let grace = r.probeFrames["Grace"]!
+        #expect(r.externalDragUpdated(types: ["text/plain"], at: CGPoint(x: 100, y: grace.midY - 5)))
+        r.externalDrop(items: [ExternalDragItem(type: "text/plain", text: "Linus")], at: CGPoint(x: 100, y: grace.midY - 5))
+        #expect(log.inserted.count == 1 && log.inserted[0].0 == 1 && log.inserted[0].1 == ["Linus"])
+    }
+
+    struct ForwardedPreview: View {
+        let log: Log
+        var body: some View {
+            HStack(spacing: 40) {
+                Color.red.frame(width: 40, height: 40).draggingName("forwarded") { Color.red.frame(width: 40, height: 40) }._probe("source")
+                Color.blue.frame(width: 80, height: 80)
+                    .dropDestination(for: String.self, action: { items, point in log.dropped.append((items[0], point)); return true })
+            }
+        }
+    }
+
+    /// `draggable(_:preview:)`'s preview closure is not escaping, so a wrapper can forward its
+    /// own non-escaping view builder to it; the drag carries the payload as before.
+    @Test func previewClosureForwardsFromAWrapper() {
+        let log = Log()
+        let r = runtime(ForwardedPreview(log: log))
+        r.pointerDown(at: CGPoint(x: 50, y: 90))
+        r.pointerMoved(to: CGPoint(x: 60, y: 100))
+        #expect(r.isDragging)
+        r.pointerMoved(to: CGPoint(x: 160, y: 120))
+        r.pointerUp(at: CGPoint(x: 160, y: 120))
+        #expect(log.dropped.map(\.0) == ["forwarded"])
+    }
+
+    /// `CodableRepresentation(for:contentType:)` names the item type as SwiftUI's does.
+    @Test func codableRepresentationNamesItsItemType() {
+        struct Tag: Codable, Transferable, Equatable {
+            var name: String
+            static var transferRepresentation: some TransferRepresentation {
+                CodableRepresentation(for: Tag.self, contentType: .json)
+            }
+        }
+        #expect(_TransferItem(Tag(name: "home")).load(as: Tag.self) == Tag(name: "home"))
+    }
+}
+
+extension DynamicViewContent {
+    /// What a package writes: SwiftUI's drop between rows, on any dynamic content.
+    func takingNames(into log: DragDropTests.NoteLog) -> some DynamicViewContent {
+        dropDestination(for: String.self) { items, offset in log.inserted.append((offset, items)) }
+    }
+}
+
+extension View {
+    /// A wrapper forwarding a non-escaping preview builder, as swiftdata-transferrable's does.
+    func draggingName<V: View>(_ name: String, @ViewBuilder preview: () -> V) -> some View {
+        draggable(name) { preview() }
+    }
 }
 #endif

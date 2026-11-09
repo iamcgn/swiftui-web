@@ -56,7 +56,7 @@ public struct ProxyRepresentation<Item, ProxyRepresentation: Transferable>: Tran
 /// Exports the item as JSON (`_TransferJSONEncoder`, the coder of `TransferJSON.swift`).
 public struct CodableRepresentation<Item: Codable>: TransferRepresentation {
     package let contentType: UTType
-    public init(contentType: UTType = .json) { self.contentType = contentType }
+    public init(for itemType: Item.Type = Item.self, contentType: UTType = .json) { self.contentType = contentType }
     public var _exporters: [_TransferExporter<Item>] {
         [_TransferExporter(contentType: contentType, exportedType: Data.self,
                            export: { try? _TransferJSONEncoder().encode($0) },
@@ -498,9 +498,11 @@ extension View {
         modifier(_DraggableModifier<T, EmptyView>(payload: payload, preview: nil))
     }
 
-    /// Makes this view a drag source for `payload`, dragging `preview`.
-    nonisolated public func draggable<T: Transferable, V: View>(_ payload: @autoclosure @escaping () -> T, @ViewBuilder preview: @escaping () -> V) -> some View {
-        modifier(_DraggableModifier(payload: payload, preview: preview))
+    /// Makes this view a drag source for `payload`, dragging `preview`. As in SwiftUI the preview
+    /// closure is not escaping: it is built here, and the view it returns is what is dragged.
+    nonisolated public func draggable<T: Transferable, V: View>(_ payload: @autoclosure @escaping () -> T, @ViewBuilder preview: () -> V) -> some View {
+        let view = preview()
+        return modifier(_DraggableModifier(payload: payload, preview: { view }))
     }
 
     /// Makes this view a drop destination for dragged values of `payloadType`. `action` gets the

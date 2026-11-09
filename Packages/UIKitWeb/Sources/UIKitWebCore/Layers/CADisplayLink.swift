@@ -56,7 +56,7 @@ public final class CADisplayLink {
     /// keeps its target until it is invalidated.
     public convenience init(target: Any, selector: Selector) {
         let object = target as AnyObject
-        self.init { link in _ = (object as? NSObject)?.perform(selector, with: link) }
+        self.init { link in (object as? NSObject)?._send(selector, passing: link) }
     }
     #endif
 

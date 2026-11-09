@@ -10,6 +10,24 @@ public protocol DynamicViewContent: View {
 
     /// The collection of underlying data.
     var data: Data { get }
+
+    /// This content with `drop` as the drop between its rows (`ForEach` keeps it; other content
+    /// has no rows of its own and returns itself).
+    func _droppingBetweenRows(_ drop: _ForEachDrop) -> Self
+}
+
+extension DynamicViewContent {
+    public func _droppingBetweenRows(_ drop: _ForEachDrop) -> Self { self }
+
+    /// Makes the rows a drop destination for `payloadType`: a drop between them calls `action`
+    /// with the values and the offset to insert them at (SwiftUI's form on any dynamic content,
+    /// which generic code over `DynamicViewContent` reaches).
+    public func dropDestination<T: Transferable>(for payloadType: T.Type = T.self, action: @escaping ([T], Int) -> Void) -> some DynamicViewContent {
+        _droppingBetweenRows(_ForEachDrop(
+            accepts: { $0.canLoad(as: T.self) },
+            perform: { item, offset, _ in if let value = item.load(as: T.self) { action([value], offset) } },
+            isTargeted: { _ in }))
+    }
 }
 
 /// A structure that computes views on demand from an underlying collection of identified data.
@@ -139,11 +157,15 @@ extension ForEach where Content: View {
     /// with the values and the offset to insert them at; a list draws the insertion line there.
     public func dropDestination<T: Transferable>(for payloadType: T.Type = T.self, action: @escaping ([T], Int) -> Void,
                                                  isTargeted: @escaping (Bool) -> Void = { _ in }) -> ForEach<Data, ID, Content> {
-        var copy = self
-        copy._dropInsert = _ForEachDrop(
+        _droppingBetweenRows(_ForEachDrop(
             accepts: { $0.canLoad(as: T.self) },
             perform: { item, offset, _ in if let value = item.load(as: T.self) { action([value], offset) } },
-            isTargeted: isTargeted)
+            isTargeted: isTargeted))
+    }
+
+    public func _droppingBetweenRows(_ drop: _ForEachDrop) -> ForEach<Data, ID, Content> {
+        var copy = self
+        copy._dropInsert = drop
         return copy
     }
 }

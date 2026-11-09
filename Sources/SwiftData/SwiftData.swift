@@ -612,7 +612,13 @@ public final class ModelContext: @unchecked Sendable {
 
     public func fetchCount<T: PersistentModel>(_ descriptor: FetchDescriptor<T>) throws -> Int { try fetch(descriptor).count }
 
-    public func model(for identifier: PersistentIdentifier) -> any PersistentModel { models[identifier]! }
+    /// The model with this identifier, read from the store if this context has not met it yet
+    /// (a dragged identifier, an identifier kept across launches).
+    public func model(for identifier: PersistentIdentifier) -> any PersistentModel {
+        if models[identifier] == nil { container.store.sync(into: self) }
+        guard let model = models[identifier] else { fatalError("ModelContext: no model with identifier \(identifier)") }
+        return model
+    }
     public func registeredModel<T: PersistentModel>(for identifier: PersistentIdentifier) -> T? { models[identifier] as? T }
     func registeredModelAny(for identifier: PersistentIdentifier) -> (any PersistentModel)? { models[identifier] }
 
