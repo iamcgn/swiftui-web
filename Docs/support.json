@@ -2256,6 +2256,12 @@
           "noFixture": "Foundation API with nothing on screen; FoundationGapsTests holds it to Foundation on macOS and Linux and checks the wasm forms."
         },
         {
+          "api": "IndexSet.rangeView / rangeView(of:) / CGRect.divided(atDistance:from:) / CGRectEdge / CharacterSet.capitalizedLetters, nonBaseCharacters, decomposables, illegalCharacters / NSString.replacingCharacters(in:with:) / pthread_mutexattr_init, settype, destroy / PTHREAD_MUTEX_*",
+          "status": "full",
+          "notes": "On wasm: the set's runs of consecutive integers (cut to a range); the slice along an edge and the rest; the titlecase letters, combining marks, scalars with a canonical decomposition and unassigned scalars; a UTF-16 range replaced; and mutex attributes that succeed and change nothing, as a page runs one thread (2026-11-08).",
+          "noFixture": "Foundation API with nothing on screen; SmallGapsTests holds it to Foundation and CoreGraphics on macOS and Linux and checks the wasm forms; the mutex attributes build combine-schedulers' and Resolver's locks in the sweep."
+        },
+        {
           "api": "JSONDecoder.allowsJSON5 / assumesTopLevelDictionary / JSONSerialization .json5Allowed",
           "status": "partial",
           "notes": "On wasm the JSON5 text is rewritten as JSON first: comments, trailing commas, unquoted keys, single quotes, hexadecimal and bare-point numbers. Infinity and NaN read as strings, for a non-conforming-float strategy.",
