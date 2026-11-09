@@ -204,3 +204,12 @@ extension UIColor {
         return name
     }
 }
+
+/// `#colorLiteral(red:green:blue:alpha:)`, as Xcode's colour well writes it: a constant sRGB
+/// colour. Without a type that takes the literal, `Color(#colorLiteral(...))` leaves the
+/// compiler searching every initializer for one and it gives up on the expression.
+extension UIColor: _ExpressibleByColorLiteral {
+    public convenience init(_colorLiteralRed red: Float, green: Float, blue: Float, alpha: Float) {
+        self.init(red: CGFloat(red), green: CGFloat(green), blue: CGFloat(blue), alpha: CGFloat(alpha))
+    }
+}

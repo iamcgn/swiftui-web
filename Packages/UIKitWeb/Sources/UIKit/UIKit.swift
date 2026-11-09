@@ -134,3 +134,6 @@ enum UIKitLaunch {
         UIKitScene.shared.launchApplication(delegate: delegate)
     }
 }
+
+/// The type a `#colorLiteral` with no other context makes, as in UIKit.
+public typealias _ColorLiteralType = UIColor

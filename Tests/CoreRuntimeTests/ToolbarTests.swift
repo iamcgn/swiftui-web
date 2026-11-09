@@ -29,6 +29,23 @@ import SwiftUIWebHeadless
         return runtime
     }
 
+    @Test func viewContentIsOneAutomaticGroup() {
+        let counter = Counter()
+        let runtime = runtime(Color.red.toolbar {
+            Button("One") { counter.taps += 1 }
+            Button("Two") {}
+        })
+        #expect(runtime.toolbarItems.map(\.placement) == [.automatic])
+        let semantics = runtime.semanticsTree()
+        let one = semantics.first { $0.label == "One" }
+        #expect(one != nil && semantics.contains { $0.label == "Two" })
+        if let frame = one?.frame {
+            runtime.pointerDown(at: CGPoint(x: frame.midX, y: frame.midY))
+            runtime.pointerUp(at: CGPoint(x: frame.midX, y: frame.midY))
+        }
+        #expect(counter.taps == 1)
+    }
+
     @Test func itemsAreCollectedAndTheBarLaysOutAboveTheContent() {
         let counter = Counter()
         let runtime = runtime(Color.red._probe("content").navigationTitle("Title").toolbar {

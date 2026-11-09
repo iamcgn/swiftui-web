@@ -335,13 +335,13 @@ extension UIKitScene {
         var responder = start
         while let current = responder {
             if current.canPerformAction(action, withSender: command) {
-                _ = current.perform(action, with: command)
+                current._send(action, passing: command)
                 return true
             }
             responder = current.next
         }
         if let delegate = UIApplication.shared.delegate as? UIResponder, delegate.canPerformAction(action, withSender: command) {
-            _ = delegate.perform(action, with: command)
+            delegate._send(action, passing: command)
             return true
         }
         #endif

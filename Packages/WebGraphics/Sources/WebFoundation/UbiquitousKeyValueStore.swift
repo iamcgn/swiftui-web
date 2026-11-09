@@ -11,19 +11,37 @@ import Foundation
 
 /// An iCloud-based container of key-value pairs you use to share data among instances of your
 /// app running on a person's connected devices.
+#if canImport(ObjectiveC)
+// An object of the runtime where there is one (decision 0023), so `#selector(synchronize)` names
+// it: CloudStorage observes `willEnterForegroundNotification` with that selector.
+public final class NSUbiquitousKeyValueStore: NSObject, @unchecked Sendable {
+    fileprivate let defaults = UserDefaults(suiteName: "NSUbiquitousKeyValueStore") ?? .standard
+
+    public override init() { super.init() }
+
+    /// Writes in-memory keys and values to disk: they already are, so this answers true.
+    @objc @discardableResult
+    public func synchronize() -> Bool { true }
+}
+#else
 public final class NSUbiquitousKeyValueStore: @unchecked Sendable {
+    fileprivate let defaults = UserDefaults(suiteName: "NSUbiquitousKeyValueStore") ?? .standard
+
+    public init() {}
+
+    /// Writes in-memory keys and values to disk: they already are, so this answers true.
+    @discardableResult
+    public func synchronize() -> Bool { true }
+}
+#endif
+
+extension NSUbiquitousKeyValueStore {
     /// The shared iCloud key-value store object.
     public static let `default` = NSUbiquitousKeyValueStore()
 
     /// Posted when the value of one or more keys in the local key-value store changed due to
     /// incoming data pushed from iCloud.
     public static let didChangeExternallyNotification = Notification.Name("NSUbiquitousKeyValueStoreDidChangeExternallyNotification")
-
-    private let defaults: UserDefaults
-
-    public init() {
-        defaults = UserDefaults(suiteName: "NSUbiquitousKeyValueStore") ?? .standard
-    }
 
     public func object(forKey aKey: String) -> Any? { defaults.object(forKey: aKey) }
     public func set(_ anObject: Any?, forKey aKey: String) { defaults.set(anObject, forKey: aKey) }
@@ -51,10 +69,6 @@ public final class NSUbiquitousKeyValueStore: @unchecked Sendable {
         for (key, value) in defaults.dictionaryRepresentation() where defaults.object(forKey: key) != nil { all[key] = value }
         return all
     }
-
-    /// Writes in-memory keys and values to disk: they already are, so this answers true.
-    @discardableResult
-    public func synchronize() -> Bool { true }
 }
 
 /// The user-info key whose value says why the store changed externally.

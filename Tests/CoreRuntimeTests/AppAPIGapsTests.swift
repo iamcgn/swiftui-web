@@ -143,4 +143,17 @@ import WebCombine
         let tint: TintShapeStyle = .tint
         #expect(tint.resolveColor(in: environment) == Color.red.resolve(in: environment))
     }
+
+    /// `#colorLiteral` as Xcode's colour well writes it: a `UIColor` where one is expected, a
+    /// `Color` where that is, and `Color(#colorLiteral(...))` the UIColor bridge (PomPadDo's
+    /// sidebar has eight of them in one list, which the compiler gave up on with no type for the
+    /// literal).
+    @Test func colorLiteralsMakeUIColorsAndColors() {
+        let ui: UIColor = #colorLiteral(red: 1, green: 0.5, blue: 0.25, alpha: 1)
+        #expect(ui.light == UIColor(red: 1, green: 0.5, blue: 0.25, alpha: 1).light)
+        let color: Color = #colorLiteral(red: 1, green: 0.5, blue: 0.25, alpha: 0.5)
+        #expect(color == Color(red: 1, green: 0.5, blue: 0.25, opacity: 0.5))
+        // The literal here is a Color (one constant sRGB colour), the same colour as the UIColor.
+        #expect(Color(#colorLiteral(red: 1, green: 0.5, blue: 0.25, alpha: 1)) == Color(red: 1, green: 0.5, blue: 0.25))
+    }
 }

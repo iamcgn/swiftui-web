@@ -36,6 +36,8 @@ let package = Package(
         .library(name: "CoreHaptics", targets: ["CoreHaptics"]),
         .library(name: "WebCoreImage", targets: ["WebCoreImage"]),
         .library(name: "WidgetKit", targets: ["WidgetKit"]),
+        .library(name: "EventKit", targets: ["EventKit"]),
+        .library(name: "AudioToolbox", targets: ["AudioToolbox"]),
         .library(name: "StoreKit", targets: ["StoreKit"]),
         .library(name: "AppIntents", targets: ["AppIntents"]),
         .library(name: "WebKit", targets: ["WebKit"]),
@@ -128,6 +130,8 @@ let package = Package(
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(name: "WidgetKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "EventKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "AudioToolbox", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "Speech", dependencies: ["AVFoundation", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
         // In-app purchases with an empty store (no products load on the web) and its SwiftUI views.
@@ -225,7 +229,7 @@ let package = Package(
         // The small frameworks against known answers (FIPS 180, RFC 1321, RFC 4231 vectors).
         .testTarget(
             name: "FrameworkTests",
-            dependencies: ["CryptoKit", "CoreHaptics", "WebCoreImage", "WidgetKit", .product(name: "WebGraphics", package: "WebGraphics"), .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics"), .product(name: "WebDecimalFormats", package: "WebGraphics")],
+            dependencies: ["CryptoKit", "CoreHaptics", "WebCoreImage", "WidgetKit", "EventKit", "AudioToolbox", .product(name: "WebGraphics", package: "WebGraphics"), .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics"), .product(name: "WebDecimalFormats", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         .testTarget(
