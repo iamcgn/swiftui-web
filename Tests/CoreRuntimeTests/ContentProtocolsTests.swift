@@ -29,7 +29,7 @@ extension TrackedContent: TableColumnContent where Content: TableColumnContent {
         self.content = content()
     }
 
-    nonisolated var tableColumnBody: Never { fatalError() }
+    nonisolated var tableColumnBody: Never { return fatalError() }
 
     nonisolated static func _makeContent(content: _GraphValue<TrackedContent<Content>>, inputs: _TableColumnInputs) -> _TableColumnOutputs {
         Content._makeContent(content: content[\.body], inputs: inputs)
@@ -44,7 +44,7 @@ extension TrackedContent: TableRowContent where Content: TableRowContent {
         self.content = content()
     }
 
-    nonisolated var tableRowBody: Never { fatalError() }
+    nonisolated var tableRowBody: Never { return fatalError() }
 }
 
 /// Rotor content of its own: a type whose `body` lists entries.

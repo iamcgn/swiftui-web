@@ -490,7 +490,7 @@ public struct AccessibilityRotorEntry<ID: Hashable>: AccessibilityRotorContent {
         self.prepare = prepare
     }
 
-    public var body: Never { fatalError("AccessibilityRotorEntry has no body") }
+    public var body: Never { return fatalError("AccessibilityRotorEntry has no body") }
     nonisolated public var _rotorEntries: [_AccessibilityRotor.Entry] {
         nonisolated(unsafe) let id = id
         return [.init(label: label, id: id.map { AnyHashable($0) }, namespace: namespace, prepare: prepare)]
@@ -500,13 +500,16 @@ public struct AccessibilityRotorEntry<ID: Hashable>: AccessibilityRotorContent {
 /// Several rotor entries.
 public struct _RotorEntries: AccessibilityRotorContent {
     public typealias Body = Never
-    public var body: Never { fatalError("_RotorEntries has no body") }
+    public var body: Never { return fatalError("_RotorEntries has no body") }
     nonisolated public let _rotorEntries: [_AccessibilityRotor.Entry]
     nonisolated public init(_rotorEntries: [_AccessibilityRotor.Entry]) { self._rotorEntries = _rotorEntries }
 }
 
 @resultBuilder
 public struct AccessibilityRotorContentBuilder {
+    /// A body that never returns (`fatalError()`), as primitive content declares its body.
+    public static func buildExpression(_ never: Never) -> Never { never }
+    public static func buildBlock(_ never: Never) -> Never { never }
     public static func buildBlock(_ components: any AccessibilityRotorContent...) -> _RotorEntries { _RotorEntries(_rotorEntries: components.flatMap(\._rotorEntries)) }
     public static func buildExpression<C: AccessibilityRotorContent>(_ expression: C) -> any AccessibilityRotorContent { expression }
     public static func buildOptional(_ component: (any AccessibilityRotorContent)?) -> any AccessibilityRotorContent { component ?? _RotorEntries(_rotorEntries: []) }
