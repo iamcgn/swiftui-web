@@ -3,9 +3,10 @@
 // `Apps/upstream/*` (git submodules; `scripts/check-apps.sh` verifies the pins and that no
 // upstream file differs). This manifest is the only thing that is not upstream's: it names each
 // app's targets, where their sources are, and the SwiftUIWeb products they link in place of
-// Apple's frameworks. Every Swift file of each app is compiled; `exclude:` lists only the
-// non-Swift files Xcode would process (plists, storyboards, entitlements), `resources:` mirrors
-// upstream's own manifests. The mapping is tabulated in `Apps/README.md`.
+// Apple's frameworks. (An app listed in `ios-conditions.txt` builds from a generated copy of
+// its upstream tree in which `os(iOS)` reads as true, decision 0025.) Every Swift file of each
+// app is compiled; `exclude:` lists only the non-Swift files Xcode would process (plists,
+// storyboards, entitlements), `resources:` mirrors upstream's own manifests. The mapping is tabulated in `Apps/README.md`.
 import PackageDescription
 
 let shadows: [Target.Dependency] = [
@@ -168,7 +169,9 @@ let package = Package(
                 .product(name: "EventKit", package: "SwiftUIWeb"),
                 .product(name: "AudioToolbox", package: "SwiftUIWeb"),
             ],
-            path: "upstream/pompaddo",
+            // Its upstream tree with `os(iOS)` read as true (decision 0025): `ios-sources/pompaddo`,
+            // which scripts/build-wasm.sh makes from `upstream/pompaddo` before every build.
+            path: "ios-sources/pompaddo",
             exclude: ["PomPadDo.mobile/Info.plist", "PomPadDo.mobile/LaunchScreen.storyboard",
                       "PomPadDo.mobile/PomPadDo_mobile.entitlements", "PomPadDo.mobile/Preview Content",
                       "Shared/Tests", "Shared/Localizable.xcstrings"],
