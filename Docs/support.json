@@ -2519,6 +2519,18 @@
           "noFixture": "Nothing to draw: FrameworkTests call the center and build a timeline"
         },
         {
+          "api": "EKEventStore / EKEvent / EKCalendar / EKAuthorizationStatus (EventKit)",
+          "status": "stub",
+          "notes": "pf-small-frameworks (2026-11-09): a page cannot reach the person's calendars, so every access request answers as a person who declined (not granted, no error), the status is denied, there is no default calendar, and saving or removing an event throws eventStoreNotAuthorized, as on a device without access. Events and calendars are values an app fills, so the code that adds an event compiles and runs (Pompaddo's CalendarManager). Not done: reading or writing any calendar (an .ics download would be a different API)",
+          "noFixture": "Nothing to draw: FrameworkTests check the declined requests and the throwing save"
+        },
+        {
+          "api": "AudioServicesPlaySystemSound / AudioServicesPlayAlertSound / SystemSoundID (AudioToolbox)",
+          "status": "stub",
+          "notes": "pf-small-frameworks (2026-11-09): a page has no system sound set and no vibration, so system sounds (and kSystemSoundID_Vibrate) play silently; the completion forms call their block at once. Not done: any sound (an app's own audio plays through AVAudioPlayer)",
+          "noFixture": "Nothing to draw: FrameworkTests play the sounds and see the completions"
+        },
+        {
           "api": "Product / Transaction / AppStore / SKPaymentQueue / ProductView / StoreView / SubscriptionStoreView (StoreKit) / SKProductDiscount / SKPaymentDiscount / SKStorefront / SKPaymentQueueDelegate / Storefront",
           "status": "stub",
           "notes": "pf-small-frameworks (2026-11-01): a web page has no App Store account, so the store is empty. Product.products(for:) loads none, the transaction sequences (updates, all, currentEntitlements, unfinished) end without an element, entitlements and subscription statuses are absent, AppStore.sync succeeds, AppTransaction.shared throws, and a purchase throws productUnavailable. The original API matches: a products request lists every identifier as invalid, a payment added to the queue fails as not allowed, a restore finishes empty, Apple Music capabilities are none. ProductView shows its product as unavailable (a custom ProductViewStyle gets that state), StoreView lists its products that way, SubscriptionStoreView shows its marketing content over a note, the review prompt shows nothing, and the App Store sheets close as soon as they open. Not done: selling anything (a web payment provider would be a different API) Products carry no discounts, the payment queue has no storefront and Storefront.current is nil.",
