@@ -43,7 +43,7 @@ public macro Relationship(_ options: Schema.Relationship.Option..., deleteRule: 
 public macro Transient() = #externalMacro(module: "SwiftDataMacros", type: "TransientMacro")
 
 @freestanding(expression)
-public macro Predicate<T>(_ body: (T) -> Bool) -> WebFoundation.Predicate<T> = #externalMacro(module: "SwiftDataMacros", type: "PredicateMacro")
+public macro Predicate<T>(_ body: (T) -> Bool) -> Predicate<T> = #externalMacro(module: "SwiftDataMacros", type: "PredicateMacro")
 
 @attached(member, names: named(modelExecutor), named(modelContainer), named(init(modelContainer:)))
 @attached(extension, conformances: ModelActor)
@@ -56,19 +56,19 @@ public macro ModelActor() = #externalMacro(module: "SwiftDataMacros", type: "Mod
 public macro Query() = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
 @attached(accessor)
 @attached(peer, names: prefixed(`_`))
-public macro Query<Value: Comparable, Element: PersistentModel>(filter: WebFoundation.Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
+public macro Query<Value: Comparable, Element: PersistentModel>(filter: Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
 @attached(accessor)
 @attached(peer, names: prefixed(`_`))
-public macro Query<Value: Comparable, Element: PersistentModel>(filter: WebFoundation.Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value?>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
+public macro Query<Value: Comparable, Element: PersistentModel>(filter: Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value?>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
 @attached(accessor)
 @attached(peer, names: prefixed(`_`))
-public macro Query<Value: Comparable, Element: PersistentModel>(filter: WebFoundation.Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, animation: Animation) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
+public macro Query<Value: Comparable, Element: PersistentModel>(filter: Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, animation: Animation) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
 @attached(accessor)
 @attached(peer, names: prefixed(`_`))
-public macro Query<Element: PersistentModel>(filter: WebFoundation.Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], transaction: Transaction? = nil) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
+public macro Query<Element: PersistentModel>(filter: Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], transaction: Transaction? = nil) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
 @attached(accessor)
 @attached(peer, names: prefixed(`_`))
-public macro Query<Element: PersistentModel>(filter: WebFoundation.Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], animation: Animation) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
+public macro Query<Element: PersistentModel>(filter: Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], animation: Animation) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
 @attached(accessor)
 @attached(peer, names: prefixed(`_`))
 public macro Query<Element: PersistentModel>(_ descriptor: FetchDescriptor<Element>, transaction: Transaction? = nil) = #externalMacro(module: "SwiftDataMacros", type: "QueryMacro")
@@ -210,62 +210,6 @@ public struct _PersistedProperty: @unchecked Sendable {
     }
 }
 
-/// The property table's entry for a property whose kind its spelling does not tell (`@Model`
-/// leaves it to these overloads): another model or an array of them is a relationship, a
-/// value type we persist directly an attribute, and any other Codable value an attribute
-/// kept as its JSON.
-extension _PersistedProperty {
-    public static func _inferred<M: PersistentModel, R: PersistentModel>(_ name: String, _ path: ReferenceWritableKeyPath<M, R?>, isUnique: Bool = false) -> _PersistedProperty {
-        _PersistedProperty(name: name, kind: .toOne, relatedEntity: R._entityName,
-                           read: { model in (model as! M)[keyPath: path].map { .reference($0.persistentModelID) } ?? .null },
-                           write: { model, value, context in
-                               if case .reference(let id) = value { (model as! M)[keyPath: path] = context?._resolve(id) as? R }
-                               else { (model as! M)[keyPath: path] = nil }
-                           },
-                           related: { model in (model as! M)[keyPath: path].map { [$0 as any PersistentModel] } ?? [] },
-                           setRelated: { model, related in (model as! M)[keyPath: path] = related.first as? R })
-    }
-
-    public static func _inferred<M: PersistentModel, R: PersistentModel>(_ name: String, _ path: ReferenceWritableKeyPath<M, [R]>, isUnique: Bool = false) -> _PersistedProperty {
-        _toMany(name, R.self, get: { model in (model as! M)[keyPath: path] }, set: { model, related in (model as! M)[keyPath: path] = related })
-    }
-
-    public static func _inferred<M: PersistentModel, R: PersistentModel>(_ name: String, _ path: ReferenceWritableKeyPath<M, [R]?>, isUnique: Bool = false) -> _PersistedProperty {
-        _toMany(name, R.self, get: { model in (model as! M)[keyPath: path] ?? [] }, set: { model, related in (model as! M)[keyPath: path] = related })
-    }
-
-    public static func _inferred<M: PersistentModel, V: _PersistableValue>(_ name: String, _ path: ReferenceWritableKeyPath<M, V>, isUnique: Bool = false) -> _PersistedProperty {
-        _PersistedProperty(name: name, kind: .attribute, isUnique: isUnique,
-                           read: { model in (model as! M)[keyPath: path]._storedValue },
-                           write: { model, value, _ in if let decoded = V._fromStoredValue(value) { (model as! M)[keyPath: path] = decoded } })
-    }
-
-    @_disfavoredOverload
-    public static func _inferred<M: PersistentModel, V: Codable>(_ name: String, _ path: ReferenceWritableKeyPath<M, V>, isUnique: Bool = false) -> _PersistedProperty {
-        _PersistedProperty(name: name, kind: .attribute, isUnique: isUnique,
-                           read: { model in
-                               guard let data = try? JSONEncoder().encode((model as! M)[keyPath: path]) else { return .null }
-                               return .data(Array(data))
-                           },
-                           write: { model, value, _ in
-                               guard case .data(let bytes) = value, let decoded = try? JSONDecoder().decode(V.self, from: Data(bytes)) else { return }
-                               (model as! M)[keyPath: path] = decoded
-                           })
-    }
-
-    private static func _toMany<R: PersistentModel>(_ name: String, _ related: R.Type, get: @escaping (any PersistentModel) -> [R],
-                                                    set: @escaping (any PersistentModel, [R]) -> Void) -> _PersistedProperty {
-        _PersistedProperty(name: name, kind: .toMany, relatedEntity: R._entityName,
-                           read: { model in .references(get(model).map { $0.persistentModelID }) },
-                           write: { model, value, context in
-                               guard case .references(let ids) = value else { return }
-                               set(model, ids.compactMap { context?._resolve($0) as? R })
-                           },
-                           related: { model in get(model).map { $0 as any PersistentModel } },
-                           setRelated: { model, related in set(model, related.compactMap { $0 as? R }) })
-    }
-}
-
 // MARK: - PersistentModel
 
 /// The interface that enables SwiftData to manage a Swift class as a stored model object.
@@ -376,28 +320,6 @@ public struct ModelConfiguration: Hashable, Sendable {
         self.allowsSave = allowsSave
     }
     public init(isStoredInMemoryOnly: Bool) { self.init(nil, isStoredInMemoryOnly: isStoredInMemoryOnly) }
-    /// The forms that name a CloudKit database or an app group: the browser store syncs with
-    /// neither, so both are accepted and the store is the app's own.
-    public init(_ name: String? = nil, schema: Schema? = nil, isStoredInMemoryOnly: Bool = false, allowsSave: Bool = true,
-                groupContainer: GroupContainer = .automatic, cloudKitDatabase: CloudKitDatabase) {
-        self.init(name, schema: schema, isStoredInMemoryOnly: isStoredInMemoryOnly, allowsSave: allowsSave)
-    }
-
-    /// The app group a store lives in.
-    public struct GroupContainer: Sendable, Hashable {
-        package let identifier: String?
-        public static let automatic = GroupContainer(identifier: nil)
-        public static let none = GroupContainer(identifier: nil)
-        public static func identifier(_ groupName: String) -> GroupContainer { GroupContainer(identifier: groupName) }
-    }
-
-    /// The CloudKit database a store syncs with.
-    public struct CloudKitDatabase: Sendable, Hashable {
-        package let identifier: String?
-        public static let automatic = CloudKitDatabase(identifier: nil)
-        public static let none = CloudKitDatabase(identifier: nil)
-        public static func `private`(_ containerIdentifier: String) -> CloudKitDatabase { CloudKitDatabase(identifier: containerIdentifier) }
-    }
     public static func == (lhs: ModelConfiguration, rhs: ModelConfiguration) -> Bool { lhs.name == rhs.name && lhs.isStoredInMemoryOnly == rhs.isStoredInMemoryOnly }
     public func hash(into hasher: inout Hasher) { hasher.combine(name) }
 }
@@ -441,19 +363,24 @@ public final class ModelContainer: @unchecked Sendable {
 /// A type that describes the criteria, sort order, and any additional configuration to use
 /// when performing a fetch.
 public struct FetchDescriptor<T: PersistentModel> {
-    public var predicate: WebFoundation.Predicate<T>?
+    public var predicate: Predicate<T>?
     public var sortBy: [SortDescriptor<T>]
     public var fetchLimit: Int?
     public var fetchOffset: Int?
     public var includePendingChanges = true
-    public init(predicate: WebFoundation.Predicate<T>? = nil, sortBy: [SortDescriptor<T>] = []) {
+    public init(predicate: Predicate<T>? = nil, sortBy: [SortDescriptor<T>] = []) {
         self.predicate = predicate
         self.sortBy = sortBy
     }
 }
 
-// `Predicate` itself is WebFoundation's. This module names it `WebFoundation.Predicate`, because
-// on macOS and Linux other modules import Foundation directly and the bare name is ambiguous.
+/// A predicate over a model type: a closure here (what `#Predicate` expands to), run against
+/// the models in memory.
+public struct Predicate<T>: @unchecked Sendable {
+    let test: (T) throws -> Bool
+    public init(_ test: @escaping (T) throws -> Bool) { self.test = test }
+    public func evaluate(_ value: T) throws -> Bool { try test(value) }
+}
 
 /// A description of how to order models by one of their properties.
 public struct SortDescriptor<Compared>: @unchecked Sendable {
@@ -649,7 +576,7 @@ public final class ModelContext: @unchecked Sendable {
         noteChange()
     }
 
-    public func delete<T: PersistentModel>(model: T.Type, where predicate: WebFoundation.Predicate<T>? = nil) throws {
+    public func delete<T: PersistentModel>(model: T.Type, where predicate: Predicate<T>? = nil) throws {
         for model in try fetch(FetchDescriptor<T>(predicate: predicate)) { delete(model) }
     }
 
@@ -685,13 +612,7 @@ public final class ModelContext: @unchecked Sendable {
 
     public func fetchCount<T: PersistentModel>(_ descriptor: FetchDescriptor<T>) throws -> Int { try fetch(descriptor).count }
 
-    /// The model with this identifier, read from the store if this context has not met it yet
-    /// (a dragged identifier, an identifier kept across launches).
-    public func model(for identifier: PersistentIdentifier) -> any PersistentModel {
-        if models[identifier] == nil { container.store.sync(into: self) }
-        guard let model = models[identifier] else { fatalError("ModelContext: no model with identifier \(identifier)") }
-        return model
-    }
+    public func model(for identifier: PersistentIdentifier) -> any PersistentModel { models[identifier]! }
     public func registeredModel<T: PersistentModel>(for identifier: PersistentIdentifier) -> T? { models[identifier] as? T }
     func registeredModelAny(for identifier: PersistentIdentifier) -> (any PersistentModel)? { models[identifier] }
 
@@ -733,26 +654,11 @@ public final class ModelContext: @unchecked Sendable {
     public func _relationshipDidChange(_ model: any PersistentModel, _ name: String) {
         guard let property = type(of: model)._persistedProperties.first(where: { $0.name == name }), property.kind != .attribute,
               let related = property.related?(model) else { return }
-        // A model given a relationship to one in this context joins it (and its relationships
-        // set before then link as at any insert).
-        if model._storage.context !== self { insert(model); return }
         // A model assigned to a relationship joins the context (SwiftData inserts the graph).
         let resolved = related.map { resolveUnique($0) }
         if zip(resolved, related).contains(where: { $0 !== $1 }) { property.setRelated?(model, resolved) }
         for other in resolved where other._storage.context !== self { insert(other) }
         link(model, property, resolved)
-    }
-}
-
-extension PersistentModel {
-    /// A `@Model` setter: a relationship's change reaches this model's context, or, for a model
-    /// not inserted yet, the context of a model it now relates to (SwiftData inserts the graph
-    /// from either end: `task.project = project` saves the task with the project).
-    public func _relationshipDidChange(_ name: String) {
-        if let context = modelContext { context._relationshipDidChange(self, name); return }
-        guard let property = Self._persistedProperties.first(where: { $0.name == name }), property.kind != .attribute,
-              let context = property.related?(self).lazy.compactMap({ $0.modelContext }).first else { return }
-        context._relationshipDidChange(self, name)
     }
 }
 
@@ -1125,22 +1031,22 @@ public struct Query<Element: PersistentModel, Result>: DynamicProperty {
         { (try? $0.fetch(descriptor)) ?? [] }
     }
 
-    public init<Value: Comparable>(filter: WebFoundation.Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, animation: Animation) where Result == [Element] {
+    public init<Value: Comparable>(filter: Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, animation: Animation) where Result == [Element] {
         fetch = Self.fetching(FetchDescriptor(predicate: filter, sortBy: [SortDescriptor(keyPath, order: order)])); self.animation = animation
     }
-    public init<Value: Comparable>(filter: WebFoundation.Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value?>, order: SortDescriptor<Element>.Order = .forward, animation: Animation) where Result == [Element] {
+    public init<Value: Comparable>(filter: Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value?>, order: SortDescriptor<Element>.Order = .forward, animation: Animation) where Result == [Element] {
         fetch = Self.fetching(FetchDescriptor(predicate: filter, sortBy: [SortDescriptor(keyPath, order: order)])); self.animation = animation
     }
-    public init<Value: Comparable>(filter: WebFoundation.Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) where Result == [Element] {
+    public init<Value: Comparable>(filter: Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) where Result == [Element] {
         fetch = Self.fetching(FetchDescriptor(predicate: filter, sortBy: [SortDescriptor(keyPath, order: order)])); animation = transaction?.animation
     }
-    public init<Value: Comparable>(filter: WebFoundation.Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value?>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) where Result == [Element] {
+    public init<Value: Comparable>(filter: Predicate<Element>? = nil, sort keyPath: KeyPath<Element, Value?>, order: SortDescriptor<Element>.Order = .forward, transaction: Transaction? = nil) where Result == [Element] {
         fetch = Self.fetching(FetchDescriptor(predicate: filter, sortBy: [SortDescriptor(keyPath, order: order)])); animation = transaction?.animation
     }
-    public init(filter: WebFoundation.Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], animation: Animation) where Result == [Element] {
+    public init(filter: Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], animation: Animation) where Result == [Element] {
         fetch = Self.fetching(FetchDescriptor(predicate: filter, sortBy: descriptors)); self.animation = animation
     }
-    public init(filter: WebFoundation.Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], transaction: Transaction? = nil) where Result == [Element] {
+    public init(filter: Predicate<Element>? = nil, sort descriptors: [SortDescriptor<Element>] = [], transaction: Transaction? = nil) where Result == [Element] {
         fetch = Self.fetching(FetchDescriptor(predicate: filter, sortBy: descriptors)); animation = transaction?.animation
     }
     public init(_ descriptor: FetchDescriptor<Element>, transaction: Transaction? = nil) where Result == [Element] {

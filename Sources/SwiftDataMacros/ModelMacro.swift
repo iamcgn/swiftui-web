@@ -17,9 +17,6 @@ public struct ModelMacro: MemberMacro, MemberAttributeMacro, ExtensionMacro {
         let elementType: String
         let isUnique: Bool
         let isRelationship: Bool
-        /// Neither declared a relationship nor of a value type the spelling names: the
-        /// compiler picks attribute or relationship from the type (`_PersistedProperty._inferred`).
-        let isInferred: Bool
         let inverse: String?
         let initializer: String?
     }
@@ -53,15 +50,12 @@ public struct ModelMacro: MemberMacro, MemberAttributeMacro, ExtensionMacro {
                     inverse = argument.expression.trimmedDescription.split(separator: ".").last.map(String.init)
                 }
             }
-            // A relationship when declared so; an attribute when its type is a value type we know
-            // by name; otherwise (an enum, a Codable struct, another model) the type decides.
+            // A relationship: declared so, or typed as another model (an array or optional of a capitalised type that is not a value type we know).
             let valueTypes: Set<String> = ["String", "Int", "Double", "Float", "Bool", "Data", "Date", "URL", "UUID", "Int64", "Int32", "Decimal"]
             let elementIsValue = valueTypes.contains(element) || element.hasPrefix("[") || element.hasPrefix("Dictionary") || element.hasPrefix("Set<")
-            let isRelationship = relationship != nil
-            let isInferred = !isRelationship && !elementIsValue
+            let isRelationship = relationship != nil || (!elementIsValue && element.first?.isUppercase == true && !element.contains("<"))
             result.append(Property(name: name, type: type, isOptional: isOptional, isArray: isArray, elementType: element, isUnique: unique,
-                                   isRelationship: isRelationship, isInferred: isInferred, inverse: inverse,
-                                   initializer: binding.initializer?.value.trimmedDescription))
+                                   isRelationship: isRelationship, inverse: inverse, initializer: binding.initializer?.value.trimmedDescription))
         }
         return result
     }
@@ -76,9 +70,7 @@ public struct ModelMacro: MemberMacro, MemberAttributeMacro, ExtensionMacro {
         let properties = try properties(of: declaration, in: context)
         var entries: [String] = []
         for property in properties {
-            if property.isInferred {
-                entries.append("_PersistedProperty._inferred(\"\(property.name)\", \\\(name)._\(property.name), isUnique: \(property.isUnique))")
-            } else if property.isRelationship {
+            if property.isRelationship {
                 let kind = property.isArray ? ".toMany" : ".toOne"
                 let readModels: String
                 let setModels: String
@@ -120,18 +112,9 @@ public struct ModelMacro: MemberMacro, MemberAttributeMacro, ExtensionMacro {
             }
         }
         // `_make`: a bare instance (no initializer runs), attributes written from the stored values.
-        var makeBody = properties.filter { !$0.isRelationship && !$0.isInferred }.map { property in
+        let makeBody = properties.filter { !$0.isRelationship }.map { property in
             "if let value = values[\"\(property.name)\"], let decoded = \(property.type)._fromStoredValue(value) { model._\(property.name) = decoded }"
-        }
-        let inferred = properties.filter(\.isInferred).map { "\"\($0.name)\"" }
-        if !inferred.isEmpty {
-            makeBody.append("for property in \(name)._persistedProperties where property.kind == .attribute && [\(inferred.joined(separator: ", "))].contains(property.name) { if let value = values[property.name] { property.write(model, value, context) } }")
-        }
-        let makeStatements = makeBody.joined(separator: "\n        ")
-        // A class others may subclass returns `Self`, as the protocol asks of it.
-        let isFinal = classDecl.modifiers.contains { $0.name.text == "final" }
-        let makeResult = isFinal ? name : "Self"
-        let makeReturn = isFinal ? "model" : "model as! Self"
+        }.joined(separator: "\n        ")
         let storedDefaults = properties.map { property -> String in
             if let initializer = property.initializer { return "model._\(property.name) = \(initializer)" }
             if property.isOptional { return "model._\(property.name) = nil" }
@@ -156,11 +139,11 @@ public struct ModelMacro: MemberMacro, MemberAttributeMacro, ExtensionMacro {
             internal init(_uninitialized: Void) {}
             """,
             """
-            public static func _make(from values: [String: _StoredValue], in context: ModelContext) -> \(raw: makeResult) {
+            public static func _make(from values: [String: _StoredValue], in context: ModelContext) -> \(raw: name) {
                 let model = \(raw: name)(_uninitialized: ())
                 \(raw: storedDefaults)
-                \(raw: makeStatements)
-                return \(raw: makeReturn)
+                \(raw: makeBody)
+                return model
             }
             """,
             """
@@ -217,7 +200,7 @@ public struct ModelPropertyMacro: AccessorMacro, PeerMacro {
             get { access(keyPath: \\.\(raw: name)); return _\(raw: name) }
             """,
             """
-            set { withMutation(keyPath: \\.\(raw: name)) { _\(raw: name) = newValue }; _storage.didChange(); _relationshipDidChange("\(raw: name)") }
+            set { withMutation(keyPath: \\.\(raw: name)) { _\(raw: name) = newValue }; _storage.didChange(); modelContext?._relationshipDidChange(self, "\(raw: name)") }
             """,
         ]
     }
@@ -246,17 +229,16 @@ public struct TransientMacro: PeerMacro {
     public static func expansion(of node: AttributeSyntax, providingPeersOf declaration: some DeclSyntaxProtocol, in context: some MacroExpansionContext) throws -> [DeclSyntax] { [] }
 }
 
-/// `#Predicate<T> { closure }` → `WebFoundation.Predicate<T>(closure)` (named by its module so
-/// the expansion never meets Foundation's own `Predicate`): the closure runs as written against
+/// `#Predicate<T> { closure }` → `Predicate<T>(closure)`: the closure runs as written against
 /// each model in memory (there is no SQL to translate it into here).
 public struct PredicateMacro: ExpressionMacro {
     public static func expansion(of node: some FreestandingMacroExpansionSyntax, in context: some MacroExpansionContext) throws -> ExprSyntax {
         let generics = node.genericArgumentClause?.trimmedDescription ?? ""
         guard let closure = node.trailingClosure ?? node.arguments.first?.expression.as(ClosureExprSyntax.self) else {
             context.diagnose(Diagnostic(node: Syntax(node), message: ModelMessage("'#Predicate' takes a closure")))
-            return "WebFoundation.Predicate { _ in true }"
+            return "Predicate { _ in true }"
         }
-        return "WebFoundation.Predicate\(raw: generics)(\(closure))"
+        return "Predicate\(raw: generics)(\(closure))"
     }
 }
 
@@ -325,9 +307,6 @@ public struct QueryMacro: AccessorMacro, PeerMacro {
                                  in context: some MacroExpansionContext) throws -> [DeclSyntax] {
         guard let parts = parts(declaration, in: context) else { return [] }
         let arguments = node.arguments?.as(LabeledExprListSyntax.self)?.trimmedDescription ?? ""
-        // Internal, not private: a stored `var` with a value still joins the view's memberwise
-        // initializer (as a defaulted argument), and a private one would make that initializer
-        // private, which Apple's property wrapper does not.
-        return ["var _\(raw: parts.name): Query<\(raw: parts.element), \(raw: parts.result)> = Query<\(raw: parts.element), \(raw: parts.result)>(\(raw: arguments))"]
+        return ["private var _\(raw: parts.name): Query<\(raw: parts.element), \(raw: parts.result)> = Query<\(raw: parts.element), \(raw: parts.result)>(\(raw: arguments))"]
     }
 }
