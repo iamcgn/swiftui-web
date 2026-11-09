@@ -219,18 +219,31 @@ jobs:
           python3 -m http.server 8775 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8775/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node 2048-probe.mjs "http://127.0.0.1:8775/index.html?platform=ios" --out ../.build/apps/2048)
+      # PomPadDo (SwiftData, a TabView of typed Tabs, a sheet, a focus timer) is built with the same
+      # runtime SDK: it is an iOS app whose `#if os(iOS)` code is the app (decision 0025).
+      - name: Apps — PomPadDo compiles for wasm from its unmodified sources (SwiftData models and queries, typed Tabs, #colorLiteral; the runtime SDK)
+        run: |
+          . ~/.swiftly/env.sh
+          SWIFTUIWEB_WASM_SDK=swift-6.3.3-RELEASE_wasm-objc scripts/build-wasm.sh Apps --debug --product Pompaddo
+      - name: Apps — PomPadDo in Chromium (the tab bar, a task added from the Add to Inbox tab, the Inbox lists it, the focus timer counts down, the task is still there after a reload)
+        id: pompaddo
+        run: |
+          python3 -m http.server 8783 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8783/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node pompaddo-probe.mjs "http://127.0.0.1:8783/index.html?platform=ios" --out ../.build/apps/pompaddo)
       - name: Apps — the evidence the probe must leave (report.json with full_app_pass, screenshots, trace)
         if: always() && steps.scrumdinger.outcome != 'skipped'
-        env: { EMBER_PROBE: "${{ steps.ember.outcome }}", SWIFTUI2048_PROBE: "${{ steps.swiftui2048.outcome }}", CHARTS_PROBE: "${{ steps.charts.outcome }}", BUTTONCRAFT_PROBE: "${{ steps.buttoncraft.outcome }}" }
+        env: { EMBER_PROBE: "${{ steps.ember.outcome }}", SWIFTUI2048_PROBE: "${{ steps.swiftui2048.outcome }}", CHARTS_PROBE: "${{ steps.charts.outcome }}", BUTTONCRAFT_PROBE: "${{ steps.buttoncraft.outcome }}", POMPADDO_PROBE: "${{ steps.pompaddo.outcome }}" }
         run: |
-          for app in scrumdinger ember charts buttoncraft 2048; do
+          for app in scrumdinger ember charts buttoncraft 2048 pompaddo; do
             # A probe is skipped when its build step failed: its evidence is then the build log.
             if [ "$app" = ember ] && [ "$EMBER_PROBE" = skipped ]; then echo "ember: probe not run"; continue; fi
             if [ "$app" = 2048 ] && [ "$SWIFTUI2048_PROBE" = skipped ]; then echo "2048: probe not run"; continue; fi
             if [ "$app" = charts ] && [ "$CHARTS_PROBE" = skipped ]; then echo "charts: probe not run"; continue; fi
             if [ "$app" = buttoncraft ] && [ "$BUTTONCRAFT_PROBE" = skipped ]; then echo "buttoncraft: probe not run"; continue; fi
+            if [ "$app" = pompaddo ] && [ "$POMPADDO_PROBE" = skipped ]; then echo "pompaddo: probe not run"; continue; fi
             test -s .build/apps/$app/report.json && test -s .build/apps/$app/trace.zip && ls .build/apps/$app/*.png >/dev/null
-            # All five are full passes (Scrumdinger's meeting since decision 0022's recogniser).
+            # All six are full passes (Scrumdinger's meeting since decision 0022's recogniser).
             python3 -c "import json; r=json.load(open('.build/apps/$app/report.json')); assert r['full_app_pass'] is True, r['full_app_pass']; print('$app', {k: v['outcome'] for k, v in r['flows'].items()})"
           done
       # Evidence, kept whatever the steps above did: Tier B's renders and diffs

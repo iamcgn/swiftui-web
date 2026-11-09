@@ -13,3 +13,12 @@
 [submodule "Apps/upstream/buttoncraft"]
 	path = Apps/upstream/buttoncraft
 	url = https://github.com/atrinh0/buttoncraft
+[submodule "Apps/upstream/pompaddo"]
+	path = Apps/upstream/pompaddo
+	url = https://github.com/amikhaylin/pompaddo
+[submodule "Apps/upstream/CloudStorage"]
+	path = Apps/upstream/CloudStorage
+	url = https://github.com/tomlokhorst/CloudStorage
+[submodule "Apps/upstream/swiftdata-transferrable"]
+	path = Apps/upstream/swiftdata-transferrable
+	url = https://github.com/Whiffer/swiftdata-transferrable

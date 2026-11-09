@@ -20,6 +20,9 @@ SDK="${SWIFTUIWEB_WASM_SDK:-swift-$(cat "$ROOT/.swift-version")-RELEASE_wasm}"
 # shellcheck disable=SC1091
 . "$(dirname "$0")/env.sh"
 case "$PKG" in *Gallery|*Gallery/) python3 "$(dirname "$0")/gen-fixture-sources.py";; esac   # fixture code shown in the gallery
+# The apps whose `#if os(iOS)` branches are the app the browser runs build from a copy with
+# that condition read as true (decision 0025, Apps/ios-conditions.txt).
+case "$PKG" in Apps|Apps/|*/Apps|*/Apps/) python3 "$ROOT/scripts/ios-conditions.py";; esac
 cd "$PKG"
 # Package traits the app needs (decision 0024): a Core Data app whose files import only SwiftUI
 # or Foundation needs the CoreData trait on its SwiftUIWeb and Shadows dependencies; an app that
