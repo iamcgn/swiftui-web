@@ -17,7 +17,7 @@ private struct PhaseApp: App {
     @Environment(\.scenePhase) var scenePhase
     var body: some Scene {
         WindowGroup { Text("Hi") }
-            .onChange(of: scenePhase) { phase in
+            .onChange(of: scenePhase) { _, phase in
                 Self.log.entries.append(phase == .active ? "active" : phase == .inactive ? "inactive" : "background")
             }
     }
@@ -100,8 +100,8 @@ private struct PhaseApp: App {
         #expect(shown() == "active")
     }
 
-    /// An app's `onChange(of: scenePhase)` on its window group, in the deprecated one-parameter
-    /// form SimpleScores saves from: it runs as the page is hidden and shown again.
+    /// An app's `onChange(of: scenePhase)` on its window group (SimpleScores saves from the
+    /// one-parameter form, which shares the path): it runs as the page is hidden and shown again.
     @Test func aScenesOnChangeOfItsPhaseRuns() {
         PhaseApp.log.entries = []
         _ = PhaseApp._windows()
