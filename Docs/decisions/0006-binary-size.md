@@ -69,7 +69,7 @@ API in the libraries now costs an app nothing; types still cost their metadata, 
 methods stay reachable through their vtables.
 
 ## 2026-11-10: the Regex engine, linked by `String.contains(String)`
-Counter carried `libswift__StringProcessing` and `libswift_RegexParser` (1.36 MB of code, 166 KB
+Counter carried `libswift_StringProcessing` and `libswift_RegexParser` (1.36 MB of code, 166 KB
 of data) though nothing in it uses a regex. wasm-ld extracts an archive member when any object
 names one of its symbols, before `--gc-sections` runs, and `_StringProcessing` is one member; so a
 single reference, even from code the app never reaches, links both libraries. The references were
