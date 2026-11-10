@@ -69,7 +69,7 @@ let package = Package(
             name: "Foundation",
             dependencies: [
                 .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics"), "Combine", "CoreGraphics",
-                "Security",
+                "Security", .product(name: "WebGraphics", package: "WebGraphics"),
                 .product(name: "WebCoreData", package: "SwiftUIWeb", condition: .when(traits: ["CoreData"])),
                 .product(name: "WebDecimalFormats", package: "WebGraphics", condition: .when(traits: ["DecimalFormatting"])),
             ],

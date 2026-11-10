@@ -8,7 +8,7 @@
 import WebFoundation
 
 /// A static byte buffer: the object form of `Data`.
-open class NSData: NSObject, NSCopying, NSMutableCopying, @unchecked Sendable {
+open class NSData: _WebNSValue, NSCopying, NSMutableCopying, @unchecked Sendable {
     var _bytes: [UInt8]
 
     public override init() {
@@ -37,6 +37,8 @@ open class NSData: NSObject, NSCopying, NSMutableCopying, @unchecked Sendable {
 
     /// The bytes as a value.
     var _data: Data { Data(_bytes) }
+    /// The bytes, as the runtime's value box holds them (`nsData as Data` with the runtime).
+    open override var value: Any { _data }
 
     public func isEqual(to other: Data) -> Bool { _bytes == other.bytes }
     open override func isEqual(_ object: Any?) -> Bool {
@@ -96,9 +98,7 @@ open class NSMutableData: NSData, @unchecked Sendable {
     open override func copy(with zone: NSZone? = nil) -> Any { NSData(data: _data) }
 }
 
-// With the Objective-C runtime, `Data` already bridges to the runtime's value box
-// (ObjectiveCBridging.swift), so there `as` doesn't reach these classes.
-#if !canImport(ObjectiveC)
+// With the Objective-C runtime too, so `data as NSData` converts there as well.
 extension Data: _ObjectiveCBridgeable {
     public typealias _ObjectiveCType = NSData
     public func _bridgeToObjectiveC() -> NSData { NSData(data: self) }
@@ -109,5 +109,4 @@ extension Data: _ObjectiveCBridgeable {
     }
     public static func _unconditionallyBridgeFromObjectiveC(_ source: NSData?) -> Data { source?._data ?? Data() }
 }
-#endif
 #endif

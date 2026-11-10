@@ -46,6 +46,8 @@ open class UISplitViewController: UIViewController {
     public enum PrimaryEdge: Int, Sendable { case leading = 0, trailing }
     public enum BackgroundStyle: Int, Sendable { case none = 0, sidebar }
     public enum DisplayModeButtonVisibility: Int, Sendable { case automatic = 0, never, always }
+    /// Whether the split view shows its columns side by side or collapsed into one (iOS 26).
+    public enum LayoutEnvironment: Int, Sendable { case none = 0, expanded, collapsed }
     public static let automaticDimension: CGFloat = -1
 
     public let style: Style
