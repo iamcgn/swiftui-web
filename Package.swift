@@ -88,7 +88,8 @@ let package = Package(
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         // Map, VideoPlayer and WebView (sw-frameworks): painted tiles, host elements over the canvas.
-        .target(name: "CoreLocation", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "CoreLocationHost", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "CoreLocation", dependencies: ["CoreLocationHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "MapKit", dependencies: ["SwiftUI", "CoreLocation"], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVFoundation", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVKit", dependencies: ["SwiftUI", "AVFoundation"], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -189,7 +190,7 @@ let package = Package(
                 // The audio, speech, notification and data stand-ins' host hooks (decisions
                 // 0021, 0022): Web Audio, the microphone, the on-device recogniser fed the app's
                 // buffers, the Notification API, geolocation, localStorage for SwiftData's stores.
-                "AVFoundation", "Speech", "UserNotifications", "CoreLocation", "SwiftData",
+                "AVFoundation", "Speech", "UserNotifications", "CoreLocationHost", "SwiftData",
                 // The on-screen keyboard's frame from the visual viewport into UIKitScene (KeyboardHost.swift).
                 .product(name: "UIKitWebCore", package: "UIKitWeb"),
                 .product(name: "WebGraphicsCanvas", package: "WebGraphics"),

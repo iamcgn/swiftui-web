@@ -4,14 +4,14 @@
 // launch and again whenever it changes. A browser without the Permissions API still works: the
 // manager learns the answer from the first position or refusal.
 #if os(WASI)
-import CoreLocation
+import CoreLocationHost
 import JavaScriptKit
 
 @MainActor
 enum GeolocationHost {
     static func install() {
         guard let geolocation = JSObject.global.navigator.geolocation.object else { return }
-        _CoreLocationHost.permission = { status(of: state) }
+        _CoreLocationHost.permission = { state }
         _CoreLocationHost.locate = { highAccuracy, completion in
             let (success, failure) = callbacks(completion)
             _ = geolocation.getCurrentPosition!(success, failure, options(highAccuracy))
@@ -35,14 +35,6 @@ enum GeolocationHost {
     nonisolated(unsafe) static var state: String?
     nonisolated(unsafe) static var retained: [JSClosure] = []
     nonisolated(unsafe) static var watches: [Int: [JSClosure]] = [:]
-
-    nonisolated static func status(of state: String?) -> CLAuthorizationStatus {
-        switch state {
-        case "granted": .authorizedWhenInUse
-        case "denied": .denied
-        default: .notDetermined
-        }
-    }
 
     private static func readPermission() {
         guard let permissions = JSObject.global.navigator.permissions.object else { return }

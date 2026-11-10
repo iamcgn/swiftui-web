@@ -6,61 +6,10 @@
 // and circular regions all ride on the browser's positions. A page has no compass, beacons,
 // visits or deferred updates: those report unavailable, as on a device without the hardware.
 // Without a host (tests, a runtime with no geolocation) location services are off: a request
-// for authorization answers denied and an update fails with `CLError.denied`.
-
-// MARK: - The host
-
-public enum _CoreLocationHost {
-    /// A position as the browser reports it (`GeolocationPosition`).
-    public struct Position: Sendable {
-        public var latitude: Double
-        public var longitude: Double
-        /// Metres, the radius of 95% confidence.
-        public var accuracy: Double
-        public var altitude: Double?
-        public var altitudeAccuracy: Double?
-        /// Degrees clockwise from true north, when moving.
-        public var heading: Double?
-        /// Metres per second.
-        public var speed: Double?
-        /// Milliseconds since 1970.
-        public var timestamp: Double
-        public init(latitude: Double, longitude: Double, accuracy: Double, altitude: Double? = nil, altitudeAccuracy: Double? = nil,
-                    heading: Double? = nil, speed: Double? = nil, timestamp: Double) {
-            self.latitude = latitude
-            self.longitude = longitude
-            self.accuracy = accuracy
-            self.altitude = altitude
-            self.altitudeAccuracy = altitudeAccuracy
-            self.heading = heading
-            self.speed = speed
-            self.timestamp = timestamp
-        }
-    }
-
-    /// `GeolocationPositionError`'s codes.
-    public enum Failure: Int, Error, Sendable {
-        case denied = 1
-        case unavailable = 2
-        case timeout = 3
-    }
-
-    public typealias Update = @MainActor (Result<Position, Failure>) -> Void
-
-    /// The browser's permission as last read, when the host is in place.
-    nonisolated(unsafe) public static var permission: (() -> CLAuthorizationStatus)?
-    /// One position (`getCurrentPosition`), which prompts for permission the first time.
-    nonisolated(unsafe) public static var locate: ((_ highAccuracy: Bool, _ completion: @escaping Update) -> Void)?
-    /// Positions as they change (`watchPosition`); the identifier stops them.
-    nonisolated(unsafe) public static var watch: ((_ highAccuracy: Bool, _ update: @escaping Update) -> Int)?
-    nonisolated(unsafe) public static var clearWatch: ((Int) -> Void)?
-
-    /// The host calls this when the browser's permission is first read or changes.
-    @MainActor public static func permissionDidChange() { authorizationObserver?() }
-
-    /// Set by the first location manager, so a page that never makes one links none of it.
-    nonisolated(unsafe) static var authorizationObserver: (@MainActor () -> Void)?
-}
+// for authorization answers denied and an update fails with `CLError.denied`. The hook itself
+// is in CoreLocationHost, a module of its own, so the canvas can install it without linking
+// this module into every app (decision 0006: a module's class metadata keeps all of it).
+@_exported import CoreLocationHost
 
 extension _CoreLocationHost.Position {
     var location: CLLocation {
@@ -155,8 +104,8 @@ open class CLLocationManager: NSObject {
         super.init()
         Self.managers.removeAll { $0.value == nil }
         Self.managers.append(box)
-        if _CoreLocationHost.authorizationObserver == nil {
-            _CoreLocationHost.authorizationObserver = { CLLocationManager.authorizationMayHaveChanged() }
+        if _CoreLocationHost._authorizationObserver == nil {
+            _CoreLocationHost._authorizationObserver = { CLLocationManager.authorizationMayHaveChanged() }
         }
     }
 
@@ -302,8 +251,11 @@ open class CLLocationManager: NSObject {
 
     /// The browser's permission when it has decided, otherwise the last request's answer.
     static var status: CLAuthorizationStatus {
-        let browser = _CoreLocationHost.permission?() ?? .notDetermined
-        return browser == .notDetermined ? answer : browser
+        switch _CoreLocationHost.permission?() {
+        case "granted": .authorizedWhenInUse
+        case "denied": .denied
+        default: answer
+        }
     }
 
     /// Records what a position or failure says about authorization; the location, if one came.

@@ -37,7 +37,7 @@ import CoreLocation
 
     /// The browser: a permission state, pending one-shot requests and live watches.
     final class Browser {
-        nonisolated(unsafe) static var state = CLAuthorizationStatus.notDetermined
+        nonisolated(unsafe) static var state: String? = "prompt"
         nonisolated(unsafe) static var requests: [(highAccuracy: Bool, completion: _CoreLocationHost.Update)] = []
         nonisolated(unsafe) static var watches: [Int: (highAccuracy: Bool, update: _CoreLocationHost.Update)] = [:]
         nonisolated(unsafe) static var cleared: [Int] = []
@@ -46,7 +46,7 @@ import CoreLocation
         nonisolated(unsafe) static var queued: [Result<_CoreLocationHost.Position, _CoreLocationHost.Failure>] = []
 
         static func install() {
-            state = .notDetermined
+            state = "prompt"
             requests = []
             watches = [:]
             cleared = []
@@ -164,7 +164,7 @@ import CoreLocation
         let error = CLError(recorder.errors.first ?? .network)
         #expect(CLError.denied ~= error)
         // The user allows it in the browser's settings: the Permissions API reports the change.
-        Browser.state = .authorizedWhenInUse
+        Browser.state = "granted"
         _CoreLocationHost.permissionDidChange()
         #expect(recorder.statuses.last == .authorizedWhenInUse && CLLocationManager.authorizationStatus() == .authorizedWhenInUse)
         _CoreLocationHost.permissionDidChange()   // unchanged: nothing reported
@@ -174,7 +174,7 @@ import CoreLocation
     @Test func circularRegionsAreEnteredAndLeft() async {
         Browser.install()
         CLLocationManager._resetForTesting()
-        Browser.state = .authorizedWhenInUse
+        Browser.state = "granted"
         let recorder = Recorder()
         let manager = await manager(recorder)
         #expect(CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) && !CLLocationManager.isMonitoringAvailable(for: CLBeaconRegion.self))
