@@ -846,7 +846,12 @@ public final class CanvasSceneHost {
     /// A `performance.mark` per phase when the page URL carries `perf`: the browser's timeline
     /// then shows where a frame went (Safari's Web Inspector over USB on a phone). `nil` ends
     /// the open measure. Marks accumulate in the performance buffer, hence the opt-in.
-    private lazy var marksEnabled = (window.location.object?.search.string ?? "").contains("perf")
+    /// `?perf` (or any query naming it) turns the marks on. The scan is by UTF-8 bytes, since
+    /// `String.contains(String)` would link _StringProcessing and the Regex parser (decision 0006).
+    private lazy var marksEnabled: Bool = {
+        let query = (window.location.object?.search.string ?? "").utf8
+        return query.indices.contains { query[$0...].starts(with: "perf".utf8) }
+    }()
     private var openMark: String?
     private func mark(_ phase: String?) {
         guard marksEnabled, let performance = window.performance.object, let measure = performance.measure.function, let mark = performance.mark.function else { return }
