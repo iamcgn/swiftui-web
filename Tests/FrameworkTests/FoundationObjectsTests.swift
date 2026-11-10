@@ -26,8 +26,11 @@ extension Set: _BothSetForms {}
         #expect(set as? Set<Int> == [1, 2, 3])
         #expect(set as? Set<String> == nil)
         #expect(Set(["a", "b"]) as NSSet == NSSet(array: ["b", "a"]))
+        #if os(WASI) || canImport(Darwin)
+        // Linux's Foundation has no array literal for NSSet.
         let literal: NSSet = [1, 2]
         #expect(literal.count == 2)
+        #endif
         var seen = 0
         for case let member as Int in set { seen += member }
         #expect(seen == 6)
