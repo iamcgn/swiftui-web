@@ -111,7 +111,11 @@ import WebFoundation
 
     @Test func refusesWhatIsNotAPropertyList() {
         #expect(throws: (any Error).self) { _ = try PropertyListSerialization.propertyList(from: Data("<plist><dict><key>a</key></plist>".utf8), options: [], format: nil) }
-        #expect(throws: (any Error).self) { _ = try PropertyListSerialization.propertyList(from: Data([0x62, 0x70, 0x6c, 0x69, 0x73, 0x74, 0x30, 0x30]), options: [], format: nil) }
+        #expect(throws: (any Error).self) { _ = try PropertyListSerialization.propertyList(from: Data("<plist><array><string>x".utf8), options: [], format: nil) }
+        #if os(WASI)
+        // Apple's reads a bare `bplist00` as an OpenStep string; the wasm form reads no OpenStep.
+        #expect(throws: (any Error).self) { _ = try PropertyListSerialization.propertyList(from: Data(Array("bplist00".utf8)), options: [], format: nil) }
+        #endif
         #expect(PropertyListSerialization.propertyList(["a": 1], isValidFor: .xml))
     }
 
