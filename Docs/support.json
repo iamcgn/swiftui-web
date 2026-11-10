@@ -2519,6 +2519,12 @@
           "noFixture": "Nothing to draw: UserNotificationsTests against a fake host; the browser host is NotificationsHost.swift"
         },
         {
+          "api": "CLLocationManager / CLLocationManagerDelegate / CLLocation / CLLocationUpdate / CLCircularRegion / CLGeocoder / CLPlacemark / CLError (CoreLocation)",
+          "status": "partial",
+          "notes": "pf-corelocation (2026-11-10): the manager over the browser's geolocation through a host hook (GeolocationHost.swift): authorization is the browser's permission (asking is its prompt; granted reads as when in use, since a page has no always; the Permissions API's changes reach the delegate), the one-shot request, updates with the distance filter and accuracy, significant changes (500 m apart), circular regions entered and left from the same positions, iOS 17's live updates, and Apple's enums, raw values, errors and value types (headings, beacons, visits, floors, placemarks). Without a host location services are off: requests answer denied and updates fail. Not done: headings (no compass in a page), beacon ranging, visits and deferred updates, which report unavailable; CLMonitor and CLServiceSession; geocoding, which fails as with no network because a page has no geocoding service",
+          "noFixture": "Nothing to draw: CoreLocationTests drive the manager against a fake browser; the browser host is GeolocationHost.swift"
+        },
+        {
           "api": "SHA256 / SHA384 / SHA512 / Insecure.SHA1 / Insecure.MD5 / HMAC / SymmetricKey (CryptoKit)",
           "status": "partial",
           "notes": "pf-small-frameworks (2026-10-31): the hash functions (one-shot and incremental, digests as byte sequences described as Apple's), HMAC over any of them with constant-time validation, and symmetric keys from data or random bytes, in pure Swift. Not done: AES, ChaChaPoly, Curve25519, P256, HKDF, the Secure Enclave",
