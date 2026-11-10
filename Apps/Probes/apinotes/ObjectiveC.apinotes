@@ -1,0 +1,20 @@
+---
+Name: ObjectiveC
+Protocols:
+- Name: NSObject
+  Properties:
+  - Name: description
+    PropertyKind: Instance
+    SwiftPrivate: true
+  - Name: debugDescription
+    PropertyKind: Instance
+    SwiftPrivate: true
+Classes:
+- Name: NSObject
+  Methods:
+  - Selector: description
+    MethodKind: Class
+    SwiftPrivate: true
+  - Selector: debugDescription
+    MethodKind: Class
+    SwiftPrivate: true
