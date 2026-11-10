@@ -362,7 +362,11 @@ extension UTType {
 
     /// Whether the type is text (its bytes are UTF-8 to read as a string).
     package var isText: Bool {
-        identifier.hasPrefix("public.") && (identifier.contains("text") || identifier == "public.json" || identifier == "public.html" || identifier == "public.xml" || identifier == "public.url")
+        // The "text" scan is by UTF-8 bytes: `String.contains(String)` is _StringProcessing's,
+        // and any reference to it links that library and the Regex parser (about 1.5 MB of
+        // Counter's wasm, decision 0006).
+        let utf8 = identifier.utf8
+        return identifier.hasPrefix("public.") && (utf8.indices.contains { utf8[$0...].starts(with: "text".utf8) } || identifier == "public.json" || identifier == "public.html" || identifier == "public.xml" || identifier == "public.url")
     }
 
     /// Whether the type conforms to another: itself, its parents' chain (PNG to image, Swift
