@@ -12,7 +12,8 @@
 // reachability over the browser's online state), `LocalAuthentication` (an `LAContext` that
 // reports no biometry, as on a device without it), `FoundationNetworking` (the URLSession names,
 // where Linux's Foundation keeps them), `FoundationXML` (XMLParser, likewise) and
-// `UniformTypeIdentifiers` (`UTType`) are here for the same reason as the rest, and so is
+// `UniformTypeIdentifiers` (`UTType`), `CommonCrypto` (the C digest and HMAC functions over
+// SwiftUIWeb's CryptoKit) are here for the same reason as the rest, and so is
 // `CoreData` (WebCoreData; the app's models go through SwiftUIWeb's CoreDataModel plugin). With
 // `CoreGraphics` importable on wasm, SwiftUIWeb's own sources test for Apple's with
 // `canImport(CoreGraphics) && !os(WASI)`.
@@ -51,6 +52,7 @@ let package = Package(
         .library(name: "CoreData", targets: ["CoreData"]),
         .library(name: "Dispatch", targets: ["Dispatch"]),
         .library(name: "CoreFoundation", targets: ["CoreFoundation"]),
+        .library(name: "CommonCrypto", targets: ["CommonCrypto"]),
     ],
     // `CoreData` (decision 0024): `import Foundation` re-exports WebCoreData too, as Apple's
     // declares `NSPredicate`, `NSSortDescriptor` and `NSExpression`. Enable it with SwiftUIWeb's.
@@ -137,6 +139,11 @@ let package = Package(
         .target(
             name: "FoundationXML",
             dependencies: ["Foundation", .product(name: "WebFoundationFormats", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "CommonCrypto",
+            dependencies: [.product(name: "CryptoKit", package: "SwiftUIWeb")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

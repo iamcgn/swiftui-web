@@ -94,6 +94,7 @@ private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsReq
         #expect(try verified.payloadValue.id == 7)
         #expect(throws: VerificationResult<StoreKit.Transaction>.VerificationError.invalidSignature) { _ = try unverified.payloadValue }
         #expect(unverified.unsafePayloadValue.productID == "seeds")
+        #expect(transaction.storefront.countryCode == "USA")
         if case .consumable = transaction.productType {} else { Issue.record("product type") }
         let purchase = Product.PurchaseResult.success(verified)
         if case .success(.verified(let t)) = purchase { #expect(t.purchasedQuantity == 1) } else { Issue.record("purchase result") }
