@@ -61,7 +61,7 @@ open class CLPlacemark: NSObject, @unchecked Sendable {
         let parts = [name, thoroughfare, locality, administrativeArea, postalCode, country].compactMap { $0 }
         var text = ""
         for part in parts { text += text.isEmpty ? part : ", " + part }
-        if let location { text += (text.isEmpty ? "" : " @ ") + location.description }
+        if let location { text += (text.isEmpty ? "" : " @ ") + String(describing: location) }
         return text
     }
 }
