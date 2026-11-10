@@ -199,8 +199,7 @@ extension _WebValueBridged {
 }
 
 extension Date: @retroactive _ObjectiveCBridgeable, _WebValueBridged { public typealias _ObjectiveCType = _WebNSValue }
-extension UUID: @retroactive _ObjectiveCBridgeable, _WebValueBridged { public typealias _ObjectiveCType = _WebNSValue }
-extension URL: _ObjectiveCBridgeable, _WebValueBridged { public typealias _ObjectiveCType = _WebNSValue }
-extension Data: _ObjectiveCBridgeable, _WebValueBridged { public typealias _ObjectiveCType = _WebNSValue }
+// URL, UUID and Data bridge to their own classes, `NSURL`, `NSUUID` and `NSData`
+// (WebFoundationFormats), so `url as NSURL` converts as it does on Apple platforms.
 
 #endif

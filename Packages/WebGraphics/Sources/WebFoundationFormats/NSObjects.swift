@@ -184,10 +184,8 @@ public final class NSUUID: _WebNSValue, _WebValueObject, @unchecked Sendable {
     public override var hash: Int { _webValue.hashValue }
 }
 
-#if !canImport(ObjectiveC)
 extension URL: _WebObjectBridged { public typealias _ObjectiveCType = NSURL }
 extension UUID: @retroactive _ObjectiveCBridgeable, _WebObjectBridged { public typealias _ObjectiveCType = NSUUID }
-#endif
 
 /// A locale as an object.
 public final class NSLocale: NSObject, _WebValueObject, @unchecked Sendable {

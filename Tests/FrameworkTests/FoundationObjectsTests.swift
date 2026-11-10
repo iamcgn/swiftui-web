@@ -65,8 +65,15 @@ import WebGraphics
         #expect((url as URL).host == "example.com")
         #expect(url.absoluteString == "https://example.com/a/b")
 
+        #expect((URL(string: "https://example.com/c")! as NSURL).host == "example.com")
+
         let text = "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
         #expect((NSUUID(uuidString: text)! as UUID).uuidString == text)
+        #expect((UUID(uuidString: text)! as NSUUID).uuidString == text)
+
+        let bytes = Data([1, 2, 3]) as NSData
+        #expect(bytes.length == 3)
+        #expect(bytes as Data == Data([1, 2, 3]))
 
         let components = URLComponents(string: "https://example.com/search?q=1")! as NSURLComponents
         #expect((components as URLComponents).queryItems?.first?.value == "1")
