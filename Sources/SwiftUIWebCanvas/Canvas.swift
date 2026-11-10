@@ -15,7 +15,7 @@ public final class CanvasHost {
     public let host: CanvasSceneHost
 
     /// Installs the JavaScript event loop, creates a host in `#app` (or `<body>`) and mounts.
-    /// The platform hosts (audio, notifications, fetch, storage) are installed before `windows`
+    /// The platform hosts (audio, notifications, location, fetch, storage) are installed before `windows`
     /// is read: reading it makes the `App` value, whose delegate may already open its model
     /// container (Countries' AppEnvironment.bootstrap, decision 0021).
     public static func launch(windows: @autoclosure @MainActor () -> [_WindowDescriptor] = [], _ root: @escaping @MainActor () -> AnyView) {
@@ -23,6 +23,7 @@ public final class CanvasHost {
         MediaHost.install()
         SpeechHost.install()
         NotificationsHost.install()
+        GeolocationHost.install()
         NetworkHost.install()
         DataHost.install()
         SecurityHost.install()

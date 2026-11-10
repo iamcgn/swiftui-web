@@ -81,6 +81,15 @@ string-argument `contains`, `firstRange(of:)`, `ranges(of:)`, `replacing(_:with:
 (Character arguments are the standard library's). The Size compare workflow's `--why-extract`
 step names the object that brings an archive in.
 
+## 2026-11-10: a framework's host hook in a module of its own
+The canvas installs each framework's browser hook at launch, so whatever module declares the hook
+is linked into every app. A module is one object in a release build, and its class metadata and
+vtables are kept, so naming one static of CoreLocation linked all of it: 51 KB of code and 19 KB
+of data in Counter, +14,906 bytes brotli. The hook now lives in `CoreLocationHost`, which depends
+on nothing and declares only the hook's closures and value types; CoreLocation re-exports it.
+Counter's cost for geolocation is the host's own code: +11,499 bytes raw, +3,032 brotli
+(2,958,465 to 2,961,497 against main 8e0457a). A new hook follows the same split.
+
 ## Open items
 - Whether a user's explicit `import Foundation` next to `import SwiftUI` makes `CGRect` ambiguous
   on wasm (two modules declaring it). Test in Phase 1 step 1; if it does, evaluate a

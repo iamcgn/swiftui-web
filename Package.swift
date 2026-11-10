@@ -88,7 +88,8 @@ let package = Package(
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         // Map, VideoPlayer and WebView (sw-frameworks): painted tiles, host elements over the canvas.
-        .target(name: "CoreLocation", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "CoreLocationHost", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "CoreLocation", dependencies: ["CoreLocationHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "MapKit", dependencies: ["SwiftUI", "CoreLocation"], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVFoundation", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVKit", dependencies: ["SwiftUI", "AVFoundation"], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -188,8 +189,8 @@ let package = Package(
                 "SwiftUIWebCore",
                 // The audio, speech, notification and data stand-ins' host hooks (decisions
                 // 0021, 0022): Web Audio, the microphone, the on-device recogniser fed the app's
-                // buffers, the Notification API, localStorage for SwiftData's stores.
-                "AVFoundation", "Speech", "UserNotifications", "SwiftData",
+                // buffers, the Notification API, geolocation, localStorage for SwiftData's stores.
+                "AVFoundation", "Speech", "UserNotifications", "CoreLocationHost", "SwiftData",
                 // The on-screen keyboard's frame from the visual viewport into UIKitScene (KeyboardHost.swift).
                 .product(name: "UIKitWebCore", package: "UIKitWeb"),
                 .product(name: "WebGraphicsCanvas", package: "WebGraphics"),
@@ -215,7 +216,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // Core Data against a model the plugin generates (Tests/CoreDataTests/Library.xcdatamodeld).
