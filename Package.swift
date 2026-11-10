@@ -108,7 +108,8 @@ let package = Package(
         // of apps that do not import CoreData (the size gate, decision 0006).
         .target(
             name: "WebCoreData",
-            dependencies: ["SwiftUIWebCore", "SwiftData", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics")],
+            dependencies: ["SwiftUIWebCore", "SwiftData", .product(name: "WebFoundation", package: "WebGraphics"),
+                           .product(name: "WebFoundationFormats", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         // The CoreDataModel plugin's tool: `.xcdatamodeld` to Swift (host only).
