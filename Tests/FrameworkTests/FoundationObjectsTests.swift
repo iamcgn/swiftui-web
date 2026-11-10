@@ -25,7 +25,7 @@ import WebGraphics
         #expect(dictionary != NSDictionary(dictionary: ["a": 2, "b": "two"]))
         #expect(AnyHashable(dictionary) == AnyHashable(NSDictionary(dictionary: ["b": "two", "a": 1])))
         #if os(WASI) || canImport(Darwin)
-        // Linux's Foundation compares a Swift dictionary's boxed values by identity, so this fails there.
+        // Linux's Foundation reports these entries unequal (CI, Nov 10), though Apple's and the wasm forms match.
         let sameEntries = dictionary.isEqual(to: ["a": 1, "b": "two"])
         #expect(sameEntries)
         #endif
