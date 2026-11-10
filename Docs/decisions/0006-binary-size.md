@@ -68,6 +68,19 @@ unchanged. Adding `-conditional-runtime-records` as well saved nothing (3,052,53
 API in the libraries now costs an app nothing; types still cost their metadata, and class
 methods stay reachable through their vtables.
 
+## 2026-11-10: the Regex engine, linked by `String.contains(String)`
+Counter carried `libswift__StringProcessing` and `libswift_RegexParser` (1.36 MB of code, 166 KB
+of data) though nothing in it uses a regex. wasm-ld extracts an archive member when any object
+names one of its symbols, before `--gc-sections` runs, and `_StringProcessing` is one member; so a
+single reference, even from code the app never reaches, links both libraries. The references were
+`StringProtocol.contains(_:)` with a string argument, in `UTType.isText` (inlined into several
+files) and in the canvas host's `?perf` check; both now scan UTF-8 bytes. Counter went from
+12,226,457 to 11,437,784 bytes raw and 3,142,032 to 2,953,625 brotli. In library code, keep
+string-argument `contains`, `firstRange(of:)`, `ranges(of:)`, `replacing(_:with:)`,
+`split(separator:)` with a string, `trimmingPrefix` and `Regex` out of anything Counter links
+(Character arguments are the standard library's). The Size compare workflow's `--why-extract`
+step names the object that brings an archive in.
+
 ## Open items
 - Whether a user's explicit `import Foundation` next to `import SwiftUI` makes `CGRect` ambiguous
   on wasm (two modules declaring it). Test in Phase 1 step 1; if it does, evaluate a
