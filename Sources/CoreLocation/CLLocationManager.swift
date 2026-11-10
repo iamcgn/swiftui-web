@@ -382,8 +382,11 @@ open class CLLocationManager: NSObject {
             deliver = true
         }
         if deliver { delegate?.locationManager(self, didUpdateLocations: [location]) }
-        for index in regions.indices {
-            guard let circle = regions[index].region as? CLCircularRegion else { continue }
+        // A callback may stop or start monitoring regions, so each region is looked up again by
+        // its identifier rather than by an index taken before the first callback, and a region
+        // stopped meanwhile hears nothing more.
+        for identifier in regions.map(\.region.identifier) {
+            guard let index = monitoredIndex(identifier), let circle = regions[index].region as? CLCircularRegion else { continue }
             let state: CLRegionState = circle.contains(location.coordinate) ? .inside : .outside
             let previous = regions[index].state
             guard previous != state else { continue }
@@ -392,8 +395,13 @@ open class CLLocationManager: NSObject {
                 if state == .inside, circle.notifyOnEntry { delegate?.locationManager(self, didEnterRegion: circle) }
                 if state == .outside, circle.notifyOnExit { delegate?.locationManager(self, didExitRegion: circle) }
             }
+            guard let still = monitoredIndex(identifier), regions[still].region === circle else { continue }
             delegate?.locationManager(self, didDetermineState: state, for: circle)
         }
+    }
+
+    private func monitoredIndex(_ identifier: String) -> Int? {
+        regions.firstIndex { $0.region.identifier == identifier }
     }
 }
 

@@ -7,7 +7,7 @@ import CoreLocation
 
 #if !os(WASI)
 @Suite(.serialized) @MainActor struct CoreLocationTests {
-    final class Recorder: NSObject, CLLocationManagerDelegate {
+    class Recorder: NSObject, CLLocationManagerDelegate {
         var statuses: [CLAuthorizationStatus] = []
         var changes = 0
         var locations: [CLLocationCoordinate2D] = []
@@ -197,6 +197,32 @@ import CoreLocation
         manager.startRangingBeacons(satisfying: beacons.beaconIdentityConstraint)
         await settled { recorder.events.count == 2 }
         #expect(recorder.events == ["fail beacons 5", "ranging 16"] && beacons.major == NSNumber(value: 1) && beacons.minor == nil)
+    }
+
+    /// Stops monitoring every region it is told it left, from inside the callback.
+    final class Leaver: Recorder {
+        override func locationManager(_ manager: CLLocationManager, didExitRegion region: CLRegion) {
+            super.locationManager(manager, didExitRegion: region)
+            manager.stopMonitoring(for: region)
+        }
+    }
+
+    @Test func aRegionCallbackCanStopMonitoring() async {
+        Browser.install()
+        CLLocationManager._resetForTesting()
+        Browser.state = "granted"
+        let recorder = Leaver()
+        let manager = await manager(recorder)
+        let near = CLCircularRegion(center: CLLocationCoordinate2D(latitude: 10, longitude: 10), radius: 200, identifier: "near")
+        let wide = CLCircularRegion(center: CLLocationCoordinate2D(latitude: 10, longitude: 10), radius: 500, identifier: "wide")
+        manager.startMonitoring(for: near)
+        manager.startMonitoring(for: wide)
+        await settled { recorder.events.count == 2 }
+        Browser.move(to: 10, 10)        // inside both
+        Browser.move(to: 10, 10.01)     // about 1.1 km: out of both, and each exit stops its region
+        Browser.move(to: 10, 10.0201)   // a later position finds nothing left to report
+        #expect(recorder.events == ["start near", "start wide", "state near 1", "state wide 1", "exit near", "exit wide"])
+        #expect(manager.monitoredRegions.isEmpty && Browser.watches.isEmpty)
     }
 
     @Test func liveUpdatesYieldTheBrowsersPositions() async throws {
