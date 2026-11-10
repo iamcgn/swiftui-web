@@ -151,7 +151,7 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: stack
         ),
-        .executableTarget(name: "DescProbe", dependencies: swiftUI + host, path: "Probes/DescProbe", swiftSettings: [.unsafeFlags(["-Xcc", "-iapinotes-modules", "-Xcc", Context.packageDirectory + "/Probes/apinotes"])], linkerSettings: stack),
+        .executableTarget(name: "DescProbe", dependencies: swiftUI + host, path: "Probes/DescProbe", linkerSettings: stack),
         // MARK: twostraws/simple-swiftui — the SimpleScores Xcode target (SWIFT_VERSION 5.0, iOS
         // 15.2): its app folder as the target path, the asset catalog (the players' named colours)
         // its resources. `Preview Content`'s Swift file is compiled (the previews use its

@@ -41,6 +41,10 @@ jobs:
           swiftly install $SWIFT_VERSION --use --assume-yes
           swift sdk install https://github.com/iamcgn/swift-objc-wasm/releases/download/v0.1.1/swift-6.3.3-RELEASE_wasm-objc.artifactbundle.tar.gz \
             --checksum d493aecef947d8a8a4d224264ace14d28a423677d949bcd756838c3080638328
+      - name: "Scratch: the ObjectiveC API notes beside the SDK's module map"
+        run: |
+          dir=$(dirname "$(find ~/Library/org.swift.swiftpm/swift-sdks -path '*wasm32-unknown-wasip1*' -name NSObject.h -path '*objc*' | head -1)")
+          cp Apps/Probes/apinotes/ObjectiveC.apinotes "$dir/" && ls -la "$dir"
       - name: Build (every error is printed, then the step fails if there were any)
         run: |
           . ~/.swiftly/env.sh
