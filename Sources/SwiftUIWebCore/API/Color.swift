@@ -63,7 +63,9 @@ public struct Color: Hashable, Sendable, _ExpressibleByColorLiteral {
     }
 
     /// Creates a color from a color set of the app's asset catalogs by its generated symbol
-    /// (`Color(.accent)`).
+    /// (`Color(.accent)`). Disfavored, so a set named like a system colour keeps `Color(.label)`
+    /// the UIKit colour (IceCubes' `label` colour set).
+    @_disfavoredOverload
     public init(_ resource: ColorResource) {
         self.init(storage: .named(resource._name))
     }

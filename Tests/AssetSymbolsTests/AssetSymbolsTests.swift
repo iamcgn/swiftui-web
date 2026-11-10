@@ -47,6 +47,9 @@ import Foundation
         #expect(image == Image("Building 1"))
         #expect(namespaced == Image("Fountain/Terracotta"))
         #expect(color == Color("Premium Bird Food"))
+        // A set named like a system colour: `Color(.label)` stays UIKit's, as with Xcode.
+        #expect(ColorResource.label._name == "label")
+        #expect(Color(.label) == Color(UIColor.label))
         _ = UIImage(resource: .urlIcon)
         _ = UIColor(resource: .accent)
     }

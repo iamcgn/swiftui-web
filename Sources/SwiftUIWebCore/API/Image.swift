@@ -91,7 +91,9 @@ public struct Image: Equatable, Sendable {
     }
 
     /// Creates an image from an image set of the app's asset catalogs by its generated symbol
-    /// (`Image(.logo)`), labeled with the set's name.
+    /// (`Image(.logo)`), labeled with the set's name. Disfavored, so a name that is also another
+    /// kind of value the other initializers take reads as that one.
+    @_disfavoredOverload
     public init(_ resource: ImageResource) {
         self.init(source: .named(resource._name), label: resource._name)
     }
