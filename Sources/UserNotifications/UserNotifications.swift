@@ -59,10 +59,20 @@ public final class UNNotificationSettings: @unchecked Sendable {
     public var criticalAlertSetting: UNNotificationSetting { .notSupported }
     public var alertStyle: UNAlertStyle { authorizationStatus == .authorized ? .banner : .none }
     public var providesAppNotificationSettings: Bool { false }
+    public var showPreviewsSetting: UNShowPreviewsSetting { .always }
+    public var timeSensitiveSetting: UNNotificationSetting { .notSupported }
+    public var scheduledDeliverySetting: UNNotificationSetting { .notSupported }
+    public var directMessagesSetting: UNNotificationSetting { .notSupported }
     init(authorizationStatus: UNAuthorizationStatus) { self.authorizationStatus = authorizationStatus }
 }
 
 public enum UNAlertStyle: Int, Sendable { case none = 0, banner = 1, alert = 2 }
+
+/// When the system shows previews of an app's notifications.
+public enum UNShowPreviewsSetting: Int, Sendable { case always = 0, whenAuthenticated = 1, never = 2 }
+
+/// How much a notification should interrupt the person (Focus and the lock screen on iOS).
+public enum UNNotificationInterruptionLevel: UInt, Sendable { case passive = 0, active = 1, timeSensitive = 2, critical = 3 }
 
 // MARK: - Content, triggers, requests
 
@@ -76,11 +86,15 @@ open class UNNotificationContent: @unchecked Sendable {
     public internal(set) var userInfo: [AnyHashable: Any] = [:]
     public internal(set) var categoryIdentifier = ""
     public internal(set) var threadIdentifier = ""
+    public internal(set) var interruptionLevel: UNNotificationInterruptionLevel = .active
+    public internal(set) var relevanceScore: Double = 0
+    public internal(set) var targetContentIdentifier: String?
     init() {}
     public func mutableCopy() -> UNMutableNotificationContent {
         let copy = UNMutableNotificationContent()
         copy.title = title; copy.subtitle = subtitle; copy.body = body; copy.badge = badge
         copy.sound = sound; copy.userInfo = userInfo; copy.categoryIdentifier = categoryIdentifier; copy.threadIdentifier = threadIdentifier
+        copy.interruptionLevel = interruptionLevel; copy.relevanceScore = relevanceScore; copy.targetContentIdentifier = targetContentIdentifier
         return copy
     }
 }
@@ -96,6 +110,15 @@ public final class UNMutableNotificationContent: UNNotificationContent, @uncheck
     public override var userInfo: [AnyHashable: Any] { get { super.userInfo } set { super.userInfo = newValue } }
     public override var categoryIdentifier: String { get { super.categoryIdentifier } set { super.categoryIdentifier = newValue } }
     public override var threadIdentifier: String { get { super.threadIdentifier } set { super.threadIdentifier = newValue } }
+    public override var interruptionLevel: UNNotificationInterruptionLevel {
+        get { super.interruptionLevel }
+        set { super.interruptionLevel = newValue }
+    }
+    public override var relevanceScore: Double { get { super.relevanceScore } set { super.relevanceScore = newValue } }
+    public override var targetContentIdentifier: String? {
+        get { super.targetContentIdentifier }
+        set { super.targetContentIdentifier = newValue }
+    }
 }
 
 public final class UNNotificationSound: @unchecked Sendable {

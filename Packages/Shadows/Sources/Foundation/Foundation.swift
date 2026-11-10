@@ -11,6 +11,8 @@
 // Apple's Foundation brings CoreGraphics' `CGFloat` and geometry types with it: a package file
 // that imports only Foundation names `CGFloat` (Kingfisher, the sweep's package build).
 @_exported import CoreGraphics
+// `NSValue`, which WebGraphics declares beside the geometry it boxes (UIKit's keyboard frames).
+@_exported import class WebGraphics.NSValue
 // And Security: a package file that imports only Foundation names `errSecSuccess` and the
 // keychain's `kSec` keys (Alamofire's trust evaluation, SwiftKeychainWrapper).
 @_exported import Security

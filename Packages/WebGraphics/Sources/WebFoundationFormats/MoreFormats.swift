@@ -329,7 +329,12 @@ open class NSCalendar {
         public static let timeZone = Unit(rawValue: 1 << 21)
     }
 
-    public init() {}
+    /// The calendar this object stands for (`nsCalendar as Calendar`, NSObjects.swift).
+    public let _webValue: Calendar
+    public init(_webValue: Calendar) { self._webValue = _webValue }
+    public convenience init() { self.init(_webValue: .current) }
+    public convenience init?(calendarIdentifier ident: Calendar.Identifier) { self.init(_webValue: Calendar(identifier: ident)) }
+    public var calendarIdentifier: Calendar.Identifier { _webValue.identifier }
 
     /// The user's current calendar (`NSCalendar.current` is a `Calendar` in Swift).
     open class var current: Calendar { Calendar.current }

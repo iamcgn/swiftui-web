@@ -26,13 +26,23 @@ public final class _WebNSArray: NSObject, @unchecked Sendable {
 }
 
 /// The object a dictionary becomes in Objective-C: its keys as `AnyHashable`, values as `Any`.
-public final class _WebNSDictionary: NSObject, @unchecked Sendable {
-    public let entries: [AnyHashable: Any]
+/// Foundation's `NSDictionary` (WebFoundationFormats names it so and gives it its members), open
+/// for `NSMutableDictionary`. Equal when the entries are, as Foundation's are.
+open class _WebNSDictionary: NSObject, @unchecked Sendable {
+    public var entries: [AnyHashable: Any]
     public init(entries: [AnyHashable: Any]) {
         self.entries = entries
         super.init()
     }
+    public override convenience init() { self.init(entries: [:]) }
     public var count: Int { entries.count }
+    /// The value for the key, or nil (`object(forKey:)`).
+    open subscript(key: Any) -> Any? { (key as? AnyHashable).flatMap { entries[$0] } }
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? _WebNSDictionary else { return false }
+        return _webEntriesEqual(entries, other.entries)
+    }
+    open override var hash: Int { entries.count }
 }
 
 /// The object a set becomes in Objective-C: its members as `AnyHashable`.
@@ -46,13 +56,37 @@ public final class _WebNSSet: NSObject, @unchecked Sendable {
 }
 
 /// The object a value type becomes in Objective-C (`Date`, `URL`, `Data`, `UUID`): the value
-/// itself, as Foundation's `NSNumber` stands for every number type.
-public final class _WebNSValue: NSObject, @unchecked Sendable {
-    public let value: Any
+/// itself, as Foundation's `NSNumber` stands for every number type. Open so that Foundation's own
+/// classes for those values (`NSURL`, `NSUUID`, `NSData`, WebFoundationFormats) are kinds of it,
+/// and `nsURL as URL` bridges as it does on Apple platforms.
+open class _WebNSValue: NSObject, @unchecked Sendable {
+    private let _value: Any
+    /// The value this object stands for.
+    open var value: Any { _value }
     public init(_ value: Any) {
-        self.value = value
+        _value = value
         super.init()
     }
+    public override init() {
+        _value = ()
+        super.init()
+    }
+}
+
+/// Whether two dictionaries hold equal entries, as `NSDictionary.isEqual(to:)` compares them.
+public func _webEntriesEqual(_ lhs: [AnyHashable: Any], _ rhs: [AnyHashable: Any]) -> Bool {
+    guard lhs.count == rhs.count else { return false }
+    for (key, value) in lhs {
+        guard let other = rhs[key], _webValuesEqual(value, other) else { return false }
+    }
+    return true
+}
+
+/// Whether two values Foundation's collections hold are equal: as hashables, else as objects.
+public func _webValuesEqual(_ lhs: Any, _ rhs: Any) -> Bool {
+    if let left = lhs as? AnyHashable, let right = rhs as? AnyHashable { return left == right }
+    if let left = lhs as? NSObject, let right = rhs as? NSObject { return left.isEqual(right) }
+    return false
 }
 
 /// A key back to the dictionary's or set's own key type: the boxed value, else the hashable itself.

@@ -17,7 +17,7 @@ public protocol _CDKeyValueCoding: AnyObject {
 
 /// A definition of logical conditions for constraining a search for a fetch or for in-memory
 /// filtering.
-open class NSPredicate: CustomStringConvertible, @unchecked Sendable {
+open class NSPredicate: CustomStringConvertible, CustomDebugStringConvertible, @unchecked Sendable {
     let _node: _PredicateNode
 
     init(_node node: _PredicateNode) { _node = node }
@@ -66,6 +66,7 @@ open class NSPredicate: CustomStringConvertible, @unchecked Sendable {
     /// The predicate's format string.
     open var predicateFormat: String { _node.format }
     open var description: String { predicateFormat }
+    open var debugDescription: String { predicateFormat }
 }
 
 // MARK: - NSComparisonPredicate
