@@ -458,6 +458,12 @@
           ]
         },
         {
+          "api": "TableColumnContent / TableRowContent / TableColumnBuilder<RowValue, Sort> / _GraphValue",
+          "status": "partial",
+          "notes": "The content protocols typed by their row value and sort comparator, with Never as empty content, so packages declare their own conformances (swift-perception's WithPerceptionTracking forwards _makeContent to its content). Table still takes its builder's TableColumn and TableRow lists: a custom content type is not yet placed in a table (2026-11-09).",
+          "noFixture": "Protocol shape with nothing new on screen; ContentProtocolsTests checks a forwarding wrapper's conformance and that empty content makes no columns."
+        },
+        {
           "api": "ColorPicker(_:selection:supportsOpacity:) / ColorPicker(selection:label:) (Color and CGColor selections)",
           "status": "partial",
           "notes": "The macOS colour well: 48 × 24 grey rounded rect with the colour in a concentric swatch over a black/white diagonal (translucent and clear colours show it), inner stroke, half opacity disabled; body label centred in stacks, on the well's baseline in forms; a press (or Space) opens the host's system colour chooser (the browser's <input type=color>, NSColorPanel natively; the preset popover without one) and the well's frame turns the focus blue while it targets the well (2026-10-11); dropped colours set it (Color: Transferable); no tint or controlSize",
@@ -1142,6 +1148,12 @@
           ]
         },
         {
+          "api": "AccessibilityRotorContent with body (custom rotor content types)",
+          "status": "full",
+          "notes": "Rotor content is a type with a body of entries, like Apple's, so a custom type or a wrapper whose body is its content (swift-perception's WithPerceptionTracking) lists the entries its body builds (2026-11-09).",
+          "noFixture": "The rotors land on the semantics tree as accessibility/actions shows; ContentProtocolsTests checks a custom type's and a wrapper's entries."
+        },
+        {
           "api": "offset / rotationEffect / scaleEffect / transformEffect / AnyTransition.scale",
           "status": "partial",
           "notes": "Painted through the display list's concat op about their anchors, parameters animate, offsets move hit testing; no hit testing through rotation/scale, no GeometryEffect or 3D; rotation3DEffect and projectionEffect (the affine part; perspective not drawn), GeometryEffect conformances with animated data, hit testing through every effect, scale transitions about their anchor (transform/3d exact; 2026-10-04) Right-to-left (2026-10-09): offset(x:) and position(x:) mirror with the layout (layout/rtl-shapes); UnitPoints and gradients do not.",
@@ -1673,6 +1685,12 @@
             "uikit/picker/basic",
             "uikit/picker/custom"
           ]
+        },
+        {
+          "api": "UIControl.State (normal, highlighted, disabled, selected, focused, application, reserved)",
+          "status": "full",
+          "notes": "The state bits with UIKit's values, the app's own range (bits 16 to 23) and UIKit's reserved top byte included (2026-11-09).",
+          "noFixture": "Option set with nothing on screen; ControlsRestTests checks the bits."
         }
       ]
     },
@@ -2260,6 +2278,12 @@
           "status": "full",
           "notes": "On wasm: the set's runs of consecutive integers (cut to a range); the slice along an edge and the rest; the titlecase letters, combining marks, scalars with a canonical decomposition and unassigned scalars; a UTF-16 range replaced; and mutex attributes that succeed and change nothing, as a page runs one thread (2026-11-08).",
           "noFixture": "Foundation API with nothing on screen; SmallGapsTests holds it to Foundation and CoreGraphics on macOS and Linux and checks the wasm forms; the mutex attributes build combine-schedulers' and Resolver's locks in the sweep."
+        },
+        {
+          "api": "mach_header / load_command / segment_command / LC_SEGMENT / _dyld_get_image_vmaddr_slide / NSNumber.pointerValue",
+          "status": "full",
+          "notes": "On wasm (a 32-bit target): Mach-O's 32-bit image structures with Darwin's layout (the 64-bit forms are left out, as 64-bit-only code never builds there), for code that walks an image's segments behind dyld's image list (which lists none on a page, so no image is walked), no slide, and a number read as an address (2026-11-09).",
+          "noFixture": "Foundation API with nothing on screen; WasmDarwinSurfaceTests walks a built image against Darwin's own structures on macOS; the sweep builds swift-perception's PerceptionCore."
         },
         {
           "api": "JSONDecoder.allowsJSON5 / assumesTopLevelDictionary / JSONSerialization .json5Allowed",
