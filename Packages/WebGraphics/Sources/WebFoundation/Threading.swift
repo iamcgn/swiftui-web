@@ -250,4 +250,33 @@ extension CustomNSError {
     public var errorCode: Int { 1 }
     public var errorUserInfo: [String: Any] { [:] }
 }
+
+// MARK: - os_unfair_lock
+
+// Darwin's unfair lock, which Apple's Foundation brings with it (swift-sharing's
+// `PassthroughRelay` allocates one with only Foundation imported). One thread runs here, so
+// locking marks the lock held and unlocking clears it; `trylock` fails while it is held.
+
+/// A low-level lock that lets waiters spin and then block.
+public struct os_unfair_lock_s: Sendable {
+    public var _os_unfair_lock_opaque: UInt32
+    public init() { _os_unfair_lock_opaque = 0 }
+    public init(_os_unfair_lock_opaque: UInt32) { self._os_unfair_lock_opaque = _os_unfair_lock_opaque }
+}
+public typealias os_unfair_lock = os_unfair_lock_s
+public typealias os_unfair_lock_t = UnsafeMutablePointer<os_unfair_lock_s>
+
+public func os_unfair_lock_lock(_ lock: os_unfair_lock_t) { lock.pointee._os_unfair_lock_opaque = 1 }
+public func os_unfair_lock_unlock(_ lock: os_unfair_lock_t) { lock.pointee._os_unfair_lock_opaque = 0 }
+public func os_unfair_lock_trylock(_ lock: os_unfair_lock_t) -> Bool {
+    guard lock.pointee._os_unfair_lock_opaque == 0 else { return false }
+    lock.pointee._os_unfair_lock_opaque = 1
+    return true
+}
+public func os_unfair_lock_assert_owner(_ lock: os_unfair_lock_t) {
+    precondition(lock.pointee._os_unfair_lock_opaque != 0, "os_unfair_lock is not held")
+}
+public func os_unfair_lock_assert_not_owner(_ lock: os_unfair_lock_t) {
+    precondition(lock.pointee._os_unfair_lock_opaque == 0, "os_unfair_lock is held")
+}
 #endif
