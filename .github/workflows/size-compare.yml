@@ -86,5 +86,22 @@ jobs:
                   continue
               print(f"{ref.rsplit('/', 1)[-1]}  ->  {member.rsplit('/', 1)[-1]}  via {sym}")
           PY
+      - name: What brings the Regex engine in
+        # Scratch probe: every _StringProcessing or _RegexParser member pulled in from outside
+        # those two archives, with the symbol that pulled it.
+        run: |
+          . ~/.swiftly/env.sh
+          python3 - size/head.why <<'PY' | swift demangle --simplified | head -200
+          import sys
+          lib = lambda path: path.split('(')[0].rsplit('/', 1)[-1]
+          regexy = ('libswift_StringProcessing.a', 'libswift_RegexParser.a')
+          for line in open(sys.argv[1]):
+              parts = line.rstrip('\n').split('\t')
+              if len(parts) != 3 or parts[0] == 'reference':
+                  continue
+              ref, member, sym = parts
+              if lib(member) in regexy and lib(ref) not in regexy:
+                  print(f"{ref.rsplit('/', 1)[-1]}  ->  {member.rsplit('/', 1)[-1]}  via {sym}")
+          PY
       - name: What changed
         run: . ~/.swiftly/env.sh && python3 head/Tools/Size/map-diff.py size/base.map size/head.map --top 80
