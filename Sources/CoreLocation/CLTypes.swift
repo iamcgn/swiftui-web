@@ -162,7 +162,10 @@ open class CLRegion: NSObject, @unchecked Sendable {
         self.init(identifier: identifier)
     }
 
-    open override var description: String { "\(type(of: self)) (identifier:'\(identifier)')" }
+    // Subclasses describe themselves through `regionDescription`: under the Objective-C runtime a
+    // second override of `description` also meets NSObject's protocol property and is refused.
+    open override var description: String { regionDescription }
+    var regionDescription: String { "\(type(of: self)) (identifier:'\(identifier)')" }
 }
 
 /// A circle on the Earth's surface: entered and left as the browser's positions cross it.
@@ -175,7 +178,7 @@ open class CLCircularRegion: CLRegion, @unchecked Sendable {
         super.init(identifier: identifier)
     }
     open func contains(_ coordinate: CLLocationCoordinate2D) -> Bool { _distance(center, coordinate) <= radius }
-    open override var description: String {
+    override var regionDescription: String {
         "CLCircularRegion (identifier:'\(identifier)', center:<\(_signed(center.latitude, 8)),\(_signed(center.longitude, 8))>, radius:\(_fixed(radius, 2))m)"
     }
 }
