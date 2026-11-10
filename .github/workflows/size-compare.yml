@@ -103,5 +103,23 @@ jobs:
               if lib(member) in regexy and lib(ref) not in regexy:
                   print(f"{ref.rsplit('/', 1)[-1]}  ->  {member.rsplit('/', 1)[-1]}  via {sym}")
           PY
+      - name: Every object that references the Regex engine's library
+        # Scratch probe: extraction happens before --gc-sections, so any object naming a
+        # _StringProcessing symbol (even from dead code) links the whole archive. List them all.
+        run: |
+          . ~/.swiftly/env.sh
+          NM=$(find ~/.swiftly ~/Library/Developer/Toolchains /Library/Developer/Toolchains -name llvm-nm -type f 2>/dev/null | head -1)
+          if [ -z "$NM" ]; then brew install llvm >/dev/null 2>&1; NM="$(brew --prefix llvm)/bin/llvm-nm"; fi
+          echo "nm: $NM"
+          LIB=$(grep -o '[^	]*libswift_StringProcessing\.a' size/head.why | head -1)
+          echo "lib: $LIB"
+          "$NM" --defined-only -j "$LIB" 2>/dev/null | sort -u > size/sp-defined.txt
+          wc -l size/sp-defined.txt
+          REL=head/Examples/Counter/.build/wasm/wasm32-unknown-wasip1/release
+          find "$REL" -name '*.o' | while read -r o; do
+            "$NM" -u -j "$o" 2>/dev/null | sort -u | comm -12 - size/sp-defined.txt | while read -r s; do
+              echo "${o#$REL/}  $(echo "$s" | swift demangle --simplified)"
+            done
+          done | head -150
       - name: What changed
         run: . ~/.swiftly/env.sh && python3 head/Tools/Size/map-diff.py size/base.map size/head.map --top 80
