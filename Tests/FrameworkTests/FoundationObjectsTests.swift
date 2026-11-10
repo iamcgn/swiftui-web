@@ -24,7 +24,8 @@ import WebGraphics
         #expect(dictionary == NSDictionary(dictionary: ["a": 1, "b": "two"]))
         #expect(dictionary != NSDictionary(dictionary: ["a": 2, "b": "two"]))
         #expect(AnyHashable(dictionary) == AnyHashable(NSDictionary(dictionary: ["b": "two", "a": 1])))
-        #expect(dictionary.isEqual(to: ["a": 1, "b": "two"]))
+        let sameEntries = dictionary.isEqual(to: ["a": 1, "b": "two"])
+        #expect(sameEntries)
     }
 
     @Test func mutableDictionaries() {
@@ -43,7 +44,10 @@ import WebGraphics
 
     @Test func valuesBridgeToTheirObjects() {
         let locale = Locale(identifier: "fr_FR") as NSLocale
+        #if os(WASI) || canImport(Darwin)
+        // Linux's Foundation has no instance `localeIdentifier`.
         #expect(locale.localeIdentifier == "fr_FR")
+        #endif
         #expect((locale as Locale).identifier == "fr_FR")
 
         let path = IndexPath(indexes: [1, 2]) as NSIndexPath
@@ -79,7 +83,10 @@ import WebGraphics
         let range = NSValue(range: NSRange(location: 1, length: 2))
         #expect(range.rangeValue.length == 2)
         #expect(!range.debugDescription.isEmpty)
+        #if os(WASI) || canImport(Darwin)
+        // Linux's Foundation declares the type but none of the standard names.
         #expect(NSExceptionName.invalidArgumentException.rawValue == "NSInvalidArgumentException")
+        #endif
         #expect(NSExceptionName("Custom").rawValue == "Custom")
     }
 
