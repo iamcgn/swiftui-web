@@ -73,6 +73,7 @@ jobs:
             --checksum cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7
           swift sdk install https://github.com/iamcgn/swift-objc-wasm/releases/download/v0.1.1/swift-${SWIFT_VERSION}-RELEASE_wasm-objc.artifactbundle.tar.gz \
             --checksum d493aecef947d8a8a4d224264ace14d28a423677d949bcd756838c3080638328
+          scripts/objc-sdk/add-api-notes.sh
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - name: Cache the wasm builds

@@ -218,6 +218,7 @@ jobs:
           . ~/.swiftly/env.sh
           swift sdk install https://github.com/iamcgn/swift-objc-wasm/releases/download/v0.1.1/swift-6.3.3-RELEASE_wasm-objc.artifactbundle.tar.gz \
             --checksum d493aecef947d8a8a4d224264ace14d28a423677d949bcd756838c3080638328
+          scripts/objc-sdk/add-api-notes.sh
           swift sdk list
       - name: Apps — SwiftUI-2048 compiles for wasm from its unmodified sources (@UIApplicationMain, @objc newGame, #selector; the runtime SDK)
         run: |

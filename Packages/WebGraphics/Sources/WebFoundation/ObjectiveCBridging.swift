@@ -177,7 +177,9 @@ extension Set: @retroactive _ObjectiveCBridgeable {
 /// it with Foundation's `NSString`, which this SDK does not define, so the compiler leaves it out
 /// and an app's `override var description` overrode nothing (RevenueCat's model classes). The
 /// header's selector is still taken, so this one has a selector of its own; subclasses override
-/// it by name, as they do Foundation's, and Swift's `String(describing:)` reads it.
+/// it by name, as they do Foundation's, and Swift's `String(describing:)` reads it. Where a module
+/// named Foundation is loaded the compiler would import the header's too; the SDK's API notes
+/// (scripts/objc-sdk) name that one `__description`, so this stays the only `description`.
 extension NSObject: @retroactive CustomStringConvertible, @retroactive CustomDebugStringConvertible {
     @objc(_webDescription) open var description: String {
         "<\(type(of: self)): 0x\(String(UInt(bitPattern: ObjectIdentifier(self).hashValue), radix: 16))>"
