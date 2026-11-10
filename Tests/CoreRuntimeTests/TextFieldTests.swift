@@ -103,6 +103,44 @@ import SwiftUIWebHeadless
         let secure = runtime(SecureField("Password", text: .constant("x")))
         #expect(secure.semanticsTree()[0].textInput?.isSecure == true)
     }
+
+    /// A field inside a view made one accessibility element (SimpleScores' rows): the row is
+    /// the one element until the field is pressed, then its parts stand alone while the field
+    /// is edited, so the host's input types into it.
+    @Test func aFieldInsideOneElementTakesTheKeyboardWhileEdited() {
+        let box = _TextBox("Hello")
+        let binding = Binding(get: { box.value }, set: { box.value = $0 })
+        let r = runtime(HStack { Text("Name"); TextField("Placeholder", text: binding) }.accessibilityElement())
+        #expect(r.semanticsTree().count == 1 && r.semanticsTree()[0].textInput == nil)
+        r.pointerDown(at: CGPoint(x: 150, y: 50)); r.pointerUp(at: CGPoint(x: 150, y: 50))
+        r.layout(in: CGSize(width: 200, height: 100))
+        let tree = r.semanticsTree()
+        #expect(tree.count == 2 && tree[0].textInput == nil)
+        let field = try! #require(tree.last)
+        #expect(field.textInput?.text == "Hello" && r.focusedTextFieldIdentifier == field.identifier)
+        r.textField(field.identifier, didChange: "Ada")
+        #expect(box.value == "Ada")
+    }
+
+    /// A field leaving through a removal transition (a row of a `ForEach` over a binding whose
+    /// element was removed, SimpleScores' Remove All) paints what it last showed and reads its
+    /// binding no more.
+    @Test func aLeavingFieldKeepsItsLastText() throws {
+        let box = _TextBox("Ada")
+        let reads = _TextBox("")
+        let binding = Binding(get: { reads.value += "."; return box.value }, set: { box.value = $0 })
+        let r = runtime(TextField("Placeholder", text: binding))
+        func field(_ node: ViewNode) -> TextFieldNode? {
+            if let field = node as? TextFieldNode { return field }
+            return node.structuralChildren.lazy.compactMap(field).first
+        }
+        let node = try #require(field(r.root))
+        #expect(node.displayText == "Ada")
+        node.markExiting()
+        box.value = "gone"
+        reads.value = ""
+        #expect(node.displayText == "Ada" && reads.value.isEmpty)
+    }
 }
 
 private final class _TextBox: @unchecked Sendable {
