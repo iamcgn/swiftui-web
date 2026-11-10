@@ -135,8 +135,10 @@ extension Runtime {
         var merged = attributes ?? AccessibilityAttributes()
         for entry in chain.reversed() { merged = entry.merged(over: merged) }
         if merged.hidden == true { return }
-        if let behavior = merged.children, behavior.kind != .contain {
-            // One element for the whole subtree, with the labels of its parts.
+        // One element for the whole subtree, with the labels of its parts; while a text field in
+        // it is being edited, its parts stand alone, so the keyboard types into the field (a
+        // first responder takes the keyboard whatever its accessibility grouping).
+        if let behavior = merged.children, behavior.kind != .contain, !containsFocusedTextField(node) {
             var parts: [SemanticsEntry] = []
             collectElements(node, into: &parts)
             var element = SemanticsNode(role: .group, label: merged.label ?? parts.map(\.element.label).filter { !$0.isEmpty }.joined(separator: ", "),
@@ -160,6 +162,14 @@ extension Runtime {
             if !merged.isEmpty, index == 0 || !containerOnly { apply(merged, to: &entry, rotors: index == 0) }
             result.append(entry)
         }
+    }
+
+    /// Whether the text field being edited is `node` or inside it.
+    private func containsFocusedTextField(_ node: ViewNode) -> Bool {
+        guard let focused = focusedTextFieldIdentifier else { return false }
+        var current: ViewNode? = interactiveNode(semanticsIdentifier: focused)
+        while let candidate = current { if candidate === node { return true }; current = candidate.parent }
+        return false
     }
 
     /// The elements of a layout node's subtree with modifiers inside it applied; children are

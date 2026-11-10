@@ -44,8 +44,16 @@ package final class TextFieldNode: LeafNode<_TextFieldCore>, _Interactive {
     private var metrics: SystemFontMetrics { environment.platformProfile.systemFontMetrics(for: resolvedFont) }
     private var isVertical: Bool { view.axis == .vertical }
 
-    /// The text shown: the edit buffer of a value field being typed into, else the binding's.
-    package var displayText: String { editBuffer ?? view.text.wrappedValue }
+    /// The text shown: the edit buffer of a value field being typed into, else the binding's;
+    /// a field leaving through a removal transition keeps what it last showed, as its binding
+    /// may name an element that is gone (a row of a `ForEach` over a binding, SimpleScores'
+    /// Remove All).
+    package var displayText: String {
+        if let editBuffer { return editBuffer }
+        if !isExiting { shownText = view.text.wrappedValue }
+        return shownText
+    }
+    private var shownText = ""
 
     /// Insets between the frame and the text line: 6 pt sideways and 4 pt vertically for a bezel,
     /// none for the plain style.
