@@ -80,6 +80,8 @@ public final class NSNumber: Hashable, Comparable, @unchecked Sendable, CustomSt
         }
     }
     public var stringValue: String { description }
+    /// The number as an address (Foundation's NSValue reading, used on return-address lists).
+    public var pointerValue: UnsafeMutableRawPointer? { UnsafeMutableRawPointer(bitPattern: uintValue) }
 
     public var description: String {
         switch storage {

@@ -1,6 +1,6 @@
 // The rest of the controls (uk-controls-rest): the slider's end images inset its track, segment
 // widths (fixed, apportioned, image segments), the stepper's autorepeat while held, the page
-// control's taps and scrubbing.
+// control's taps and scrubbing, and the state bits left to apps and to UIKit.
 import Testing
 @testable import UIKitWebCore
 #if os(WASI)
@@ -116,5 +116,15 @@ import Foundation
         scene.pointerUp(at: CGPoint(x: frame.maxX - 2, y: frame.midY), time: 3.2)
         #expect(pages.currentPage == 1, "no scrubbing: the release is a tap on the trailing half")
         scene.removeAllWindows()
+    }
+
+    @Test func stateBitsForAppsAndUIKit() {
+        // UIKit's values: the app's own states sit in bits 16 to 23, UIKit keeps the top byte.
+        #expect(UIControl.State.application.rawValue == 0x00FF0000)
+        #expect(UIControl.State.reserved.rawValue == 0xFF000000)
+        let custom = UIControl.State(rawValue: 1 << 16)
+        #expect(UIControl.State.application.contains(custom))
+        #expect(UIControl.State.application.intersection(.reserved).isEmpty)
+        #expect(!UIControl.State.application.contains(.highlighted))
     }
 }
