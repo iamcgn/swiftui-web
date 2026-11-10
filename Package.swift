@@ -31,6 +31,9 @@ let package = Package(
         // the build plugin that turns an app's `.xcdatamodeld` into Swift.
         .library(name: "WebCoreData", targets: ["WebCoreData"]),
         .plugin(name: "CoreDataModel", targets: ["CoreDataModel"]),
+        // The build plugin that writes an app's asset symbols (`ImageResource.logo`,
+        // `ColorResource.accent`) from its `.xcassets`, as Xcode does.
+        .plugin(name: "AssetSymbols", targets: ["AssetSymbols"]),
         .library(name: "UserNotifications", targets: ["UserNotifications"]),
         .library(name: "CryptoKit", targets: ["CryptoKit"]),
         .library(name: "CoreHaptics", targets: ["CoreHaptics"]),
@@ -114,6 +117,9 @@ let package = Package(
         // The CoreDataModel plugin's tool: `.xcdatamodeld` to Swift (host only).
         .executableTarget(name: "CoreDataModelGen", swiftSettings: [.treatAllWarnings(as: .error)]),
         .plugin(name: "CoreDataModel", capability: .buildTool(), dependencies: ["CoreDataModelGen"]),
+        // The AssetSymbols plugin's tool: `.xcassets` to `ImageResource` and `ColorResource` symbols (host only).
+        .executableTarget(name: "AssetSymbolsGen", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .plugin(name: "AssetSymbols", capability: .buildTool(), dependencies: ["AssetSymbolsGen"]),
         .target(name: "UserNotifications", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // Hashes, HMAC and symmetric keys; haptics on hardware without an engine; the app's calls
         // to its widgets (none on the web). Pure Swift values over WebFoundation.
@@ -226,6 +232,14 @@ let package = Package(
             exclude: ["Library.xcdatamodeld"],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))],
             plugins: ["CoreDataModel"]
+        ),
+        // The symbols the AssetSymbols plugin writes for Tests/AssetSymbolsTests/Media.xcassets.
+        .testTarget(
+            name: "AssetSymbolsTests",
+            dependencies: ["SwiftUI", .product(name: "WebFoundation", package: "WebGraphics")],
+            exclude: ["Media.xcassets"],
+            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))],
+            plugins: ["AssetSymbols"]
         ),
         // The small frameworks against known answers (FIPS 180, RFC 1321, RFC 4231 vectors).
         .testTarget(

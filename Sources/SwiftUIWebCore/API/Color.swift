@@ -62,6 +62,12 @@ public struct Color: Hashable, Sendable, _ExpressibleByColorLiteral {
         self.init(storage: .named(name))
     }
 
+    /// Creates a color from a color set of the app's asset catalogs by its generated symbol
+    /// (`Color(.accent)`).
+    public init(_ resource: ColorResource) {
+        self.init(storage: .named(resource._name))
+    }
+
     /// Creates a constant color from hue, saturation, and brightness values (HSB to sRGB).
     public init(hue: Double, saturation: Double, brightness: Double, opacity: Double = 1) {
         let h = (hue - hue.rounded(.down)) * 6
