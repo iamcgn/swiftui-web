@@ -134,9 +134,10 @@ try {
       await page.waitForTimeout(500);
       await record('edited');
       await shot('04-edited');
-      const high = await page.evaluate(() => { const e = [...document.querySelectorAll('[aria-label="High"]')][0]; return e ? (e.getAttribute('aria-selected') || e.getAttribute('aria-checked') || e.getAttribute('aria-pressed')) : null; });
+      // The segmented picker is one radiogroup element whose value is the selected segment.
+      const high = await page.evaluate(() => [...document.querySelectorAll('[role="radiogroup"]')].map(e => e.getAttribute('aria-valuetext')).find(v => v !== null) ?? null);
       expect(t.includes(NAME), `the detail's title did not become "${NAME}": ` + JSON.stringify(t));
-      expect(high === 'true', 'the segmented picker did not select High: ' + high);
+      expect(high === 'High', 'the segmented picker did not select High: ' + high);
       await back();
       t = await settle(t => !t.includes('Mark completed') && t.includes(NAME), 40);
       const rowsNow = await rowControls();

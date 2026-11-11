@@ -5,11 +5,25 @@
 /// Where a toolbar item goes. On macOS every placement but `navigation` and `principal` lands
 /// in the trailing group.
 public struct ToolbarItemPlacement: Hashable, Sendable {
-    package enum Group: Hashable, Sendable { case leading, principal, trailing, hidden }
+    package enum Group: Hashable, Sendable { case leading, principal, trailing, hidden, bottom }
     package let group: Group
     package let name: String
-    /// iOS puts a cancellation action at the bar's leading end (ios/sheet/nav: Dismiss leads, Add trails).
-    package var iOSGroup: Group { name == "cancellationAction" ? .leading : group }
+    /// iOS puts a cancellation action at the bar's leading end (ios/sheet/nav: Dismiss leads, Add
+    /// trails), and a bottom bar item in the navigation stack's bottom toolbar.
+    package var iOSGroup: Group {
+        switch name {
+        case "cancellationAction": .leading
+        case "bottomBar": .bottom
+        default: group
+        }
+    }
+    /// Whether the item sits in the navigation bar at the top of an iOS screen.
+    package var isInIOSNavigationBar: Bool {
+        switch iOSGroup {
+        case .leading, .principal, .trailing: true
+        case .hidden, .bottom: false
+        }
+    }
     /// iOS bolds the confirmation action's label (ios/sheet/nav: Add, Show sheet).
     package var isProminentOnIOS: Bool { name == "confirmationAction" }
 
@@ -52,6 +66,28 @@ public struct _ToolbarItemData: @unchecked Sendable {
     public var showsByDefault = true
     /// The customisable toolbar the item belongs to (`toolbar(id:)`), if any.
     public var customizationID: String?
+    /// The environment where the `toolbar` modifier sits: an item's content reads it wherever
+    /// the bar mounts the item (an `environment(\.editMode, …)` outside `toolbar` reaches its
+    /// `EditButton`, as in SwiftUI).
+    package var environment: EnvironmentValues?
+}
+
+/// Gives a toolbar item the environment captured where its `toolbar` modifier sits, keeping
+/// the bar's label context (a `Label` in a bar shows its icon alone).
+struct _ToolbarItemEnvironment: ViewModifier, _EnvironmentModifier {
+    typealias Body = Never
+    let captured: EnvironmentValues?
+
+    @MainActor static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        EnvironmentModifierNode(context)
+    }
+
+    func modifyEnvironment(_ values: inout EnvironmentValues) {
+        guard let captured else { return }
+        let context = values._automaticLabelContext
+        values = captured
+        values._automaticLabelContext = context
+    }
 }
 
 /// Content of a toolbar: items and groups, or a custom type whose `body` is.

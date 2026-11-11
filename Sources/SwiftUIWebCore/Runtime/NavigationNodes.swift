@@ -39,6 +39,9 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     /// top screen's bar; a hosted subtree like the search chrome, hit tested as a child.
     private var toolbarSources: [ToolbarSource] = []
     private var itemsBar: TypedNode<AnyView>?
+    /// The top screen's bottom toolbar (`.bottomBar` items), and whether it shows this pass.
+    private var bottomItemsBar: TypedNode<AnyView>?
+    private var bottomBarShown = false
 
     package func registerToolbar(_ node: ViewNode, items: [_ToolbarItemData]) {
         if let index = toolbarSources.firstIndex(where: { $0.node === node }) {
@@ -199,7 +202,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         let mode = (top.descendants(where: { $0 is any _NavigationTitleDisplayModeProviding }).first as? any _NavigationTitleDisplayModeProviding)?._titleDisplayMode ?? .automatic
         let hidesBack = (top.descendants(where: { $0 is any _NavigationBackButtonHiddenProviding }).first as? any _NavigationBackButtonHiddenProviding)?._hidesBackButton ?? false
         let back = (index > 0 || effectiveRootBack != nil) && !hidesBack
-        let items = toolbarItems(over: nodes)
+        let items = toolbarItems(over: nodes).filter(\.placement.isInIOSNavigationBar)
         guard title != nil || back || !items.isEmpty else { return nil }
         var large: Bool
         switch mode {
@@ -340,6 +343,49 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     }
 
     private var itemsBarNodes: [ViewNode] { itemsBar?.layoutChildren ?? [] }
+
+    /// Mounts, updates or drops the top screen's bottom toolbar (iOS) and returns the band it
+    /// takes at the bottom of the screen: none while its items show nothing (an item whose
+    /// content is an `if` that is false), as UIKit hides an empty toolbar.
+    private func mountBottomBar(over nodes: [ViewNode]) -> CGFloat {
+        let items = environment.platformProfile.isIOS ? toolbarItems(over: nodes).filter { $0.placement.iOSGroup == .bottom } : []
+        guard !items.isEmpty else {
+            bottomItemsBar?.unmount()
+            bottomItemsBar = nil
+            bottomBarShown = false
+            return 0
+        }
+        let view = AnyView(_IOSBottomBarItemsView(items: items))
+        var environment = environment
+        environment._automaticLabelContext = .toolbar
+        if let bottomItemsBar {
+            bottomItemsBar.update(view: view, environment: environment, force: false)
+        } else {
+            bottomItemsBar = AnyView._makeNode(_NodeContext(view: view, parent: self, environment: environment))
+        }
+        let row = ProposedViewSize(width: bottomBarRowWidth, height: PlatformMetrics.navigationBarItemHeight)
+        bottomBarShown = bottomBarNodes.contains { node in
+            let size = node.sizeThatFits(row)
+            return size.width > 0 && size.height > 0
+        }
+        return bottomBarShown ? PlatformMetrics.searchBandHeight : 0
+    }
+
+    private var bottomBarRowWidth: CGFloat { max(0, frame.width - 2 * PlatformMetrics.navigationBarItemInset) }
+
+    /// Places the bottom toolbar's row in its band, above the search field's band if any (the
+    /// row's pills centred where the field at rest is).
+    private func placeBottomBar(band: CGFloat, below: CGFloat) {
+        guard bottomBarShown, band > 0 else { return }
+        let y = frame.height - below - band + PlatformMetrics.searchFieldTop + (PlatformMetrics.searchFieldHeight - PlatformMetrics.navigationBarItemHeight) / 2
+        for node in bottomBarNodes {
+            node.place(at: CGPoint(x: PlatformMetrics.navigationBarItemInset, y: y), anchor: .topLeading,
+                       proposal: ProposedViewSize(width: bottomBarRowWidth, height: PlatformMetrics.navigationBarItemHeight), by: self)
+        }
+    }
+
+    private var bottomBarNodes: [ViewNode] { bottomItemsBar?.layoutChildren ?? [] }
+    private var shownBottomBarNodes: [ViewNode] { bottomBarShown ? bottomBarNodes : [] }
 
     // MARK: The large title collapsing as the screen scrolls (iOS)
 
@@ -659,10 +705,13 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
             // out as if it had none.
             let chrome = searchChrome(over: groups.last ?? [])
             let chromes: [SearchChrome?] = placed.indices.map { $0 == placed.count - 1 ? chrome : nil }
+            // The top screen's bottom toolbar takes a band under it too.
+            let bottomBand = mountBottomBar(over: groups.last ?? [])
+            let bottoms: [CGFloat] = placed.indices.map { $0 == placed.count - 1 ? bottomBand : 0 }
             if placed.isEmpty { placed = [] }
             var box = CGSize(width: frame.width, height: frame.height)
-            for ((group, bar), chrome) in zip(placed, chromes) {
-                let taken = (bar?.height ?? 0) + (chrome?.top ?? 0) + (chrome?.bottom ?? 0)
+            for (((group, bar), chrome), bottom) in zip(zip(placed, chromes), bottoms) {
+                let taken = (bar?.height ?? 0) + (chrome?.top ?? 0) + (chrome?.bottom ?? 0) + bottom
                 let inner = taken > 0 ? ProposedViewSize(width: proposal.width, height: proposal.height.map { max(0, $0 - taken) }) : proposal
                 for node in group {
                     let size = node.sizeThatFits(inner)
@@ -670,9 +719,9 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
                     box.height = max(box.height, size.height + taken)
                 }
             }
-            for ((group, bar), chrome) in zip(placed, chromes) {
+            for (((group, bar), chrome), bottom) in zip(zip(placed, chromes), bottoms) {
                 let above = (bar?.height ?? 0) + (chrome?.top ?? 0)
-                let taken = above + (chrome?.bottom ?? 0)
+                let taken = above + (chrome?.bottom ?? 0) + bottom
                 let inner = taken > 0 ? ProposedViewSize(width: proposal.width, height: proposal.height.map { max(0, $0 - taken) }) : proposal
                 for node in group {
                     let size = node.sizeThatFits(inner)
@@ -682,6 +731,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
             }
             layoutSearchChrome(chrome, barHeight: (bars.last ?? nil)?.height ?? 0)
             layoutItemsBar(bars.last ?? nil)
+            placeBottomBar(band: bottomBand, below: chrome?.bottom ?? 0)
             // Placing the content may have scrolled it (a programmatic target) past the large
             // title: the screen is placed again under the inline bar.
             guard pass == 0, collapseChanged else { break }
@@ -702,7 +752,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         let bars = self.bars
         guard let (slide, progress) = activeSlide else {
             paintScreen(groups.last ?? [], bar: bars.last ?? nil, shift: 0, barOpacity: 1, into: &list, context: context)
-            for node in itemsBarNodes + searchChromeNodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
+            for node in itemsBarNodes + shownBottomBarNodes + searchChromeNodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
             return
         }
         let bounds = absoluteBounds(context)
@@ -718,7 +768,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         if cover > 0 { list.append(.fillRect(bounds, RGBA(r: 0, g: 0, b: 0, a: PlatformMetrics.navigationPushDim * cover))) }
         paintScreen(slide.upper, bar: upperBar, shift: width * (1 - cover), barOpacity: cover, into: &list, context: context)
         list.append(.restore)
-        for node in itemsBarNodes + searchChromeNodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
+        for node in itemsBarNodes + shownBottomBarNodes + searchChromeNodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
     }
 
     /// One screen shifted sideways by `shift`: its ground (a grouped list's continues under the
@@ -815,8 +865,8 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         if bar.back { backButton.paintLook(into: &list, at: bounds.origin, opacity: opacity, context: context) }
     }
 
-    override package var paintedChildren: [ViewNode] { (groups.last ?? []) + (backButton.isShown ? [backButton] : []) + itemsBarNodes + searchChromeNodes }
-    override package var structuralChildren: [ViewNode] { [root as ViewNode] + entries.compactMap(\.node) + [scopeBar, searchBar, itemsBar].compactMap { $0 } }
+    override package var paintedChildren: [ViewNode] { (groups.last ?? []) + (backButton.isShown ? [backButton] : []) + itemsBarNodes + shownBottomBarNodes + searchChromeNodes }
+    override package var structuralChildren: [ViewNode] { [root as ViewNode] + entries.compactMap(\.node) + [scopeBar, searchBar, itemsBar, bottomItemsBar].compactMap { $0 } }
 
     /// Preferences come from the root and the top screen when the top is a pushed view
     /// (nav/path-change `present`: a value screen under a presented one reports no probe); the
@@ -832,6 +882,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         }
         // The bar's items (iOS) report too: ios/sheet/nav probes a button in the bar.
         if let itemsBar { sources.append(itemsBar) }
+        if let bottomItemsBar { sources.append(bottomItemsBar) }
         var result: K.Value?
         for child in sources {
             guard let value = child.preferenceValue(for: key) else { continue }
@@ -853,6 +904,8 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         searchBar = nil
         itemsBar?.unmount()
         itemsBar = nil
+        bottomItemsBar?.unmount()
+        bottomItemsBar = nil
         scopeBar?.unmount()
         scopeBar = nil
         super.unmount()
