@@ -968,6 +968,7 @@ let package = Package(
 
 ERROR = re.compile(r"^(/[^:\n]+\.swift):(\d+):(\d+): error: (.+)$", re.MULTILINE)
 NO_MODULE = re.compile(r"no such module '([^']+)'")
+UNATTRIBUTED = re.compile(r"^(.*\berror: .+)$", re.MULTILINE)
 
 
 def normalize_type(t):
@@ -1123,13 +1124,19 @@ def cmd_run(args):
             ok = code == 0
             if not ok:
                 failed.add(t["module"])
+            # A module that failed with none of its errors in the app's own files (they sit in
+            # SwiftUIWeb's code, or carry no file) keeps the first of them, so the job log says why.
+            outside = [] if ok or errors else UNATTRIBUTED.findall(out)[:5]
             status.append({"module": t["module"], "status": "ok" if ok else ("timeout" if code == "timeout" else "errors"),
                            "errors": errors, "tail": "" if ok or errors else out[-3000:],
+                           **({"outside": outside} if outside else {}),
                            **({"without": blocked} if blocked else {})})
             if t.get("remote"):
                 status[-1]["package"] = t["remote"]
                 built[t["module"]] = {k: v for k, v in status[-1].items() if k != "errors"}
             print(f"{app['name']} {t['module']}: {status[-1]['status']} ({len(errors)} errors)")
+            for line in outside:
+                print(f"  outside the app: {line}")
             if args.show and re.search(args.show, f"{app['name']} {t['module']}"):
                 # The whole list in the job log, for a module a change is aimed at (the
                 # artifacts hold it too, but a log is what every reader can open).
