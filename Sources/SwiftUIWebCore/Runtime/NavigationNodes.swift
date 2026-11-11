@@ -387,6 +387,14 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
     private var bottomBarNodes: [ViewNode] { bottomItemsBar?.layoutChildren ?? [] }
     private var shownBottomBarNodes: [ViewNode] { bottomBarShown ? bottomBarNodes : [] }
 
+    /// The bars' hosted items over the screens: the top bar's, the bottom bar's, the search's.
+    private var chromeNodes: [ViewNode] {
+        var nodes = itemsBarNodes
+        nodes += shownBottomBarNodes
+        nodes += searchChromeNodes
+        return nodes
+    }
+
     // MARK: The large title collapsing as the screen scrolls (iOS)
 
     /// The top screen's scroll view, whose offset drives its bar (found at layout).
@@ -752,7 +760,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         let bars = self.bars
         guard let (slide, progress) = activeSlide else {
             paintScreen(groups.last ?? [], bar: bars.last ?? nil, shift: 0, barOpacity: 1, into: &list, context: context)
-            for node in itemsBarNodes + shownBottomBarNodes + searchChromeNodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
+            for node in chromeNodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
             return
         }
         let bounds = absoluteBounds(context)
@@ -768,7 +776,7 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         if cover > 0 { list.append(.fillRect(bounds, RGBA(r: 0, g: 0, b: 0, a: PlatformMetrics.navigationPushDim * cover))) }
         paintScreen(slide.upper, bar: upperBar, shift: width * (1 - cover), barOpacity: cover, into: &list, context: context)
         list.append(.restore)
-        for node in itemsBarNodes + shownBottomBarNodes + searchChromeNodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
+        for node in chromeNodes { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
     }
 
     /// One screen shifted sideways by `shift`: its ground (a grouped list's continues under the
@@ -865,7 +873,14 @@ package final class NavigationStackNode: LayoutNode<_NavigationStackHost>, _Fram
         if bar.back { backButton.paintLook(into: &list, at: bounds.origin, opacity: opacity, context: context) }
     }
 
-    override package var paintedChildren: [ViewNode] { (groups.last ?? []) + (backButton.isShown ? [backButton] : []) + itemsBarNodes + shownBottomBarNodes + searchChromeNodes }
+    override package var paintedChildren: [ViewNode] {
+        var children: [ViewNode] = groups.last ?? []
+        if backButton.isShown { children.append(backButton) }
+        children += itemsBarNodes
+        children += shownBottomBarNodes
+        children += searchChromeNodes
+        return children
+    }
     override package var structuralChildren: [ViewNode] { [root as ViewNode] + entries.compactMap(\.node) + [scopeBar, searchBar, itemsBar, bottomItemsBar].compactMap { $0 } }
 
     /// Preferences come from the root and the top screen when the top is a pushed view
