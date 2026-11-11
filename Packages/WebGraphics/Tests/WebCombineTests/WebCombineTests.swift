@@ -3,7 +3,11 @@
 // removeDuplicates, first, merge, combineLatest, catch, share, collect, zip, scan, prefix).
 import Testing
 #if canImport(Darwin)
-import Foundation      // Data and the JSON coders for decode(type:decoder:) and encode(encoder:)
+// Only the names the decode and encode cases need: a whole `import Foundation` on Darwin also
+// brings Combine's ObservableObject and Published, which clash with WebCombine's.
+import struct Foundation.Data
+import class Foundation.JSONDecoder
+import class Foundation.JSONEncoder
 #else
 import WebFoundation
 #endif
