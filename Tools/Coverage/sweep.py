@@ -416,6 +416,19 @@ def module_keys(app):
     return {t["module"]: t.get("remote") or f"app:{app['name']}" for t in app["targets"]}
 
 
+def asset_catalogs(root: Path, base: Path):
+    """The asset catalogs (`.xcassets`) under a folder, as paths relative to the clone, for the
+    AssetSymbols plugin."""
+    found = []
+    for d in sorted((root / base).rglob("*.xcassets")):
+        if not d.is_dir() or any(p.suffix == ".xcassets" for p in d.relative_to(root / base).parents if p != Path(".")):
+            continue
+        if any(EXCLUDE_DIR.match(x) for x in d.relative_to(root / base).parts[:-1]):
+            continue
+        found.append(str(d.relative_to(root)))
+    return found
+
+
 def data_models(root: Path, base: Path):
     """The Core Data models (`.xcdatamodeld` bundles, bare `.xcdatamodel` folders) under a folder,
     as paths relative to the clone, for the CoreDataModel plugin."""
@@ -530,11 +543,16 @@ def describe_app(entry, root: Path, work: Path = None):
         models = [m for m in data_models(root, Path(".")) if not excluded(Path(m), extra)
                   and not any(Path(m).is_relative_to(d) for d in pkg_dirs if str(d) != ".")
                   and not any(Path(m).is_relative_to(Path(t["source_root"])) for t in targets if not t.get("remote"))]
+        # The app's asset catalogs, for their symbols (`Image(.logo)`); the sweep builds no
+        # resources for the app, so only the catalogs' folders and `Contents.json` are copied.
+        catalogs = [c for c in asset_catalogs(root, Path(".")) if not excluded(Path(c), extra)
+                    and not any(Path(c).is_relative_to(d) for d in pkg_dirs if str(d) != ".")
+                    and not any(Path(c).is_relative_to(Path(t["source_root"])) for t in targets if not t.get("remote"))]
         targets.append({
             "module": "Sweep" + re.sub(r"\W", "", entry["name"]), "source_root": ".", "files": app_files,
             "deps": sorted({t["module"] for t in targets if not t["executable"] and not t.get("macro")}), "third_party": [],
             "mode": xcode_language_mode(root), "settings": [], "resources": [], "models": models,
-            "executable": True, "app": True,
+            "catalogs": catalogs, "executable": True, "app": True,
         })
     # The app target links the package modules its files import (Xcode links the products the
     # project lists; the imports say which of them the app's code uses).
@@ -872,6 +890,22 @@ def cmd_prepare(args):
                     continue
                 shutil.copytree(clone_dir / m, dest_root / name, dirs_exist_ok=True)
                 models.append(name)
+            # The app's catalogs (not its resources here): their folders and `Contents.json`, out
+            # of the target's files, for the AssetSymbols plugin to read.
+            for i, c in enumerate(t.get("catalogs", [])):
+                skeleton = dest_root / "_AssetCatalogs" / f"{i}-{Path(c).name}"
+                for d in sorted([clone_dir / c] + [x for x in (clone_dir / c).rglob("*") if x.is_dir()]):
+                    out = skeleton / d.relative_to(clone_dir / c)
+                    out.mkdir(parents=True, exist_ok=True)
+                    if (d / "Contents.json").is_file():
+                        shutil.copy2(d / "Contents.json", out / "Contents.json")
+            if t.get("catalogs"):
+                models.append("_AssetCatalogs")
+            # Asset catalogs among the resources get their symbols (`Image(.logo)`) from the
+            # AssetSymbols plugin, as Xcode generates them.
+            plugins = (['.plugin(name: "CoreDataModel", package: "SwiftUIWeb")'] if t.get("models") else []) + (
+                ['.plugin(name: "AssetSymbols", package: "SwiftUIWeb")']
+                if t.get("catalogs") or any(r.endswith('.xcassets")') for r in resources) else [])
             kind = "executableTarget" if t.get("app") else "target"
             settings = [f".swiftLanguageMode(.{t['mode']})"] + t["settings"]
             extra = [json.dumps(d) for d in t["deps"]]
@@ -888,7 +922,7 @@ def cmd_prepare(args):
                 + (f'            resources: [{", ".join(resources)}],\n' if resources else "")
                 + f'            swiftSettings: [{", ".join(settings)}]'
                 + (",\n            linkerSettings: stack" if t.get("app") else "")
-                + (',\n            plugins: [.plugin(name: "CoreDataModel", package: "SwiftUIWeb")]' if models else "")
+                + (f',\n            plugins: [{", ".join(plugins)}]' if plugins else "")
                 + "\n        ),"
             )
     def traits_for(package):

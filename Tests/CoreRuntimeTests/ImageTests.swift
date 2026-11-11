@@ -8,22 +8,22 @@ import SwiftUIWebHeadless
 @Suite @MainActor struct ImageTests {
     static let catalog = AssetCatalog(
         images: [
-            "sliced": ImageResource(name: "sliced", variants: [ImageVariant(file: "sliced@2x.png", scale: 2, pixelWidth: 80, pixelHeight: 80)],
+            "sliced": CatalogImage(name: "sliced", variants: [ImageVariant(file: "sliced@2x.png", scale: 2, pixelWidth: 80, pixelHeight: 80)],
                                     capInsets: EdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8), tilesCenter: true),
-            "vector": ImageResource(name: "vector", variants: [ImageVariant(file: "vector.svg", scale: 1, pixelWidth: 40, pixelHeight: 30, isVector: true)]),
-            "swatch": ImageResource(name: "swatch", variants: [
+            "vector": CatalogImage(name: "vector", variants: [ImageVariant(file: "vector.svg", scale: 1, pixelWidth: 40, pixelHeight: 30, isVector: true)]),
+            "swatch": CatalogImage(name: "swatch", variants: [
                 ImageVariant(file: "swatch.png", scale: 1, pixelWidth: 64, pixelHeight: 40),
                 ImageVariant(file: "swatch@2x.png", scale: 2, pixelWidth: 128, pixelHeight: 80),
             ]),
-            "icon": ImageResource(name: "icon", isTemplate: true, variants: [
+            "icon": CatalogImage(name: "icon", isTemplate: true, variants: [
                 ImageVariant(file: "icon@2x.png", scale: 2, pixelWidth: 48, pixelHeight: 48),
             ]),
-            "badge": ImageResource(name: "badge", variants: [
+            "badge": CatalogImage(name: "badge", variants: [
                 ImageVariant(file: "badge@2x.png", scale: 2, pixelWidth: 40, pixelHeight: 40, idiom: "universal"),
                 ImageVariant(file: "badge~mac@2x.png", scale: 2, pixelWidth: 40, pixelHeight: 40, idiom: "mac"),
                 ImageVariant(file: "badge~ipad@2x.png", scale: 2, pixelWidth: 40, pixelHeight: 40, idiom: "ipad"),
             ]),
-            "dual": ImageResource(name: "dual", variants: [
+            "dual": CatalogImage(name: "dual", variants: [
                 ImageVariant(file: "dual@2x.png", scale: 2, pixelWidth: 96, pixelHeight: 48),
                 ImageVariant(file: "dual-dark@2x.png", scale: 2, pixelWidth: 96, pixelHeight: 48, appearance: "dark"),
             ]),

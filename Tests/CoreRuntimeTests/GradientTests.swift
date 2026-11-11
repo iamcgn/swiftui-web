@@ -134,7 +134,7 @@ import SwiftUIWebHeadless
         // Symbols and template images take the gradient over their frame.
         let symbol = render(Image(systemName: "star.fill").resizable().foregroundStyle(linear).frame(width: 40, height: 40))
         #expect(symbol.allSatisfy { $0.contains("linear 80.0,50.0→120.0,50.0") }, "\(symbol)")
-        let catalog = AssetCatalog(images: ["icon": ImageResource(name: "icon", isTemplate: true, variants: [ImageVariant(file: "icon@2x.png", scale: 2, pixelWidth: 48, pixelHeight: 48)])])
+        let catalog = AssetCatalog(images: ["icon": CatalogImage(name: "icon", isTemplate: true, variants: [ImageVariant(file: "icon@2x.png", scale: 2, pixelWidth: 48, pixelHeight: 48)])])
         let runtime = Runtime()
         runtime.assetCatalog = catalog
         runtime.mount(Image("icon").resizable().foregroundStyle(linear).frame(width: 40, height: 40))
