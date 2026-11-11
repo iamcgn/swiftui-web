@@ -156,4 +156,12 @@ import WebCombine
         // The literal here is a Color (one constant sRGB colour), the same colour as the UIColor.
         #expect(Color(#colorLiteral(red: 1, green: 0.5, blue: 0.25, alpha: 1)) == Color(red: 1, green: 0.5, blue: 0.25))
     }
+
+    /// EasyCrypto scans a colour's description back into its components.
+    @Test func colorDescriptionsAreSwiftUIs() {
+        #expect(Color(red: 1, green: 0.5, blue: 0).description == "#FF8000FF")
+        #expect(Color(red: 0, green: 0, blue: 1, opacity: 0.2).description == "#0000FF33")
+        #expect(Color.red.description == "red")
+        #expect(Color.red.opacity(0.5).description == "50% red")
+    }
 }
