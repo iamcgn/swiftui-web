@@ -38,6 +38,15 @@ let keywords: Set<String> = [
     "super", "throws", "true", "try", "Type", "Protocol",
 ]
 
+/// The folder extensions that are asset kinds of their own, with no generated symbol. A folder
+/// with any other extension is a group whose name has a dot in it.
+let assetKinds: Set<String> = [
+    "appiconset", "arimageset", "arresourcegroup", "brandassets", "complicationset", "cubetextureset",
+    "dataset", "gcdashboardimage", "gcleaderboard", "gcleaderboardset", "iconset", "imagestack",
+    "imagestacklayer", "launchimage", "mipmapset", "solidimagestack", "solidimagestacklayer",
+    "spriteatlas", "sticker", "stickerpack", "stickersequence", "textureset",
+]
+
 /// The words of a catalog name: runs of letters and digits.
 func words(_ name: String) -> [String] {
     var result: [String] = []
@@ -113,15 +122,18 @@ func walk(_ directory: URL, prefix: String, into scope: Scope) {
             scope.images.append(contentsOf: identifiers(for: base, droppingSuffix: "Image").map { ($0, prefix + base) })
         case "colorset":
             scope.colors.append(contentsOf: identifiers(for: base, droppingSuffix: "Color").map { ($0, prefix + base) })
-        case "":
+        case let kind where assetKinds.contains(kind):
+            continue   // app icons, data sets, sprite atlases and the rest have no symbols
+        default:
+            // A folder: any other name is a group, a dot in it included (`Tiles.v2` is a group
+            // named `Tiles.v2`, not a set of kind `v2`).
+            let name = child.lastPathComponent
             let properties = readJSON(child.appending(path: "Contents.json"))["properties"] as? [String: Any]
             if properties?["provides-namespace"] as? Bool == true {
-                walk(child, prefix: prefix + base + "/", into: scope.namespace(upperFirst(camel(base))))
+                walk(child, prefix: prefix + name + "/", into: scope.namespace(upperFirst(camel(name))))
             } else {
                 walk(child, prefix: prefix, into: scope)
             }
-        default:
-            continue   // app icons, data sets, sprite atlases and the rest have no symbols
         }
     }
 }
