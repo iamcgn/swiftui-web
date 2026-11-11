@@ -24,11 +24,15 @@ import WebDecimalFormats
         #expect(NSDecimalNumber(string: "2.5").rounding(accordingToBehavior: handler(.plain, scale: 0)).intValue == 3)
         #expect(NSDecimalNumber(string: "2.5").rounding(accordingToBehavior: handler(.bankers, scale: 0)).intValue == 2)
         #expect(NSDecimalNumber(string: "-1.236").rounding(accordingToBehavior: handler(.down, scale: 2)).doubleValue == -1.24)
+        #if os(WASI) || canImport(Darwin)
+        // Foundation on Linux leaves the sum unrounded.
         #expect(NSDecimalNumber(string: "1.234").adding(NSDecimalNumber(string: "1"), withBehavior: handler(.plain, scale: 1)).doubleValue == 2.2)
-        #expect(NSDecimalNumber(string: "19.49").subtracting(NSDecimalNumber.one).doubleValue == 18.49)
+        #endif
+        // Compared as text: Linux's decimal-to-double conversion is a unit off in the last place.
+        #expect(NSDecimalNumber(string: "19.49").subtracting(NSDecimalNumber.one).description == "18.49")
         #expect(NSDecimalNumber(string: "1.5").raising(toPower: 2).doubleValue == 2.25)
         #expect(NSDecimalNumber(string: "1.5").multiplying(byPowerOf10: 2).intValue == 150)
-        #expect(NSDecimalNumber(mantissa: 1999, exponent: -2, isNegative: false).doubleValue == 19.99)
+        #expect(NSDecimalNumber(mantissa: 1999, exponent: -2, isNegative: false).description == "19.99")
         #expect(NSDecimalNumber(string: "abc").doubleValue.isNaN)
         #expect(NSDecimalNumber(decimal: Decimal(string: "4.75")!).doubleValue == 4.75)
         #expect(NSDecimalNumber(string: "4.75").decimalValue == Decimal(string: "4.75")!)
