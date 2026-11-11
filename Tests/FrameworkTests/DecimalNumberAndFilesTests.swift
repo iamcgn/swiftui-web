@@ -99,4 +99,26 @@ import WebDecimalFormats
         #expect(used == .utf8)
         #expect(throws: (any Error).self) { _ = try String(contentsOfFile: first, encoding: .utf8) }
     }
+
+    #if os(WASI) || canImport(Darwin)
+    @Test func directoriesCompareByContents() throws {
+        let manager = FileManager.default
+        let root = manager.temporaryDirectory.appendingPathComponent("compare-\(UInt32.random(in: 0...UInt32.max))", isDirectory: true)
+        defer { try? manager.removeItem(at: root) }
+        func folder(_ name: String, _ files: [String: String]) throws -> String {
+            let url = root.appendingPathComponent(name, isDirectory: true)
+            try manager.createDirectory(at: url.appendingPathComponent("nested", isDirectory: true), withIntermediateDirectories: true)
+            for (path, text) in files { try text.write(toFile: url.appendingPathComponent(path).path, atomically: true, encoding: .utf8) }
+            return url.path
+        }
+        let first = try folder("first", ["a.txt": "one", "nested/b.txt": "two"])
+        let same = try folder("same", ["a.txt": "one", "nested/b.txt": "two"])
+        let changed = try folder("changed", ["a.txt": "one", "nested/b.txt": "three"])
+        let extra = try folder("extra", ["a.txt": "one", "nested/b.txt": "two", "c.txt": "more"])
+        #expect(manager.contentsEqual(atPath: first, andPath: same))
+        #expect(!manager.contentsEqual(atPath: first, andPath: changed))
+        #expect(!manager.contentsEqual(atPath: first, andPath: extra))
+        #expect(!manager.contentsEqual(atPath: first, andPath: first + "/a.txt"))
+    }
+    #endif
 }

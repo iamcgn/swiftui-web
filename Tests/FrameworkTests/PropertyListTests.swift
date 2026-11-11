@@ -148,5 +148,41 @@ import WebFoundation
         #expect(PropertyListEncoder().outputFormat == .binary)
     }
 
+    @Test func emptyCollectionsRoundTrip() throws {
+        struct Scores: Codable, Equatable { var points: [Int]; var names: [String: String] }
+        let empty = Scores(points: [], names: [:])
+        for format in [PropertyListSerialization.PropertyListFormat.binary, .xml] {
+            let encoder = PropertyListEncoder()
+            encoder.outputFormat = format
+            #expect(try PropertyListDecoder().decode([Int].self, from: encoder.encode([Int]())) == [])
+            #expect(try PropertyListDecoder().decode(Scores.self, from: encoder.encode(empty)) == empty)
+            let object = try PropertyListSerialization.propertyList(from: encoder.encode(empty), options: [], format: nil) as? [String: Any]
+            #expect((object?["points"] as? [Any])?.isEmpty == true)
+        }
+    }
+
+    #if os(WASI)
+    /// A binary list of one object, with the trailer's values as given.
+    func binary(_ object: [UInt8], count: UInt64 = 1, top: UInt64 = 0, table: UInt64? = nil) -> Data {
+        var bytes = Array("bplist00".utf8) + object
+        let tableOffset = UInt64(bytes.count)
+        bytes.append(8)
+        bytes += [0, 0, 0, 0, 0, 0, 1, 1]
+        for value in [count, top, table ?? tableOffset] {
+            for shift in stride(from: 56, through: 0, by: -8) { bytes.append(UInt8(truncatingIfNeeded: value >> UInt64(shift))) }
+        }
+        return Data(bytes)
+    }
+
+    @Test func refusesMalformedBinaryWithoutTrapping() throws {
+        #expect(try PropertyListSerialization.propertyList(from: binary([0x08]), options: [], format: nil) as? Bool == false)
+        let huge = [UInt8](repeating: 0xFF, count: 8)
+        for data in [binary([0x08], count: .max), binary([0x08], top: .max), binary([0x08], table: .max),
+                     binary([0xAF, 0x13] + huge), binary([0x5F, 0x13] + huge), binary([0x4F, 0x13] + huge), binary([0xDF, 0x13] + huge)] {
+            #expect(throws: (any Error).self) { _ = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) }
+        }
+    }
+    #endif
+
     typealias Window = Settings.Window
 }
