@@ -761,8 +761,8 @@ public enum SystemSymbolGlyphs {{
         return (glyph, outline)
     }}
 
-    /// name|icon|mode per line.
-    public static let table: [String: SymbolGlyph] = {{
+    /// name|icon|mode per line; readable from any context, as `UIImage(systemName:)` is.
+    nonisolated public static let table: [String: SymbolGlyph] = {{
         var table: [String: SymbolGlyph] = [:]
         for line in namesBlob.split(separator: "\\n") {{
             let parts = line.split(separator: "|")
@@ -794,7 +794,7 @@ public enum SystemSymbolGlyphs {{
         return outline
     }}
 
-    private static let namesBlob = """
+    nonisolated private static let namesBlob = """
 '''
     names_blob = "\n".join(f"{sf}|{icon}|{mode}" for sf, icon, mode in names)
     outlines_blob = "\n".join(icons[k] for k in sorted(icons))

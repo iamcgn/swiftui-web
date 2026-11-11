@@ -42,9 +42,8 @@ public final class UIColor: Hashable, @unchecked Sendable {
     }
 
     /// A colour set of the app's asset catalog, both appearances; nil for an unknown name.
-    @MainActor
     public convenience init?(named name: String) {
-        let catalog = UIKitScene.shared.assetCatalog
+        let catalog = UIKitScene._catalog
         guard let light = catalog.color(named: name, scheme: .light, idiom: "iphone") else { return nil }
         self.init(light: light, dark: catalog.color(named: name, scheme: .dark, idiom: "iphone") ?? light)
     }
