@@ -37,8 +37,8 @@ public enum SystemSymbolGlyphs {
         return (glyph, outline)
     }
 
-    /// name|icon|mode per line.
-    public static let table: [String: SymbolGlyph] = {
+    /// name|icon|mode per line; readable from any context, as `UIImage(systemName:)` is.
+    nonisolated public static let table: [String: SymbolGlyph] = {
         var table: [String: SymbolGlyph] = [:]
         for line in namesBlob.split(separator: "\n") {
             let parts = line.split(separator: "|")
@@ -70,7 +70,7 @@ public enum SystemSymbolGlyphs {
         return outline
     }
 
-    private static let namesBlob = """
+    nonisolated private static let namesBlob = """
 4k.tv|tv|0
 accessibility|accessibility|0
 air.conditioner.horizontal|air-vent|0

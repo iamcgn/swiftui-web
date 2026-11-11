@@ -64,6 +64,16 @@ extension FormatStyle where Self == Decimal.FormatStyle.Currency {
 }
 
 
+/// `NSDecimalNumber(decimal: price)` and back: the number holds the decimal's double.
+extension NSNumber {
+    public convenience init(decimal dcm: Decimal) { self.init(value: dcm._double) }
+    /// The decimal the double's shortest spelling names (4.75, not 4.7499999…).
+    public var decimalValue: Decimal {
+        let value = NSNumber._snap(doubleValue)
+        return Decimal(string: String(value)) ?? Decimal(value)
+    }
+}
+
 /// `price as NSNumber` (`Double(truncating: price as NSNumber)`): the number holds the decimal's
 /// double, as WebFoundation's `NSDecimalNumber` is an `NSNumber` holding one.
 extension Decimal: @retroactive _ObjectiveCBridgeable {
