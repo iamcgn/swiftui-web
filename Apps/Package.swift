@@ -168,13 +168,14 @@ let package = Package(
         ),
         // MARK: twostraws/simple-swiftui — the SimpleToDo Xcode target (SWIFT_VERSION 5.0, iOS 15),
         // from the same pinned checkout as SimpleScores: its app folder as the target path, the
-        // asset catalog (accent, icon) its resources. The preview assets and sample item are
-        // Xcode's own preview content, left out as they are for the other apps.
+        // asset catalog (accent, icon) its resources. `Preview Content`'s sample item stays in, as
+        // Xcode compiles it into a debug build and the views' previews name it; only the preview
+        // asset catalog is left out.
         .executableTarget(
             name: "SimpleToDo",
             dependencies: swiftUI + host,
             path: "upstream/simple-swiftui/SimpleToDo/SimpleToDo",
-            exclude: ["Preview Content"],
+            exclude: ["Preview Content/Preview Assets.xcassets"],
             resources: [.process("Assets.xcassets")],
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: stack
