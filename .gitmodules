@@ -25,3 +25,6 @@
 [submodule "Apps/upstream/simple-swiftui"]
 	path = Apps/upstream/simple-swiftui
 	url = https://github.com/twostraws/simple-swiftui
+[submodule "Apps/upstream/EasyCrypto"]
+	path = Apps/upstream/EasyCrypto
+	url = https://github.com/mehrankmlf/EasyCrypto

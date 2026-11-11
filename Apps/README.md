@@ -24,7 +24,7 @@ flow records what blocks it rather than being stubbed around (Scrumdinger's meet
 blocked on speech until decision 0022's recogniser, 2026-10-23; all seven apps pass now). The flows (`Playwright/scrumdinger-probe.mjs`, `Playwright/ember-probe.mjs`,
 `Playwright/2048-probe.mjs`, `Playwright/charts-probe.mjs`, `Playwright/buttoncraft-probe.mjs`, `Playwright/pompaddo-probe.mjs`, `Playwright/simplescores-probe.mjs`) are each a CI step of their own.
 
-To run an app by hand: `scripts/build-wasm.sh Apps --debug --product <SwiftUI2048|Scrumdinger|Ember|ChartsExamples|Buttoncraft|Pompaddo|SimpleScores>`
+To run an app by hand: `scripts/build-wasm.sh Apps --debug --product <SwiftUI2048|Scrumdinger|Ember|ChartsExamples|Buttoncraft|Pompaddo|SimpleScores|EasyCrypto>`
 (the last product built is what `Apps/index.html` loads; SwiftUI2048 and Pompaddo need the Objective-C
 runtime SDK, `SWIFTUIWEB_WASM_SDK=swift-6.3.3-RELEASE_wasm-objc`, decision 0023; Ember is
 built in release, `--debug` lays out a comment thread in tens of seconds), serve `Apps/` and
@@ -60,6 +60,7 @@ link to the page in a tab of its own; favicons show the app's globe fallback
 | CloudStorage (PomPadDo's) | [tomlokhorst/CloudStorage](https://github.com/tomlokhorst/CloudStorage) | `d94cb14e563c1a20edeba8a861395c60c2b9d064` | 2025-01-19 | MIT |
 | SwiftDataTransferrable (PomPadDo's) | [Whiffer/swiftdata-transferrable](https://github.com/Whiffer/swiftdata-transferrable) | `62bac0433b22372386da07c1355331df2f418314` | 2024-09-26 | MIT |
 | SimpleScores | [twostraws/simple-swiftui](https://github.com/twostraws/simple-swiftui) | `e24d0442acf4a1ad7d624e4653bca75485296a10` | 2023-03-02 | MIT |
+| EasyCrypto | [mehrankmlf/EasyCrypto](https://github.com/mehrankmlf/EasyCrypto) | `befca355402723af02d7ba250edc37c85b3dcf72` | 2024-08-20 | MIT |
 
 Retired 2026-10-22: [nalexn/clean-architecture-swiftui](https://github.com/nalexn/clean-architecture-swiftui)
 (CountriesSwiftUI, pinned `9eca97b8`, with its EnvironmentOverrides dependency) — the app
@@ -92,6 +93,7 @@ through other build phases:
 | Buttoncraft | `buttoncraft/buttoncraft` (Xcode target, SWIFT_VERSION 5.0, iOS 14) | `Info.plist`, `Launch Screen.storyboard`, `Preview Content/` | `Assets.xcassets` (accent, icon, the GitHub mark PDF) |
 | Pompaddo | `pompaddo`'s `PomPadDo.mobile` + `Shared` (Xcode target, SWIFT_VERSION 6.2), compiled from `ios-sources/pompaddo`, the tree with `os(iOS)` read as true (decision 0025) | `Info.plist`, `LaunchScreen.storyboard`, the entitlements, `Preview Content/`, `Shared/Tests`, `Localizable.xcstrings` | `PomPadDo.mobile/Assets.xcassets` |
 | SimpleScores | `simple-swiftui/SimpleScores/SimpleScores` (Xcode target, SWIFT_VERSION 5.0, iOS 15.2); the repository's other apps are not built | `Preview Content/Preview Assets.xcassets`, the translations in `Resources/*.lproj` (the English strings are the keys themselves) | `Resources/Assets.xcassets` (the eight player colours, accent, icon) |
+| EasyCrypto | `EasyCrypto/EasyCrypto` (Xcode target, SWIFT_VERSION 5.0, iOS 16); built with the Objective-C runtime SDK for its `#selector` | `Info.plist`, `Launch Screen.storyboard`, `Preview Content` (Xcode's preview asset catalog), `Persistance/CoinsDB.xcdatamodeld` (the CoreDataModel plugin generates its classes) | `Assets.xcassets` (colours, icons), `Theme/Fonts/Files/arialbold.ttf` |
 | CloudStorage, SwiftDataTransferrable | `CloudStorage/Sources/CloudStorage`, `swiftdata-transferrable/Sources/SwiftDataTransferrable` (their Package.swift, tools 5.9) | — | — |
 
 Not compiled from any app: the apps' Xcode test targets (`ScrumdingerUITests`,

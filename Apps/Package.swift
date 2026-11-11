@@ -33,6 +33,7 @@ let package = Package(
         .executable(name: "Buttoncraft", targets: ["Buttoncraft"]),
         .executable(name: "Pompaddo", targets: ["Pompaddo"]),
         .executable(name: "SimpleScores", targets: ["SimpleScores"]),
+        .executable(name: "EasyCrypto", targets: ["EasyCrypto"]),
     ],
     dependencies: [
         .package(name: "SwiftUIWeb", path: "..", traits: ["FoundationFormats", "DecimalFormatting"]),
@@ -164,6 +165,27 @@ let package = Package(
             resources: [.process("Resources/Assets.xcassets")],
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: stack
+        ),
+        // MARK: mehrankmlf/EasyCrypto — the EasyCrypto Xcode target (SWIFT_VERSION 5.0, iOS 16): its
+        // app folder as the target path, Core Data through the CoreDataModel plugin (its
+        // `CoinsDB.xcdatamodeld`, as Xcode generates the model's classes), the asset catalog and the
+        // bundled font its resources. `Preview Content` holds only Xcode's preview asset catalog.
+        // It sends `#selector(UIResponder.resignFirstResponder)`, so it builds with the
+        // Objective-C runtime SDK (decision 0023).
+        .executableTarget(
+            name: "EasyCrypto",
+            dependencies: swiftUI + [uiKit] + host + [
+                .product(name: "WebCoreData", package: "SwiftUIWeb"),
+                .product(name: "CoreData", package: "Shadows", condition: .when(platforms: [.wasi])),
+                .product(name: "SafariServices", package: "Shadows", condition: .when(platforms: [.wasi])),
+                .product(name: "os", package: "Shadows", condition: .when(platforms: [.wasi])),
+            ],
+            path: "upstream/EasyCrypto/EasyCrypto",
+            exclude: ["Info.plist", "Launch Screen.storyboard", "Preview Content", "Persistance/CoinsDB.xcdatamodeld"],
+            resources: [.process("Assets.xcassets"), .process("Theme/Fonts/Files/arialbold.ttf")],
+            swiftSettings: [.swiftLanguageMode(.v5)],
+            linkerSettings: stack,
+            plugins: [.plugin(name: "CoreDataModel", package: "SwiftUIWeb")]
         ),
         // MARK: amikhaylin/pompaddo — the iOS app target `PomPadDo.mobile` (SWIFT_VERSION 6.2,
         // approachable concurrency): its synchronized folder `PomPadDo.mobile` plus the files of
