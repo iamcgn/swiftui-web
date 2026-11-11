@@ -10,6 +10,10 @@
 
 // Apple's CoreData re-exports Foundation: a file importing only it names Date and URL.
 @_exported import WebFoundation
+#if os(WASI)
+// Foundation's classes, `NSSet` among them, as Apple's CoreData re-exports Foundation.
+@_exported import WebFoundationFormats
+#endif
 import WebCombine
 
 /// A type that a fetch request can return: managed objects, their IDs, counts and dictionaries.
@@ -403,7 +407,13 @@ open class NSManagedObject: NSFetchRequestResult, _CDKeyValueCoding, WebCombine.
     /// A to-one relationship.
     public func _genObject<T>(_ key: String, as type: T.Type = T.self) -> T? { _values[key] as? T }
     /// An unordered to-many relationship (`NSSet?`).
-    public func _genSet(_ key: String) -> NSSet? { _values[key] as? Set<AnyHashable> }
+    public func _genSet(_ key: String) -> NSSet? {
+        #if os(WASI)
+        (_values[key] as? Set<AnyHashable>).map { NSSet(set: $0) }
+        #else
+        _values[key] as? Set<AnyHashable>
+        #endif
+    }
     /// An ordered to-many relationship (`NSOrderedSet?`).
     public func _genOrdered(_ key: String) -> NSOrderedSet? { _values[key] as? NSOrderedSet }
     /// Sets any property.
@@ -540,8 +550,8 @@ public final class NSMutableSet: Sequence, CustomStringConvertible {
     public func addObjects(from array: [Any]) { object._addTargets(key, array.flatMap { _cdRelationshipObjects($0) }) }
     public func remove(_ anObject: Any) { object._removeTargets(key, _cdRelationshipObjects(anObject)) }
     public func removeAllObjects() { object._removeTargets(key, objects) }
-    public func union(_ otherSet: Set<AnyHashable>) { addObjects(from: otherSet.allObjects) }
-    public func minus(_ otherSet: Set<AnyHashable>) { object._removeTargets(key, otherSet.allObjects.flatMap { _cdRelationshipObjects($0) }) }
+    public func union(_ otherSet: Set<AnyHashable>) { addObjects(from: otherSet.map(\.base)) }
+    public func minus(_ otherSet: Set<AnyHashable>) { object._removeTargets(key, otherSet.flatMap { _cdRelationshipObjects($0.base) }) }
     public func makeIterator() -> IndexingIterator<[Any]> { (objects as [Any]).makeIterator() }
     public var description: String { "\(objects)" }
 }

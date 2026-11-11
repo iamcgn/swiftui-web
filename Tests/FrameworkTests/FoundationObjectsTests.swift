@@ -10,7 +10,33 @@ import WebFoundationFormats
 import WebGraphics
 #endif
 
+/// swift-custom-dump conforms both `NSSet` and `Set` to one protocol: that compiles only while
+/// `NSSet` is a class of its own.
+protocol _BothSetForms {}
+extension NSSet: _BothSetForms {}
+extension Set: _BothSetForms {}
+
 @Suite struct FoundationObjectsTests {
+    @Test func sets() {
+        let set = NSSet(array: [1, 2, 2, 3])
+        #expect(set.count == 3)
+        #expect(set.contains(2) && !set.contains(4))
+        #expect(set.member(3) as? Int == 3)
+        #expect(Set(set.allObjects.compactMap { $0 as? Int }) == [1, 2, 3])
+        #expect(set as? Set<Int> == [1, 2, 3])
+        #expect(set as? Set<String> == nil)
+        #expect(Set(["a", "b"]) as NSSet == NSSet(array: ["b", "a"]))
+        #if os(WASI) || canImport(Darwin)
+        // Linux's Foundation has no array literal for NSSet.
+        let literal: NSSet = [1, 2]
+        #expect(literal.count == 2)
+        #endif
+        var seen = 0
+        for case let member as Int in set { seen += member }
+        #expect(seen == 6)
+    }
+
+
     @Test func dictionaries() {
         let dictionary = NSDictionary(dictionary: ["a": 1, "b": "two"])
         #expect(dictionary.count == 2)

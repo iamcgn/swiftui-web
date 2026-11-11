@@ -141,6 +141,7 @@ jobs:
           . ~/.swiftly/env.sh
           swiftly install $SWIFT_VERSION --use --assume-yes
           swift sdk install "$OBJC_SDK_URL" --checksum "$OBJC_SDK_CHECKSUM"
+          scripts/objc-sdk/add-api-notes.sh
       - uses: actions/download-artifact@v4
         with: { name: coverage-plan }
       - name: Clone this batch's apps

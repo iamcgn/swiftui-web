@@ -120,5 +120,11 @@ fbb333cf with a clean tree.
   `@objc` members that take or return them compile (RevenueCat's API surface). The holders are
   not Foundation's classes: Objective-C code cannot read them, and they only carry values between
   Swift `@objc` members.
+- 2026-11-10, `description`: the header's is dropped only where no module named Foundation is
+  loaded; an app or package that imports the Foundation shadow imports it as `String`, beside
+  WebFoundation's, so `override var description` matched two declarations and reading it was
+  ambiguous (combine-schedulers' Timer, RevenueCat's models). swift-objc-wasm's
+  `ObjectiveC.apinotes` (its #1) makes Swift see the runtime's as `__description`; CI adds the file
+  to the installed v0.1.1 SDK (`scripts/objc-sdk/add-api-notes.sh`) until a release carries it.
 - `#selector`-based `UIKeyCommand`s do nothing on builds without the runtime; the closure
   form works everywhere.

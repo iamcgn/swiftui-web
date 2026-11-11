@@ -9,10 +9,10 @@
 // objects as Foundation's classes; they carry values between Swift `@objc` members, whose
 // caller bridges an argument in and whose body bridges it straight back out.
 //
-// The objects are named with an underscore: `NSSet` and `NSDate` are Core Data's spellings of
-// `Set` and `Date` here (WebCoreData, Values.swift), and the compiler reads some Foundation
-// class names in the module named Foundation as Apple's Foundation being present (`NSString`,
-// NSRegularExpression.swift).
+// The objects are named with an underscore: WebFoundationFormats gives some of them Foundation's
+// names (`NSDictionary`, `NSSet`) as typealiases, `NSDate` is Core Data's spelling of `Date` here
+// (WebCoreData, Values.swift), and the compiler reads some Foundation class names in the module
+// named Foundation as Apple's Foundation being present (`NSString`, NSRegularExpression.swift).
 #if os(WASI) && canImport(ObjectiveC)
 
 /// The object an array becomes in Objective-C: its elements, each as `Any`.
@@ -45,14 +45,22 @@ open class _WebNSDictionary: NSObject, @unchecked Sendable {
     open override var hash: Int { entries.count }
 }
 
-/// The object a set becomes in Objective-C: its members as `AnyHashable`.
-public final class _WebNSSet: NSObject, @unchecked Sendable {
-    public let members: [AnyHashable]
+/// The object a set becomes in Objective-C: its members as `AnyHashable`. Foundation's `NSSet`
+/// (WebFoundationFormats names it so and gives it its members). Equal when the members are.
+open class _WebNSSet: NSObject, ExpressibleByArrayLiteral, @unchecked Sendable {
+    public var members: [AnyHashable]
     public init(members: [AnyHashable]) {
         self.members = members
         super.init()
     }
+    public override convenience init() { self.init(members: []) }
+    public required convenience init(arrayLiteral elements: AnyHashable...) { self.init(members: Array(Set(elements))) }
     public var count: Int { members.count }
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? _WebNSSet else { return false }
+        return Set(members) == Set(other.members)
+    }
+    open override var hash: Int { members.count }
 }
 
 /// The object a value type becomes in Objective-C (`Date`, `URL`, `Data`, `UUID`): the value
@@ -177,7 +185,9 @@ extension Set: @retroactive _ObjectiveCBridgeable {
 /// it with Foundation's `NSString`, which this SDK does not define, so the compiler leaves it out
 /// and an app's `override var description` overrode nothing (RevenueCat's model classes). The
 /// header's selector is still taken, so this one has a selector of its own; subclasses override
-/// it by name, as they do Foundation's, and Swift's `String(describing:)` reads it.
+/// it by name, as they do Foundation's, and Swift's `String(describing:)` reads it. Where a module
+/// named Foundation is loaded the compiler would import the header's too; the SDK's API notes
+/// (scripts/objc-sdk) name that one `__description`, so this stays the only `description`.
 extension NSObject: @retroactive CustomStringConvertible, @retroactive CustomDebugStringConvertible {
     @objc(_webDescription) open var description: String {
         "<\(type(of: self)): 0x\(String(UInt(bitPattern: ObjectIdentifier(self).hashValue), radix: 16))>"
