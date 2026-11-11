@@ -1,0 +1,24 @@
+// The clang half of the `os` shadow (wasm only): Apple's `os` is a clang module with submodules,
+// so apps write `import os.log` or `import os.signpost`. A Swift module cannot declare
+// submodules; this module map declares them under the same name, and the Swift `os` module
+// (Sources/os) keeps the API. The headers are empty: everything an app calls is Swift.
+module os [system] {
+  header "os.h"
+  export *
+  explicit module log {
+    header "log.h"
+    export *
+  }
+  explicit module signpost {
+    header "signpost.h"
+    export *
+  }
+  explicit module activity {
+    header "activity.h"
+    export *
+  }
+  explicit module lock {
+    header "lock.h"
+    export *
+  }
+}

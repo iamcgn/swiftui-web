@@ -8,7 +8,7 @@ package protocol _ImageNodeMarker: AnyObject {}
 
 @MainActor
 package final class ImageNode: LeafNode<Image>, _FrameSubscriber, _ImageNodeMarker {
-    package private(set) var resource: CatalogImage?
+    package private(set) var resource: ImageResource?
 
     override package init(_ context: _NodeContext<Image>) {
         super.init(context)
@@ -82,7 +82,7 @@ package final class ImageNode: LeafNode<Image>, _FrameSubscriber, _ImageNodeMark
             symbolSize = nil
         case .url(let url, let pixelSize, let scale):
             // A loaded URL is a one-variant resource the painters fetch by its URL.
-            resource = CatalogImage(name: url, variants: [ImageVariant(file: url, scale: scale, pixelWidth: Int(pixelSize.width), pixelHeight: Int(pixelSize.height))])
+            resource = ImageResource(name: url, variants: [ImageVariant(file: url, scale: scale, pixelWidth: Int(pixelSize.width), pixelHeight: Int(pixelSize.height))])
             symbol = nil
             symbolSize = nil
         case .system(let base):

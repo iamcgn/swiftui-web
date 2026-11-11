@@ -147,6 +147,31 @@ public final class UIApplication: UIResponder {
     override public func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) { UIKitScene.shared.pressUnhandled = true }
     public var applicationIconBadgeNumber = 0
 
+    /// Sends an action message: to `target`, or with a nil target up the responder chain from
+    /// the first responder (the application itself at the end, then its delegate). Whether
+    /// anything handled it. `sendAction(#selector(UIResponder.resignFirstResponder), to: nil, …)`,
+    /// apps' way to dismiss the keyboard, reaches the first responder or, with none, the
+    /// application, which has nothing to resign. Without the Objective-C runtime there are no
+    /// selectors to send, so nothing handles it.
+    @discardableResult
+    public func sendAction(_ action: Selector, to target: Any?, from sender: Any?, for event: UIEvent?) -> Bool {
+        #if canImport(ObjectiveC)
+        let receiver: NSObject?
+        if let target = target as? NSObject {
+            receiver = target.responds(to: action) ? target : nil
+        } else {
+            let start = UIKitScene.shared.firstResponder ?? self
+            receiver = (start.target(forAction: action, withSender: sender) as? NSObject)
+                ?? ((delegate as? NSObject).flatMap { $0.responds(to: action) ? $0 : nil })
+        }
+        guard let receiver else { return false }
+        receiver._send(action, passing: sender)
+        return true
+        #else
+        return false
+        #endif
+    }
+
     /// Background time: a page keeps running while it is open, so a task never expires and
     /// ending it only retires its identifier.
     public func beginBackgroundTask(withName taskName: String?, expirationHandler handler: (@MainActor @Sendable () -> Void)? = nil) -> UIBackgroundTaskIdentifier {

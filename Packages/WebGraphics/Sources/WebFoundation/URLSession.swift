@@ -347,32 +347,6 @@ public struct URLError: Error, Hashable, @unchecked Sendable, CustomStringConver
     }
     public static func == (lhs: URLError, rhs: URLError) -> Bool { lhs.code == rhs.code }
     public func hash(into hasher: inout Hasher) { hasher.combine(code) }
-
-    /// Why a request the system kept off the network failed: the browser's fetch never says, so
-    /// this is nil unless the error was made with Foundation's key.
-    public var networkUnavailableReason: NetworkUnavailableReason? {
-        (userInfo["NSURLErrorNetworkUnavailableReasonKey"] as? Int).flatMap(NetworkUnavailableReason.init(rawValue:))
-    }
-    /// Why the system cancelled a background task: never, in a page.
-    public var backgroundTaskCancelledReason: BackgroundTaskCancelledReason? {
-        (userInfo["NSURLErrorBackgroundTaskCancelledReasonKey"] as? Int).flatMap(BackgroundTaskCancelledReason.init(rawValue:))
-    }
-    /// The data a cancelled download resumes from, when the error carries it.
-    public var downloadTaskResumeData: Data? { userInfo["NSURLSessionDownloadTaskResumeData"] as? Data }
-
-    /// The network a request was kept off, with Apple's raw values.
-    public enum NetworkUnavailableReason: Int, Sendable {
-        case cellular = 0
-        case expensive = 1
-        case constrained = 2
-    }
-
-    /// Why a background task was cancelled, with Apple's raw values.
-    public enum BackgroundTaskCancelledReason: Int, Sendable {
-        case userForceQuitApplication = 0
-        case backgroundUpdatesDisabled = 1
-        case insufficientSystemResources = 2
-    }
 }
 
 /// Foundation names every code on `URLError` itself too (`URLError.cancelled`); computed, so an

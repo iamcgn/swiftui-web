@@ -168,12 +168,29 @@ public struct NavigationLink<Label: View, Destination: View>: View {
     package let label: Label
     package let destination: AnyView?
     package let value: AnyHashable?
+    /// The deprecated `isActive:` forms: the link pushes its destination while the binding is
+    /// true, and a press sets it.
+    package var isActive: Binding<Bool>? = nil
 
     /// Creates a navigation link that presents the destination view.
     public init(@ViewBuilder destination: () -> Destination, @ViewBuilder label: () -> Label) {
         self.label = label()
         self.destination = AnyView(destination())
         self.value = nil
+    }
+
+    /// Creates a navigation link that presents the destination view while `isActive` is true
+    /// (deprecated in iOS 16 for `navigationDestination(isPresented:)`, which it uses).
+    public init(destination: Destination, isActive: Binding<Bool>, @ViewBuilder label: () -> Label) {
+        self.label = label()
+        self.destination = AnyView(destination)
+        self.value = nil
+        self.isActive = isActive
+    }
+
+    /// Creates a navigation link that presents the destination view while `isActive` is true.
+    public init(isActive: Binding<Bool>, @ViewBuilder destination: () -> Destination, @ViewBuilder label: () -> Label) {
+        self.init(destination: destination(), isActive: isActive, label: label)
     }
 
     /// Creates a navigation link that presents the destination view.
@@ -197,6 +214,15 @@ public struct NavigationLink<Label: View, Destination: View>: View {
     private var isEnabled: Bool { destination != nil || value != nil }
 
     public var body: some View {
+        if let isActive, let destination {
+            Button { isActive.wrappedValue = true } label: { label }
+                .modifier(_NavigationPresentedDestinationModifier(isPresented: isActive, destination: destination))
+        } else {
+            linkBody
+        }
+    }
+
+    @ViewBuilder private var linkBody: some View {
         let action = _ActionBox(linkValue: value) { [context, destination, value] in
             guard let stack = context?.stack else { return }
             if let value { stack.push(value: value) } else if let destination { stack.push(view: destination) }

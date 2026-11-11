@@ -31,7 +31,7 @@ public struct ImageVariant: Hashable, Sendable {
 }
 
 /// An image set: its variants, whether the catalog marks it as a template, and its slicing.
-public struct CatalogImage: Hashable, Sendable {
+public struct ImageResource: Hashable, Sendable {
     public var name: String
     public var isTemplate: Bool
     public var variants: [ImageVariant]
@@ -128,7 +128,7 @@ public struct FontResource: Hashable, Sendable {
 /// Every image and colour set of an app's catalogs, keyed by name (`Folder/name` for
 /// namespaced folders), and the font files it bundles, keyed by PostScript name.
 public struct AssetCatalog: Sendable, Equatable {
-    public var images: [String: CatalogImage]
+    public var images: [String: ImageResource]
     public var colors: [String: [ColorVariant]]
     public var fonts: [String: FontResource]
     /// The languages the app's string catalogs and `.lproj` folders hold (`Bundle.localizations`),
@@ -136,7 +136,7 @@ public struct AssetCatalog: Sendable, Equatable {
     public var localizations: [String]
     public var sourceLanguage: String?
 
-    public init(images: [String: CatalogImage] = [:], colors: [String: [ColorVariant]] = [:], fonts: [String: FontResource] = [:],
+    public init(images: [String: ImageResource] = [:], colors: [String: [ColorVariant]] = [:], fonts: [String: FontResource] = [:],
                 localizations: [String] = [], sourceLanguage: String? = nil) {
         self.images = images
         self.colors = colors
@@ -152,7 +152,7 @@ public struct AssetCatalog: Sendable, Equatable {
 
     public static let empty = AssetCatalog()
 
-    public func image(named name: String) -> CatalogImage? { images[name] }
+    public func image(named name: String) -> ImageResource? { images[name] }
 
     /// The colour set's value for a colour scheme, with the same idiom and appearance rules as
     /// images; `nil` when the name is unknown.

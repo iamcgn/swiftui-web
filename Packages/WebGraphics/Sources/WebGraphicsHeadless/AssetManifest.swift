@@ -63,9 +63,9 @@ extension AssetCatalog {
 
     public init(manifestData data: Data) throws {
         let document = try JSONDecoder().decode(Document.self, from: data)
-        var images: [String: CatalogImage] = [:]
+        var images: [String: ImageResource] = [:]
         for (name, set) in document.images {
-            images[name] = CatalogImage(name: name, isTemplate: set.template ?? false, variants: set.variants.map {
+            images[name] = ImageResource(name: name, isTemplate: set.template ?? false, variants: set.variants.map {
                 ImageVariant(file: $0.file, scale: CGFloat($0.scale), pixelWidth: Int($0.width.rounded()), pixelHeight: Int($0.height.rounded()),
                              idiom: $0.idiom ?? "universal", appearance: $0.appearance ?? "any", isVector: $0.vector ?? false)
             }, capInsets: set.capInsets.map { EdgeInsets(top: $0.top, leading: $0.leading, bottom: $0.bottom, trailing: $0.trailing) },

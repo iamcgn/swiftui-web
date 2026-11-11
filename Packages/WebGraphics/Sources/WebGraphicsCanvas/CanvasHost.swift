@@ -328,12 +328,12 @@ public final class CanvasSceneHost {
     /// one when the page has no manifest script.
     static func assetCatalog(from manifest: JSValue) -> AssetCatalog {
         guard let manifest = manifest.object else { return .empty }
-        var images: [String: CatalogImage] = [:]
+        var images: [String: ImageResource] = [:]
         if let sets = manifest.images.object, let names = JSObject.global.Object.function!.keys!(sets).object {
             for index in 0..<Int(names.length.number ?? 0) {
                 guard let name = names[index].string, let set = sets[dynamicMember: name].object,
                       let variants = set.variants.object else { continue }
-                var resource = CatalogImage(name: name, isTemplate: set.template.boolean ?? false, variants: [])
+                var resource = ImageResource(name: name, isTemplate: set.template.boolean ?? false, variants: [])
                 if let insets = set.capInsets.object {
                     resource.capInsets = EdgeInsets(top: insets.top.number ?? 0, leading: insets.leading.number ?? 0, bottom: insets.bottom.number ?? 0, trailing: insets.trailing.number ?? 0)
                 }

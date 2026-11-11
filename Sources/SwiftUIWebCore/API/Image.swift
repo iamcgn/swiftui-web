@@ -90,14 +90,6 @@ public struct Image: Equatable, Sendable {
         self.init(source: .named(name), label: name)
     }
 
-    /// Creates an image from an image set of the app's asset catalogs by its generated symbol
-    /// (`Image(.logo)`), labeled with the set's name. Disfavored, so a name that is also another
-    /// kind of value the other initializers take reads as that one.
-    @_disfavoredOverload
-    public init(_ resource: ImageResource) {
-        self.init(source: .named(resource._name), label: resource._name)
-    }
-
     /// Creates an unlabeled, decorative image.
     public init(decorative name: String, bundle: Bundle? = nil) {
         self.init(source: .named(name), label: nil)

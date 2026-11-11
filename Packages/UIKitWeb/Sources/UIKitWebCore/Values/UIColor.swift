@@ -49,15 +49,6 @@ public final class UIColor: Hashable, @unchecked Sendable {
         self.init(light: light, dark: catalog.color(named: name, scheme: .dark, idiom: "iphone") ?? light)
     }
 
-    /// A colour set of the app's asset catalog by its generated symbol (`UIColor(resource: .accent)`);
-    /// clear when the catalog has no such set.
-    @MainActor
-    public convenience init(resource: ColorResource) {
-        let catalog = UIKitScene.shared.assetCatalog
-        let light = catalog.color(named: resource._name, scheme: .light, idiom: "iphone") ?? RGBA(red: 0, green: 0, blue: 0, alpha: 0)
-        self.init(light: light, dark: catalog.color(named: resource._name, scheme: .dark, idiom: "iphone") ?? light)
-    }
-
 
     /// Hue, saturation and brightness in 0…1.
     public convenience init(hue: CGFloat, saturation: CGFloat, brightness: CGFloat, alpha: CGFloat) {

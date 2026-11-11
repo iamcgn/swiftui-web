@@ -79,11 +79,6 @@ public struct Transaction: Identifiable, Equatable, Hashable, Sendable {
     public let offer: Offer?
     /// Why the transaction happened.
     public let reason: Reason
-    /// The App Store country the purchase was made in.
-    public let storefront: Storefront
-    /// The three-letter code of `storefront`'s country ("USA").
-    @available(*, deprecated, renamed: "storefront.countryCode")
-    public var storefrontCountryCode: String { storefront.countryCode }
 
     /// The ISO 4217 code of `currency`.
     public var currencyCode: String? { currency?.identifier }
@@ -98,7 +93,7 @@ public struct Transaction: Identifiable, Equatable, Hashable, Sendable {
     /// exist, so only tests make one.
     package init(id: UInt64, productID: String, productType: Product.ProductType, purchaseDate: Date,
                  expirationDate: Date? = nil, purchasedQuantity: Int = 1, subscriptionGroupID: String? = nil,
-                 revocationDate: Date? = nil, revocationReason: RevocationReason? = nil, storefront: String = "USA") {
+                 revocationDate: Date? = nil, revocationReason: RevocationReason? = nil) {
         self.id = id
         self.originalID = id
         self.productID = productID
@@ -120,7 +115,6 @@ public struct Transaction: Identifiable, Equatable, Hashable, Sendable {
         self.currency = nil
         self.offer = nil
         self.reason = .purchase
-        self.storefront = Storefront(countryCode: storefront, id: "")
     }
 
     /// The kind of offer a transaction redeemed.
