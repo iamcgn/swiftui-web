@@ -92,6 +92,16 @@ public final class UIImage: Hashable, @unchecked Sendable {
         self.init(name: name, isSystemSymbol: false, renderingMode: resource.isTemplate ? .alwaysTemplate : .automatic, size: size)
     }
 
+    /// An image set of the app's asset catalog by its generated symbol (`UIImage(resource: .logo)`);
+    /// an empty image when the catalog has no such set.
+    @MainActor
+    public convenience init(resource: ImageResource) {
+        let catalogImage = UIKitScene.shared.assetCatalog.image(named: resource._name)
+        let size = catalogImage?.variants.max { $0.scale < $1.scale }?.pointSize ?? .zero
+        self.init(name: resource._name, isSystemSymbol: false,
+                  renderingMode: catalogImage?.isTemplate == true ? .alwaysTemplate : .automatic, size: size)
+    }
+
     /// A symbol image (drawn from the substrate's symbol table at the body size).
     @MainActor
     public convenience init?(systemName name: String, withConfiguration configuration: SymbolConfiguration? = nil) {
