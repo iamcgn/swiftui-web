@@ -1,10 +1,21 @@
 // The values Core Data works with, without an Objective-C runtime: how a stored or fetched value
 // is unwrapped, compared and matched (what predicates and sort descriptors run on), and the
 // Foundation collection classes the generated accessors use. Apple's to-many relationships are
-// `NSSet` and `NSOrderedSet`; here `NSSet` is `Set<AnyHashable>`, so the casts apps write
-// (`children as? Set<Child>`, `children?.allObjects as? [Child]`) and the coercions
-// (`Set<Child>` passed where an `NSSet` goes) work as they do with bridging.
+// `NSSet` and `NSOrderedSet`. On wasm `NSSet` is Foundation's class (WebFoundationFormats),
+// which `Set` bridges to, so the casts apps write (`children as? Set<Child>`,
+// `children?.allObjects as? [Child]`, `set as NSSet`) work as on Apple platforms, and a package
+// that extends both `NSSet` and `Set` (swift-custom-dump) builds. Natively, where these tests
+// also run beside Foundation's own classes, `NSSet` stays `Set<AnyHashable>`.
 
+#if os(WASI)
+extension NSSet {
+    /// The members sorted by the descriptors.
+    public func sortedArray(using sortDescriptors: [NSSortDescriptor]) -> [Any] {
+        NSSortDescriptor._sort(allObjects, by: sortDescriptors)
+    }
+    public func filtered(using predicate: NSPredicate) -> NSSet { NSSet(array: allObjects.filter { predicate.evaluate(with: $0) }) }
+}
+#else
 /// An unordered collection of distinct objects (a to-many relationship's value).
 public typealias NSSet = Set<AnyHashable>
 
@@ -24,6 +35,7 @@ extension Set where Element == AnyHashable {
     }
     public func filtered(using predicate: NSPredicate) -> Set<AnyHashable> { filter { predicate.evaluate(with: $0.base) } }
 }
+#endif
 
 /// An ordered collection of distinct objects (an ordered to-many relationship's value).
 public struct NSOrderedSet: RandomAccessCollection, Hashable, @unchecked Sendable, CustomStringConvertible {
@@ -37,7 +49,7 @@ public struct NSOrderedSet: RandomAccessCollection, Hashable, @unchecked Sendabl
         for element in array { _append(element) }
     }
     public init(object: Any) { self.init(array: [object]) }
-    public init(set: Set<AnyHashable>) { self.init(array: set.allObjects) }
+    public init(set: Set<AnyHashable>) { self.init(array: set.map(\.base)) }
     public init(orderedSet: NSOrderedSet) { self = orderedSet }
 
     public var startIndex: Int { 0 }
@@ -167,6 +179,9 @@ func _cdElements(_ value: Any?) -> [Any]? {
     switch _cdUnwrap(value) {
     case let v as NSOrderedSet: return v.array
     case let v as Set<AnyHashable>: return v.map(\.base)
+    #if os(WASI)
+    case let v as NSSet: return v.allObjects
+    #endif
     case is String, is Data: return nil
     case let v as [Any]: return v
     default: return nil

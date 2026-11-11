@@ -27,7 +27,9 @@ public typealias NSComparisonPredicate = WebCoreData.NSComparisonPredicate
 public typealias NSExpression = WebCoreData.NSExpression
 public typealias NSSortDescriptor = WebCoreData.NSSortDescriptor
 public typealias SortDescriptor<Compared> = WebCoreData.SortDescriptor<Compared>
-public typealias NSSet = WebCoreData.NSSet
+#if !os(WASI)
+public typealias NSSet = WebCoreData.NSSet   // on wasm, Foundation's class (WebFoundationFormats)
+#endif
 public typealias NSOrderedSet = WebCoreData.NSOrderedSet
 public typealias NSMutableSet = WebCoreData.NSMutableSet
 public typealias NSMutableOrderedSet = WebCoreData.NSMutableOrderedSet
@@ -294,6 +296,12 @@ struct CoreDataTests {
         #expect(messiah.author === herbert)
         herbert.removeFromBooks(dune)
         #expect(dune.author == nil && herbert.books?.count == 1)
+        // The casts and coercions apps write against `NSSet`, as with Apple's bridging.
+        #expect((herbert.books as? Set<Book>) == [messiah])
+        #expect(herbert.books?.allObjects.first as? Book === messiah)
+        herbert.addToBooks(Set([dune]) as NSSet)
+        #expect(dune.author === herbert && herbert.books?.count == 2)
+        herbert.removeFromBooks(dune)
 
         let sf = Tag(context: context)
         sf.name = "sf"

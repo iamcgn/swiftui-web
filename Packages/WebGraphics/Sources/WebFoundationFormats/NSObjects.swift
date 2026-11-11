@@ -33,6 +33,50 @@ open class _WebNSDictionary: NSObject, @unchecked Sendable {
     open override var hash: Int { entries.count }
 }
 
+/// The object a set is as Foundation's `NSSet` (ObjectiveCBridging.swift declares it with the
+/// runtime): its members as `AnyHashable`. Equal when the members are.
+open class _WebNSSet: NSObject, ExpressibleByArrayLiteral, @unchecked Sendable {
+    public var members: [AnyHashable]
+    public init(members: [AnyHashable]) {
+        self.members = members
+        super.init()
+    }
+    public override convenience init() { self.init(members: []) }
+    public required convenience init(arrayLiteral elements: AnyHashable...) { self.init(members: Array(Set(elements))) }
+    public var count: Int { members.count }
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? _WebNSSet else { return false }
+        return Set(members) == Set(other.members)
+    }
+    open override var hash: Int { members.count }
+}
+
+/// `set as NSSet` and back, as with the runtime (ObjectiveCBridging.swift).
+extension Set: @retroactive _ObjectiveCBridgeable {
+    public typealias _ObjectiveCType = _WebNSSet
+    public func _bridgeToObjectiveC() -> _WebNSSet { _WebNSSet(members: map { AnyHashable($0) }) }
+    public static func _forceBridgeFromObjectiveC(_ source: _WebNSSet, result: inout Set<Element>?) {
+        guard _conditionallyBridgeFromObjectiveC(source, result: &result) else {
+            fatalError("a set's members are not \(Element.self)")
+        }
+    }
+    public static func _conditionallyBridgeFromObjectiveC(_ source: _WebNSSet, result: inout Set<Element>?) -> Bool {
+        var converted = Set<Element>(minimumCapacity: source.members.count)
+        for member in source.members {
+            guard let typed = (member.base as? Element) ?? (member as? Element) else { result = nil; return false }
+            converted.insert(typed)
+        }
+        result = converted
+        return true
+    }
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: _WebNSSet?) -> Set<Element> {
+        guard let source else { return [] }
+        var result: Set<Element>?
+        _forceBridgeFromObjectiveC(source, result: &result)
+        return result ?? []
+    }
+}
+
 /// The object a value is as one of Foundation's classes (`NSURL`, `NSUUID`, `NSData`).
 open class _WebNSValue: NSObject, @unchecked Sendable {
     private let _value: Any
@@ -64,6 +108,37 @@ public func _webValuesEqual(_ lhs: Any, _ rhs: Any) -> Bool {
     return false
 }
 #endif
+
+// MARK: - NSSet
+
+/// A static, unordered collection of distinct objects (a to-many relationship's value in Core
+/// Data). `set as NSSet` and `nsSet as? Set<Child>` convert, as on Apple platforms.
+public typealias NSSet = _WebNSSet
+
+extension _WebNSSet: Sequence {
+    public convenience init(array: [Any]) {
+        var seen = Set<AnyHashable>(), members: [AnyHashable] = []
+        for case let member as AnyHashable in array where seen.insert(member).inserted { members.append(member) }
+        self.init(members: members)
+    }
+    public convenience init(object: Any) { self.init(array: [object]) }
+    public convenience init(objects: Any...) { self.init(array: objects) }
+    public convenience init(set: Set<AnyHashable>) { self.init(members: Array(set)) }
+    public convenience init(set: NSSet) { self.init(members: set.members) }
+    /// The members, in no particular order.
+    public var allObjects: [Any] { members.map(\.base) }
+    /// One member, or `nil` when the set is empty.
+    public func anyObject() -> Any? { members.first?.base }
+    public func contains(_ anObject: Any) -> Bool { (anObject as? AnyHashable).map(members.contains) ?? false }
+    /// The member equal to `object`, or `nil`.
+    public func member(_ object: Any) -> Any? {
+        guard let key = object as? AnyHashable else { return nil }
+        return members.first { $0 == key }?.base
+    }
+    public func isSubset(of otherSet: Set<AnyHashable>) -> Bool { members.allSatisfy(otherSet.contains) }
+    public func intersects(_ otherSet: Set<AnyHashable>) -> Bool { members.contains(where: otherSet.contains) }
+    public func makeIterator() -> IndexingIterator<[Any]> { allObjects.makeIterator() }
+}
 
 // MARK: - NSDictionary
 
