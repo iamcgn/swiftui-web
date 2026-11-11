@@ -41,7 +41,8 @@ when they do not, the sweep's heuristics are wrong, not the package.
 - every third-party package the app pins (its `Package.resolved`, Xcode's or a local package's)
   is cloned at the pinned revision and built from source the same way, as a real build would:
   the targets the app's code reaches, macro targets included (built for the host against
-  swift-syntax). Binary, system-library and plugin targets, C-only targets and whatever needs
+  swift-syntax, with the libraries they use: those link SwiftUIWeb and the shadows of Apple's
+  modules only on wasm, so on the host they see Apple's own Foundation and Dispatch). Binary, system-library and plugin targets, C-only targets and whatever needs
   them are left out, and an import of one of those is taken out like a missing framework;
 - apps are grouped into batches whose module names do not collide (two apps pinning a package
   at the same revision share it), one generated package per batch, so SwiftUIWeb builds once a
