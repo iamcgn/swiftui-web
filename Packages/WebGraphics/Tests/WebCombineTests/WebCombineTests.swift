@@ -2,7 +2,9 @@
 // the closure subscriptions, the subjects, Future, and the operators apps chain (map, filter,
 // removeDuplicates, first, merge, combineLatest, catch, share, collect, zip, scan, prefix).
 import Testing
-#if !canImport(Darwin)
+#if canImport(Darwin)
+import Foundation      // Data and the JSON coders for decode(type:decoder:) and encode(encoder:)
+#else
 import WebFoundation
 #endif
 #if canImport(FoundationNetworking) && !os(WASI)
