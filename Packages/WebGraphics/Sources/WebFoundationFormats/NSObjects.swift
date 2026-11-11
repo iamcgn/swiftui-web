@@ -42,7 +42,7 @@ open class _WebNSSet: NSObject, ExpressibleByArrayLiteral, @unchecked Sendable {
         super.init()
     }
     public override convenience init() { self.init(members: []) }
-    public required convenience init(arrayLiteral elements: AnyHashable...) { self.init(members: Array(Set(elements))) }
+    public required convenience init(arrayLiteral elements: Any...) { self.init(members: _WebSetMember.distinct(elements)) }
     public var count: Int { members.count }
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? _WebNSSet else { return false }
@@ -116,24 +116,20 @@ public func _webValuesEqual(_ lhs: Any, _ rhs: Any) -> Bool {
 public typealias NSSet = _WebNSSet
 
 extension _WebNSSet: Sequence {
-    public convenience init(array: [Any]) {
-        var seen = Set<AnyHashable>(), members: [AnyHashable] = []
-        for case let member as AnyHashable in array where seen.insert(member).inserted { members.append(member) }
-        self.init(members: members)
-    }
+    public convenience init(array: [Any]) { self.init(members: _WebSetMember.distinct(array)) }
     public convenience init(object: Any) { self.init(array: [object]) }
     public convenience init(objects: Any...) { self.init(array: objects) }
     public convenience init(set: Set<AnyHashable>) { self.init(members: Array(set)) }
     public convenience init(set: NSSet) { self.init(members: set.members) }
     /// The members, in no particular order.
-    public var allObjects: [Any] { members.map(\.base) }
+    public var allObjects: [Any] { members.map(_WebSetMember.value) }
     /// One member, or `nil` when the set is empty.
-    public func anyObject() -> Any? { members.first?.base }
-    public func contains(_ anObject: Any) -> Bool { (anObject as? AnyHashable).map(members.contains) ?? false }
+    public func anyObject() -> Any? { members.first.map(_WebSetMember.value) }
+    public func contains(_ anObject: Any) -> Bool { members.contains(_WebSetMember.member(anObject)) }
     /// The member equal to `object`, or `nil`.
     public func member(_ object: Any) -> Any? {
-        guard let key = object as? AnyHashable else { return nil }
-        return members.first { $0 == key }?.base
+        let key = _WebSetMember.member(object)
+        return members.first { $0 == key }.map(_WebSetMember.value)
     }
     public func isSubset(of otherSet: Set<AnyHashable>) -> Bool { members.allSatisfy(otherSet.contains) }
     public func intersects(_ otherSet: Set<AnyHashable>) -> Bool { members.contains(where: otherSet.contains) }

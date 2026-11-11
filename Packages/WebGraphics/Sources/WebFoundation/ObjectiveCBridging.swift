@@ -54,7 +54,7 @@ open class _WebNSSet: NSObject, ExpressibleByArrayLiteral, @unchecked Sendable {
         super.init()
     }
     public override convenience init() { self.init(members: []) }
-    public required convenience init(arrayLiteral elements: AnyHashable...) { self.init(members: Array(Set(elements))) }
+    public required convenience init(arrayLiteral elements: Any...) { self.init(members: _WebSetMember.distinct(elements)) }
     public var count: Int { members.count }
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? _WebNSSet else { return false }

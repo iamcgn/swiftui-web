@@ -17,6 +17,8 @@ extension NSSet: _BothSetForms {}
 extension Set: _BothSetForms {}
 
 @Suite struct FoundationObjectsTests {
+    struct Tag { var name: String }
+
     @Test func sets() {
         let set = NSSet(array: [1, 2, 2, 3])
         #expect(set.count == 3)
@@ -30,6 +32,12 @@ extension Set: _BothSetForms {}
         // Linux's Foundation has no array literal for NSSet.
         let literal: NSSet = [1, 2]
         #expect(literal.count == 2)
+        // A member that isn't Hashable is kept, as Foundation keeps one in its box.
+        let tagged: NSSet = [Tag(name: "a"), 1]
+        #expect(tagged.count == 2)
+        #expect(tagged.allObjects.contains { ($0 as? Tag)?.name == "a" })
+        #expect(NSSet(array: [Tag(name: "b")]).count == 1)
+        #expect((NSSet(objects: Tag(name: "c")).anyObject() as? Tag)?.name == "c")
         #endif
         var seen = 0
         for case let member as Int in set { seen += member }
