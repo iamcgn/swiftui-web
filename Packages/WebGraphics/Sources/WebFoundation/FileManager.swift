@@ -81,6 +81,69 @@ public final class FileManager: @unchecked Sendable {
         try copyItem(at: source, to: destination)
         _MemoryFiles.remove(source)
     }
+    /// The path forms, as SwiftyBeaver rotates its log files.
+    public func copyItem(atPath srcPath: String, toPath dstPath: String) throws {
+        try copyItem(at: URL(fileURLWithPath: srcPath), to: URL(fileURLWithPath: dstPath))
+    }
+    public func moveItem(atPath srcPath: String, toPath dstPath: String) throws {
+        try moveItem(at: URL(fileURLWithPath: srcPath), to: URL(fileURLWithPath: dstPath))
+    }
+    /// A link is a copy here: the in-memory files have no links.
+    public func linkItem(at srcURL: URL, to dstURL: URL) throws { try copyItem(at: srcURL, to: dstURL) }
+    public func linkItem(atPath srcPath: String, toPath dstPath: String) throws { try copyItem(atPath: srcPath, toPath: dstPath) }
+
+    /// The options of `replaceItemAt` (none changes what happens here).
+    public struct ItemReplacementOptions: OptionSet, Sendable {
+        public let rawValue: UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        public static let usingNewMetadataOnly = ItemReplacementOptions(rawValue: 1)
+        public static let withoutDeletingBackupItem = ItemReplacementOptions(rawValue: 2)
+    }
+    /// Puts the new item's bytes at the original's URL and removes the new item; the result is
+    /// the original's URL (a safe save: write a temporary file, then replace).
+    @discardableResult
+    public func replaceItemAt(_ originalItemURL: URL, withItemAt newItemURL: URL, backupItemName: String? = nil,
+                              options: ItemReplacementOptions = []) throws -> URL? {
+        guard let data = _MemoryFiles.read(newItemURL) else { throw _FileError.noSuchFile(newItemURL) }
+        if let backupItemName, options.contains(.withoutDeletingBackupItem), let old = _MemoryFiles.read(originalItemURL) {
+            _MemoryFiles.write(old, to: originalItemURL.deletingLastPathComponent().appendingPathComponent(backupItemName))
+        }
+        _MemoryFiles.write(data, to: originalItemURL)
+        _MemoryFiles.remove(newItemURL)
+        return originalItemURL
+    }
+
+    /// Every file here belongs to the app, so what exists can be read, written and deleted.
+    public func isReadableFile(atPath path: String) -> Bool { fileExists(atPath: path) }
+    public func isWritableFile(atPath path: String) -> Bool { fileExists(atPath: path) }
+    public func isDeletableFile(atPath path: String) -> Bool { fileExists(atPath: path) }
+    public func isExecutableFile(atPath path: String) -> Bool { false }
+    /// The name to show for the item: its last path component.
+    public func displayName(atPath path: String) -> String { URL(fileURLWithPath: path).lastPathComponent }
+    /// True when both paths name files with the same bytes, or both name directories.
+    public func contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
+        let first = URL(fileURLWithPath: path1), second = URL(fileURLWithPath: path2)
+        if _MemoryFiles.isDirectory(first) || _MemoryFiles.isDirectory(second) {
+            return _MemoryFiles.isDirectory(first) && _MemoryFiles.isDirectory(second)
+        }
+        guard let a = _MemoryFiles.read(first), let b = _MemoryFiles.read(second) else { return false }
+        return a == b
+    }
+    /// Every path under the directory, relative to it, depth first.
+    public func subpathsOfDirectory(atPath path: String) throws -> [String] {
+        let url = URL(fileURLWithPath: path, isDirectory: true)
+        guard _MemoryFiles.isDirectory(url) else { throw _FileError.noSuchFile(url) }
+        return enumerator(atPath: path)?.allObjects.compactMap { $0 as? String } ?? []
+    }
+    public func subpaths(atPath path: String) -> [String]? { try? subpathsOfDirectory(atPath: path) }
+    /// The file system's size and free space: the page's storage has no fixed size, so these are
+    /// the browser's usual origin quota (a cache or a download checks free space before writing).
+    public func attributesOfFileSystem(forPath path: String) throws -> [FileAttributeKey: Any] {
+        let used = _MemoryFiles.contents(of: URL(fileURLWithPath: "/", isDirectory: true)).count
+        return [.systemSize: NSNumber(value: Int64(1) << 30), .systemFreeSize: NSNumber(value: (Int64(1) << 30) - Int64(used)),
+                .systemNodes: NSNumber(value: 1 << 20), .systemFreeNodes: NSNumber(value: (1 << 20) - used), .systemNumber: NSNumber(value: 1)]
+    }
+
     public func contentsOfDirectory(at url: URL, includingPropertiesForKeys keys: [URLResourceKey]? = nil, options: DirectoryEnumerationOptions = []) throws -> [URL] {
         _MemoryFiles.contents(of: url)
     }
@@ -158,6 +221,20 @@ public struct FileAttributeKey: Hashable, Sendable, RawRepresentable {
     public static let type = FileAttributeKey("NSFileType")
     public static let posixPermissions = FileAttributeKey("NSFilePosixPermissions")
     public static let protectionKey = FileAttributeKey("NSFileProtectionKey")
+    public static let referenceCount = FileAttributeKey("NSFileReferenceCount")
+    public static let ownerAccountName = FileAttributeKey("NSFileOwnerAccountName")
+    public static let groupOwnerAccountName = FileAttributeKey("NSFileGroupOwnerAccountName")
+    public static let ownerAccountID = FileAttributeKey("NSFileOwnerAccountID")
+    public static let groupOwnerAccountID = FileAttributeKey("NSFileGroupOwnerAccountID")
+    public static let extensionHidden = FileAttributeKey("NSFileExtensionHidden")
+    public static let immutable = FileAttributeKey("NSFileImmutable")
+    public static let appendOnly = FileAttributeKey("NSFileAppendOnly")
+    public static let systemNumber = FileAttributeKey("NSFileSystemNumber")
+    public static let systemFileNumber = FileAttributeKey("NSFileSystemFileNumber")
+    public static let systemSize = FileAttributeKey("NSFileSystemSize")
+    public static let systemFreeSize = FileAttributeKey("NSFileSystemFreeSize")
+    public static let systemNodes = FileAttributeKey("NSFileSystemNodes")
+    public static let systemFreeNodes = FileAttributeKey("NSFileSystemFreeNodes")
 }
 
 /// The kind of a file (`FileAttributeKey.type`'s value).
