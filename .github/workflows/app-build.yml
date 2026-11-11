@@ -3,12 +3,13 @@
 # unmodified app up (its errors list what SwiftUI Web still lacks). When the build passes and
 # Playwright/<product, lowercased>-probe.mjs exists, the probe runs in Chromium and its report
 # (with what each step saw) is printed. Runs on a push to a
-# `claude/app-*` branch that changes Apps/, an app's probe or this file, or by hand with a product name.
+# `claude/app-*` branch that changes Apps/, the libraries, an app's probe or this file, or by hand
+# with a product name.
 name: App build
 on:
   push:
     branches: ['claude/app-*']
-    paths: ['Apps/**', 'Playwright/*-probe.mjs', '.github/workflows/app-build.yml']
+    paths: ['Apps/**', 'Sources/**', 'Packages/**', 'Playwright/*-probe.mjs', '.github/workflows/app-build.yml']
   workflow_dispatch:
     inputs:
       product:
