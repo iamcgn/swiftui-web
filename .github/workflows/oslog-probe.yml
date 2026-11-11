@@ -1,0 +1,20 @@
+# Scratch experiment (branch claude/oslog-probe only): can `import os.log` resolve against a
+# Swift `os` module whose clang half declares the submodules? Never merged.
+name: oslog probe
+on:
+  push:
+    branches: ['claude/oslog-probe']
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    container: swift:6.3.3
+    strategy: { fail-fast: false, matrix: { v: [v1, v2] } }
+    steps:
+      - uses: actions/checkout@v4
+      - name: wasm SDK
+        run: swift sdk install https://download.swift.org/swift-6.3.3-release/wasm-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_wasm.artifactbundle.tar.gz --checksum cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7
+      - name: native
+        run: cd Exp/${{ matrix.v }} && swift build -v 2>&1 | tail -40 && swift run App
+      - name: wasm
+        if: always()
+        run: cd Exp/${{ matrix.v }} && swift build --swift-sdk swift-6.3.3-RELEASE_wasm 2>&1 | tail -40

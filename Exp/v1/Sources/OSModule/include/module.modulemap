@@ -1,0 +1,12 @@
+module os [system] {
+  header "os.h"
+  export *
+  explicit module log {
+    header "log.h"
+    export *
+  }
+  explicit module signpost {
+    header "signpost.h"
+    export *
+  }
+}
