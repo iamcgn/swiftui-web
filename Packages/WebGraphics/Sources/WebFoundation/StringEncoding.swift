@@ -259,13 +259,15 @@ extension String {
 // reads, FileManager.swift). These shadow FoundationEssentials' forms, which would go to the WASI
 // file system the page does not have. The errors are Foundation's: NSCocoaErrorDomain, 260 for
 // a missing file, 261 for bytes the encoding cannot read, 264 when no encoding reads them.
+// The path forms carry `__shared` as FoundationEssentials' do: with the same signature these
+// shadow them, where a different one left the call ambiguous.
 extension String {
     public init(contentsOf url: URL, encoding enc: Encoding) throws {
         let data = try Data(contentsOf: url)
         guard let text = String(data: data, encoding: enc) else { throw String._readError(261, url) }
         self = text
     }
-    public init(contentsOfFile path: String, encoding enc: Encoding) throws {
+    public init(contentsOfFile path: __shared String, encoding enc: Encoding) throws {
         try self.init(contentsOf: URL(fileURLWithPath: path), encoding: enc)
     }
     /// The file read in the encoding its bytes are most likely in (a byte-order mark's, else
@@ -278,7 +280,7 @@ extension String {
         usedEncoding = Encoding(rawValue: raw)
         self = found.string
     }
-    public init(contentsOfFile path: String, usedEncoding: inout Encoding) throws {
+    public init(contentsOfFile path: __shared String, usedEncoding: inout Encoding) throws {
         try self.init(contentsOf: URL(fileURLWithPath: path), usedEncoding: &usedEncoding)
     }
     /// The forms without an encoding, which Apple deprecated but still has (SwiftCommonMark's
@@ -289,13 +291,15 @@ extension String {
     }
     public init(contentsOfFile path: String) throws {
         var encoding = Encoding.utf8
-        try self.init(contentsOfFile: path, usedEncoding: &encoding)
+        try self.init(contentsOf: URL(fileURLWithPath: path), usedEncoding: &encoding)
     }
 
     /// Writes the string's bytes in the encoding to the file (atomically or not: the store
     /// replaces a file whole either way).
     public func write(to url: URL, atomically useAuxiliaryFile: Bool, encoding enc: Encoding) throws {
-        guard let data = data(using: enc, allowLossyConversion: false) else {
+        // The core's bytes: `data(using:allowLossyConversion:)` is ambiguous with
+        // FoundationEssentials' inside this module.
+        guard let data = _bytes(enc).map({ Data($0) }) else {
             throw NSError(domain: NSCocoaErrorDomain, code: 517, userInfo: [NSFilePathErrorKey: url.path])
         }
         try data.write(to: url)
