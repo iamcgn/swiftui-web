@@ -24,6 +24,47 @@ extension String {
     public init(localized resource: LocalizedStringResource) {
         self = resource.resolved
     }
+
+    /// Creates a localized string from a localization value: an interpolated literal whose
+    /// values carry a printf specifier or a format style (FoodTruck's
+    /// `String(localized: "#\(12)\(number, specifier: "%02d")")`), which a plain `String`'s
+    /// interpolation has no form for. A plain literal still reads as the `String` form above.
+    public init(localized keyAndValue: LocalizationValue, table: String? = nil, bundle: Bundle? = nil, locale: Locale = .current, comment: StaticString? = nil) {
+        self = (bundle ?? .main).localizedString(forKey: keyAndValue.key, value: keyAndValue.key, table: table)
+    }
+
+    /// Creates a localized string from a static key, with a localization value as the default.
+    public init(localized key: StaticString, defaultValue: LocalizationValue, table: String? = nil, bundle: Bundle? = nil, locale: Locale = .current, comment: StaticString? = nil) {
+        self = (bundle ?? .main).localizedString(forKey: "\(key)", value: defaultValue.key, table: table)
+    }
+
+    /// A localizable string's key and default value, built from a literal. Its key is the text
+    /// with the values in place (see the note at the top of this file).
+    public struct LocalizationValue: Hashable, Sendable, Codable, ExpressibleByStringInterpolation, CustomDebugStringConvertible {
+        package var key: String
+
+        public init(_ value: String) { key = value }
+        public init(stringLiteral value: String) { key = value }
+        public init(stringInterpolation: StringInterpolation) { key = stringInterpolation.output }
+
+        public var debugDescription: String { key }
+
+        public struct StringInterpolation: StringInterpolationProtocol, Sendable {
+            package var output = ""
+            public init(literalCapacity: Int, interpolationCount: Int) { output.reserveCapacity(literalCapacity) }
+            public mutating func appendLiteral(_ literal: String) { output += literal }
+            public mutating func appendInterpolation(_ string: String) { output += string }
+            public mutating func appendInterpolation<T>(_ value: T) { output += String(describing: value) }
+            /// A value written with a printf specifier: `"\(count, specifier: "%02d")"`.
+            public mutating func appendInterpolation<T>(_ value: T, specifier: String) {
+                output += _PrintfFormat.format(specifier, [value])
+            }
+            /// A value written by a format style: `"\(date, format: .dateTime.year())"`.
+            public mutating func appendInterpolation<F: FormatStyle>(_ input: F.FormatInput, format: F) where F.FormatOutput == String {
+                output += format.format(input)
+            }
+        }
+    }
 }
 
 #endif

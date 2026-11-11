@@ -274,6 +274,8 @@ public struct AnyTransition: Sendable {
     /// Returns a transition that scales the view (about its centre).
     public static let scale = AnyTransition(kind: .scale(0, .center))
     public static func scale(_ scale: Double, anchor: UnitPoint = .center) -> AnyTransition { AnyTransition(kind: .scale(CGFloat(scale), anchor)) }
+    /// Returns a transition that scales the view by the factor about the anchor (FoodTruck's box lid).
+    public static func scale(scale: CGFloat, anchor: UnitPoint = .center) -> AnyTransition { AnyTransition(kind: .scale(scale, anchor)) }
     /// Provides a composite transition that uses a different transition for insertion versus removal.
     public static func asymmetric(insertion: AnyTransition, removal: AnyTransition) -> AnyTransition {
         AnyTransition(kind: .asymmetric(insertion: insertion.kind, removal: removal.kind), animation: insertion.animation ?? removal.animation)

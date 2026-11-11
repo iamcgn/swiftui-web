@@ -16,6 +16,9 @@ public struct Angle: Hashable, Sendable {
     @inlinable public static func degrees(_ degrees: Double) -> Angle { Angle(degrees: degrees) }
 
     public static let zero = Angle()
+
+    /// The angle turned the other way (FoodTruck's `context.rotate(by: -layer.rotation)`).
+    @inlinable public static prefix func - (angle: Angle) -> Angle { Angle(radians: -angle.radians) }
 }
 
 extension Angle: Comparable {

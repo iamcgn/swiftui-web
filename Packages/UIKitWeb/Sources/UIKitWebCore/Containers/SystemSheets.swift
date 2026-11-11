@@ -275,6 +275,22 @@ open class UIImagePickerController: UIViewController {
         sourceType != .camera && UIKitScene.shared.fileOpenHandler != nil
     }
 
+    /// The device's cameras. The hosts offer none, so neither is available (Umbrella's camera
+    /// permission check asks for both before it asks for access).
+    public enum CameraDevice: Int, Sendable { case rear = 0, front }
+    public enum CameraCaptureMode: Int, Sendable { case photo = 0, video }
+    public enum CameraFlashMode: Int, Sendable { case off = -1, auto = 0, on = 1 }
+    open var cameraDevice: CameraDevice = .rear
+    open var cameraCaptureMode: CameraCaptureMode = .photo
+    open var cameraFlashMode: CameraFlashMode = .auto
+
+    public class func isCameraDeviceAvailable(_ cameraDevice: CameraDevice) -> Bool { false }
+    public class func isFlashAvailable(for cameraDevice: CameraDevice) -> Bool { false }
+    /// The media types a source offers: images from the library, nothing from the camera.
+    public class func availableMediaTypes(for sourceType: SourceType) -> [String]? {
+        isSourceTypeAvailable(sourceType) ? ["public.image"] : nil
+    }
+
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         guard let open = UIKitScene.shared.fileOpenHandler, sourceType != .camera else {
