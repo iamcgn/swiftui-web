@@ -7,7 +7,7 @@
     {"name": "FoodTruck", "repo": "apple/sample-food-truck"},
     {"name": "IceCubes", "repo": "Dimillian/IceCubesApp"},
     {"name": "CleanArchitecture", "repo": "nalexn/clean-architecture-swiftui"},
-    {"name": "EhPanda", "repo": "EhPanda-Team/EhPanda"},
+    {"name": "EhPanda", "repo": "EhPanda-Team/EhPanda", "ref": "37b979965cf7c4778877c795e8df60c2c0ff6eb3"},
     {"name": "OldOS", "repo": "zzanehip/The-OldOS-Project"},
     {"name": "ChartsExamples", "repo": "jordibruin/Swift-Charts-Examples"},
     {"name": "SwiftUIExperiments", "repo": "mikelikesdesign/SwiftUI-experiments"},
