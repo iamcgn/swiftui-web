@@ -178,7 +178,10 @@ public final class UIKitScene: HostedScene {
     // MARK: Services the host installs
 
     public var textEngine: any TextEngine = PlaceholderTextEngine()
-    public var assetCatalog: AssetCatalog = .empty { didSet { setNeedsFrame() } }
+    public var assetCatalog: AssetCatalog = .empty { didSet { UIKitScene._catalog = assetCatalog; setNeedsFrame() } }
+    /// The catalog as the image and colour initializers read it: Apple's `UIImage(named:)` and
+    /// `UIColor(named:)` are callable from any context, and a wasm page has one thread.
+    nonisolated(unsafe) static var _catalog: AssetCatalog = .empty
     public var imageLoader: (any _ImageLoading)?
     /// Rasterises a recorded drawing for `UIImage.pngData()` (installed by hosts that can).
     public var imageRasterizer: ImageRasterizer?

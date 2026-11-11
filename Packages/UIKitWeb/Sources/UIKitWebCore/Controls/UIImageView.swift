@@ -84,22 +84,47 @@ public final class UIImage: Hashable, @unchecked Sendable {
         self.init(name: "", isSystemSymbol: false, scale: drawing.scale, size: drawing.size, drawing: drawing)
     }
 
-    /// An image from the app's asset catalog; nil when the catalog has no such name.
-    @MainActor
+    /// An image from the app's asset catalog; nil when the catalog has no such name. Callable
+    /// from any context, as Apple's is (a model or a background task makes images too).
     public convenience init?(named name: String) {
-        guard let resource = UIKitScene.shared.assetCatalog.image(named: name) else { return nil }
+        guard let resource = UIKitScene._catalog.image(named: name) else { return nil }
         let size = resource.variants.max { $0.scale < $1.scale }?.pointSize ?? .zero
         self.init(name: name, isSystemSymbol: false, renderingMode: resource.isTemplate ? .alwaysTemplate : .automatic, size: size)
     }
 
     /// A symbol image (drawn from the substrate's symbol table at the body size).
-    @MainActor
     public convenience init?(systemName name: String, withConfiguration configuration: SymbolConfiguration? = nil) {
-        guard SystemSymbolGlyphs.glyph(named: name) != nil else { return nil }
+        guard SystemSymbolGlyphs.table[name] != nil else { return nil }
         let pointSize = configuration?.pointSize ?? 17
         let side = (pointSize * 1.25).rounded()
         self.init(name: name, isSystemSymbol: true, renderingMode: .alwaysTemplate, size: CGSize(width: side, height: side), symbolConfiguration: configuration)
     }
+
+    /// The catalog image for traits or a configuration: the page has one bundle, and a catalog
+    /// image has one set of variants, so the image is `init(named:)`'s with the configuration kept.
+    public convenience init?(named name: String, in bundle: Bundle?, compatibleWith traitCollection: UITraitCollection?) {
+        self.init(named: name)
+    }
+    public convenience init?(named name: String, in bundle: Bundle?, with configuration: Configuration?) {
+        guard let resource = UIKitScene._catalog.image(named: name) else { return nil }
+        let size = resource.variants.max { $0.scale < $1.scale }?.pointSize ?? .zero
+        self.init(name: name, isSystemSymbol: false, renderingMode: resource.isTemplate ? .alwaysTemplate : .automatic, size: size,
+                  symbolConfiguration: configuration)
+    }
+    /// A variable-value image (a symbol's bars filled to `variableValue`): drawn whole here.
+    public convenience init?(named name: String, in bundle: Bundle?, variableValue: Double, configuration: Configuration?) {
+        self.init(named: name, in: bundle, with: configuration)
+    }
+    /// A symbol for traits: the symbol at the body size (traits change no glyph here).
+    public convenience init?(systemName name: String, compatibleWith traitCollection: UITraitCollection?) {
+        self.init(systemName: name, withConfiguration: nil)
+    }
+    /// A variable symbol: drawn whole, at the configuration's size.
+    public convenience init?(systemName name: String, variableValue: Double, configuration: Configuration?) {
+        self.init(systemName: name, withConfiguration: configuration)
+    }
+    /// The configuration the image was made with.
+    public var configuration: Configuration? { symbolConfiguration }
 
     public func withRenderingMode(_ mode: RenderingMode) -> UIImage {
         UIImage(name: name, isSystemSymbol: isSystemSymbol, renderingMode: mode, scale: scale, size: size, tint: tint, symbolConfiguration: symbolConfiguration, drawing: drawing, data: data, pixelSize: pixelSize, images: images, duration: duration, orientation: imageOrientation, cgImage: madeFromCGImage)
@@ -140,6 +165,10 @@ public final class UIImage: Hashable, @unchecked Sendable {
     }
     public func hash(into hasher: inout Hasher) { hasher.combine(name) }
 
+    /// An image's configuration. Apple's is a class that `SymbolConfiguration` subclasses; the
+    /// symbol configuration is the only one an image here holds, so the two are one type.
+    public typealias Configuration = SymbolConfiguration
+
     /// How a symbol image is sized and weighted.
     public struct SymbolConfiguration: Equatable, Sendable {
         public var pointSize: CGFloat?
@@ -152,6 +181,30 @@ public final class UIImage: Hashable, @unchecked Sendable {
         public init(scale: Scale) { self.scale = scale }
         public init(textStyle: UIFont.TextStyle) { pointSize = textStyle.metrics.size }
         public init(weight: UIFont.Weight) { self.weight = weight }
+        public init(textStyle: UIFont.TextStyle, scale: Scale) { pointSize = textStyle.metrics.size; self.scale = scale }
+        public init(font: UIFont, scale: Scale = .default) { pointSize = font.pointSize; self.scale = scale }
+        /// The colour forms: a symbol here is drawn in one colour (the tint), so these size nothing
+        /// and draw as the tint does.
+        public init(hierarchicalColor: UIColor) {}
+        public init(paletteColors: [UIColor]) {}
+        public static func preferringMulticolor() -> SymbolConfiguration { SymbolConfiguration() }
+        public static var unspecified: SymbolConfiguration { SymbolConfiguration() }
+        private init() {}
+        /// This configuration with `other`'s values over it, where `other` has them.
+        public func applying(_ other: SymbolConfiguration?) -> SymbolConfiguration {
+            guard let other else { return self }
+            var merged = self
+            if let size = other.pointSize { merged.pointSize = size }
+            if let weight = other.weight { merged.weight = weight }
+            if let scale = other.scale { merged.scale = scale }
+            return merged
+        }
+        public func configurationWithoutPointSizeAndWeight() -> SymbolConfiguration {
+            var copy = self
+            copy.pointSize = nil
+            copy.weight = nil
+            return copy
+        }
     }
 }
 

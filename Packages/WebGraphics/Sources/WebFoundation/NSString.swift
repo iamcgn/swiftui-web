@@ -223,3 +223,75 @@ extension StringProtocol {
     }
 }
 #endif
+
+// The string object from bytes, and Foundation's guess at the bytes' encoding (OpenGraph reads a
+// page's charset this way, TelemetryDeck prints JSON through `NSString(data:encoding:)`). The
+// encodings are `String.Encoding`'s raw values, as Foundation's `NSString` takes them.
+#if os(WASI)
+import FoundationEssentials
+
+/// The options `NSString.stringEncoding(for:…)` takes (the suggested encodings, lossy reading).
+public struct StringEncodingDetectionOptionsKey: Hashable, Sendable, RawRepresentable {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+    public static let suggestedEncodingsKey = StringEncodingDetectionOptionsKey(rawValue: "NSStringEncodingDetectionSuggestedEncodingsKey")
+    public static let disallowedEncodingsKey = StringEncodingDetectionOptionsKey(rawValue: "NSStringEncodingDetectionDisallowedEncodingsKey")
+    public static let useOnlySuggestedEncodingsKey = StringEncodingDetectionOptionsKey(rawValue: "NSStringEncodingDetectionUseOnlySuggestedEncodingsKey")
+    public static let allowLossyKey = StringEncodingDetectionOptionsKey(rawValue: "NSStringEncodingDetectionAllowLossyKey")
+    public static let lossySubstitutionKey = StringEncodingDetectionOptionsKey(rawValue: "NSStringEncodingDetectionLossySubstitutionKey")
+}
+
+extension _WebNSString {
+    /// The string the bytes spell in the encoding (`String.Encoding.utf8.rawValue`); nil when they
+    /// are not valid in it.
+    public convenience init?(data: Data, encoding: UInt) {
+        guard let text = String(data: data, encoding: String.Encoding(rawValue: encoding)) else { return nil }
+        self.init(string: text)
+    }
+    public convenience init?(bytes: UnsafeRawPointer, length: Int, encoding: UInt) {
+        let buffer = UnsafeRawBufferPointer(start: bytes, count: length)
+        guard let text = String(bytes: Array(buffer), encoding: String.Encoding(rawValue: encoding)) else { return nil }
+        self.init(string: text)
+    }
+    public convenience init(format: String, _ arguments: Any...) {
+        self.init(string: _PrintfFormat.format(format, arguments))
+    }
+    /// The string's bytes in the encoding, nil when a character has no code in it.
+    public func data(using encoding: UInt, allowLossyConversion lossy: Bool = false) -> Data? {
+        string.data(using: String.Encoding(rawValue: encoding), allowLossyConversion: lossy)
+    }
+
+    /// The encoding the bytes are most likely in, as a raw value (0 when none reads them), with
+    /// the string they spell in it. A byte-order mark names its Unicode encoding; otherwise the
+    /// suggested encodings are tried first, then UTF-8, then Windows Latin 1, which reads any bytes
+    /// but five, then ISO Latin 1, which reads them all.
+    public static func stringEncoding(for data: Data, encodingOptions opts: [StringEncodingDetectionOptionsKey: Any]? = nil,
+                                      convertedString string: UnsafeMutablePointer<NSString?>?,
+                                      usedLossyConversion: UnsafeMutablePointer<ObjCBool>?) -> UInt {
+        usedLossyConversion?.pointee = ObjCBool(false)
+        let bytes = data.bytes
+        var candidates: [String.Encoding] = []
+        if bytes.starts(with: [0xEF, 0xBB, 0xBF]) {
+            candidates = [.utf8]
+        } else if bytes.starts(with: [0xFF, 0xFE, 0, 0]) || bytes.starts(with: [0, 0, 0xFE, 0xFF]) {
+            candidates = [.utf32]
+        } else if bytes.starts(with: [0xFF, 0xFE]) || bytes.starts(with: [0xFE, 0xFF]) {
+            candidates = [.utf16]
+        } else {
+            let suggested = (opts?[.suggestedEncodingsKey] as? [UInt] ?? (opts?[.suggestedEncodingsKey] as? [NSNumber])?.map(\.uintValue) ?? [])
+                .map { String.Encoding(rawValue: $0) }
+            let onlySuggested = (opts?[.useOnlySuggestedEncodingsKey] as? Bool) ?? false
+            candidates = suggested + (onlySuggested ? [] : [.utf8, .windowsCP1252, .isoLatin1])
+            let disallowed = Set(((opts?[.disallowedEncodingsKey] as? [UInt]) ?? []))
+            candidates.removeAll { disallowed.contains($0.rawValue) }
+        }
+        for encoding in candidates {
+            guard var text = String(data: data, encoding: encoding) else { continue }
+            if text.first == "\u{FEFF}" { text.removeFirst() }
+            string?.pointee = NSString(string: text)
+            return encoding.rawValue
+        }
+        return 0
+    }
+}
+#endif
