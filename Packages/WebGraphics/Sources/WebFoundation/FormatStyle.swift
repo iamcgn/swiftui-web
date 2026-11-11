@@ -385,6 +385,16 @@ open class NumberFormatter: Formatter {
     open var maximumFractionDigits = 0
     open var usesGroupingSeparator = false
     open var currencyCode = "USD"
+    /// Whether a number with no fraction digits still shows its decimal point ("12.").
+    open var alwaysShowsDecimalSeparator = false
+    /// Whether `number(from:)` accepts a fraction; false reads only whole numbers.
+    open var allowsFloats = true
+    /// The fewest integer digits shown, padded with leading zeros ("007" for 3); 0 or 1 adds none.
+    open var minimumIntegerDigits = 0
+    /// Text after a number that is zero or more ("K" in "12K").
+    open var positiveSuffix: String! = ""
+    /// Text after a negative number.
+    open var negativeSuffix: String! = ""
     /// The locale the formatter is for. Kept, not applied: numbers format as en_US
     /// (decision 0017).
     open lazy var locale: Locale = .current
@@ -435,14 +445,34 @@ open class NumberFormatter: Formatter {
     /// The string for a number (Foundation's only `string(from:)`).
     public func string(from number: NSNumber) -> String? { format(number.doubleValue) }
 
-    private func format(_ value: Double) -> String {
+    private func format(_ value: Double) -> String { decorate(styled(value), negative: value < 0) }
+
+    private func format<I: BinaryInteger>(_ value: I) -> String { decorate(styled(value), negative: value < 0) }
+
+    /// `text` with the integer digits padded, the decimal separator kept and the sign's suffix.
+    private func decorate(_ text: String, negative: Bool) -> String {
+        var out = text
+        if minimumIntegerDigits > 1, let first = out.firstIndex(where: \.isNumber) {
+            let integer = out[first...].prefix { $0.isNumber || $0 == "," }
+            let digits = integer.filter(\.isNumber).count
+            if digits < minimumIntegerDigits {
+                out.insert(contentsOf: String(repeating: "0", count: minimumIntegerDigits - digits), at: first)
+            }
+        }
+        if alwaysShowsDecimalSeparator, !out.contains("."), let last = out.lastIndex(where: \.isNumber) {
+            out.insert(".", at: out.index(after: last))
+        }
+        return out + ((negative ? negativeSuffix : positiveSuffix) ?? "")
+    }
+
+    private func styled(_ value: Double) -> String {
         guard numberStyle == .ordinal else { return core.format(value) }
         let rounded = value.rounded(.toNearestOrEven)
         guard let whole = Int(exactly: rounded) else { return core.format(value) }
-        return format(whole)
+        return styled(whole)
     }
 
-    private func format<I: BinaryInteger>(_ value: I) -> String {
+    private func styled<I: BinaryInteger>(_ value: I) -> String {
         guard numberStyle == .ordinal else { return core.format(value) }
         // English suffixes: 1st, 2nd, 3rd, then th, with 11th to 13th in every hundred.
         let lastTwo = Int(value.magnitude % 100)
@@ -457,9 +487,38 @@ open class NumberFormatter: Formatter {
     }
 
     /// The number in `string`, nil when it does not parse.
-    public func number(from string: String) -> Double? { core.parse(string) }
+    public func number(from string: String) -> Double? {
+        #if canImport(ObjectiveC)
+        // Through `getObjectValue`, as Foundation's, so a subclass's own reading applies.
+        var object: AnyObject?
+        try? getObjectValue(&object, for: string, range: nil)
+        return (object as? NSNumber)?.doubleValue
+        #else
+        parse(string)
+        #endif
+    }
 
-    open override func value(from string: String) -> Any? { core.parse(string) }
+    open override func value(from string: String) -> Any? { parse(string) }
+
+    private func parse(_ string: String) -> Double? {
+        var text = string
+        for suffix in [positiveSuffix ?? "", negativeSuffix ?? ""] where !suffix.isEmpty && text.hasSuffix(suffix) {
+            text.removeLast(suffix.count)
+            break
+        }
+        guard let value = core.parse(text) else { return nil }
+        return allowsFloats || value.rounded(.towardZero) == value ? value : nil
+    }
+
+    #if canImport(ObjectiveC)
+    /// Reads the number in `string` into `obj` (an `NSNumber`); subclasses override it to read
+    /// their own forms, as Foundation's does. Throws nothing here: a string that does not
+    /// parse leaves `obj` nil.
+    open func getObjectValue(_ obj: AutoreleasingUnsafeMutablePointer<AnyObject?>?, for string: String,
+                             range rangep: UnsafeMutablePointer<NSRange>?) throws {
+        obj?.pointee = parse(string).map { NSNumber(value: $0) }
+    }
+    #endif
 }
 #endif
 
