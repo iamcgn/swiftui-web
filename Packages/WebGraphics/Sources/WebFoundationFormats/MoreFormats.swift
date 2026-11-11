@@ -634,6 +634,14 @@ extension Locale {
         public var parent: Language? { nil }
         public func hasCommonParent(with language: Language) -> Bool { languageCode == language.languageCode }
         public func isEquivalent(to language: Language) -> Bool { self == language }
+        /// Which way the language's characters run: right to left for the Arabic, Hebrew, Thaana,
+        /// Syriac and N'Ko scripts and the languages written in them, else left to right.
+        public var characterDirection: LanguageDirection {
+            if let script { return Locale._rightToLeftScripts.contains(script.identifier) ? .rightToLeft : .leftToRight }
+            return Locale.characterDirection(forLanguage: languageCode?.identifier ?? "")
+        }
+        /// Which way the language's lines follow each other: top to bottom.
+        public var lineLayoutDirection: LanguageDirection { languageCode == nil && script == nil ? .unknown : .topToBottom }
 
         /// The language, script and region a language is made of.
         public struct Components: Hashable, Sendable, Codable {
@@ -654,6 +662,39 @@ extension Locale {
 
     /// The locale's language, with its script and region.
     public var language: Language { Language(identifier: identifier) }
+
+    /// Which way a language's characters or lines run, with Apple's raw values.
+    public enum LanguageDirection: UInt, Sendable {
+        case unknown = 0
+        case leftToRight = 1
+        case rightToLeft = 2
+        case topToBottom = 3
+        case bottomToTop = 4
+    }
+
+    /// Which way a language's characters run ("ar" and "he" right to left, "en" left to right);
+    /// unknown for an empty code.
+    public static func characterDirection(forLanguage isoLangCode: String) -> LanguageDirection {
+        let parts = isoLangCode.split { $0 == "-" || $0 == "_" }
+        guard let language = parts.first?.lowercased(), !language.isEmpty else { return .unknown }
+        if let script = parts.dropFirst().first(where: { $0.count == 4 }) {
+            return _rightToLeftScripts.contains(script.prefix(1).uppercased() + script.dropFirst().lowercased()) ? .rightToLeft : .leftToRight
+        }
+        return _rightToLeftLanguages.contains(language) ? .rightToLeft : .leftToRight
+    }
+
+    /// Which way a language's lines follow each other: top to bottom for every language written
+    /// horizontally; unknown for an empty code.
+    public static func lineDirection(forLanguage isoLangCode: String) -> LanguageDirection {
+        isoLangCode.isEmpty ? .unknown : .topToBottom
+    }
+
+    /// The scripts written right to left (ISO 15924).
+    static let _rightToLeftScripts: Set<String> = ["Arab", "Hebr", "Thaa", "Syrc", "Nkoo", "Adlm", "Mand", "Samr", "Rohg"]
+    /// The languages CLDR writes right to left by default.
+    static let _rightToLeftLanguages: Set<String> = [
+        "ar", "arc", "ckb", "dv", "fa", "he", "iw", "ks", "lrc", "mzn", "nqo", "ps", "sd", "syr", "ug", "ur", "yi", "ji",
+    ]
     /// The locale's region.
     public var region: Region? { regionCode.map { Region($0) } }
 
