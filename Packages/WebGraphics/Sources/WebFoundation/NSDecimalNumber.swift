@@ -80,7 +80,7 @@ extension NSNumber {
     public func dividing(by decimalNumber: NSDecimalNumber, withBehavior behavior: NSDecimalNumberBehaviors?) -> NSDecimalNumber {
         if decimalNumber.doubleValue == 0 {
             return (behavior ?? NSDecimalNumber.defaultBehavior).exceptionDuringOperation(
-                "decimalNumberByDividingBy:withBehavior:", error: .divideByZero, leftOperand: self, rightOperand: decimalNumber) ?? .notANumber
+                NSSelectorFromString("decimalNumberByDividingBy:withBehavior:"), error: .divideByZero, leftOperand: self, rightOperand: decimalNumber) ?? .notANumber
         }
         return _result(doubleValue / decimalNumber.doubleValue, behavior)
     }
