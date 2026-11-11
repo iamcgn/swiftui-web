@@ -63,7 +63,17 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
     open func viewDidAppear(_ animated: Bool) {}
     open func viewWillDisappear(_ animated: Bool) {}
     open func viewDidDisappear(_ animated: Bool) {}
+    // `@objc dynamic` with the runtime: apps override it in an extension
+    // (`extension UINavigationController { open override func viewWillLayoutSubviews() }`), as
+    // UIKit's Objective-C methods allow; containers do their own layout in
+    // `layoutContainedViews()`, so such an override replaces nothing of theirs.
+    #if canImport(ObjectiveC)
+    @objc dynamic open func viewWillLayoutSubviews() {}
+    #else
     open func viewWillLayoutSubviews() {}
+    #endif
+    /// A container's own layout of its bars and children, after `viewWillLayoutSubviews()`.
+    func layoutContainedViews() {}
     open func viewDidLayoutSubviews() {}
     open func viewSafeAreaInsetsDidChange() {}
     open func viewLayoutMarginsDidChange() {}
