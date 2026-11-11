@@ -273,6 +273,9 @@ public final class NSLocale: NSObject, _WebValueObject, @unchecked Sendable {
     public var localeIdentifier: String { _webValue.identifier }
     public class var current: Locale { Locale.current }
     public class var autoupdatingCurrent: Locale { Locale.autoupdatingCurrent }
+    public typealias LanguageDirection = Locale.LanguageDirection
+    public class func characterDirection(forLanguage isoLangCode: String) -> LanguageDirection { Locale.characterDirection(forLanguage: isoLangCode) }
+    public class func lineDirection(forLanguage isoLangCode: String) -> LanguageDirection { Locale.lineDirection(forLanguage: isoLangCode) }
     public override func isEqual(_ object: Any?) -> Bool { (object as? NSLocale)?._webValue == _webValue }
     public override var hash: Int { _webValue.hashValue }
 }

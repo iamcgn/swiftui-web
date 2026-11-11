@@ -1,8 +1,4 @@
-#if os(WASI)
-import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
-#else
-import Foundation
-#endif
+import WebFoundation   // Foundation everywhere, and the Selector stand-in where ObjectiveC is absent
 
 // The window, the screen and the application: what the scene owns and the app touches first.
 
