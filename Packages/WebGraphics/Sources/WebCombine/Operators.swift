@@ -88,6 +88,17 @@ extension Publisher {
             return AnyCancellable { upstream.cancel() }
         }
     }
+    /// Decodes each value with a top-level decoder (`JSONDecoder` over `Data`); a value that
+    /// fails to decode ends the stream with the decoder's error.
+    public func decode<Item: Decodable, Coder: TopLevelDecoder>(type: Item.Type, decoder: Coder) -> _Pipe<Item, any Error> where Output == Coder.Input {
+        nonisolated(unsafe) let decoder = decoder
+        return tryMap { try decoder.decode(Item.self, from: $0) }
+    }
+    /// Encodes each value with a top-level encoder (`JSONEncoder` to `Data`).
+    public func encode<Coder: TopLevelEncoder>(encoder: Coder) -> _Pipe<Coder.Output, any Error> where Output: Encodable {
+        nonisolated(unsafe) let encoder = encoder
+        return tryMap { try encoder.encode($0) }
+    }
     public func compactMap<T>(_ transform: @escaping @MainActor (Output) -> T?) -> _Pipe<T, Failure> {
         _Pipe(policy: _demandPolicy) { receive, complete in self._subscribeOnMain({ if let value = transform($0) { receive(value) } }, complete) }
     }

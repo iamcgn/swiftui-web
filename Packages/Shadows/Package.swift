@@ -104,8 +104,12 @@ let package = Package(
         ),
         .target(
             name: "os",
+            // `import os.log` and the other submodules resolve through this clang module of the same
+            // name (wasm only: on Apple platforms the SDK's own `os` is the one in scope).
+            dependencies: [.target(name: "OSSubmodules", condition: .when(platforms: [.wasi]))],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
+        .target(name: "OSSubmodules"),
         .target(
             name: "OSLog",
             dependencies: ["os"],

@@ -77,8 +77,21 @@ open class UIResponder: UIResponderBase {
     /// Whether this responder is the window's first responder.
     open var isFirstResponder: Bool { UIKitScene.shared.firstResponder === self }
 
+    // `@objc` with the runtime, so `#selector(UIResponder.resignFirstResponder)` names them, as
+    // apps' keyboard-dismissing `sendAction` calls do.
+    #if canImport(ObjectiveC)
     @discardableResult
-    open func becomeFirstResponder() -> Bool {
+    @objc open func becomeFirstResponder() -> Bool { _becomeFirstResponder() }
+    @discardableResult
+    @objc open func resignFirstResponder() -> Bool { _resignFirstResponder() }
+    #else
+    @discardableResult
+    open func becomeFirstResponder() -> Bool { _becomeFirstResponder() }
+    @discardableResult
+    open func resignFirstResponder() -> Bool { _resignFirstResponder() }
+    #endif
+
+    private func _becomeFirstResponder() -> Bool {
         guard canBecomeFirstResponder else { return false }
         let scene = UIKitScene.shared
         if let current = scene.firstResponder, current !== self {
@@ -89,8 +102,7 @@ open class UIResponder: UIResponderBase {
         return true
     }
 
-    @discardableResult
-    open func resignFirstResponder() -> Bool {
+    private func _resignFirstResponder() -> Bool {
         guard canResignFirstResponder else { return false }
         let scene = UIKitScene.shared
         if scene.firstResponder === self { scene.firstResponder = nil }

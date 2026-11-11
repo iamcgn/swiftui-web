@@ -2,7 +2,13 @@
 // the closure subscriptions, the subjects, Future, and the operators apps chain (map, filter,
 // removeDuplicates, first, merge, combineLatest, catch, share, collect, zip, scan, prefix).
 import Testing
-#if !canImport(Darwin)
+#if canImport(Darwin)
+// Only the names the decode and encode cases need: a whole `import Foundation` on Darwin also
+// brings Combine's ObservableObject and Published, which clash with WebCombine's.
+import struct Foundation.Data
+import class Foundation.JSONDecoder
+import class Foundation.JSONEncoder
+#else
 import WebFoundation
 #endif
 #if canImport(FoundationNetworking) && !os(WASI)
@@ -158,6 +164,22 @@ import FoundationNetworking
         let e = Fail<Int, Failure>(error: .bad).mapError { _ in NSErrorLike(code: 3) }.sink(receiveCompletion: { mapped.append("\($0)") }, receiveValue: { _ in })
         #expect(mapped == ["failure(WebCombineTests.NSErrorLike(code: 3))"])
         e.cancel()
+
+        // decode(type:decoder:) and encode(encoder:) (EasyCrypto's network client decodes its
+        // responses this way): a value that does not decode ends the stream with the error.
+        struct Coin: Codable, Equatable { let id: String }
+        var coins: [Coin] = [], decodeEnds: [String] = []
+        let data = PassthroughSubject<Data, Never>()
+        let decoding = data.decode(type: Coin.self, decoder: JSONDecoder())
+            .sink(receiveCompletion: { if case .failure = $0 { decodeEnds.append("failed") } else { decodeEnds.append("finished") } },
+                  receiveValue: { coins.append($0) })
+        data.send(Data(#"{"id":"bitcoin"}"#.utf8)); data.send(Data("[]".utf8)); data.send(Data(#"{"id":"late"}"#.utf8))
+        #expect(coins == [Coin(id: "bitcoin")] && decodeEnds == ["failed"])
+        decoding.cancel()
+        var encoded: [String] = []
+        let encoding = Just(Coin(id: "eth")).encode(encoder: JSONEncoder()).sink(receiveCompletion: { _ in }, receiveValue: { encoded.append(String(decoding: $0, as: UTF8.self)) })
+        #expect(encoded == [#"{"id":"eth"}"#])
+        encoding.cancel()
 
         var promise: Future<Int, Never>.Promise?
         let future = Future<Int, Never> { promise = $0 }

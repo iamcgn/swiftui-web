@@ -395,8 +395,7 @@ open class UINavigationController: UIViewController {
         return scrollView.contentSize.height > scrollView.bounds.height - scrollView.adjustedContentInset.top - scrollView.adjustedContentInset.bottom
     }
 
-    open override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
+    override func layoutContainedViews() {
         guard let view = viewIfLoaded else { return }
         let top = view.safeAreaInsets.top
         let height = navigationBar.isHidden ? 0 : navigationBar.preferredHeight
@@ -487,11 +486,12 @@ open class UINavigationBar: UIView {
     open var isTranslucent = true
     open var barStyle = 0
     open var barTintColor: UIColor?
-    open var titleTextAttributes: [String: Any]?
-    open var largeTitleTextAttributes: [String: Any]?
+    open var titleTextAttributes: [NSAttributedString.Key: Any]?
+    open var largeTitleTextAttributes: [NSAttributedString.Key: Any]?
     open var standardAppearance: UINavigationBarAppearance = UINavigationBarAppearance()
     open var scrollEdgeAppearance: UINavigationBarAppearance?
     open var compactAppearance: UINavigationBarAppearance?
+    open var compactScrollEdgeAppearance: UINavigationBarAppearance?
     weak var controller: UINavigationController?
 
     private let titleLabel = UILabel()
@@ -619,8 +619,8 @@ open class UINavigationBar: UIView {
 @preconcurrency @MainActor
 public final class UINavigationBarAppearance {
     public var backgroundColor: UIColor?
-    public var titleTextAttributes: [String: Any] = [:]
-    public var largeTitleTextAttributes: [String: Any] = [:]
+    public var titleTextAttributes: [NSAttributedString.Key: Any] = [:]
+    public var largeTitleTextAttributes: [NSAttributedString.Key: Any] = [:]
     public var shadowColor: UIColor?
     public init() {}
     public func configureWithOpaqueBackground() {}
