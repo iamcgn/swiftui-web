@@ -4,11 +4,12 @@
 // form; `PropertyListEncoder` and `PropertyListDecoder` carry `Codable` values through the
 // project's coder (JSONCoder.swift), with dates and data as the plist's own `<date>` and
 // `<data>`. A value reads back as Swift's own types: `String`, `Int`, `Double`, `Bool`, `Date`,
-// `Data`, `[Any]` and `[String: Any]`.
+// `Data`, `[Any]` and `[String: Any]`. The three classes are final, unlike Apple's, so a wasm
+// build that never names them drops their code (the size gate).
 #if os(WASI)
 
 /// Converts between property lists and their XML or binary representation.
-open class PropertyListSerialization {
+public final class PropertyListSerialization {
     /// Whether the containers read back are mutable: every value read here is a Swift value, so
     /// the options only exist for the calls that pass them.
     public struct MutabilityOptions: OptionSet, Sendable {
@@ -29,12 +30,12 @@ open class PropertyListSerialization {
 
     /// Whether the object is a property list the format can write: dictionaries keyed by
     /// strings, arrays, strings, numbers, booleans, dates and data. Nothing writes OpenStep.
-    open class func propertyList(_ plist: Any, isValidFor format: PropertyListFormat) -> Bool {
+    public class func propertyList(_ plist: Any, isValidFor format: PropertyListFormat) -> Bool {
         format != .openStep && (try? _PlistValue(plist)) != nil
     }
 
     /// The property list written in the format.
-    open class func data(fromPropertyList plist: Any, format: PropertyListFormat, options opt: WriteOptions) throws -> Data {
+    public class func data(fromPropertyList plist: Any, format: PropertyListFormat, options opt: WriteOptions) throws -> Data {
         let value = try _PlistValue(plist)
         switch format {
         case .xml: return Data(_PlistXML.write(value).utf8)
@@ -44,7 +45,7 @@ open class PropertyListSerialization {
     }
 
     /// The property list the data holds, in the format it was written in.
-    open class func propertyList(from data: Data, options opt: ReadOptions = [], format: UnsafeMutablePointer<PropertyListFormat>?) throws -> Any {
+    public class func propertyList(from data: Data, options opt: ReadOptions = [], format: UnsafeMutablePointer<PropertyListFormat>?) throws -> Any {
         let (value, found) = try _PlistValue.read(Array(data))
         format?.pointee = found
         return value.object
@@ -58,14 +59,14 @@ func _plistError(_ code: Int, _ message: String) -> NSError {
 }
 
 /// Encodes `Codable` values as property lists.
-open class PropertyListEncoder: @unchecked Sendable {
+public final class PropertyListEncoder: @unchecked Sendable {
     /// The format written: binary, as Apple's encoder writes by default.
-    open var outputFormat: PropertyListSerialization.PropertyListFormat = .binary
-    open var userInfo: [CodingUserInfoKey: Any] = [:]
+    public var outputFormat: PropertyListSerialization.PropertyListFormat = .binary
+    public var userInfo: [CodingUserInfoKey: Any] = [:]
 
     public init() {}
 
-    open func encode<Value: Encodable>(_ value: Value) throws -> Data {
+    public func encode<Value: Encodable>(_ value: Value) throws -> Data {
         var options = _JSONEncodingOptions()
         options.dateStrategy = .custom { date, encoder in
             var container = encoder.singleValueContainer()
@@ -83,17 +84,17 @@ open class PropertyListEncoder: @unchecked Sendable {
 }
 
 /// Decodes `Codable` values from property lists, in either format.
-open class PropertyListDecoder: @unchecked Sendable {
-    open var userInfo: [CodingUserInfoKey: Any] = [:]
+public final class PropertyListDecoder: @unchecked Sendable {
+    public var userInfo: [CodingUserInfoKey: Any] = [:]
 
     public init() {}
 
-    open func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
+    public func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
         var format = PropertyListSerialization.PropertyListFormat.binary
         return try decode(type, from: data, format: &format)
     }
 
-    open func decode<T: Decodable>(_ type: T.Type, from data: Data, format: inout PropertyListSerialization.PropertyListFormat) throws -> T {
+    public func decode<T: Decodable>(_ type: T.Type, from data: Data, format: inout PropertyListSerialization.PropertyListFormat) throws -> T {
         let value: _PlistValue
         do {
             let read = try _PlistValue.read(Array(data))
