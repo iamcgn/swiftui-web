@@ -92,7 +92,7 @@ extension Publisher {
     /// fails to decode ends the stream with the decoder's error.
     public func decode<Item: Decodable, Coder: TopLevelDecoder>(type: Item.Type, decoder: Coder) -> _Pipe<Item, any Error> where Output == Coder.Input {
         nonisolated(unsafe) let decoder = decoder
-        return tryMap { try decoder.decode(type, from: $0) }
+        return tryMap { try decoder.decode(Item.self, from: $0) }
     }
     /// Encodes each value with a top-level encoder (`JSONEncoder` to `Data`).
     public func encode<Coder: TopLevelEncoder>(encoder: Coder) -> _Pipe<Coder.Output, any Error> where Output: Encodable {
