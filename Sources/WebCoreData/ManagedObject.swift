@@ -117,7 +117,9 @@ open class NSManagedObject: NSFetchRequestResult, _CDKeyValueCoding, WebCombine.
     }
 
     /// Makes an object of the class's entity in the context's model, inserted into the context.
-    public convenience init(context moc: NSManagedObjectContext) {
+    /// Required, so generic code makes one from a metatype (`T(context:)` for
+    /// `T: NSManagedObject`), as Objective-C's initialisers allow; every subclass inherits it.
+    public required convenience init(context moc: NSManagedObjectContext) {
         guard let entity = Self._entity(in: moc) else {
             fatalError("NSManagedObject: no entity in the context's model is represented by \(Self.self)")
         }
