@@ -776,6 +776,21 @@ def render_manifest(parts, drops=None):
     return parts["head"] + "\n".join(out) + "\n" + parts["tail"]
 
 
+IOS_CONDITION = re.compile(r"^(\s*#\s*(?:if|elseif)\b.*)$")
+IOS_OS = re.compile(r"\bos\(\s*iOS\s*\)")
+
+
+def ios_conditions(text):
+    """The text with `os(iOS)` read as true in its `#if` and `#elseif` lines and nothing else
+    changed, so its lines keep their numbers: decision 0025's rewrite (scripts/ios-conditions.py),
+    which builds an app's iOS branches, as the browser runs it."""
+    lines = text.split("\n")
+    for i, line in enumerate(lines):
+        if IOS_CONDITION.match(line):
+            lines[i] = IOS_OS.sub("true", line)
+    return "\n".join(lines)
+
+
 def cmd_prepare(args):
     plan = json.loads(Path(args.plan).read_text())
     pkg = Path(args.out)
@@ -853,6 +868,8 @@ def cmd_prepare(args):
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 text = (clone_dir / f).read_text(errors="replace")
                 traits_needed |= set(app_traits.needed_in_text(text))
+                if args.ios:
+                    text = ios_conditions(text)
                 dest.write_text(strip_imports(text, strip))
                 mapping[str(dest.resolve())] = {"app": app["name"], "file": f, "base": t.get("base") or app["name"],
                                                 **({"package": t["remote"].split("@")[0]} if t.get("remote") else {})}
@@ -1160,6 +1177,7 @@ def main():
     p.add_argument("--batch", type=int, required=True); p.add_argument("--root", required=True)
     p.add_argument("--strip"); p.add_argument("-o", "--out", required=True)
     p.add_argument("--all-traits", action="store_true", help="enable every package trait (the surface build)")
+    p.add_argument("--ios", action="store_true", help="read `os(iOS)` as true in #if lines, as decision 0025 builds an app")
     p = sub.add_parser("run"); p.add_argument("--plan", required=True); p.add_argument("--work", required=True)
     p.add_argument("--pkg", required=True); p.add_argument("--batch", type=int, required=True)
     p.add_argument("--sdk", required=True); p.add_argument("-o", "--out", required=True)
