@@ -54,7 +54,7 @@ import WebFoundationFormats
 
     #if canImport(ObjectiveC)
     /// EasyCrypto's DecimalFormatter form: digits read as cents.
-    final class CentsFormatter: NumberFormatter {
+    final class CentsFormatter: NumberFormatter, @unchecked Sendable {
         override func getObjectValue(_ obj: AutoreleasingUnsafeMutablePointer<AnyObject?>?, for string: String,
                                      range rangep: UnsafeMutablePointer<NSRange>?) throws {
             let digits = string.filter(\.isNumber)

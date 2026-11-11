@@ -164,16 +164,16 @@ import FoundationNetworking
         struct Coin: Codable, Equatable { let id: String }
         var coins: [Coin] = [], decodeEnds: [String] = []
         let data = PassthroughSubject<Data, Never>()
-        let f = data.decode(type: Coin.self, decoder: JSONDecoder())
+        let decoding = data.decode(type: Coin.self, decoder: JSONDecoder())
             .sink(receiveCompletion: { if case .failure = $0 { decodeEnds.append("failed") } else { decodeEnds.append("finished") } },
                   receiveValue: { coins.append($0) })
         data.send(Data(#"{"id":"bitcoin"}"#.utf8)); data.send(Data("[]".utf8)); data.send(Data(#"{"id":"late"}"#.utf8))
         #expect(coins == [Coin(id: "bitcoin")] && decodeEnds == ["failed"])
-        f.cancel()
+        decoding.cancel()
         var encoded: [String] = []
-        let g = Just(Coin(id: "eth")).encode(encoder: JSONEncoder()).sink(receiveCompletion: { _ in }, receiveValue: { encoded.append(String(decoding: $0, as: UTF8.self)) })
+        let encoding = Just(Coin(id: "eth")).encode(encoder: JSONEncoder()).sink(receiveCompletion: { _ in }, receiveValue: { encoded.append(String(decoding: $0, as: UTF8.self)) })
         #expect(encoded == [#"{"id":"eth"}"#])
-        g.cancel()
+        encoding.cancel()
 
         var promise: Future<Int, Never>.Promise?
         let future = Future<Int, Never> { promise = $0 }
