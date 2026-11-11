@@ -146,3 +146,26 @@ extension Color: View {
         ColorNode(context)
     }
 }
+
+/// SwiftUI's text for a colour: "#RRGGBBAA" for a constant one (apps scan its hex back into
+/// components), the name of a system one, "50% red" with an opacity.
+extension Color: CustomStringConvertible {
+    public var description: String {
+        func hex(_ r: Double, _ g: Double, _ b: Double, _ a: Double) -> String {
+            "#" + [r, g, b, a * opacityMultiplier].map { component in
+                let byte = Int((min(max(component, 0), 1) * 255).rounded())
+                let digits = String(byte, radix: 16, uppercase: true)
+                return digits.count == 1 ? "0" + digits : digits
+            }.joined()
+        }
+        switch storage {
+        case let .rgba(red, green, blue, opacity): return hex(red, green, blue, opacity)
+        case let .dynamic(light, _): return hex(light.red, light.green, light.blue, light.alpha)
+        case let .system(color):
+            return opacityMultiplier == 1 ? color.rawValue : "\(Int((opacityMultiplier * 100).rounded()))% \(color.rawValue)"
+        case let .named(name):
+            let base = "NamedColor(name: \"\(name)\", bundle: nil)"
+            return opacityMultiplier == 1 ? base : "\(Int((opacityMultiplier * 100).rounded()))% \(base)"
+        }
+    }
+}

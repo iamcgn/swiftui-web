@@ -397,6 +397,7 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
         if needsLayout {
             needsLayout = false
             owningViewController?.viewWillLayoutSubviews()
+            owningViewController?.layoutContainedViews()
             layoutSubviews()
             owningViewController?.viewDidLayoutSubviews()
         }
