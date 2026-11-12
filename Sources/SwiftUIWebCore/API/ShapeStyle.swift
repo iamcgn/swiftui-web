@@ -175,6 +175,63 @@ extension ShapeStyle where Self == BackgroundStyle {
     nonisolated public static var background: BackgroundStyle { BackgroundStyle() }
 }
 
+package struct BackgroundStyleKey: EnvironmentKey {
+    package static let defaultValue: AnyShapeStyle? = nil
+}
+
+extension EnvironmentValues {
+    /// The style `.background` resolves to below a `backgroundStyle(_:)` (the window's ground
+    /// when unset).
+    package var _backgroundStyle: AnyShapeStyle? {
+        get { self[BackgroundStyleKey.self] }
+        set { self[BackgroundStyleKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Sets the specified style to render backgrounds within the view: `.background` in it
+    /// resolves to the style.
+    nonisolated public func backgroundStyle<S: ShapeStyle>(_ style: S) -> some View {
+        environment(\._backgroundStyle, AnyShapeStyle(style))
+    }
+}
+
+/// An overlay fill style for filling shapes: the system fill, a translucent grey (iOS
+/// `systemFill`: (120, 120, 128) at 20 % in the light appearance, 36 % in the dark one).
+public struct FillShapeStyle: ShapeStyle, _ModifiedStyle {
+    public init() {}
+    package var _alpha: Double { 1 }
+    package func _resolveBaseColor(in environment: EnvironmentValues) -> RGBA {
+        if environment.platformProfile.isIOS {
+            return RGBA(r: 120, g: 120, b: 128, a: environment._isDark ? 0.36 : 0.2)
+        }
+        return environment._ink(0.1)
+    }
+}
+
+extension ShapeStyle where Self == FillShapeStyle {
+    /// An overlay fill style for filling shapes.
+    nonisolated public static var fill: FillShapeStyle { FillShapeStyle() }
+}
+
+/// A style appropriate for foreground separator or border lines (iOS `separator`: (60, 60, 67)
+/// at 29 % in the light appearance, (84, 84, 88) at 60 % in the dark one).
+public struct SeparatorShapeStyle: ShapeStyle, _ModifiedStyle {
+    public init() {}
+    package var _alpha: Double { 1 }
+    package func _resolveBaseColor(in environment: EnvironmentValues) -> RGBA {
+        if environment.platformProfile.isIOS {
+            return environment._isDark ? RGBA(r: 84, g: 84, b: 88, a: 0.6) : RGBA(r: 60, g: 60, b: 67, a: 0.29)
+        }
+        return environment._ink(0.1)
+    }
+}
+
+extension ShapeStyle where Self == SeparatorShapeStyle {
+    /// A style appropriate for foreground separator or border lines.
+    nonisolated public static var separator: SeparatorShapeStyle { SeparatorShapeStyle() }
+}
+
 /// A shadow a shape style casts: dropped behind the shape, or inside its edge.
 public struct ShadowStyle: Equatable, Sendable {
     package enum Kind: Equatable, Sendable { case drop, inner }

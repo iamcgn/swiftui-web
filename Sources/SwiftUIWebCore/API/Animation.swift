@@ -268,6 +268,19 @@ public struct AnyTransition: Sendable {
     public static let slide = AnyTransition(kind: .asymmetric(insertion: .move(.leading), removal: .move(.trailing)))
     /// Returns a transition that moves the view away, towards the specified edge of the view.
     public static func move(edge: Edge) -> AnyTransition { AnyTransition(kind: .move(edge)) }
+    /// Moves the view in from `edge` as it fades in, and out towards the opposite edge as it
+    /// fades out.
+    public static func push(from edge: Edge) -> AnyTransition {
+        let opposite: Edge
+        switch edge {
+        case .top: opposite = .bottom
+        case .bottom: opposite = .top
+        case .leading: opposite = .trailing
+        case .trailing: opposite = .leading
+        }
+        return .asymmetric(insertion: .move(edge: edge).combined(with: .opacity),
+                           removal: .move(edge: opposite).combined(with: .opacity))
+    }
     /// Returns a transition that offsets the view by the specified amount.
     public static func offset(_ offset: CGSize) -> AnyTransition { AnyTransition(kind: .offset(offset.width, offset.height)) }
     public static func offset(x: CGFloat = 0, y: CGFloat = 0) -> AnyTransition { AnyTransition(kind: .offset(x, y)) }
