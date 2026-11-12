@@ -295,6 +295,57 @@ public enum DispatchSource {
     public static func makeTimerSource(flags: TimerFlags = [], queue: DispatchQueue? = nil) -> any DispatchSourceTimer {
         _DispatchTimer(queue: queue ?? .main)
     }
+
+    /// The memory states a memory pressure source reports.
+    public struct MemoryPressureEvent: OptionSet, Sendable {
+        public let rawValue: UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        public static let normal = MemoryPressureEvent(rawValue: 0x1)
+        public static let warning = MemoryPressureEvent(rawValue: 0x2)
+        public static let critical = MemoryPressureEvent(rawValue: 0x4)
+        public static let all: MemoryPressureEvent = [.normal, .warning, .critical]
+    }
+
+    /// A source for the system's memory pressure (the image caches trim themselves on a warning).
+    /// A page is never told its memory is short, so the handler never runs; the source starts
+    /// suspended and cancels as Apple's does.
+    public static func makeMemoryPressureSource(eventMask: MemoryPressureEvent, queue: DispatchQueue? = nil) -> any DispatchSourceMemoryPressure {
+        _DispatchMemoryPressureSource(mask: eventMask, queue: queue ?? .main)
+    }
+}
+
+/// A source that reports changes in the system's memory pressure.
+public protocol DispatchSourceMemoryPressure: DispatchSourceProtocol {
+    /// The events seen since the handler last ran (none here).
+    var data: DispatchSource.MemoryPressureEvent { get }
+    /// The events the source was made to watch.
+    var mask: DispatchSource.MemoryPressureEvent { get }
+}
+
+final class _DispatchMemoryPressureSource: DispatchSourceMemoryPressure, @unchecked Sendable {
+    let mask: DispatchSource.MemoryPressureEvent
+    private let queue: DispatchQueue
+    private var handler: (@Sendable () -> Void)?
+    private var cancelHandler: (@Sendable () -> Void)?
+    private(set) var isCancelled = false
+
+    init(mask: DispatchSource.MemoryPressureEvent, queue: DispatchQueue) {
+        self.mask = mask
+        self.queue = queue
+    }
+
+    var data: DispatchSource.MemoryPressureEvent { [] }
+    func setEventHandler(qos: DispatchQoS, flags: DispatchWorkItemFlags, handler: (@Sendable () -> Void)?) { self.handler = handler }
+    func setCancelHandler(qos: DispatchQoS, flags: DispatchWorkItemFlags, handler: (@Sendable () -> Void)?) { cancelHandler = handler }
+    func activate() {}
+    func resume() {}
+    func suspend() {}
+    func cancel() {
+        guard !isCancelled else { return }
+        isCancelled = true
+        handler = nil
+        if let cancelHandler { queue.async(execute: cancelHandler) }
+    }
 }
 
 final class _DispatchTimer: DispatchSourceTimer, @unchecked Sendable {
