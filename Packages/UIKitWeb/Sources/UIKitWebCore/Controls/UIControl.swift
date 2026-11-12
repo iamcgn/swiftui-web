@@ -1,3 +1,4 @@
+import WebFoundation   // Foundation everywhere: `NSStringFromSelector` with the Objective-C runtime
 // UIControl (Docs/elements/UIKit/UIControl.md): tracking and target-action. Without an
 // Objective-C runtime there is no `#selector`, so actions are `UIAction`s (`addAction(_:for:)`,
 // the closure form iOS 14 added) and `addTarget(_:action:for:)` takes a closure. With the runtime
