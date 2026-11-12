@@ -29,7 +29,7 @@ public struct SceneStorage<Value>: DynamicProperty {
 
 /// The suite scene storage keeps its values in.
 package enum _SceneStore {
-    nonisolated(unsafe) package static let defaults: UserDefaults = UserDefaults(suiteName: "SwiftUIWeb.SceneStorage") ?? .standard
+    package static let defaults: UserDefaults = UserDefaults(suiteName: "SwiftUIWeb.SceneStorage") ?? .standard
 }
 
 extension SceneStorage {
