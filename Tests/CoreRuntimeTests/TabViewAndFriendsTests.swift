@@ -234,7 +234,8 @@ private struct OptionalTabsView: View {
     }
 }
 
-private func defaultLabelTab() -> Tab<Int, Text, DefaultTabLabel> {
+/// Built off the main actor, as SFSafeSymbols' `nonisolated` `Tab` initialisers build theirs.
+nonisolated private func defaultLabelTab() -> Tab<Int, Text, DefaultTabLabel> {
     Tab("One", systemImage: "1.circle", value: 1) { Text("one") }
 }
 
