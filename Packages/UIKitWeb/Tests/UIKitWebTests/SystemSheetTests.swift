@@ -105,6 +105,11 @@ import UIKit
             completion([HostFile(data: Self.png, name: "photo.png", mimeType: "image/png")])
         }
         #expect(UIImagePickerController.isSourceTypeAvailable(.photoLibrary) && !UIImagePickerController.isSourceTypeAvailable(.camera))
+        // No camera on the web: neither device, no flash, and the library offers images only.
+        #expect(!UIImagePickerController.isCameraDeviceAvailable(.rear) && !UIImagePickerController.isCameraDeviceAvailable(.front))
+        #expect(!UIImagePickerController.isFlashAvailable(for: .rear))
+        #expect(UIImagePickerController.availableMediaTypes(for: .photoLibrary) == ["public.image"])
+        #expect(UIImagePickerController.availableMediaTypes(for: .camera) == nil)
         let picks = Picks()
         let picker = UIImagePickerController()
         picker.delegate = picks

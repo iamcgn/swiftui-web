@@ -57,6 +57,15 @@ import WebFoundation
         #expect(String(localized: "greeting.key", defaultValue: "Hi there") == "Hi there")
         let resource: LocalizedStringResource = "Settings"
         #expect(String(localized: resource) == "Settings" && resource.key == "Settings")
+        // A specifier or a format style in the literal makes it a localization value (FoodTruck's
+        // order numbers); a plain interpolation stays a String.
+        let number = 7
+        #expect(String(localized: "#\(12)\(number, specifier: "%02d")") == "#1207")
+        #expect(String(localized: "Total \(2.5, specifier: "%.2f")") == "Total 2.50")
+        #expect(String(localized: "count", defaultValue: "\(number, specifier: "%03d") items") == "007 items")
+        #expect(String(localized: "Plain \(number)") == "Plain 7")
+        let value: String.LocalizationValue = "Order \(number, specifier: "%d")"
+        #expect(String(localized: value) == "Order 7")
     }
 
     @Test func ubiquitousStoreKeepsValues() {
