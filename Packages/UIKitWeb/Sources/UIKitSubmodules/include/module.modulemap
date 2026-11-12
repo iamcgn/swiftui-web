@@ -1,0 +1,10 @@
+// The clang half of `UIKit` (wasm only): Apple's UIKit is a framework module with a submodule
+// for each header, so apps write `import UIKit.UIImage` or `import UIKit.UIGestureRecognizerSubclass`
+// (Nuke, CriticalMaps, Harbour). A Swift module cannot declare submodules; this module map
+// declares them under the same name, one for each header in UIKit/, and the Swift `UIKit` module
+// (Sources/UIKit) keeps the API. The headers are empty: everything an app calls is Swift.
+module UIKit [system] {
+  umbrella "UIKit"
+  export *
+  module * { export * }
+}

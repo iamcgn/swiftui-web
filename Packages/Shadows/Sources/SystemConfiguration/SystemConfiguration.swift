@@ -116,6 +116,19 @@ public func SCNetworkReachabilitySetCallback(_ target: SCNetworkReachability, _ 
     return true
 }
 
+// MARK: Captive network (`import SystemConfiguration.CaptiveNetwork`)
+
+/// The interfaces a captive network could be on: a page sees none.
+public func CNCopySupportedInterfaces() -> CFArray? { nil }
+
+/// The Wi-Fi network an interface is on (its SSID and BSSID): a page cannot read it, as an app
+/// without the entitlement cannot.
+public func CNCopyCurrentNetworkInfo(_ interfaceName: CFString) -> CFDictionary? { nil }
+
+public let kCNNetworkInfoKeySSIDData: CFString = "SSIDDATA"
+public let kCNNetworkInfoKeySSID: CFString = "SSID"
+public let kCNNetworkInfoKeyBSSID: CFString = "BSSID"
+
 /// The queue callbacks run on; nil stops them.
 public func SCNetworkReachabilitySetDispatchQueue(_ target: SCNetworkReachability, _ queue: DispatchQueue?) -> Bool {
     target.queue = queue

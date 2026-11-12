@@ -7,9 +7,10 @@
 //     .product(name: "Foundation", package: "Shadows", condition: .when(platforms: [.wasi])),
 //     .product(name: "Combine", package: "Shadows", condition: .when(platforms: [.wasi])),
 // `os` and `OSLog` (`Logger` over the console), `CoreGraphics` (the geometry and image types),
-// `ImageIO` (image sources over WebImageIO), `CoreImage` (SwiftUIWeb's WebCoreImage),
+// `ImageIO` (image sources over WebImageIO, and destinations), `CoreImage` (SwiftUIWeb's WebCoreImage),
 // `MobileCoreServices` (the `kUTType` names and tag functions), `SystemConfiguration` (network
-// reachability over the browser's online state), `LocalAuthentication` (an `LAContext` that
+// reachability over the browser's online state), `Network` (`NWPathMonitor` over the same state),
+// `LocalAuthentication` (an `LAContext` that
 // reports no biometry, as on a device without it), `FoundationNetworking` (the URLSession names,
 // where Linux's Foundation keeps them), `FoundationXML` (XMLParser, likewise) and
 // `UniformTypeIdentifiers` (`UTType`), `CommonCrypto` (the C digest and HMAC functions over
@@ -45,6 +46,7 @@ let package = Package(
         .library(name: "CoreImage", targets: ["CoreImage"]),
         .library(name: "MobileCoreServices", targets: ["MobileCoreServices"]),
         .library(name: "SystemConfiguration", targets: ["SystemConfiguration"]),
+        .library(name: "Network", targets: ["Network"]),
         .library(name: "LocalAuthentication", targets: ["LocalAuthentication"]),
         .library(name: "FoundationNetworking", targets: ["FoundationNetworking"]),
         .library(name: "FoundationXML", targets: ["FoundationXML"]),
@@ -122,7 +124,8 @@ let package = Package(
         ),
         .target(
             name: "ImageIO",
-            dependencies: ["CoreGraphics", .product(name: "WebImageIO", package: "WebGraphics")],
+            dependencies: ["CoreGraphics", .product(name: "WebImageIO", package: "WebGraphics"),
+                           .product(name: "WebFoundationFormats", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
@@ -132,9 +135,13 @@ let package = Package(
         ),
         .target(
             name: "SystemConfiguration",
-            dependencies: ["CoreFoundation", .product(name: "WebFoundation", package: "WebGraphics")],
+            // `import SystemConfiguration.CaptiveNetwork` resolves through this clang module of the
+            // same name (wasm only, as `os`'s submodules do).
+            dependencies: ["CoreFoundation", .product(name: "WebFoundation", package: "WebGraphics"),
+                           .target(name: "SCSubmodules", condition: .when(platforms: [.wasi]))],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
+        .target(name: "SCSubmodules"),
         .target(
             name: "FoundationNetworking",
             dependencies: ["Foundation", .product(name: "WebFoundation", package: "WebGraphics")],
@@ -148,6 +155,11 @@ let package = Package(
         .target(
             name: "CommonCrypto",
             dependencies: [.product(name: "CryptoKit", package: "SwiftUIWeb")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "Network",
+            dependencies: [.product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

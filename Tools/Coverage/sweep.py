@@ -33,7 +33,8 @@ OURS = {
     "CoreLocation", "AVFoundation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit",
     "os", "OSLog", "CoreGraphics", "UniformTypeIdentifiers", "CoreData", "CryptoKit", "CoreHaptics", "CoreImage", "WidgetKit", "StoreKit", "AppIntents",
     "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices", "SystemConfiguration",
-    "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto",
+    "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit",
+    "Network",
 }
 STDLIB = {"Swift", "_Concurrency", "_StringProcessing", "Observation", "Synchronization", "RegexBuilder", "WASILibc"}
 # swift-syntax, which the sweep package depends on itself: a package's macro targets import it.
@@ -735,6 +736,8 @@ WEB_PRODUCTS = [
     ("StoreKit", "SwiftUIWeb"),
     ("AppIntents", "SwiftUIWeb"),
     ("WebKit", "SwiftUIWeb"),
+    ("AudioToolbox", "SwiftUIWeb"),
+    ("EventKit", "SwiftUIWeb"),
     ("UIKit", "UIKitWeb"),
     ("Foundation", "Shadows"),
     ("Combine", "Shadows"),
@@ -751,6 +754,7 @@ WEB_PRODUCTS = [
     ("ImageIO", "Shadows"),
     ("MobileCoreServices", "Shadows"),
     ("SystemConfiguration", "Shadows"),
+    ("Network", "Shadows"),
     ("LocalAuthentication", "Shadows"),
     ("FoundationNetworking", "Shadows"),
     ("FoundationXML", "Shadows"),
