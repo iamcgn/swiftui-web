@@ -5,8 +5,13 @@
 // functions are in scope instead (WebFoundation re-exports `ObjectiveC`, decision 0023).
 //
 // A value is kept for its object while the object lives: each object's values sit in a table
-// with a weak reference to the object, and a table whose object has gone is dropped when its
-// identifier comes round again or at the next sweep of the tables. A value type has no identity
+// with a weak reference to the object, and a table whose object has gone is dropped, releasing
+// its values, when its identifier comes round again or at the next sweep of the tables. Without
+// the runtime there is no hook at an object's end, so the tables are swept as they are used:
+// every get, set and removal counts, and a sweep comes once the count reaches the number of
+// tables kept at the last sweep (at least 32). Kingfisher reads its task key for each image it
+// sets, so a gone view's download task is released within a few images, at a cost spread over
+// the calls that came between. A value type has no identity
 // to hang values on (Apple boxes it afresh each time, so its values are never found again);
 // here it gets no values either. A page runs one thread, so the tables take no lock.
 #if os(WASI) && !canImport(ObjectiveC)
@@ -47,15 +52,18 @@ private final class AssociationTable {
 
 private enum Associations {
     nonisolated(unsafe) static var tables: [ObjectIdentifier: AssociationTable] = [:]
-    nonisolated(unsafe) static var writesSinceSweep = 0
+    nonisolated(unsafe) static var usesSinceSweep = 0
+    nonisolated(unsafe) static var keptAtLastSweep = 0
 
     /// The object's table, if it has a live one; a table left by a dead object with the same
     /// identifier is dropped.
     static func table(for object: AnyObject, creating: Bool) -> AssociationTable? {
+        sweepIfDue()
         let id = ObjectIdentifier(object)
         if let table = tables[id] {
             if table.owner === object { return table }
-            tables[id] = nil
+            // Held until the access ends: releasing a value can run a deinit that comes back here.
+            withExtendedLifetime(tables.removeValue(forKey: id)) {}
         }
         guard creating else { return nil }
         let table = AssociationTable(owner: object)
@@ -63,12 +71,20 @@ private enum Associations {
         return table
     }
 
-    /// Drops the tables of objects that have gone, now and then, so their values are released.
+    /// Drops the tables of objects that have gone, so their values are released, once the uses
+    /// since the last sweep reach the tables it kept: the sweep's cost is spread over those uses.
     static func sweepIfDue() {
-        writesSinceSweep += 1
-        guard writesSinceSweep >= 256 else { return }
-        writesSinceSweep = 0
-        tables = tables.filter { $0.value.owner != nil }
+        usesSinceSweep += 1
+        guard usesSinceSweep >= max(32, keptAtLastSweep) else { return }
+        sweep()
+    }
+
+    static func sweep() {
+        usesSinceSweep = 0
+        let before = tables
+        tables = before.filter { $0.value.owner != nil }
+        keptAtLastSweep = tables.count
+        withExtendedLifetime(before) {}   // the dropped values go once `tables` is settled
     }
 }
 
@@ -82,7 +98,8 @@ private func instance(_ object: Any) -> AnyObject? {
 public func objc_setAssociatedObject(_ object: Any, _ key: UnsafeRawPointer, _ value: Any?, _ policy: objc_AssociationPolicy) {
     guard let owner = instance(object) else { return }
     guard let value else {
-        Associations.table(for: owner, creating: false)?.values[key] = nil
+        let old = Associations.table(for: owner, creating: false)?.values.removeValue(forKey: key)
+        withExtendedLifetime(old) {}
         return
     }
     let stored: AssociatedValue
@@ -95,8 +112,8 @@ public func objc_setAssociatedObject(_ object: Any, _ key: UnsafeRawPointer, _ v
     case .OBJC_ASSOCIATION_RETAIN, .OBJC_ASSOCIATION_RETAIN_NONATOMIC:
         stored = .strong(value)
     }
-    Associations.table(for: owner, creating: true)?.values[key] = stored
-    Associations.sweepIfDue()
+    let old = Associations.table(for: owner, creating: true)?.values.updateValue(stored, forKey: key)
+    withExtendedLifetime(old) {}
 }
 
 /// The object's value for the key, or nil.
@@ -108,6 +125,8 @@ public func objc_getAssociatedObject(_ object: Any, _ key: UnsafeRawPointer) -> 
 /// Removes all of the object's associated values.
 public func objc_removeAssociatedObjects(_ object: Any) {
     guard let owner = instance(object) else { return }
-    Associations.tables[ObjectIdentifier(owner)] = nil
+    Associations.sweepIfDue()
+    let old = Associations.tables.removeValue(forKey: ObjectIdentifier(owner))
+    withExtendedLifetime(old) {}
 }
 #endif
