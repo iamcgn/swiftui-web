@@ -4,7 +4,8 @@
 // other folders flattened (a dot in a folder's name included), symbol sets as images, and no symbols for app icons or data sets.
 //
 // What the tests prove: each symbol names its set's catalog name in the main bundle, and
-// `Image`, `Color`, `UIImage` and `UIColor` take them. Not proven here: drawing the sets (the
+// `Image`, `Color`, `UIImage` and `UIColor` take them; with the target's `AssetSymbolExtensions`
+// file, the colour sets are `Color` and `ShapeStyle` members too (`Color.accent`). Not proven here: drawing the sets (the
 // asset catalog tests in CoreRuntimeTests do that by name).
 import Testing
 import SwiftUI
@@ -58,5 +59,19 @@ import Foundation
         #expect(Color(.label) == Color(UIColor.label))
         _ = UIImage(resource: .urlIcon)
         _ = UIColor(resource: .accent)
+    }
+
+    /// A style passed where any `ShapeStyle` goes, as `foregroundStyle(.accent)` takes it.
+    private func style<S: ShapeStyle>(_ style: S) -> Color? { style as? Color }
+
+    @Test func extensionsPutTheColorSetsOnColorAndShapeStyle() {
+        // Gem's `.tint(.accent)` and `Color.accent.opacity(0.5)`, with the setting on.
+        #expect(Color.accent == Color("AccentColor"))
+        #expect(Color.premiumBirdFood == Color("Premium Bird Food"))
+        #expect(style(.accent) == Color("AccentColor"))
+        #expect(style(.premiumBirdFood) == Color("Premium Bird Food"))
+        // A set named like a framework member leaves the member alone.
+        #expect(Color.accentColor != Color("AccentColor"))
+        #expect(style(.accentColor) == Color.accentColor)
     }
 }
