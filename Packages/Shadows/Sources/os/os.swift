@@ -338,6 +338,111 @@ public struct OSLogFloatFormatting: Sendable {
     }
 }
 
+// MARK: Signposts
+
+// Signposts mark intervals and events for Instruments, which reads them off the device. A page
+// has no such reader, so they record nothing and `signpostsEnabled` is false; what the calls
+// return (identifiers, interval states) works as Apple's does, so code that keeps them runs.
+
+public typealias os_signpost_id_t = UInt64
+
+/// What a signpost marks: one event, or the start or end of an interval.
+public struct OSSignpostType: RawRepresentable, Hashable, Sendable {
+    public let rawValue: UInt8
+    public init(rawValue: UInt8) { self.rawValue = rawValue }
+
+    public static let event = OSSignpostType(rawValue: 0)
+    public static let begin = OSSignpostType(rawValue: 1)
+    public static let end = OSSignpostType(rawValue: 2)
+}
+
+/// The identifier that matches an interval's end to its start.
+public struct OSSignpostID: Comparable, Hashable, Sendable {
+    public let rawValue: os_signpost_id_t
+
+    public init(_ value: os_signpost_id_t) { rawValue = value }
+
+    /// A new identifier, unique among those made this way.
+    public init(log: OSLog) {
+        OSSignpostID.made &+= 1
+        rawValue = OSSignpostID.made
+    }
+
+    /// The identifier for `object`, the same for every call with that object while it lives.
+    public init(log: OSLog, object: AnyObject) {
+        rawValue = os_signpost_id_t(UInt(bitPattern: Unmanaged.passUnretained(object).toOpaque()))
+    }
+
+    nonisolated(unsafe) private static var made: os_signpost_id_t = 0
+
+    /// For intervals that never overlap within their log and name.
+    public static let exclusive = OSSignpostID(0xEEEE_B0B5_B2B2_EEEE)
+    public static let invalid = OSSignpostID(~0)
+    public static let null = OSSignpostID(0)
+
+    public static func < (lhs: OSSignpostID, rhs: OSSignpostID) -> Bool { lhs.rawValue < rhs.rawValue }
+}
+
+/// Marks a point or the start or end of an interval in `log`.
+public func os_signpost(_ type: OSSignpostType, dso: UnsafeRawPointer? = nil, log: OSLog, name: StaticString, signpostID: OSSignpostID = .exclusive) {}
+
+/// The same, with a format string whose `%` specifiers the arguments fill in order.
+public func os_signpost(_ type: OSSignpostType, dso: UnsafeRawPointer? = nil, log: OSLog, name: StaticString, signpostID: OSSignpostID = .exclusive, _ format: StaticString, _ arguments: CVarArg...) {}
+
+/// A signpost's message, an interpolation like a log message's.
+public typealias SignpostMetadata = OSLogMessage
+
+/// An interval begun with `OSSignposter.beginInterval`, which its end takes.
+public final class OSSignpostIntervalState: Sendable {
+    public let signpostID: OSSignpostID
+    init(id: OSSignpostID) { signpostID = id }
+
+    public static func beginState(id: OSSignpostID) -> OSSignpostIntervalState { OSSignpostIntervalState(id: id) }
+}
+
+/// The newer interface to signposts: intervals and events in a log.
+public struct OSSignposter: @unchecked Sendable {
+    let log: OSLog
+
+    public init() { log = .default }
+    public init(subsystem: String, category: String) { log = OSLog(subsystem: subsystem, category: category) }
+    public init(subsystem: String, category: OSLog.Category) { log = OSLog(subsystem: subsystem, category: category) }
+    public init(logHandle: OSLog) { log = logHandle }
+    public init(logger: Logger) { log = logger.osLog }
+
+    /// A signposter whose signposts go nowhere.
+    public static let disabled = OSSignposter(logHandle: .disabled)
+
+    public var isEnabled: Bool { log.signpostsEnabled }
+
+    public func makeSignpostID() -> OSSignpostID { OSSignpostID(log: log) }
+    public func makeSignpostID(from object: AnyObject) -> OSSignpostID { OSSignpostID(log: log, object: object) }
+
+    public func emitEvent(_ name: StaticString, id: OSSignpostID = .exclusive) {}
+    public func emitEvent(_ name: StaticString, id: OSSignpostID = .exclusive, _ message: SignpostMetadata) {}
+
+    public func beginInterval(_ name: StaticString, id: OSSignpostID = .exclusive) -> OSSignpostIntervalState {
+        .beginState(id: id)
+    }
+    public func beginInterval(_ name: StaticString, id: OSSignpostID = .exclusive, _ message: SignpostMetadata) -> OSSignpostIntervalState {
+        .beginState(id: id)
+    }
+    public func beginAnimationInterval(_ name: StaticString, id: OSSignpostID = .exclusive, _ message: SignpostMetadata) -> OSSignpostIntervalState {
+        .beginState(id: id)
+    }
+
+    public func endInterval(_ name: StaticString, _ state: OSSignpostIntervalState) {}
+    public func endInterval(_ name: StaticString, _ state: OSSignpostIntervalState, _ message: SignpostMetadata) {}
+
+    /// Runs `task` inside an interval, returning what it returns.
+    public func withIntervalSignpost<T>(_ name: StaticString, id: OSSignpostID = .exclusive, around task: () throws -> T) rethrows -> T {
+        try task()
+    }
+    public func withIntervalSignpost<T>(_ name: StaticString, id: OSSignpostID = .exclusive, _ message: SignpostMetadata, around task: () throws -> T) rethrows -> T {
+        try task()
+    }
+}
+
 // MARK: Locks
 
 /// A lock around a value, used through closures.
