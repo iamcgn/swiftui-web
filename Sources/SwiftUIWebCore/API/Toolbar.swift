@@ -275,3 +275,58 @@ extension _ToolbarRoleModifier: ViewModifier {
         ToolbarRoleNode(context)
     }
 }
+
+// MARK: - Spacers and the title menu
+
+/// How a `ToolbarSpacer` sizes itself: flexibly, or at a fixed width.
+public struct SpacerSizing: Hashable, Sendable {
+    package let isFlexible: Bool
+    /// A spacer that grows to fill the space between items.
+    public static let flexible = SpacerSizing(isFlexible: true)
+    /// A spacer of the platform's fixed width.
+    public static let fixed = SpacerSizing(isFlexible: false)
+}
+
+/// A standard space item in toolbars, separating the groups around it. The runtime's bar
+/// already spaces its leading, principal and trailing groups, so the spacer adds no item.
+public struct ToolbarSpacer: ToolbarContent, CustomizableToolbarContent {
+    public typealias Body = Never
+    package let sizing: SpacerSizing
+    package let placement: ToolbarItemPlacement
+
+    /// Creates a toolbar spacer of the given sizing at the given placement.
+    public init(_ sizing: SpacerSizing = .flexible, placement: ToolbarItemPlacement = .automatic) {
+        self.sizing = sizing
+        self.placement = placement
+    }
+
+    public var body: Never { fatalError("ToolbarSpacer has no body") }
+    nonisolated public var _toolbarItems: [_ToolbarItemData] { [] }
+}
+
+/// The title menu of a toolbar: actions shown when the navigation title is pressed. The
+/// runtime's title is not pressable, so the menu adds no item.
+public struct ToolbarTitleMenu<Content: View>: ToolbarContent, CustomizableToolbarContent {
+    public typealias Body = Never
+    package let content: Content
+
+    /// Creates a toolbar title menu with the given actions.
+    public init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    public var body: Never { fatalError("ToolbarTitleMenu has no body") }
+    nonisolated public var _toolbarItems: [_ToolbarItemData] { [] }
+}
+
+extension ToolbarTitleMenu where Content == EmptyView {
+    /// Creates a toolbar title menu with the system's document actions (none here).
+    public init() {
+        content = EmptyView()
+    }
+}
+
+extension View {
+    /// Configures the toolbar title menu (see `ToolbarTitleMenu`: the title shows no menu here).
+    nonisolated public func toolbarTitleMenu<C: View>(@ViewBuilder content: () -> C) -> some View { self }
+}

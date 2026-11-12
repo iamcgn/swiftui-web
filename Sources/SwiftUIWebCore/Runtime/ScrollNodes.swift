@@ -74,7 +74,7 @@ extension _Scrollable {
     package var dismissesKeyboardOnScroll: Bool { false }
 }
 
-package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, _ScrollTarget, _Scrollable {
+package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, _ScrollTarget, _Scrollable, _RelativeFrameContainer {
     override package var clipsHitTesting: Bool { true }
     package private(set) var child: TypedNode<VStack<Content>>!
 
@@ -86,6 +86,26 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
 
     /// The content's size for the most recent layout.
     package private(set) var contentSize: CGSize = .zero
+
+    /// The visible size the content is laid out against, which `containerRelativeFrame` inside
+    /// takes its lengths from; the views that read it forget their sizes when it changes.
+    package private(set) var relativeFrameContainerSize: CGSize = .zero
+    private var relativeFrameDependents: [WeakNode] = []
+
+    package func addRelativeFrameDependent(_ node: ViewNode) {
+        relativeFrameDependents.removeAll { $0.node == nil }
+        relativeFrameDependents.append(WeakNode(node: node))
+    }
+
+    /// Notes the visible size for `proposal` (the frame's length where the proposal has none).
+    private func noteRelativeFrameContainer(_ proposal: ProposedViewSize, insets: EdgeInsets) {
+        let size = CGSize(width: max(0, (proposal.width ?? frame.width) - insets.leading - insets.trailing),
+                          height: max(0, (proposal.height ?? frame.height) - insets.top - insets.bottom))
+        guard size != relativeFrameContainerSize else { return }
+        relativeFrameContainerSize = size
+        relativeFrameDependents.removeAll { $0.node == nil }
+        for dependent in relativeFrameDependents { dependent.node?.invalidateSizeMemosUpward() }
+    }
 
     private var appliedDefaultAnchor = false
     private var pendingTarget: (id: AnyHashable, anchor: UnitPoint?)?
@@ -170,6 +190,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     /// `scroll/wide-content`).
     override package func computeSizeThatFits(_ proposal: ProposedViewSize) -> CGSize {
         let insets = safeAreaOverlap + environment._contentMargins.content
+        noteRelativeFrameContainer(proposal, insets: insets)
         var size = child.sizeThatFits(contentProposal(proposal, insets: insets))
         size.width += insets.leading + insets.trailing
         size.height += insets.top + insets.bottom
@@ -202,6 +223,7 @@ package final class ScrollNode<Content: View>: LayoutNode<ScrollView<Content>>, 
     override package func layoutContents(proposal: ProposedViewSize) {
         cachedLazyProviders = nil
         contentInsets = safeAreaOverlap + environment._contentMargins.content
+        noteRelativeFrameContainer(proposal, insets: contentInsets)
         let contentProposal = contentProposal(proposal, insets: contentInsets)
         let size = child.sizeThatFits(contentProposal)
         if let old = lastContentSize, old != size, let anchor = environment._defaultScrollAnchorForSizeChanges {

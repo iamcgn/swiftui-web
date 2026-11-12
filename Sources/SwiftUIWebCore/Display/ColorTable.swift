@@ -132,6 +132,15 @@ extension Color {
             base = environment.assetCatalog.color(named: name, scheme: environment.colorScheme, idiom: environment.assetIdiom) ?? .clear
         case .dynamic(let light, let dark):
             base = environment.colorScheme == .dark ? dark : light
+        case .mixed(let first, let second, let fraction, let perceptual):
+            let a = first.resolve(in: environment), b = second.resolve(in: environment)
+            let alpha = a.alpha + (b.alpha - a.alpha) * fraction
+            if perceptual {
+                base = _Oklab(a).mixed(with: _Oklab(b), t: fraction).rgba(alpha: alpha)
+            } else {
+                base = RGBA(red: a.red + (b.red - a.red) * fraction, green: a.green + (b.green - a.green) * fraction,
+                            blue: a.blue + (b.blue - a.blue) * fraction, alpha: alpha)
+            }
         }
         return base.multiplyingAlpha(by: opacityMultiplier)
     }
@@ -199,6 +208,12 @@ extension ShapeStyle {
             return color.resolve(in: environment)
         }
         if self is BackgroundStyle {
+            if let style = environment._backgroundStyle {
+                // `backgroundStyle(.background)` and the like resolve outside the override.
+                var outer = environment
+                outer._backgroundStyle = nil
+                return style.resolveColor(in: outer)
+            }
             return Color(storage: .system(.windowBackground)).resolve(in: environment)
         }
         if self is TintShapeStyle {
