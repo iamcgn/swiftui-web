@@ -1,5 +1,6 @@
 // Associated objects on the stock wasm SDK (WebFoundation, AssociatedObjects.swift), as
-// Kingfisher uses them: a value kept per object and key, gone with the object, removable.
+// Kingfisher uses them: a value kept per object and key, released soon after the object goes,
+// removable.
 #if os(WASI) && !canImport(ObjectiveC)
 import Testing
 import WebFoundation
@@ -55,6 +56,38 @@ import WebFoundation
         let fresh = View()
         #expect((get(fresh, &Self.taskKey) as Task?) == nil)
         _ = view
+    }
+
+    @Test func aGoneObjectsValuesAreReleasedAsTheTablesAreUsed() {
+        weak var task: Task?
+        var view: View? = View()
+        do {
+            let made = Task("download")
+            task = made
+            setRetained(view!, &Self.taskKey, made)
+        }
+        view = nil
+        // Kingfisher reads its task key for each image it sets: those reads sweep the gone
+        // view's table away, with no further writes.
+        let other = View()
+        for _ in 0..<64 { _ = get(other, &Self.taskKey) as Task? }
+        #expect(task == nil)
+        _ = view
+    }
+
+    @Test func aValueReleasedByASetCanSetAgainInItsDeinit() {
+        // Releasing an old value can run code that associates again (a task's deinit cancelling
+        // and clearing state), which must not trip over the table being changed.
+        final class Clearing {
+            let view: View
+            init(_ view: View) { self.view = view }
+            deinit { objc_setAssociatedObject(view, &WasmAssociatedObjectsTests.otherKey, "cleared", .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
+        }
+        let view = View()
+        setRetained(view, &Self.taskKey, Clearing(view))
+        setRetained(view, &Self.taskKey, Task("next"))
+        #expect((get(view, &Self.otherKey) as String?) == "cleared")
+        #expect((get(view, &Self.taskKey) as Task?)?.name == "next")
     }
 
     @Test func anAssignedValueIsNotRetained() {
