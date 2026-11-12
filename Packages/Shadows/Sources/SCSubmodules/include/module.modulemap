@@ -1,0 +1,12 @@
+// The clang half of the `SystemConfiguration` shadow (wasm only): Apple's is a clang module with
+// submodules, so apps write `import SystemConfiguration.CaptiveNetwork` (OldOS). A Swift module
+// cannot declare submodules; this module map declares them under the same name, and the Swift
+// `SystemConfiguration` module (Sources/SystemConfiguration) keeps the API. The headers are empty.
+module SystemConfiguration [system] {
+  header "SystemConfiguration.h"
+  export *
+  explicit module CaptiveNetwork {
+    header "CaptiveNetwork.h"
+    export *
+  }
+}
