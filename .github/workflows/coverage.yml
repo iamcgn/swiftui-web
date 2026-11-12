@@ -82,9 +82,11 @@ jobs:
         with: { name: coverage-plan, path: plan.json }
 
   sweep:
-    # The stock wasm SDK, on Linux: only when a dispatch asks for it.
+    # The stock wasm SDK, on Linux: when a dispatch asks for it, and on a push.
     needs: plan
-    if: inputs.sdk == 'stock'
+    # A push (a change to the sweep itself) runs this Linux sweep: the Objective-C one takes seven
+    # macOS runners for hours, which CI's macos and browser jobs wait behind.
+    if: inputs.sdk == 'stock' || github.event_name == 'push'
     runs-on: ubuntu-24.04
     container: swift:6.3.3
     timeout-minutes: 300
@@ -129,7 +131,7 @@ jobs:
     # The Objective-C runtime SDK (decision 0023), the SDK an @objc app ships with: the default,
     # so `@objc`, `#selector` and NSObject subclasses compile as they do in the apps' own builds.
     needs: plan
-    if: inputs.sdk != 'stock'
+    if: github.event_name != 'push' && inputs.sdk != 'stock'
     runs-on: macos-15
     timeout-minutes: 300
     strategy:
