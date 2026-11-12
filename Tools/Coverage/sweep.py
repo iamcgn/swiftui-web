@@ -36,7 +36,11 @@ OURS = {
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit",
     "Network",
 }
-STDLIB = {"Swift", "_Concurrency", "_StringProcessing", "Observation", "Synchronization", "RegexBuilder", "WASILibc"}
+# `Builtin` is the compiler's own module (swift-collections imports it with the BuiltinModule
+# feature); `XCTest` ships in the wasm SDK, and packages import it on wasm where Apple's platforms
+# look it up at run time (swift-dependencies' test observer, xctest-dynamic-overlay's `XCTFail`).
+STDLIB = {"Swift", "_Concurrency", "_StringProcessing", "Observation", "Synchronization", "RegexBuilder", "WASILibc",
+          "Builtin", "XCTest"}
 # swift-syntax, which the sweep package depends on itself: a package's macro targets import it.
 SYNTAX_PACKAGE = "https://github.com/swiftlang/swift-syntax.git"
 SYNTAX = {"SwiftSyntax", "SwiftSyntaxMacros", "SwiftCompilerPlugin", "SwiftSyntaxBuilder", "SwiftDiagnostics",
@@ -183,11 +187,38 @@ def language_mode_of_package(dump, target):
     return "v6" if tools_major(dump) >= 6 else "v5"
 
 
-def swift_settings(target):
-    """The defines and upcoming features a target declares, as manifest source."""
-    out = []
+def default_traits(dump):
+    """The traits a package turns on by default, and the traits those turn on. SwiftPM defines
+    each enabled trait's name for the package's own targets (`#if Perception`), and builds the
+    dependencies and settings conditioned on it; the sweep, which flattens every package into one,
+    does the same for the default set (swift-navigation's Perception and CustomDump)."""
+    traits = {t.get("name"): t for t in dump.get("traits") or [] if isinstance(t, dict)}
+    enabled, todo = set(), list((traits.get("default") or {}).get("enabledTraits") or [])
+    while todo:
+        name = todo.pop()
+        if name in enabled or name == "default":
+            continue
+        enabled.add(name)
+        todo.extend((traits.get(name) or {}).get("enabledTraits") or [])
+    return enabled
+
+
+def condition_allows_traits(condition, traits):
+    """Whether a setting's or a dependency's condition holds for the enabled traits: none named,
+    or one of those it names on."""
+    named = condition.get("traits") if isinstance(condition, dict) else None
+    return not named or bool(set(named) & set(traits))
+
+
+def swift_settings(target, traits=frozenset()):
+    """The defines and upcoming features a target declares, as manifest source: the package's
+    enabled traits as defines first, then the settings with no condition or a trait condition
+    that holds."""
+    out = [f".define({json.dumps(t)})" for t in sorted(traits)]
     for s in target.get("settings") or []:
-        if s.get("tool") != "swift" or s.get("condition"):
+        cond = s.get("condition")
+        named = {k for k, v in (cond or {}).items() if v}
+        if s.get("tool") != "swift" or named - {"traits"} or not condition_allows_traits(cond, traits):
             continue
         kind = s.get("kind") or {}
         for key, ctor in (("define", "define"), ("enableUpcomingFeature", "enableUpcomingFeature"),
@@ -310,8 +341,17 @@ def fetch_packages(work: Path, pins):
     return keys
 
 
-def condition_allows_ios(dep):
-    """Whether a dump-package dependency's platform condition (if any) includes iOS."""
+def dependency_traits_hold(dep, traits):
+    """Whether a dump-package dependency's trait condition, if any, holds for `traits`."""
+    parts = (dep.get("product") or dep.get("byName") or dep.get("target") or [])[1:]
+    return all(condition_allows_traits(part, traits) for part in parts if isinstance(part, dict))
+
+
+def condition_allows_ios(dep, traits=None):
+    """Whether a dump-package dependency's platform condition (if any) includes iOS, and its
+    trait condition (if any, and when the package's enabled traits are given) holds."""
+    if traits is not None and not dependency_traits_hold(dep, traits):
+        return False
     for part in (dep.get("product") or dep.get("byName") or dep.get("target") or [])[1:]:
         if isinstance(part, dict) and part.get("platformNames"):
             return "ios" in part["platformNames"]
@@ -338,6 +378,7 @@ def describe_remote_packages(work: Path, keys, notes):
         key = keys[identity]
         root = work / PACKAGES_DIR / key
         names = {t["name"] for t in dump["targets"]}
+        traits = default_traits(dump)
         for t in dump["targets"]:
             kind = t["type"]
             if kind not in ("regular", "macro"):
@@ -372,7 +413,7 @@ def describe_remote_packages(work: Path, keys, notes):
                     continue
             deps, syntax = [], []
             for d in t.get("dependencies", []):
-                if not condition_allows_ios(d):
+                if not condition_allows_ios(d, traits):
                     continue
                 k, name, package = dependency_names(d)
                 if k in ("target", "byName") and name in names:
@@ -387,7 +428,7 @@ def describe_remote_packages(work: Path, keys, notes):
             targets.append({
                 "module": t["name"], "source_root": path, "files": files, "base": f"{PACKAGES_DIR}/{key}",
                 "remote": key, "deps": sorted(set(deps) - {t["name"]}), "syntax": sorted(set(syntax)),
-                "third_party": [], "mode": language_mode_of_package(dump, t), "settings": swift_settings(t),
+                "third_party": [], "mode": language_mode_of_package(dump, t), "settings": swift_settings(t, traits),
                 "resources": [r.get("path") for r in t.get("resources") or [] if r.get("path")],
                 "models": [], "executable": False, "macro": kind == "macro",
                 **({"c": c_kind, "public_headers": t.get("publicHeadersPath") or "include",
@@ -477,6 +518,7 @@ def describe_app(entry, root: Path, work: Path = None):
             continue
         dump = p["dump"]
         local_names = {t["name"] for t in dump["targets"]}
+        traits = default_traits(dump)
         for t in dump["targets"]:
             if t["type"] not in ("regular", "executable"):
                 if t["type"] == "macro":
@@ -489,6 +531,8 @@ def describe_app(entry, root: Path, work: Path = None):
                 continue
             deps, third = [], []
             for d in t.get("dependencies", []):
+                if not dependency_traits_hold(d, traits):
+                    continue
                 kind, name, package = dependency_names(d)
                 if kind in ("target", "byName") and name in local_names:
                     deps.append(name)
@@ -507,7 +551,7 @@ def describe_app(entry, root: Path, work: Path = None):
             targets.append({
                 "module": t["name"], "source_root": str(src), "files": files,
                 "deps": sorted(set(deps) - {t["name"]}), "third_party": sorted(set(third)),
-                "mode": language_mode_of_package(dump, t), "settings": swift_settings(t),
+                "mode": language_mode_of_package(dump, t), "settings": swift_settings(t, traits),
                 "resources": [r.get("path") for r in t.get("resources") or [] if r.get("path")],
                 "models": data_models(root, src),
                 "executable": t["type"] == "executable",

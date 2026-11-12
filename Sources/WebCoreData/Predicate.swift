@@ -158,7 +158,7 @@ open class NSCompoundPredicate: NSPredicate, @unchecked Sendable {
 
 /// An expression for use in a comparison predicate: a constant, a key path, the evaluated
 /// object, a variable, or a collection of expressions.
-open class NSExpression: CustomStringConvertible, @unchecked Sendable {
+open class NSExpression: CustomStringConvertible, CustomDebugStringConvertible, @unchecked Sendable {
     public enum ExpressionType: UInt, Sendable {
         case constantValue = 0, evaluatedObject, variable, keyPath, function
         case unionSet, intersectSet, minusSet
@@ -247,6 +247,9 @@ open class NSExpression: CustomStringConvertible, @unchecked Sendable {
         case .block: return "BLOCK"
         }
     }
+
+    /// The expression's format, as `description` (swift-custom-dump prints it).
+    open var debugDescription: String { description }
 }
 
 func _cdFormatConstant(_ value: Any?) -> String {

@@ -448,4 +448,54 @@ public struct NSExceptionName: RawRepresentable, Hashable, Sendable {
     public static let fileHandleOperationException = NSExceptionName("NSFileHandleOperationException")
     public static let undefinedKeyException = NSExceptionName("NSUnknownKeyException")
 }
+
+// MARK: - NSException
+
+/// An exception: a name, a reason and user info (swift-custom-dump prints one, crash reporters
+/// install an uncaught-exception handler). Raising one hands it to that handler and stops the
+/// program, as an uncaught Objective-C exception does: a page has no `@try` to catch it.
+open class NSException: NSObject, @unchecked Sendable {
+    private let _name: NSExceptionName
+    private let _reason: String?
+    private let _userInfo: [AnyHashable: Any]?
+
+    public init(name aName: NSExceptionName, reason aReason: String?, userInfo aUserInfo: [AnyHashable: Any]? = nil) {
+        _name = aName
+        _reason = aReason
+        _userInfo = aUserInfo
+        super.init()
+    }
+
+    open var name: NSExceptionName { _name }
+    open var reason: String? { _reason }
+    open var userInfo: [AnyHashable: Any]? { _userInfo }
+    /// The return addresses and symbols of the stack it was raised on: none here, as wasm
+    /// cannot walk its own stack.
+    open var callStackReturnAddresses: [NSNumber] { [] }
+    open var callStackSymbols: [String] { [] }
+
+    open override var description: String { reason ?? name.rawValue }
+
+    /// Hands the exception to the uncaught-exception handler, then stops the program.
+    open func raise() {
+        _uncaughtExceptionHandler?(self)
+        fatalError("*** Terminating app due to uncaught exception '\(name.rawValue)', reason: '\(reason ?? "")'")
+    }
+
+    /// Raises an exception with the name and the format as its reason.
+    open class func raise(_ name: NSExceptionName, format: String, arguments argList: CVaListPointer) {
+        NSException(name: name, reason: format, userInfo: nil).raise()
+    }
+}
+
+/// What runs with an exception nobody caught, before the program stops.
+public typealias NSUncaughtExceptionHandler = (NSException) -> Void
+
+nonisolated(unsafe) private var _uncaughtExceptionHandler: NSUncaughtExceptionHandler?
+
+/// Sets the handler a raised exception is handed to (crash reporters log it there).
+public func NSSetUncaughtExceptionHandler(_ handler: NSUncaughtExceptionHandler?) { _uncaughtExceptionHandler = handler }
+
+/// The handler set with `NSSetUncaughtExceptionHandler`, if any.
+public func NSGetUncaughtExceptionHandler() -> NSUncaughtExceptionHandler? { _uncaughtExceptionHandler }
 #endif

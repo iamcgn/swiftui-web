@@ -133,6 +133,10 @@ public struct Text: Equatable, Sendable {
     package static let objectReplacement = "\u{FFFC}"
 
     package let storage: Storage
+    /// What assistive technology reads instead of the text, and its heading level (0: a
+    /// heading of no level): `Text.accessibilityLabel` and `Text.accessibilityHeading`.
+    package var accessibilityLabelOverride: String?
+    package var accessibilityHeadingLevel: Int?
     package var modifiers = Modifiers()
 
     /// Creates a text view that displays a string literal without localization.
@@ -146,9 +150,21 @@ public struct Text: Equatable, Sendable {
         storage = .verbatim(String(content))
     }
 
-    /// Creates a text view that displays localized content identified by a key.
-    public init(_ key: LocalizedStringKey) {
+    /// Creates a text view that displays localized content identified by a key (looked up in no
+    /// table yet: the key shows, its markdown interpreted).
+    public init(_ key: LocalizedStringKey, tableName: String? = nil, bundle: Bundle? = nil, comment: StaticString? = nil) {
         storage = .localized(key)
+    }
+
+    /// Creates a text view that displays a localized string resource: the string its table
+    /// gives, else its default value.
+    @_disfavoredOverload
+    public init(_ resource: LocalizedStringResource) {
+        #if os(WASI) || os(Linux)
+        storage = .verbatim(resource.description)
+        #else
+        storage = .verbatim(String(localized: resource))
+        #endif
     }
 
     /// The displayed string (localization is identity until Phase 3; markdown markup removed).
@@ -221,7 +237,7 @@ public struct Text: Equatable, Sendable {
     /// or fades it; other styles leave it (`View.foregroundStyle`).
     public func foregroundStyle<S: ShapeStyle>(_ style: S) -> Text {
         var t = self
-        if let color = style as? Color {
+        if let color = style._asColor {
             t.modifiers.foregroundColor = color
             t.modifiers.foregroundGradient = nil
         } else if let level = style as? HierarchicalShapeStyle {

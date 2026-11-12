@@ -98,6 +98,11 @@ let package = Package(
             dependencies: ["WebFoundation"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
+        .testTarget(
+            name: "WebFoundationFormatsTests",
+            dependencies: ["WebFoundationFormats"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
         .target(
             name: "WebGraphicsHeadless",
             dependencies: ["WebFoundation", "WebGraphics"],

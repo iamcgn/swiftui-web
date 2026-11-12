@@ -1,9 +1,9 @@
 // What packages reach for through Apple's Foundation, which re-exports Darwin, when they build
 // for a platform with Objective-C and `os` (as the objc SDK is): the dynamic loader's `dlopen`
-// family, dyld's image list and the Mach-O structures that walk an image, and strings, dates
-// and UUIDs as `CVarArg` (Apple bridges them to their NSObject classes). A page loads no
-// libraries, so the loader and the image list find nothing; a `CVarArg` value travels as
-// itself, and WebFoundation's formatters read it from there.
+// family, dyld's image list and the Mach-O structures that walk an image, `sysctlbyname`, and
+// strings, dates and UUIDs as `CVarArg` (Apple bridges them to their NSObject classes). A page
+// loads no libraries, so the loader and the image list find nothing; a `CVarArg` value travels
+// as itself, and WebFoundation's formatters read it from there.
 #if os(WASI)
 
 // MARK: - Dynamic loading
@@ -70,6 +70,33 @@ public func _dyld_get_image_name(_ imageIndex: UInt32) -> UnsafePointer<CChar>? 
 public func _dyld_get_image_header(_ imageIndex: UInt32) -> UnsafePointer<mach_header>? { nil }
 /// How far an image was moved from its preferred address: there is no image, so no slide.
 public func _dyld_get_image_vmaddr_slide(_ imageIndex: UInt32) -> Int { 0 }
+
+// MARK: - sysctl
+
+/// The few system values packages read by name (TelemetryDeck's and Clendar's device model,
+/// swift-perception's beta check): the machine is `wasm32`, the OS build an ordinary release one.
+/// Any other name is not found. As on Darwin, a nil `oldp` asks only for the size, which counts
+/// the closing NUL; a buffer too small for the value fails and is left as it was.
+@discardableResult
+public func sysctlbyname(_ name: UnsafePointer<CChar>?, _ oldp: UnsafeMutableRawPointer?,
+                         _ oldlenp: UnsafeMutablePointer<Int>?, _ newp: UnsafeMutableRawPointer?,
+                         _ newlen: Int) -> Int32 {
+    guard let name, newp == nil else { return -1 }
+    let value: String
+    switch String(cString: name) {
+    case "hw.machine", "hw.model": value = "wasm32"
+    case "kern.osversion": value = "1A1"
+    case "kern.ostype": value = "WASI"
+    default: return -1
+    }
+    let bytes = Array(value.utf8CString)
+    guard let oldlenp else { return -1 }
+    guard let oldp else { oldlenp.pointee = bytes.count; return 0 }
+    guard oldlenp.pointee >= bytes.count else { return -1 }
+    bytes.withUnsafeBytes { oldp.copyMemory(from: $0.baseAddress!, byteCount: $0.count) }
+    oldlenp.pointee = bytes.count
+    return 0
+}
 
 // MARK: - CVarArg
 
