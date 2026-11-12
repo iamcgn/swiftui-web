@@ -6,6 +6,9 @@
 import Testing
 import WebFoundation
 import WebFoundationFormats
+#if canImport(Darwin)
+import Darwin
+#endif
 
 private let english = Locale(identifier: "en_US")
 
@@ -44,6 +47,18 @@ private let english = Locale(identifier: "en_US")
         let object = NSAttributedString(AttributedString("hello"))
         #expect(object.string == "hello")
         #expect(object.length == 5)
+    }
+
+    /// swift-perception's beta check and TelemetryDeck's device model: ask for the size, then read.
+    @Test func sysctlByNameAnswersTheMachineAndRefusesUnknownNames() {
+        var size = 0
+        #expect(sysctlbyname("hw.machine", nil, &size, nil, 0) == 0)
+        #expect(size > 1)
+        var machine = [CChar](repeating: 0, count: size)
+        #expect(sysctlbyname("hw.machine", &machine, &size, nil, 0) == 0)
+        #expect(machine.withUnsafeBufferPointer { String(cString: $0.baseAddress!) }.isEmpty == false)
+        var unknown = 0
+        #expect(sysctlbyname("swiftui.web.no.such.name", nil, &unknown, nil, 0) == -1)
     }
 }
 #endif
