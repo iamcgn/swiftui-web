@@ -1,16 +1,10 @@
 // Names Apple's Foundation brings with the Objective-C runtime, for the stock wasm SDK, where
-// there is none: `autoreleasepool` (Nuke and Kingfisher wrap their image decoding in it),
-// `NSClassFromString` (RevenueCat looks up the ad-support classes by name and does without
-// them when they are missing) and the `NSInteger` and `NSUInteger` aliases (Kingfisher's display
-// link protocol). With the Objective-C runtime SDK the runtime's own declarations are in scope
-// instead (WebFoundation re-exports `ObjectiveC`, decision 0023).
+// there is none: `NSClassFromString` (RevenueCat looks up the ad-support classes by name and
+// does without them when they are missing) and the `NSInteger` and `NSUInteger` aliases
+// (Kingfisher's display link protocol); `autoreleasepool` is in Threading.swift. With the
+// Objective-C runtime SDK the runtime's own declarations are in scope instead (WebFoundation
+// re-exports `ObjectiveC`, decision 0023).
 #if os(WASI) && !canImport(ObjectiveC)
-
-/// Runs `body` and returns what it returns. Without the runtime nothing is autoreleased, so
-/// there is no pool to drain: Swift releases each object when its last reference goes.
-public func autoreleasepool<Result>(invoking body: () throws -> Result) rethrows -> Result {
-    try body()
-}
 
 /// The class Swift knows by `aClassName`, as `NSStringFromClass` names it ("Module.Class"),
 /// or nil. Without the runtime only Swift's own type metadata can be searched, so the name of
