@@ -132,8 +132,26 @@ extension StringProtocol {
     /// only at the start (the end, backwards) with `.anchored`, ignoring case with
     /// `.caseInsensitive`. The range is in this string's own indices, so a substring's range
     /// indexes its base string, as Foundation's does. The locale is not consulted.
+    ///
+    /// Shorter overloads come first: a module that sees Foundation's as well (a test target on
+    /// wasm, which XCTest links it into) picks the overload with fewer defaulted arguments, ours,
+    /// unless the call names a locale.
+    public func range<T: StringProtocol>(of aString: T, options mask: String.CompareOptions = []) -> Range<Index>? {
+        _range(of: aString, options: mask, range: nil)
+    }
+
     public func range<T: StringProtocol>(of aString: T, options mask: String.CompareOptions = [],
-                                         range searchRange: Range<Index>? = nil, locale: Locale? = nil) -> Range<Index>? {
+                                         range searchRange: Range<Index>?) -> Range<Index>? {
+        _range(of: aString, options: mask, range: searchRange)
+    }
+
+    public func range<T: StringProtocol>(of aString: T, options mask: String.CompareOptions = [],
+                                         range searchRange: Range<Index>? = nil, locale: Locale?) -> Range<Index>? {
+        _range(of: aString, options: mask, range: searchRange)
+    }
+
+    func _range<T: StringProtocol>(of aString: T, options mask: String.CompareOptions,
+                                   range searchRange: Range<Index>?) -> Range<Index>? {
         let insensitive = mask.contains(.caseInsensitive)
         let needle = insensitive ? String(aString).lowercased() : String(aString)
         guard !needle.isEmpty else { return nil }
