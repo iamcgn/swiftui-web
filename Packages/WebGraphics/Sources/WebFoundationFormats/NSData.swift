@@ -118,28 +118,38 @@ extension NSData {
         case lzfse = 0, lz4 = 1, lzma = 2, zlib = 3
     }
 
-    /// The bytes compressed with `algorithm`. `zlib` is raw DEFLATE, as Apple's is. The page
-    /// has no LZFSE, LZ4 or LZMA encoder, so those write raw DEFLATE too: what this runtime
-    /// compressed it decompresses again, whichever algorithm both calls name.
+    /// The bytes compressed with `algorithm`, in the format Apple's Compression framework writes
+    /// for it (Compression.swift), so another device or a server can decompress them.
     public func compressed(using algorithm: CompressionAlgorithm) throws -> NSData {
-        NSData(data: Data(_deflate(_bytes)))
+        NSData(data: Data(_compress(_bytes, algorithm._format)))
     }
 
-    /// The bytes decompressed. Throws when they are not a DEFLATE stream, which includes LZFSE,
-    /// LZ4 and LZMA bytes another device wrote.
+    /// The bytes decompressed. Throws when they are not a whole stream of `algorithm`, and for the
+    /// LZFSE and LZMA encodings this runtime does not read (FSE blocks, LZMA-coded chunks).
     public func decompressed(using algorithm: CompressionAlgorithm) throws -> NSData {
-        guard let bytes = try? _inflate(_bytes) else { throw CocoaError(.fileReadCorruptFile) }
+        guard let bytes = try? _decompress(_bytes, algorithm._format) else { throw CocoaError(.fileReadCorruptFile) }
         return NSData(data: Data(bytes))
+    }
+}
+
+extension NSData.CompressionAlgorithm {
+    var _format: _CompressionFormat {
+        switch self {
+        case .lzfse: .lzfse
+        case .lz4: .lz4
+        case .lzma: .lzma
+        case .zlib: .zlib
+        }
     }
 }
 
 extension NSMutableData {
     /// Compresses the bytes in place.
-    public func compress(using algorithm: CompressionAlgorithm) throws { _bytes = _deflate(_bytes) }
+    public func compress(using algorithm: CompressionAlgorithm) throws { _bytes = _compress(_bytes, algorithm._format) }
 
     /// Decompresses the bytes in place, or throws and leaves them as they were.
     public func decompress(using algorithm: CompressionAlgorithm) throws {
-        guard let bytes = try? _inflate(_bytes) else { throw CocoaError(.fileReadCorruptFile) }
+        guard let bytes = try? _decompress(_bytes, algorithm._format) else { throw CocoaError(.fileReadCorruptFile) }
         _bytes = bytes
     }
 }
