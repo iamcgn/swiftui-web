@@ -5,7 +5,7 @@
 // Its images are `CGImage`s of the file (the browser decodes them), and a thumbnail is the
 // file with a smaller pixel size, which painters scale it to. Numbers in the dictionaries are
 // `NSNumber`s, as Apple's are (cast them `as? NSNumber`).
-// There is no image destination: writing files needs an encoder this module does not ship.
+// Image destinations are in the `ImageIO` shadow (Packages/Shadows), which writes PNG.
 
 #if os(WASI)
 import WebFoundation

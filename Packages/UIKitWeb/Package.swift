@@ -7,6 +7,7 @@ import PackageDescription
 //
 // Module layout:
 //   UIKit          thin re-export so apps can `import UIKit` unchanged; `UIApplicationDelegate.main()`
+//   UIKitSubmodules  the clang module map that gives `import UIKit.UIImage` its submodules (wasm)
 //   UIKitWebCore   the view and layer trees, responders and touches, controls, view controllers,
 //                  the window, screen and application, and the scene the substrate hosts drive
 //   UIKitFixtureKit, UIKitFixtures   the fidelity loop's fixture API and fixtures (tests only)
@@ -33,9 +34,13 @@ let package = Package(
                 .product(name: "WebGraphicsCanvas", package: "WebGraphics"),
                 .product(name: "WebGraphicsNative", package: "WebGraphics"),
                 .product(name: "JavaScriptEventLoop", package: "JavaScriptKit", condition: .when(platforms: [.wasi])),
+                // `import UIKit.UIImage` and the other per-header submodules resolve through this
+                // clang module of the same name (wasm only: elsewhere the API is reached as `UIKit`).
+                .target(name: "UIKitSubmodules", condition: .when(platforms: [.wasi])),
             ],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
+        .target(name: "UIKitSubmodules"),
         .target(
             name: "UIKitWebCore",
             dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
