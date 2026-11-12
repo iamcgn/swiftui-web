@@ -552,7 +552,8 @@ def describe_app(entry, root: Path, work: Path = None):
             "module": "Sweep" + re.sub(r"\W", "", entry["name"]), "source_root": ".", "files": app_files,
             "deps": sorted({t["module"] for t in targets if not t["executable"] and not t.get("macro")}), "third_party": [],
             "mode": xcode_language_mode(root), "settings": [], "resources": [], "models": models,
-            "catalogs": catalogs, "executable": True, "app": True,
+            "catalogs": catalogs, "symbol_extensions": bool(catalogs) and xcode_asset_symbol_extensions(root),
+            "executable": True, "app": True,
         })
     # The app target links the package modules its files import (Xcode links the products the
     # project lists; the imports say which of them the app's code uses).
@@ -616,6 +617,19 @@ def describe_app(entry, root: Path, work: Path = None):
             if built:
                 out.setdefault(prod["name"], built)
     return out
+
+
+def xcode_asset_symbol_extensions(root: Path):
+    """Whether the app's Xcode project asks for asset symbol extensions (`Color.accent` as well as
+    `ColorResource.accent`), as ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES
+    on any of its targets."""
+    setting = re.compile(r"ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS\s*[=:]\s*\"?YES")
+    for pbx in root.rglob("project.pbxproj"):
+        if any(EXCLUDE_DIR.match(p) for p in pbx.relative_to(root).parts[:-2]):
+            continue
+        if setting.search(pbx.read_text(errors="replace")):
+            return True
+    return any(setting.search(yml.read_text(errors="replace")) for yml in list(root.glob("project.yml")) + list(root.glob("*.yml")))
 
 
 def xcode_language_mode(root: Path):
@@ -942,6 +956,9 @@ def cmd_prepare(args):
                         shutil.copy2(d / "Contents.json", out / "Contents.json")
             if t.get("catalogs"):
                 models.append("_AssetCatalogs")
+                # The project's asset symbol extensions setting, as the plugin reads it.
+                if t.get("symbol_extensions"):
+                    (dest_root / "_AssetCatalogs" / "AssetSymbolExtensions").write_text("")
             # Asset catalogs among the resources get their symbols (`Image(.logo)`) from the
             # AssetSymbols plugin, as Xcode generates them.
             plugins = (['.plugin(name: "CoreDataModel", package: "SwiftUIWeb")'] if t.get("models") else []) + (
