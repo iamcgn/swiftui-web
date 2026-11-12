@@ -186,7 +186,7 @@ extension ControlGroupStyle where Self == PaletteControlGroupStyle {
 }
 
 package struct ControlGroupStyleKey: EnvironmentKey {
-    package nonisolated(unsafe) static let defaultValue: any ControlGroupStyle = AutomaticControlGroupStyle()
+    package nonisolated(unsafe) static let defaultValue: any ControlGroupStyle = MainActor.assumeIsolated { AutomaticControlGroupStyle() }
 }
 
 extension EnvironmentValues {
