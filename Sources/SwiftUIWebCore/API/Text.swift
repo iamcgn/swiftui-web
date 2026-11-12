@@ -237,7 +237,7 @@ public struct Text: Equatable, Sendable {
     /// or fades it; other styles leave it (`View.foregroundStyle`).
     public func foregroundStyle<S: ShapeStyle>(_ style: S) -> Text {
         var t = self
-        if let color = style as? Color {
+        if let color = style._asColor {
             t.modifiers.foregroundColor = color
             t.modifiers.foregroundGradient = nil
         } else if let level = style as? HierarchicalShapeStyle {

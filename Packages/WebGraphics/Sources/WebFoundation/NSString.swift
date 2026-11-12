@@ -127,26 +127,65 @@ extension StringProtocol {
         return String(whole[..<high])
     }
 
-    /// The range of the first occurrence of `string` (Foundation's `StringProtocol.range(of:)`:
-    /// a `Range<String.Index>`, nil when absent; `.caseInsensitive` honoured, `.backwards` the
-    /// last occurrence).
-    public func range(of string: some StringProtocol, options: String.CompareOptions = []) -> Range<String.Index>? {
-        let whole = String(self)
-        let haystack = options.contains(.caseInsensitive) ? whole.lowercased() : whole
-        let needle = options.contains(.caseInsensitive) ? String(string).lowercased() : String(string)
-        guard !needle.isEmpty, haystack.count == whole.count else { return nil }
-        var found: Range<String.Index>?
-        var from = haystack.startIndex
-        while let match = haystack._find(needle, from: from) {
-            found = match
-            if !options.contains(.backwards) { break }
-            from = haystack.index(after: match.lowerBound)
+    /// The range of the first occurrence of `aString` (Foundation's `StringProtocol.range(of:)`),
+    /// nil when absent: within `searchRange` when given, the last occurrence with `.backwards`,
+    /// only at the start (the end, backwards) with `.anchored`, ignoring case with
+    /// `.caseInsensitive`. The range is in this string's own indices, so a substring's range
+    /// indexes its base string, as Foundation's does. The locale is not consulted.
+    ///
+    /// Shorter overloads come first: a module that sees Foundation's as well (a test target on
+    /// wasm, which XCTest links it into) picks the overload with fewer defaulted arguments, ours,
+    /// unless the call names a locale.
+    public func range<T: StringProtocol>(of aString: T, options mask: String.CompareOptions = []) -> Range<Index>? {
+        _range(of: aString, options: mask, range: nil)
+    }
+
+    public func range<T: StringProtocol>(of aString: T, options mask: String.CompareOptions = [],
+                                         range searchRange: Range<Index>?) -> Range<Index>? {
+        _range(of: aString, options: mask, range: searchRange)
+    }
+
+    public func range<T: StringProtocol>(of aString: T, options mask: String.CompareOptions = [],
+                                         range searchRange: Range<Index>? = nil, locale: Locale?) -> Range<Index>? {
+        _range(of: aString, options: mask, range: searchRange)
+    }
+
+    func _range<T: StringProtocol>(of aString: T, options mask: String.CompareOptions,
+                                   range searchRange: Range<Index>?) -> Range<Index>? {
+        let insensitive = mask.contains(.caseInsensitive)
+        let needle = insensitive ? String(aString).lowercased() : String(aString)
+        guard !needle.isEmpty else { return nil }
+        let bounds = searchRange ?? startIndex..<endIndex
+        /// Where a match starting at `start` ends, comparing a character at a time.
+        func end(ofMatchAt start: Index) -> Index? {
+            var position = start
+            var rest = needle[...]
+            while !rest.isEmpty {
+                guard position < bounds.upperBound else { return nil }
+                let character = insensitive ? self[position].lowercased() : String(self[position])
+                guard rest.hasPrefix(character) else { return nil }
+                rest = rest.dropFirst(character.count)
+                position = index(after: position)
+            }
+            return position
         }
-        guard let found else { return nil }
-        // Map the lowercase haystack's offsets back onto the original (same character count).
-        let lower = whole.index(whole.startIndex, offsetBy: haystack.distance(from: haystack.startIndex, to: found.lowerBound))
-        let upper = whole.index(lower, offsetBy: haystack.distance(from: found.lowerBound, to: found.upperBound))
-        return lower..<upper
+        if mask.contains(.backwards) {
+            var start = bounds.upperBound
+            while start > bounds.lowerBound {
+                start = index(before: start)
+                if let upper = end(ofMatchAt: start), !mask.contains(.anchored) || upper == bounds.upperBound {
+                    return start..<upper
+                }
+            }
+            return nil
+        }
+        var start = bounds.lowerBound
+        while start < bounds.upperBound {
+            if let upper = end(ofMatchAt: start) { return start..<upper }
+            if mask.contains(.anchored) { return nil }
+            start = index(after: start)
+        }
+        return nil
     }
 }
 

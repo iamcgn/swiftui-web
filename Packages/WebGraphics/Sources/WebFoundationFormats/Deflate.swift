@@ -3,7 +3,7 @@
 // three bytes over a 32 KB window and writes them with the fixed Huffman codes, falling back to
 // stored blocks when that would be larger (bytes that do not repeat); the decompressor reads all
 // three block types, so it takes what zlib, Apple's Compression framework or a server wrote.
-#if os(WASI)
+// Not limited to wasm, so the host tests check it against Apple's decoder (Compression.swift).
 
 private let lengthBase: [Int] = [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115,
                                  131, 163, 195, 227, 258]
@@ -243,4 +243,3 @@ private struct BitReader {
         return Int(source[position - 1])
     }
 }
-#endif
