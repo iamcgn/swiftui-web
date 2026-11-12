@@ -39,6 +39,9 @@ public struct UNAuthorizationOptions: OptionSet, Sendable {
     public static let criticalAlert = UNAuthorizationOptions(rawValue: 1 << 4)
     public static let providesAppNotificationSettings = UNAuthorizationOptions(rawValue: 1 << 5)
     public static let provisional = UNAuthorizationOptions(rawValue: 1 << 6)
+    /// Siri reads notifications aloud (asked for, as Apple's; a page has no announcer).
+    public static let announcement = UNAuthorizationOptions(rawValue: 1 << 7)
+    public static let timeSensitive = UNAuthorizationOptions(rawValue: 1 << 8)
 }
 
 public enum UNNotificationSetting: Int, Sendable {

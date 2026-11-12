@@ -58,6 +58,10 @@ public struct State<Value>: DynamicProperty {
     }
 }
 
+/// Sendable when its value is, as SwiftUI's (swift-sharing keeps one in its `Sendable` `Shared`);
+/// its box is only read and written on the main actor.
+extension State: @unchecked Sendable where Value: Sendable {}
+
 extension State where Value: ExpressibleByNilLiteral {
     /// Creates a state property without an initial value.
     @inlinable

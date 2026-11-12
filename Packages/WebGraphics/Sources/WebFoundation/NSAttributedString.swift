@@ -29,6 +29,11 @@ open class NSAttributedString: @unchecked Sendable {
         string = attributedString.string
         runs = attributedString.runs
     }
+    /// The characters of a Swift attributed string (its attributes, keyed by scope there, have
+    /// no `Key` counterparts here).
+    public convenience init(_ attrStr: AttributedString) {
+        self.init(string: String(attrStr.characters))
+    }
     public var length: Int { string.utf16.count }
 
     public func attributes(at location: Int, effectiveRange range: NSRangePointer?) -> [Key: Any] {

@@ -356,9 +356,14 @@ extension ViewNode {
 
 extension TextNode: _SemanticsProviding {
     package var staticSemantics: SemanticsNode? {
-        let string = view.resolvedString
+        let string = view.accessibilityLabelOverride ?? view.resolvedString
         guard !string.isEmpty else { return nil }
-        return SemanticsNode(role: .text, label: string, frame: frameInRoot, identifier: semanticsIdentifier)
+        var element = SemanticsNode(role: .text, label: string, frame: frameInRoot, identifier: semanticsIdentifier)
+        if let level = view.accessibilityHeadingLevel {
+            element.role = .heading
+            if level > 0 { element.headingLevel = level }
+        }
+        return element
     }
 }
 

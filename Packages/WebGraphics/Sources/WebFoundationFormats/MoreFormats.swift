@@ -180,6 +180,11 @@ extension Duration {
             public static var minutes: Unit { Unit(seconds: 60, narrow: "m", abbreviated: ("min", "min"), wide: ("minute", "minutes")) }
             public static var seconds: Unit { Unit(seconds: 1, narrow: "s", abbreviated: ("sec", "sec"), wide: ("second", "seconds")) }
             public static var milliseconds: Unit { Unit(seconds: 0.001, narrow: "ms", abbreviated: ("ms", "ms"), wide: ("millisecond", "milliseconds")) }
+            public static var microseconds: Unit { Unit(seconds: 0.000_001, narrow: "μs", abbreviated: ("μs", "μs"), wide: ("microsecond", "microseconds")) }
+            public static var nanoseconds: Unit { Unit(seconds: 0.000_000_001, narrow: "ns", abbreviated: ("ns", "ns"), wide: ("nanosecond", "nanoseconds")) }
+
+            /// The unit's length in nanoseconds, a whole number (so whole units divide exactly).
+            var nanoseconds: Double { (seconds * 1_000_000_000).rounded() }
 
             public static func == (lhs: Unit, rhs: Unit) -> Bool { lhs.seconds == rhs.seconds }
             public func hash(into hasher: inout Hasher) { hasher.combine(seconds) }
@@ -242,18 +247,22 @@ extension Duration {
             let units = allowedUnits.sorted { $0.seconds > $1.seconds }
             guard let smallest = units.last else { return "" }
             let total = value._seconds
-            // Whole units from the largest down; the smallest takes the rounded rest.
-            var rest = abs(total)
+            // Whole units from the largest down; the smallest takes the rounded rest. Counted in
+            // whole nanoseconds, where taking whole units off is exact (a remainder is), so a
+            // millisecond and five microseconds is "1 ms, 5 μs" and not "1 ms, 4 μs".
+            let (wholeSeconds, attoseconds) = value.components
+            var rest = abs(Double(wholeSeconds) * 1_000_000_000 + (Double(attoseconds) / 1_000_000_000).rounded())
             var values: [(Unit, Double)] = []
             for unit in units {
+                let size = unit.nanoseconds
                 if unit == smallest {
-                    let count = rest / unit.seconds
+                    let count = rest / size
                     let scale = (0..<fractionalPartDisplay.length).reduce(1.0) { value, _ in value * 10 }
                     values.append((unit, (count * scale).rounded(.toNearestOrEven) / scale))
                 } else {
-                    let count = (rest / unit.seconds).rounded(.towardZero)
-                    values.append((unit, count))
-                    rest -= count * unit.seconds
+                    let remainder = rest.truncatingRemainder(dividingBy: size)
+                    values.append((unit, (rest - remainder) / size))
+                    rest = remainder
                 }
             }
             var shown = zeroValueUnitsDisplay.length == nil ? values.filter { $0.1 != 0 } : values
