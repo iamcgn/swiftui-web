@@ -1,276 +1,45 @@
+# Probe branch only (never merged): Counter's linked size at main and at PR 98, on Linux.
 name: CI
-on: [push, pull_request]
-env:
-  SWIFT_VERSION: "6.3.3"
+on: push
 jobs:
-  macos:
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install toolchain
-        run: |
-          brew install swiftly binaryen cairo   # cairo: the Cairo painter's tests (pf-linux)
-          swiftly init --assume-yes --skip-install --no-modify-profile
-          . ~/.swiftly/env.sh
-          swiftly install $SWIFT_VERSION --use --assume-yes
-      - name: Progress outputs are current (Docs/TODO.md from Docs/todo.json)
-        run: python3 scripts/gen-progress.py --check
-      - name: Native tests
-        run: . ~/.swiftly/env.sh && swift test
-      - name: UIKitWeb tests
-        run: . ~/.swiftly/env.sh && cd Packages/UIKitWeb && swift test
-      - name: WebFoundation tests (the wasm stand-ins against Foundation)
-        run: . ~/.swiftly/env.sh && cd Packages/WebGraphics && swift test
-      - name: Harness builds (Apple toolchain, real SwiftUI)
-        run: cd Harness && /usr/bin/swift build
-      - name: Host builds (Apple toolchain, WKWebView)
-        run: cd Tools/Host && /usr/bin/swift build
-  linux:
+  size:
     runs-on: ubuntu-24.04
     container: swift:6.3.3
     steps:
       - uses: actions/checkout@v4
-      - name: Linux libraries (the Cairo painter, the GTK4 and WebKitGTK hosts; pf-linux)
-        run: apt-get update && apt-get install -y pkg-config libcairo2-dev libgtk-4-dev libwebkitgtk-6.0-dev
-      - name: Native tests
-        run: swift test --scratch-path .build/native
-      - name: UIKitWeb tests
-        run: cd Packages/UIKitWeb && swift test
-      - name: WebFoundation and Cairo painter tests
-        run: cd Packages/WebGraphics && swift test
-      - name: GTK host builds and tests (no display needed)
-        run: cd Packages/LinuxHost && swift build && swift test
-      - name: WebKitGTK host builds
-        run: cd Packages/WebKitHost && swift build
-      - name: Install wasm SDK
+        with: { path: head, fetch-depth: 0 }
+      - name: Base worktree
+        run: git config --global --add safe.directory '*' && git -C head worktree add --detach "$GITHUB_WORKSPACE/base" 123d850
+      - name: wasm SDK
         run: |
           swift sdk install https://download.swift.org/swift-6.3.3-release/wasm-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_wasm.artifactbundle.tar.gz \
             --checksum cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7
-      - name: wasm build
-        run: swift build --swift-sdk swift-6.3.3-RELEASE_wasm --scratch-path .build/wasm --target SwiftUIWebCanvas
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - name: wasm tests (swift-testing under Node via PackageToJS)
-        run: swift package --disable-sandbox --swift-sdk swift-6.3.3-RELEASE_wasm js test
-      - name: wasm size report
-        run: du -h .build/wasm/wasm32-unknown-wasip1/debug/*.wasm 2>/dev/null || true
-  browser:
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-        with: { submodules: true }   # Apps/upstream: the apps of decision 0021 at their pins
-      - name: Install toolchain and wasm SDK
+      - name: Build both with maps
         run: |
-          brew install swiftly binaryen brotli
-          swiftly init --assume-yes --skip-install --no-modify-profile
-          . ~/.swiftly/env.sh
-          swiftly install $SWIFT_VERSION --use --assume-yes
-          swift sdk install https://download.swift.org/swift-6.3.3-release/wasm-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_wasm.artifactbundle.tar.gz \
-            --checksum cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - name: Playwright
-        run: cd Playwright && npm install && npx playwright install --with-deps chromium
-      # Speech (decision 0022) runs in the runner's installed Google Chrome, sandbox on, from a
-      # persistent profile; the on-device components (SODA and the en-US pack, 219 MB from
-      # Google) are cached per Chrome version so the download happens once, not per run.
-      - name: The installed Chrome's version (the speech profile's cache key)
-        id: chrome
-        run: echo "version=$(defaults read '/Applications/Google Chrome.app/Contents/Info.plist' CFBundleShortVersionString)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
-        with:
-          path: |
-            Playwright/.speech-profile/SODA
-            Playwright/.speech-profile/SODALanguagePacks
-          key: speech-pack-${{ runner.os }}-chrome-${{ steps.chrome.outputs.version }}
-          # A new Chrome on the runner starts from the last pack (Chrome updates SODA in place):
-          # the cold download into a fresh profile did not finish in 15 minutes on Chrome 157.
-          restore-keys: speech-pack-${{ runner.os }}-chrome-
-      - name: Tier B (gallery vs goldens)
-        run: . ~/.swiftly/env.sh && scripts/tier-b.sh
-      - name: Host elements and the map in Chromium (sw-frameworks)
-        run: |
-          # Its own port: 8769 is the frame budget's, 8766 Tier B's.
-          python3 -m http.server 8770 --bind 127.0.0.1 --directory Examples/Gallery >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8770/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node frameworks-probe.mjs http://127.0.0.1:8770/index.html)
-      - name: Interaction suite in Chromium (the gallery, Tier B's build) — focus, typing, keys, menus, sheets, toolbar, gestures, hover, scrolling, selection, drag and drop, the colour well, accessibility, UIKit pickers, AsyncImage, animation, timelines
-        run: |
-          # 8767, the port the probes and the AsyncImage fixture's served URL name; the server
-          # stops here, as the UIKit counter takes 8767 later.
-          python3 -m http.server 8767 --bind 127.0.0.1 --directory Examples/Gallery >/dev/null 2>&1 &
-          server=$!
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8767/index.html >/dev/null && break; sleep 1; done
-          status=0
-          (cd Playwright && node interactions.mjs http://127.0.0.1:8767/index.html --out ../.build/interactions) || status=$?
-          kill $server
-          exit $status
-      - name: Landing frame budget (pf-perf) and the Controls demo probe
-        run: . ~/.swiftly/env.sh && scripts/frame-budget.sh
-      - name: Counter smoke test and size gate
-        run: |
-          . ~/.swiftly/env.sh
-          scripts/build-wasm.sh Examples/Counter
-          python3 -m http.server 8765 --bind 127.0.0.1 --directory Examples/Counter >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8765/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node counter.mjs http://127.0.0.1:8765/index.html --shot ../.build/counter.png)
-          scripts/size-gate.sh Examples/Counter
-      - name: Core Data through SwiftUI's trait (decision 0024) — a view importing only SwiftUI, a predicate importing only Foundation, saves and a reload
-        run: |
-          . ~/.swiftly/env.sh
-          scripts/build-wasm.sh Examples/CoreDataNotes
-          python3 -m http.server 8771 --bind 127.0.0.1 --directory Examples/CoreDataNotes >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8771/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node coredata-notes.mjs http://127.0.0.1:8771/index.html --shot ../.build/coredata-notes.png)
-          # Not gated (Core Data is the app's choice): the size, for the record.
-          scripts/size-gate.sh Examples/CoreDataNotes 99999999
-      - name: UIKit counter smoke test and size gate
-        run: |
-          . ~/.swiftly/env.sh
-          scripts/build-wasm.sh Examples/UIKitCounter
-          python3 -m http.server 8767 --bind 127.0.0.1 --directory Examples/UIKitCounter >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8767/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node uikit-counter.mjs http://127.0.0.1:8767/index.html --shot ../.build/uikit-counter.png)
-          scripts/size-gate.sh Examples/UIKitCounter
-      - name: UIKit settings smoke test (navigation, table, controls)
-        run: |
-          . ~/.swiftly/env.sh
-          scripts/build-wasm.sh Examples/UIKitSettings
-          python3 -m http.server 8768 --bind 127.0.0.1 --directory Examples/UIKitSettings >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8768/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node uikit-settings.mjs http://127.0.0.1:8768/index.html --shot ../.build/uikit-settings.png)
-          scripts/size-gate.sh Examples/UIKitSettings
-      - name: Launches (an app importing Foundation and Combine; UIKit, Foundation and SwiftUI together; URLSession against local fixtures — decision 0021)
-        run: |
-          . ~/.swiftly/env.sh
-          scripts/build-wasm.sh Examples/Launches --debug
-          python3 -m http.server 8769 --bind 127.0.0.1 --directory Examples/Launches >/dev/null 2>&1 &
-          # A second local server, no CORS headers: the URLSession check's refused cross-origin request (pf-urlsession).
-          python3 -m http.server 8776 --bind 127.0.0.1 --directory Examples/Launches >/dev/null 2>&1 &
-          # The slow fixture server (headers now, body later): the timeout-after-headers and in-flight cancellation cases.
-          (cd Playwright && node fixture-server.mjs 8777 >/dev/null 2>&1 &)
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8769/index.html >/dev/null && curl -sf http://127.0.0.1:8776/fixtures/country.json >/dev/null && curl -sf http://127.0.0.1:8777/fixtures/country.json >/dev/null && break; sleep 1; done
-          (cd Playwright && node launches-probe.mjs "http://127.0.0.1:8769/index.html?cross=http://127.0.0.1:8776&slow=http://127.0.0.1:8777")
-      - name: Speech from the app's appended buffers (decision 0022) — SFSpeechRecognizer fed committed recordings through Launches' SpeechCheck, transcribed on the device by the installed Chrome
-        run: cd Playwright && node speech-probe.mjs http://127.0.0.1:8769/index.html
-      # The apps of decision 0021, three claims kept apart: the upstream trees are exactly their
-      # pins (integrity), an app compiles from them (compilation), the app does what a user does
-      # with it (behaviour). Each step fails on its own.
-      - name: Apps — upstream trees unchanged at their pins (scripts/check-apps.sh --verify)
-        run: scripts/check-apps.sh --verify
-      - name: Apps — Scrumdinger compiles for wasm from its unmodified sources
-        run: |
-          . ~/.swiftly/env.sh
-          scripts/build-wasm.sh Apps --debug --product Scrumdinger
-      - name: Apps — Scrumdinger in Chrome (the add sheet, an attendee, the scrum on file after a reload, the detail, the meeting — its timer, its transcription of the fake microphone's recording by the on-device recogniser, the history with the transcript)
-        id: scrumdinger
-        run: |
-          python3 -m http.server 8773 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8773/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node scrumdinger-probe.mjs "http://127.0.0.1:8773/index.html?platform=ios" --out ../.build/apps/scrumdinger)
-      - name: Apps — Ember compiles for wasm from its unmodified sources (WebKit, SafariServices, Security over the stand-ins; a release build, as the comment thread's layout is seconds in debug)
-        run: |
-          . ~/.swiftly/env.sh
-          scripts/build-wasm.sh Apps --product Ember
-      - name: Apps — Ember in Chromium (the onboarding, the live Top feed and chips, a discussion, save and Saved, search, Settings, a reload — against the live Hacker News API)
-        id: ember
-        run: |
-          python3 -m http.server 8780 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8780/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node ember-probe.mjs "http://127.0.0.1:8780/index.html?platform=ios" --out ../.build/apps/ember)
-      - name: Apps — Swift Charts Examples compiles for wasm from its unmodified sources (Charts, ImageRenderer previews, accessibility chart descriptors; a release build, as the launch renders every chart into an image)
-        run: |
-          . ~/.swiftly/env.sh
-          scripts/build-wasm.sh Apps --product ChartsExamples
-      - name: Apps — Swift Charts Examples in Chromium (the Charts list and its previews, scrolling, a chart pushed, its slider, Back, the Filter menu)
-        id: charts
-        run: |
-          python3 -m http.server 8781 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8781/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node charts-probe.mjs "http://127.0.0.1:8781/index.html?platform=ios" --out ../.build/apps/charts)
-      - name: Apps — buttoncraft compiles for wasm from its unmodified sources (custom ButtonStyle, sliders, ColorPicker, SwitchToggleStyle(tint:), accentColor)
-        run: |
-          . ~/.swiftly/env.sh
-          scripts/build-wasm.sh Apps --debug --product Buttoncraft
-      - name: Apps — buttoncraft in Chromium (a held press on a styled button, the Scale Effect slider, reset, the Animation switch, the code panel and Copied)
-        id: buttoncraft
-        run: |
-          python3 -m http.server 8782 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8782/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node buttoncraft-probe.mjs "http://127.0.0.1:8782/index.html?platform=ios" --out ../.build/apps/buttoncraft)
-      - name: Apps — SimpleScores compiles for wasm from its unmodified sources (a binding ForEach with onDelete, toolbar items, an alert, Combine's debounce, named asset colours)
-        run: |
-          . ~/.swiftly/env.sh
-          scripts/build-wasm.sh Apps --debug --product SimpleScores
-      - name: Apps — SimpleScores in Chromium (players added, + and − change a score, a rename, the scores back after a reload, Reset Scores to 0, Remove All's alert)
-        id: simplescores
-        run: |
-          python3 -m http.server 8784 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8784/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node simplescores-probe.mjs "http://127.0.0.1:8784/index.html?platform=ios" --out ../.build/apps/simplescores)
-      # SwiftUI-2048 needs `@objc`/`#selector`, which the stock wasm SDK cannot compile: it is
-      # built with the Objective-C runtime SDK of decision 0023 (swift-objc-wasm's v0.1.1
-      # release, pinned by URL and checksum; its own patched compilers over the same swiftly
-      # 6.3.3 toolchain, macOS arm64 only). It goes last: the Apps scratch path is shared, and
-      # the other apps keep building with the stock SDK.
-      - name: Apps — the Objective-C runtime wasm SDK (swift-objc-wasm v0.1.1, decision 0023)
-        run: |
-          . ~/.swiftly/env.sh
-          swift sdk install https://github.com/iamcgn/swift-objc-wasm/releases/download/v0.1.1/swift-6.3.3-RELEASE_wasm-objc.artifactbundle.tar.gz \
-            --checksum d493aecef947d8a8a4d224264ace14d28a423677d949bcd756838c3080638328
-          scripts/objc-sdk/add-api-notes.sh
-          swift sdk list
-      - name: Apps — SwiftUI-2048 compiles for wasm from its unmodified sources (@UIApplicationMain, @objc newGame, #selector; the runtime SDK)
-        run: |
-          . ~/.swiftly/env.sh
-          SWIFTUIWEB_WASM_SDK=swift-6.3.3-RELEASE_wasm-objc scripts/build-wasm.sh Apps --debug --product SwiftUI2048
-      - name: Apps — SwiftUI-2048 in Chromium (the delegate launches, two starting tiles, swipes move them, ⌘N's selector key command starts a new game)
-        id: swiftui2048
-        run: |
-          python3 -m http.server 8775 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8775/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node 2048-probe.mjs "http://127.0.0.1:8775/index.html?platform=ios" --out ../.build/apps/2048)
-      # PomPadDo (SwiftData, a TabView of typed Tabs, a sheet, a focus timer) is built with the same
-      # runtime SDK: it is an iOS app whose `#if os(iOS)` code is the app (decision 0025).
-      - name: Apps — PomPadDo compiles for wasm from its unmodified sources (SwiftData models and queries, typed Tabs, #colorLiteral; the runtime SDK)
-        run: |
-          . ~/.swiftly/env.sh
-          SWIFTUIWEB_WASM_SDK=swift-6.3.3-RELEASE_wasm-objc scripts/build-wasm.sh Apps --debug --product Pompaddo
-      - name: Apps — PomPadDo in Chromium (the tab bar, a task added from the Add to Inbox tab, the Inbox lists it, the focus timer counts down, the task is still there after a reload)
-        id: pompaddo
-        run: |
-          python3 -m http.server 8783 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8783/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node pompaddo-probe.mjs "http://127.0.0.1:8783/index.html?platform=ios" --out ../.build/apps/pompaddo)
-      - name: Apps — the evidence the probe must leave (report.json with full_app_pass, screenshots, trace)
-        if: always() && steps.scrumdinger.outcome != 'skipped'
-        env: { EMBER_PROBE: "${{ steps.ember.outcome }}", SWIFTUI2048_PROBE: "${{ steps.swiftui2048.outcome }}", CHARTS_PROBE: "${{ steps.charts.outcome }}", BUTTONCRAFT_PROBE: "${{ steps.buttoncraft.outcome }}", POMPADDO_PROBE: "${{ steps.pompaddo.outcome }}", SIMPLESCORES_PROBE: "${{ steps.simplescores.outcome }}" }
-        run: |
-          for app in scrumdinger ember charts buttoncraft 2048 pompaddo simplescores; do
-            # A probe is skipped when its build step failed: its evidence is then the build log.
-            if [ "$app" = ember ] && [ "$EMBER_PROBE" = skipped ]; then echo "ember: probe not run"; continue; fi
-            if [ "$app" = 2048 ] && [ "$SWIFTUI2048_PROBE" = skipped ]; then echo "2048: probe not run"; continue; fi
-            if [ "$app" = charts ] && [ "$CHARTS_PROBE" = skipped ]; then echo "charts: probe not run"; continue; fi
-            if [ "$app" = buttoncraft ] && [ "$BUTTONCRAFT_PROBE" = skipped ]; then echo "buttoncraft: probe not run"; continue; fi
-            if [ "$app" = pompaddo ] && [ "$POMPADDO_PROBE" = skipped ]; then echo "pompaddo: probe not run"; continue; fi
-            if [ "$app" = simplescores ] && [ "$SIMPLESCORES_PROBE" = skipped ]; then echo "simplescores: probe not run"; continue; fi
-            test -s .build/apps/$app/report.json && test -s .build/apps/$app/trace.zip && ls .build/apps/$app/*.png >/dev/null
-            # All seven are full passes (Scrumdinger's meeting since decision 0022's recogniser).
-            python3 -c "import json; r=json.load(open('.build/apps/$app/report.json')); assert r['full_app_pass'] is True, r['full_app_pass']; print('$app', {k: v['outcome'] for k, v in r['flows'].items()})"
+          mkdir -p "$GITHUB_WORKSPACE/size"
+          for side in base head; do
+            cd "$GITHUB_WORKSPACE/$side/Examples/Counter"
+            sed -i "s|\"stack-size=4194304\"|\"stack-size=4194304\", \"-Xlinker\", \"--Map=$GITHUB_WORKSPACE/size/$side.map\", \"-Xlinker\", \"--why-extract=$GITHUB_WORKSPACE/size/$side.why\"|" Package.swift
+            swift build --swift-sdk swift-6.3.3-RELEASE_wasm --scratch-path .build/wasm -c release -Xswiftc -Osize \
+              -Xswiftc -Xfrontend -Xswiftc -disable-incremental-llvm-codegen -Xswiftc -Xfrontend -Xswiftc -internalize-at-link \
+              --product Counter 2>&1 | tail -5
+            cp .build/wasm/wasm32-unknown-wasip1/release/Counter.wasm "$GITHUB_WORKSPACE/size/$side.wasm"
           done
-      # Evidence, kept whatever the steps above did: Tier B's renders and diffs
-      # (scripts/tier-b.sh writes .build/tier-b-chromium: report.json always, renders and
-      # diffs on a mismatch) and the apps' reports, screenshots and traces. A step that ran
-      # but left no evidence is a failure of its own (`if-no-files-found: error`); it never
-      # changes the test steps' own outcomes. `.build` is a hidden directory: upload-artifact
-      # v4 skips those unless told not to, and a glob under one matches nothing at all.
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with: { name: tier-b, path: .build/tier-b-chromium, if-no-files-found: error, include-hidden-files: true }
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with: { name: interactions, path: .build/interactions, if-no-files-found: warn, include-hidden-files: true }
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with: { name: apps-evidence, path: .build/apps, if-no-files-found: error, include-hidden-files: true }
-
+          ls -l "$GITHUB_WORKSPACE/size"
+      - name: Sections
+        run: python3 head/Tools/Size/section-diff.py size/base.wasm size/head.wasm || true
+      - name: New archive members at head
+        run: |
+          python3 - size/base.why size/head.why <<'PY' | swift demangle --simplified | head -200
+          import sys
+          def rows(p):
+              return [l.rstrip('\n').split('\t') for l in open(p) if len(l.split('\t')) == 3 and not l.startswith('reference')]
+          base = {r[1] for r in rows(sys.argv[1])}
+          lib = lambda path: path.split('(')[0].rsplit('/', 1)[-1]
+          for ref, member, sym in rows(sys.argv[2]):
+              if member in base or lib(ref) == lib(member):
+                  continue
+              print(f"{ref.rsplit('/', 1)[-1]}  ->  {member.rsplit('/', 1)[-1]}  via {sym}")
+          PY
+      - name: What changed
+        run: python3 head/Tools/Size/map-diff.py size/base.map size/head.map --top 120
