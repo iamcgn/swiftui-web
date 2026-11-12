@@ -37,7 +37,11 @@ when they do not, the sweep's heuristics are wrong, not the package.
 - every local Swift package (read with `swift package dump-package`) becomes one target per
   target, with its local dependencies, language mode, defines and resources;
 - every other Swift file outside tests, extensions, widgets and the other platforms' folders is
-  the app target, with one `@main`; its language mode is the Xcode project's `SWIFT_VERSION`;
+  the app target, with one `@main`; its language mode is the Xcode project's `SWIFT_VERSION`.
+  When the Xcode project has an iOS application target (`xcodeproj.py` reads `project.pbxproj`),
+  the files in that project's folder are only the ones the target compiles: its Sources phase, its
+  synchronised folders less their exceptions, and the frameworks it builds, so a macOS app, a
+  share extension or files no target lists do not redeclare the iOS app's types;
 - every third-party package the app pins (its `Package.resolved`, Xcode's or a local package's)
   is cloned at the pinned revision and built from source the same way, as a real build would:
   the targets the app's code reaches, macro targets included (built for the host against
