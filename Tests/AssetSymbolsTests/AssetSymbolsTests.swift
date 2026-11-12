@@ -1,7 +1,7 @@
 // The symbols the AssetSymbols plugin writes for Media.xcassets, as Xcode names them: lower camel
 // case, the kind's suffix dropped (`AccentColor` is `accent`, with `accentColor` kept too), a
 // leading digit behind an underscore, keywords escaped, namespace folders as nested enums and
-// other folders flattened, symbol sets as images, and no symbols for app icons or data sets.
+// other folders flattened (a dot in a folder's name included), symbol sets as images, and no symbols for app icons or data sets.
 //
 // What the tests prove: each symbol names its set's catalog name in the main bundle, and
 // `Image`, `Color`, `UIImage` and `UIColor` take them. Not proven here: drawing the sets (the
@@ -30,6 +30,12 @@ import Foundation
         #expect(ImageResource.stone._name == "Stone")
         #expect(ImageResource.stoneImage._name == "Stone Image")
         #expect(ImageResource.stone != ImageResource.Fountain.stone)
+    }
+
+    @Test func foldersWithADotInTheirNameAreGroups() {
+        // `Tiles.v2` only groups; `Fountain.Old` provides a namespace under its whole name.
+        #expect(ImageResource.slate._name == "Slate")
+        #expect(ImageResource.FountainOld.spout._name == "Fountain.Old/Spout")
     }
 
     @Test func colorSymbolsDropTheSuffix() {
