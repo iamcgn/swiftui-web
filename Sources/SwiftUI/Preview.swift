@@ -19,7 +19,7 @@ public macro Preview(_ name: String? = nil, @ViewBuilder body: @escaping @MainAc
 
 /// Creates a preview with traits (a fixed layout, orientations, `PreviewModifier`s).
 @freestanding(declaration)
-public macro Preview(_ name: String? = nil, traits: PreviewTrait, _ moreTraits: PreviewTrait..., @ViewBuilder body: @escaping @MainActor () -> any View) =
+public macro Preview(_ name: String? = nil, traits: PreviewTrait<Preview.ViewTraits>, _ moreTraits: PreviewTrait<Preview.ViewTraits>..., @ViewBuilder body: @escaping @MainActor () -> any View) =
     #externalMacro(module: "SwiftUIWebMacros", type: "PreviewMacro")
 
 /// Marks a variable declared in a `#Preview` body (`@Previewable @State var on = true`) as the
@@ -27,29 +27,24 @@ public macro Preview(_ name: String? = nil, traits: PreviewTrait, _ moreTraits: 
 @attached(peer)
 public macro Previewable() = #externalMacro(module: "SwiftUIWebMacros", type: "PreviewableMacro")
 
-/// Options a preview declares.
-public struct PreviewTrait: Sendable {
+/// A preview, as the type its traits are for (`PreviewTrait<Preview.ViewTraits>`); `#Preview`
+/// is the macro of the same name.
+public struct Preview {
+    /// The traits of a view's preview.
+    public enum ViewTraits {}
+}
+
+/// Options a preview declares, for the kind of preview `T` (`Preview.ViewTraits` for a view).
+public struct PreviewTrait<T>: Sendable {
     package enum Kind: Sendable {
         case sizeThatFits
         case fixed(width: Double, height: Double)
         case orientation(String)
-        case modifier(any PreviewModifier & Sendable)
+        case modifier(_PreviewModifierBox)
         case device(String)
     }
     package let kind: Kind
     package init(_ kind: Kind) { self.kind = kind }
-
-    public init() { kind = .sizeThatFits }
-    /// The preview takes the size its content asks for.
-    public static let sizeThatFitsLayout = PreviewTrait(.sizeThatFits)
-    public static let landscapeLeft = PreviewTrait(.orientation("landscapeLeft"))
-    public static let landscapeRight = PreviewTrait(.orientation("landscapeRight"))
-    public static let portrait = PreviewTrait(.orientation("portrait"))
-    public static let portraitUpsideDown = PreviewTrait(.orientation("portraitUpsideDown"))
-    /// The preview is laid out at the given size.
-    public static func fixedLayout(width: Double, height: Double) -> PreviewTrait { PreviewTrait(.fixed(width: width, height: height)) }
-    /// A modifier applied around the preview's content, with a shared context made once.
-    public static func modifier<M: PreviewModifier & Sendable>(_ modifier: M) -> PreviewTrait { PreviewTrait(.modifier(modifier)) }
 
     /// The fixed layout the traits ask for, if any.
     public var fixedSize: CGSize? {
@@ -58,12 +53,33 @@ public struct PreviewTrait: Sendable {
     }
 }
 
+/// A preview modifier as a trait keeps it: made on the main actor and only used there.
+package struct _PreviewModifierBox: @unchecked Sendable {
+    package let modifier: any PreviewModifier
+}
+
+extension PreviewTrait where T == Preview.ViewTraits {
+    public init() { kind = .sizeThatFits }
+    /// The preview takes the size its content asks for.
+    public static var sizeThatFitsLayout: PreviewTrait { PreviewTrait(.sizeThatFits) }
+    public static var landscapeLeft: PreviewTrait { PreviewTrait(.orientation("landscapeLeft")) }
+    public static var landscapeRight: PreviewTrait { PreviewTrait(.orientation("landscapeRight")) }
+    public static var portrait: PreviewTrait { PreviewTrait(.orientation("portrait")) }
+    public static var portraitUpsideDown: PreviewTrait { PreviewTrait(.orientation("portraitUpsideDown")) }
+    /// The preview is laid out at the given size.
+    public static func fixedLayout(width: Double, height: Double) -> PreviewTrait { PreviewTrait(.fixed(width: width, height: height)) }
+    /// A modifier applied around the preview's content, with a shared context made once.
+    public static func modifier(_ modifier: some PreviewModifier) -> PreviewTrait { PreviewTrait(.modifier(_PreviewModifierBox(modifier: modifier))) }
+}
+
 /// A type that applies the same wrapping (a model, a style) to several previews, with a
 /// context made once per process (`makeSharedContext`).
 @MainActor @preconcurrency
 public protocol PreviewModifier {
     associatedtype Context = Void
     associatedtype Body: View
+    /// The content the modifier wraps.
+    typealias Content = PreviewModifierContent
     /// Makes the context the previews share (loaded data, a container); nothing by default.
     static func makeSharedContext() async throws -> Context
     /// Wraps a preview's content with the shared context.
@@ -84,12 +100,12 @@ public struct PreviewModifierContent: View {
 /// A kept preview: its name, traits, source position and body.
 public struct _Preview: Sendable {
     public let name: String?
-    public let traits: [PreviewTrait]
+    public let traits: [PreviewTrait<Preview.ViewTraits>]
     public let file: String
     public let line: Int
     public let body: @MainActor @Sendable () -> any View
 
-    public init(name: String?, traits: [PreviewTrait], file: String, line: Int, @ViewBuilder body: @escaping @MainActor @Sendable () -> any View) {
+    public init(name: String?, traits: [PreviewTrait<Preview.ViewTraits>], file: String, line: Int, @ViewBuilder body: @escaping @MainActor @Sendable () -> any View) {
         self.name = name
         self.traits = traits
         self.file = file
@@ -105,8 +121,8 @@ public struct _Preview: Sendable {
 
     /// The preview's content with its modifiers applied (`_PreviewHost` makes the contexts).
     @MainActor public func makeView() -> AnyView {
-        let modifiers = traits.compactMap { trait -> (any PreviewModifier & Sendable)? in
-            if case .modifier(let modifier) = trait.kind { return modifier }
+        let modifiers = traits.compactMap { trait -> (any PreviewModifier)? in
+            if case .modifier(let box) = trait.kind { return box.modifier }
             return nil
         }
         return AnyView(_PreviewHost(preview: self, modifiers: modifiers))
@@ -123,7 +139,7 @@ public protocol _PreviewRegistration {
 /// appearance; the content shows once every context is ready).
 struct _PreviewHost: View {
     let preview: _Preview
-    let modifiers: [any PreviewModifier & Sendable]
+    let modifiers: [any PreviewModifier]
     @State private var contexts: [Any]?
 
     var body: some View {
@@ -140,7 +156,7 @@ struct _PreviewHost: View {
         }
     }
 
-    private static func makeContext(for modifier: any PreviewModifier & Sendable) async throws -> Any {
+    private static func makeContext(for modifier: any PreviewModifier) async throws -> Any {
         func make<M: PreviewModifier>(_: M) async throws -> Any { try await M.makeSharedContext() }
         return try await make(modifier)
     }

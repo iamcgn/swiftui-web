@@ -119,6 +119,10 @@ public struct Environment<Value>: DynamicProperty {
     }
 }
 
+/// Sendable when its value is, as SwiftUI's (swift-dependencies keeps one in its `Sendable`
+/// `@Dependency`); the key path or lookup it holds is only run on the main actor.
+extension Environment: @unchecked Sendable where Value: Sendable {}
+
 extension Environment where Value: AnyObject & Observable {
     /// Creates an environment property to read an observable object from the environment.
     /// Reading it when no object of that type was stored is a programmer error, as in SwiftUI.
