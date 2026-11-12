@@ -33,6 +33,13 @@ package final class ToolbarNode<Content: View>: UnaryLayoutModifierNode<Content,
     }
 
     private func register(_ items: [_ToolbarItemData]) {
+        // Each item carries the environment here, for the bar that mounts it elsewhere.
+        let environment = environment
+        let items = items.map { item in
+            var item = item
+            item.environment = environment
+            return item
+        }
         switch owner {
         case .presentation(let presentation): presentation.registerToolbar(self, items: items)
         case .stack(let stack): stack.registerToolbar(self, items: items)
@@ -450,7 +457,9 @@ struct _IOSBarItemsView: View {
         ForEach(Array(items.enumerated()).filter { $0.element.placement.iOSGroup == group }, id: \.offset) { entry in
             entry.element.view
                 .buttonStyle(_IOSBarButtonStyle(prominent: entry.element.placement.isProminentOnIOS))
+                .font(.body)
                 .fixedSize(horizontal: true, vertical: false)
+                .modifier(_ToolbarItemEnvironment(captured: entry.element.environment))
         }
     }
 
@@ -486,5 +495,24 @@ struct _IOSBarButtonStyle: ButtonStyle {
             )
             .overlay(Capsule().strokeBorder(Color(.sRGB, white: 0, opacity: 0.06), lineWidth: 0.5))
             .opacity(configuration.isPressed ? 0.7 : 1)
+    }
+}
+
+/// An iOS screen's bottom toolbar (`ToolbarItem(placement: .bottomBar)`): the items in a row
+/// across the bottom of the navigation stack, each in the bar's glass pills; an item that
+/// spaces itself (`HStack { Spacer(); Button }`) takes the row's free width. Unmeasured: the
+/// row sits where the search field rests (ios/search), 20 pt in from the window's sides.
+struct _IOSBottomBarItemsView: View {
+    let items: [_ToolbarItemData]
+
+    var body: some View {
+        HStack(spacing: PlatformMetrics.navigationBarItemSpacing) {
+            ForEach(Array(items.enumerated()), id: \.offset) { entry in
+                entry.element.view
+                    .buttonStyle(_IOSBarButtonStyle(prominent: entry.element.placement.isProminentOnIOS))
+                    .font(.body)
+                    .modifier(_ToolbarItemEnvironment(captured: entry.element.environment))
+            }
+        }
     }
 }

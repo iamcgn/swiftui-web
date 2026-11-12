@@ -192,6 +192,8 @@ extension Runtime {
         if let interactive = node as? any _Interactive, interactive.isInteractive {
             var element = interactive.semantics
             element.frame = node.frameInRoot
+            // A control under `disabled(true)` has iOS's notEnabled trait (`aria-disabled`).
+            if !node.environment.isEnabled { element.isEnabled = false }
             result.append(SemanticsEntry(node: node, element: element))
             if interactive.exposesChildren { collectChildren(node.paintedChildren, into: &result) }
             return

@@ -33,6 +33,7 @@ let package = Package(
         .executable(name: "Buttoncraft", targets: ["Buttoncraft"]),
         .executable(name: "Pompaddo", targets: ["Pompaddo"]),
         .executable(name: "SimpleScores", targets: ["SimpleScores"]),
+        .executable(name: "SimpleToDo", targets: ["SimpleToDo"]),
     ],
     dependencies: [
         .package(name: "SwiftUIWeb", path: "..", traits: ["FoundationFormats", "DecimalFormatting"]),
@@ -162,6 +163,20 @@ let package = Package(
             exclude: ["Preview Content/Preview Assets.xcassets", "Resources/de.lproj", "Resources/en.lproj", "Resources/es.lproj",
                       "Resources/fr.lproj", "Resources/nl.lproj"],
             resources: [.process("Resources/Assets.xcassets")],
+            swiftSettings: [.swiftLanguageMode(.v5)],
+            linkerSettings: stack
+        ),
+        // MARK: twostraws/simple-swiftui — the SimpleToDo Xcode target (SWIFT_VERSION 5.0, iOS 15),
+        // from the same pinned checkout as SimpleScores: its app folder as the target path, the
+        // asset catalog (accent, icon) its resources. `Preview Content`'s sample item stays in, as
+        // Xcode compiles it into a debug build and the views' previews name it; only the preview
+        // asset catalog is left out.
+        .executableTarget(
+            name: "SimpleToDo",
+            dependencies: swiftUI + host,
+            path: "upstream/simple-swiftui/SimpleToDo/SimpleToDo",
+            exclude: ["Preview Content/Preview Assets.xcassets"],
+            resources: [.process("Assets.xcassets")],
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: stack
         ),

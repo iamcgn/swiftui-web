@@ -308,8 +308,16 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     private func isSelected(_ element: Element) -> Bool {
         guard let selection = view.selection else { return false }
         if let value = linkValue(of: element), selection.accepts(value) { return selection.isSelected(value) }
-        guard let id = element.id else { return false }
+        guard let id = selectionValue(of: element) else { return false }
         return selection.isSelected(id)
+    }
+
+    /// The value a row's selection holds: its `tag` where the selection takes that type (an
+    /// explicit tag wins over the `ForEach` id, as in SwiftUI: SimpleToDo's `Set<ToDoItem>`
+    /// over rows identified by the items' ids), else its id.
+    private func selectionValue(of element: Element) -> AnyHashable? {
+        if let selection = view.selection, let tag = element.node.layoutValue(for: TagKey.self), selection.accepts(tag) { return tag }
+        return element.id
     }
 
     /// The value of the value link a row is or holds (`NavigationLink(value:)`).
@@ -544,7 +552,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
     /// when the row can be deleted, three grey lines at its trailing edge when it can be moved.
     private func paintEditAccessories(for element: Element, into list: inout DisplayList, context: PaintContext) {
         let midY = element.frame.midY
-        if selectionCircles, let id = element.id, let selection = view.selection {
+        if selectionCircles, let id = selectionValue(of: element), let selection = view.selection {
             let size = PlatformMetrics.listEditCircleSize
             let disc = context.absoluteRect(CGRect(x: profile.margin + PlatformMetrics.listEditCircleInset, y: midY - size / 2, width: size, height: size))
             if selection.isSelected(id) {
@@ -959,7 +967,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         }
         // iOS edit mode: a press on the delete circle reveals the row's Delete (the circle turns
         // into a bar, the content slides left); the Delete button then deletes, anything else shuts it.
-        if isEditing, environment.platformProfile.isIOS, canDelete(element),
+        if isEditing, environment.platformProfile.isIOS, canDelete(element), !selectionCircles,
            point.x < element.frame.minX + profile.margin + environment.platformProfile.metrics.listEditLeadingInset,
            let index = elements.firstIndex(where: { $0.node === element.node }) {
             var state = Swipe(row: index)
@@ -976,6 +984,16 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         // which SwiftUI's list activates from a tap anywhere in the row); a selectable row
         // toggles its selection. On macOS a multiple selection follows the modifier keys: a
         // plain click selects the row alone, ⌘ toggles it, ⇧ extends the range from the anchor row.
+        // iOS edit mode with a selection: a press anywhere on the row toggles its selection (its
+        // circle); a link in the row does not push.
+        if isEditing, environment.platformProfile.isIOS, let selection = view.selection {
+            let value = linkValue(of: element).flatMap { selection.accepts($0) ? $0 : nil } ?? selectionValue(of: element)
+            if let value {
+                selection.toggle(value)
+                runtime.setNeedsDisplay()
+            }
+            return
+        }
         let activation = linkActivation(of: element)
         // In a list with a selection, a value link's value is the row's tag (SwiftUI): the press
         // selects it rather than pushing, and a split view's compact width shows the detail.
@@ -986,9 +1004,9 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             return
         }
         activation?.run()
-        if let selection = view.selection, let id = element.id {
+        if let selection = view.selection, let id = selectionValue(of: element) {
             let rows = elements.filter { $0.kind == .row && $0.id != nil }
-            let index = rows.firstIndex { $0.id == id }
+            let index = rows.firstIndex { selectionValue(of: $0) == id }
             let modifiers = runtime.pointerModifiers.shortcutModifiers
             if !selection.isMultiple || environment.platformProfile.isIOS {
                 selection.toggle(id)
@@ -996,7 +1014,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
                 selection.toggle(id)
                 selectionAnchor = index
             } else if modifiers.contains(.shift), let anchor = selectionAnchor, let index {
-                selection.select(rows[min(anchor, index)...max(anchor, index)].map { $0.id! })
+                selection.select(rows[min(anchor, index)...max(anchor, index)].compactMap { selectionValue(of: $0) })
             } else {
                 selection.select([id])
                 selectionAnchor = index
@@ -1040,7 +1058,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
             let rows = elements.filter { $0.kind == .row && $0.id != nil }
             guard let index = rows.firstIndex(where: { rowText($0).lowercased().hasPrefix(typeAhead) }) else { return false }
             selectionAnchor = index
-            selection.select([rows[index].id!])
+            selection.select([selectionValue(of: rows[index])!])
             runtime.setNeedsDisplay()
             return true
         }
@@ -1056,7 +1074,7 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         }
         let rows = elements.filter { $0.kind == .row && $0.id != nil }
         guard !rows.isEmpty else { return false }
-        let current = rows.lastIndex { selection.isSelected($0.id!) }
+        let current = rows.lastIndex { selection.isSelected(selectionValue(of: $0)!) }
         let target: Int
         switch press.key {
         case .downArrow: target = current.map { min($0 + 1, rows.count - 1) } ?? 0
@@ -1066,10 +1084,10 @@ package final class ListContentNode<Content: View>: LayoutNode<_ListContent<Cont
         default: return false
         }
         if press.modifiers.contains(.shift), let anchor = selectionAnchor ?? current {
-            selection.select(rows[min(anchor, target)...max(anchor, target)].map { $0.id! })
+            selection.select(rows[min(anchor, target)...max(anchor, target)].compactMap { selectionValue(of: $0) })
         } else {
             selectionAnchor = target
-            selection.select([rows[target].id!])
+            selection.select([selectionValue(of: rows[target])!])
         }
         runtime.setNeedsDisplay()
         return true

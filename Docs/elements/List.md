@@ -84,7 +84,7 @@ separators beside it hidden. Rows outside a `ForEach` take their identity from `
 `EditMode`, the environment's `editMode` binding and `EditButton`. A list deletes its selected
 rows on the Delete key through their `ForEach` and reorders a row dragged along the list
 (macOS: any press on a movable row; iOS: a press on the grip in edit mode), landing before the
-row whose middle the drop passed. In edit mode on iOS the rows of a `ForEach` with `onDelete`
+row whose middle the drop passed. In edit mode on iOS a list with a selection takes a press anywhere on a row as a toggle of its selection, without following a link in the row (2026-11-11, SimpleToDo); a row's `tag` is what the selection holds when the selection takes the tag's type, over the `ForEach` id. In edit mode on iOS the rows of a `ForEach` with `onDelete`
 show a 22 pt red (255, 58, 62) disc with a white minus 17 in from the card's edge and move
 their content 40 in; rows with `onMove` show three grey (197, 197, 199) 21.5 × 1 lines 5 apart,
 18 from the card's trailing edge; other rows keep their place (measured on the simulator,
