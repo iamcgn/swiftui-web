@@ -60,6 +60,11 @@ running. The report labels the errors that follow from a removed third-party pac
 generated asset symbols (`Color(.brand)`) and Core Data's generated classes, so they are not read
 as SwiftUIWeb gaps.
 
+Each target builds with `-continue-building-after-errors`, so every one of its files is
+type-checked and its count does not depend on which compile batch failed first (without it the
+driver starts no batch after a failure, and a module's count moved between runs of the same
+commit).
+
 Known limits: SwiftPM stops at a module whose dependency failed, so a modular app's errors are
 those of its lowest broken modules (the report marks the rest blocked); `#if os(iOS)` is false on
 wasm, so files with it compile their other branch (the report counts them; the workflow's

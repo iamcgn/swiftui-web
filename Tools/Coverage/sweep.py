@@ -1204,8 +1204,11 @@ def cmd_run(args):
     drops = {}  # module -> the dependencies it is built without (package targets that failed)
 
     def build(target, timeout):
+        # Every file of the target is compiled: without `-continue-building-after-errors` the
+        # driver starts no further compile batch once one fails, so how many of a module's files
+        # were checked (and the error count) would depend on which batch finished first.
         cmd = ["swift", "build", "--package-path", str(pkg), "--scratch-path", str(pkg / ".build"),
-               "--swift-sdk", args.sdk, "--target", target]
+               "--swift-sdk", args.sdk, "--target", target, "-Xswiftc", "-continue-building-after-errors"]
         try:
             r = subprocess.run(cmd, text=True, capture_output=True, timeout=timeout)
             out, code = r.stdout + r.stderr, r.returncode
