@@ -4,7 +4,7 @@
 // the alphas those goldens show.
 
 /// An object that stores colour data and sometimes opacity.
-public final class UIColor: Hashable, @unchecked Sendable {
+public final class UIColor: UIObjectBase, @unchecked Sendable {
     /// The colour in the light and dark appearances.
     public let light: RGBA
     public let dark: RGBA
@@ -12,6 +12,7 @@ public final class UIColor: Hashable, @unchecked Sendable {
     public init(light: RGBA, dark: RGBA) {
         self.light = light
         self.dark = dark
+        super.init()
     }
 
     public convenience init(_ rgba: RGBA) {
@@ -78,8 +79,18 @@ public final class UIColor: Hashable, @unchecked Sendable {
         self.init(red: r, green: g, blue: b, alpha: alpha)
     }
 
-    public static func == (lhs: UIColor, rhs: UIColor) -> Bool { lhs.light == rhs.light && lhs.dark == rhs.dark }
-    public func hash(into hasher: inout Hasher) { hasher.combine(light); hasher.combine(dark) }
+    #if canImport(ObjectiveC)
+    public override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UIColor else { return false }
+        return light == other.light && dark == other.dark
+    }
+    public override var hash: Int {
+        var hasher = Hasher()
+        hasher.combine(light)
+        hasher.combine(dark)
+        return hasher.finalize()
+    }
+    #endif
 
     /// The colour for a trait collection's appearance.
     public func resolvedColor(with traitCollection: UITraitCollection) -> UIColor {
@@ -221,3 +232,10 @@ extension UIColor: _ExpressibleByColorLiteral {
         self.init(red: CGFloat(red), green: CGFloat(green), blue: CGFloat(blue), alpha: CGFloat(alpha))
     }
 }
+
+#if !canImport(ObjectiveC)
+extension UIColor: Hashable {
+    public static func == (lhs: UIColor, rhs: UIColor) -> Bool { lhs.light == rhs.light && lhs.dark == rhs.dark }
+    public func hash(into hasher: inout Hasher) { hasher.combine(light); hasher.combine(dark) }
+}
+#endif
