@@ -81,7 +81,7 @@ open class NSComparisonPredicate: NSPredicate, @unchecked Sendable {
 
     public enum Modifier: UInt, Sendable { case direct = 0, all, any }
 
-    public struct Options: OptionSet, Sendable {
+    public struct Options: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let caseInsensitive = Options(rawValue: 1)

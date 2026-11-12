@@ -18,7 +18,7 @@ open class Stream: @unchecked Sendable {
         case notOpen, opening, open, reading, writing, atEnd, closed, error
     }
 
-    public struct Event: OptionSet, Sendable {
+    public struct Event: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let openCompleted = Event(rawValue: 1 << 0)

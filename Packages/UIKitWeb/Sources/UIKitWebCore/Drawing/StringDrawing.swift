@@ -81,7 +81,7 @@ extension NSAttributedString {
 /// The underline and strikethrough styles (`NSUnderlineStyle.single.rawValue` as the
 /// attribute's value); every non-zero style draws one line here. Foundation keeps the type in
 /// UIKit and AppKit, so the module declares it everywhere.
-public struct NSUnderlineStyle: OptionSet, Sendable {
+public struct NSUnderlineStyle: OptionSet, Hashable, Sendable {
     public let rawValue: Int
     public init(rawValue: Int) { self.rawValue = rawValue }
     public static let single = NSUnderlineStyle(rawValue: 1)
@@ -186,7 +186,7 @@ extension StringProtocol {
     }
 }
 
-public struct NSStringDrawingOptions: OptionSet, Sendable {
+public struct NSStringDrawingOptions: OptionSet, Hashable, Sendable {
     public let rawValue: Int
     public init(rawValue: Int) { self.rawValue = rawValue }
     public static let usesLineFragmentOrigin = NSStringDrawingOptions(rawValue: 1)

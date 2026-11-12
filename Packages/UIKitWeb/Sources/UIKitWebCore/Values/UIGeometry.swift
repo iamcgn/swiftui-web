@@ -49,7 +49,7 @@ public struct UIOffset: Equatable, Hashable, Sendable {
 }
 
 /// The corners of a rectangle.
-public struct UIRectCorner: OptionSet, Sendable {
+public struct UIRectCorner: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let topLeft = UIRectCorner(rawValue: 1)
@@ -60,7 +60,7 @@ public struct UIRectCorner: OptionSet, Sendable {
 }
 
 /// The edges of a rectangle.
-public struct UIRectEdge: OptionSet, Sendable {
+public struct UIRectEdge: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let top = UIRectEdge(rawValue: 1)
@@ -71,7 +71,7 @@ public struct UIRectEdge: OptionSet, Sendable {
 }
 
 /// An axis in a view's coordinate space.
-public struct UIAxis: OptionSet, Sendable {
+public struct UIAxis: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let horizontal = UIAxis(rawValue: 1)

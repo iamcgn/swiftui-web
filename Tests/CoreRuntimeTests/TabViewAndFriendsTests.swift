@@ -221,6 +221,23 @@ private struct TypedTabsView: View {
     }
 }
 
+/// Titled tabs over an optional selection, with a titled search tab, as SFSafeSymbols' `Tab`
+/// initialisers (IceCubes) build them: `Label == DefaultTabLabel`, `Value == T?`.
+private struct OptionalTabsView: View {
+    @State var section: TabAPISection? = .focus
+    var body: some View {
+        TabView(selection: $section) {
+            Tab("Tasks", systemImage: "checkmark.square", value: TabAPISection.tasks) { Text("Tasks content")._probe("tasks") }
+            Tab("Focus", systemImage: "timer", value: TabAPISection.focus, role: nil) { Text("Focus content")._probe("focus") }
+            Tab("Search", systemImage: "magnifyingglass", value: TabAPISection.inbox, role: .search) { EmptyView() }
+        }
+    }
+}
+
+private func defaultLabelTab() -> Tab<Int, Text, DefaultTabLabel> {
+    Tab("One", systemImage: "1.circle", value: 1) { Text("one") }
+}
+
 private struct PagedView: View {
     let model: TabAPIModel
     var body: some View {
@@ -275,6 +292,17 @@ private struct PagedView: View {
         #expect(node.tabs.map(\.title) == ["Tasks", "Focus", "Add to Inbox"])
         #expect(node.tabs.map(\.badge) == ["2", "24:59", nil])
         #expect(runtime.probeFrames["tasks"] != nil && runtime.probeFrames["focus"] == nil)
+    }
+
+    @Test func titledTabsTakeOptionalSelectionsAndRoles() {
+        let runtime = Runtime()
+        runtime.mount(OptionalTabsView())
+        runtime.layout(in: size)
+        let node = runtime.root.descendants(where: { $0 is TabViewNode }).first as! TabViewNode
+        #expect(node.tabs.map(\.title) == ["Tasks", "Focus", "Search"])
+        #expect(node.tabs.map(\.symbol) == ["checkmark.square", "timer", "magnifyingglass"])
+        #expect(runtime.probeFrames["focus"] != nil && runtime.probeFrames["tasks"] == nil)
+        #expect(defaultLabelTab().value == 1)
     }
 
     @Test func badgeModifiersResolveTheirText() {

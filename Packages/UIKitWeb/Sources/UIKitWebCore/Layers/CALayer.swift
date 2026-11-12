@@ -34,7 +34,7 @@ public func CATransform3DMakeScale(_ sx: CGFloat, _ sy: CGFloat, _ sz: CGFloat) 
 public func CATransform3DMakeRotation(_ angle: CGFloat, _ x: CGFloat, _ y: CGFloat, _ z: CGFloat) -> CATransform3D { CATransform3D(affine: CGAffineTransform(rotationAngle: z >= 0 ? angle : -angle)) }
 
 /// Which corners a layer's `cornerRadius` rounds.
-public struct CACornerMask: OptionSet, Sendable {
+public struct CACornerMask: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let layerMinXMinYCorner = CACornerMask(rawValue: 1)

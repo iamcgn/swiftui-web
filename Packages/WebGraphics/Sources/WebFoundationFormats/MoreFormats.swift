@@ -354,7 +354,7 @@ open class NSCalendar {
 open class DateComponentsFormatter: Formatter {
     public enum UnitsStyle: Int, Sendable { case positional = 0, abbreviated, short, full, spellOut, brief }
 
-    public struct ZeroFormattingBehavior: OptionSet, Sendable {
+    public struct ZeroFormattingBehavior: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let none = ZeroFormattingBehavior([])
@@ -483,7 +483,7 @@ open class DateComponentsFormatter: Formatter {
 /// Formats a byte count ("1.5 MB", "Zero KB"), as Foundation's adaptive formatter does: whole
 /// kilobytes, megabytes to one decimal, larger units to two, trailing zeros dropped.
 open class ByteCountFormatter: Formatter {
-    public struct Units: OptionSet, Sendable {
+    public struct Units: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let useBytes = Units(rawValue: 1 << 0)

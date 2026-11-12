@@ -202,7 +202,7 @@ public final class WKWebpagePreferences: NSObject {
     public override init() { super.init() }
 }
 
-public struct WKAudiovisualMediaTypes: OptionSet, Sendable {
+public struct WKAudiovisualMediaTypes: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let audio = WKAudiovisualMediaTypes(rawValue: 1)
@@ -210,7 +210,7 @@ public struct WKAudiovisualMediaTypes: OptionSet, Sendable {
     public static let all: WKAudiovisualMediaTypes = [.audio, .video]
 }
 
-public struct WKDataDetectorTypes: OptionSet, Sendable {
+public struct WKDataDetectorTypes: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let phoneNumber = WKDataDetectorTypes(rawValue: 1)

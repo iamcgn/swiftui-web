@@ -55,7 +55,7 @@ public enum CGImageByteOrderInfo: UInt32, Sendable {
 }
 
 /// A bitmap's layout: its alpha info, float components and byte order.
-public struct CGBitmapInfo: OptionSet, Sendable {
+public struct CGBitmapInfo: OptionSet, Hashable, Sendable {
     public let rawValue: UInt32
     public init(rawValue: UInt32) { self.rawValue = rawValue }
     public init(alphaInfo: CGImageAlphaInfo) { rawValue = alphaInfo.rawValue }

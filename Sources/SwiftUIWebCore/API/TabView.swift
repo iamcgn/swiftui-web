@@ -97,25 +97,52 @@ public struct Tab<Value: Hashable, Content: View, Label: View>: TabContent {
     }
 }
 
-extension Tab where Label == SwiftUIWebCore.Label<Text, Image> {
+/// The label of a tab made from a title and a system or catalog image.
+public typealias DefaultTabLabel = SwiftUIWebCore.Label<Text, Image>
+
+extension Tab where Label == DefaultTabLabel {
     /// Creates a tab with a title and a system image, selected by `value`.
-    public init(_ title: LocalizedStringKey, systemImage: String, value: Value, @ViewBuilder content: () -> Content) {
-        self.init(value: value, content: content) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
+    public init(_ title: LocalizedStringKey, systemImage: String, value: Value, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
+        self.init(value: value, role: role, content: content) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
     }
 
     @_disfavoredOverload
-    public init<S: StringProtocol>(_ title: S, systemImage: String, value: Value, @ViewBuilder content: () -> Content) {
-        self.init(value: value, content: content) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
+    public init<S: StringProtocol>(_ title: S, systemImage: String, value: Value, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
+        self.init(value: value, role: role, content: content) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
     }
 
     /// Creates a tab with a title and a catalog image, selected by `value`.
-    public init(_ title: LocalizedStringKey, image: String, value: Value, @ViewBuilder content: () -> Content) {
-        self.init(value: value, content: content) { SwiftUIWebCore.Label(title, image: image) }
+    public init(_ title: LocalizedStringKey, image: String, value: Value, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
+        self.init(value: value, role: role, content: content) { SwiftUIWebCore.Label(title, image: image) }
     }
 
     @_disfavoredOverload
-    public init<S: StringProtocol>(_ title: S, image: String, value: Value, @ViewBuilder content: () -> Content) {
-        self.init(value: value, content: content) { SwiftUIWebCore.Label(title, image: image) }
+    public init<S: StringProtocol>(_ title: S, image: String, value: Value, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
+        self.init(value: value, role: role, content: content) { SwiftUIWebCore.Label(title, image: image) }
+    }
+
+    /// Creates a tab selected by a value of an optional selection (`TabView(selection:)` over
+    /// `T?`).
+    public init<T: Hashable>(_ title: LocalizedStringKey, systemImage: String, value: T, role: TabRole? = nil,
+                             @ViewBuilder content: () -> Content) where Value == T? {
+        self.init(value: .some(value), role: role, content: content) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
+    }
+
+    @_disfavoredOverload
+    public init<S: StringProtocol, T: Hashable>(_ title: S, systemImage: String, value: T, role: TabRole? = nil,
+                                                @ViewBuilder content: () -> Content) where Value == T? {
+        self.init(value: .some(value), role: role, content: content) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
+    }
+
+    public init<T: Hashable>(_ title: LocalizedStringKey, image: String, value: T, role: TabRole? = nil,
+                             @ViewBuilder content: () -> Content) where Value == T? {
+        self.init(value: .some(value), role: role, content: content) { SwiftUIWebCore.Label(title, image: image) }
+    }
+
+    @_disfavoredOverload
+    public init<S: StringProtocol, T: Hashable>(_ title: S, image: String, value: T, role: TabRole? = nil,
+                                                @ViewBuilder content: () -> Content) where Value == T? {
+        self.init(value: .some(value), role: role, content: content) { SwiftUIWebCore.Label(title, image: image) }
     }
 }
 
@@ -128,19 +155,24 @@ extension Tab where Value == Never {
     }
 }
 
-extension Tab where Value == Never, Label == SwiftUIWebCore.Label<Text, Image> {
+extension Tab where Value == Never, Label == DefaultTabLabel {
     /// Creates a tab with a title and a system image, selected by its position.
-    public init(_ title: LocalizedStringKey, systemImage: String, @ViewBuilder content: () -> Content) {
-        self.init(content: content) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
+    public init(_ title: LocalizedStringKey, systemImage: String, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
+        self.init(role: role, content: content) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
     }
 
     @_disfavoredOverload
-    public init<S: StringProtocol>(_ title: S, systemImage: String, @ViewBuilder content: () -> Content) {
-        self.init(content: content) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
+    public init<S: StringProtocol>(_ title: S, systemImage: String, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
+        self.init(role: role, content: content) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
     }
 
-    public init(_ title: LocalizedStringKey, image: String, @ViewBuilder content: () -> Content) {
-        self.init(content: content) { SwiftUIWebCore.Label(title, image: image) }
+    public init(_ title: LocalizedStringKey, image: String, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
+        self.init(role: role, content: content) { SwiftUIWebCore.Label(title, image: image) }
+    }
+
+    @_disfavoredOverload
+    public init<S: StringProtocol>(_ title: S, image: String, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
+        self.init(role: role, content: content) { SwiftUIWebCore.Label(title, image: image) }
     }
 }
 

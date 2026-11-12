@@ -61,7 +61,7 @@ open class NSAttributedString: @unchecked Sendable {
         enumerateAttributes(in: range, options: options) { attributes, range, stop in block(attributes[key], range, stop) }
     }
 
-    public struct EnumerationOptions: OptionSet, Sendable {
+    public struct EnumerationOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let reverse = EnumerationOptions(rawValue: 1 << 1)

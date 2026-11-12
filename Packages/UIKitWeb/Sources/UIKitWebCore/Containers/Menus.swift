@@ -62,7 +62,7 @@ public final class UIMenu: UIMenuElement {
         public static let bringAllToFront = Identifier("com.apple.menu.bring-all-to-front")
     }
 
-    public struct Options: OptionSet, Sendable {
+    public struct Options: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         /// The menu's children appear inline in the parent, separated from the rest.

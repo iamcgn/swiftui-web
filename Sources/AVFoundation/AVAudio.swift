@@ -189,7 +189,7 @@ public final class AVAudioSession {
         public static let voicePrompt = Mode(rawValue: "AVAudioSessionModeVoicePrompt")
     }
 
-    public struct CategoryOptions: OptionSet, Sendable {
+    public struct CategoryOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let mixWithOthers = CategoryOptions(rawValue: 1)
@@ -203,7 +203,7 @@ public final class AVAudioSession {
         public static let overrideMutedMicrophoneInterruption = CategoryOptions(rawValue: 0x80)
     }
 
-    public struct SetActiveOptions: OptionSet, Sendable {
+    public struct SetActiveOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let notifyOthersOnDeactivation = SetActiveOptions(rawValue: 1)

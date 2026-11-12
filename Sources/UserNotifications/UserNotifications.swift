@@ -29,7 +29,7 @@ public enum UNAuthorizationStatus: Int, Sendable {
     case ephemeral = 4
 }
 
-public struct UNAuthorizationOptions: OptionSet, Sendable {
+public struct UNAuthorizationOptions: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let badge = UNAuthorizationOptions(rawValue: 1 << 0)
@@ -180,7 +180,7 @@ public final class UNNotificationResponse: @unchecked Sendable {
 public let UNNotificationDefaultActionIdentifier = "com.apple.UNNotificationDefaultActionIdentifier"
 public let UNNotificationDismissActionIdentifier = "com.apple.UNNotificationDismissActionIdentifier"
 
-public struct UNNotificationPresentationOptions: OptionSet, Sendable {
+public struct UNNotificationPresentationOptions: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let badge = UNNotificationPresentationOptions(rawValue: 1 << 0)
@@ -195,7 +195,7 @@ public final class UNNotificationCategory: @unchecked Sendable {
     public let identifier: String
     public init(identifier: String, actions: [Any], intentIdentifiers: [String], options: UNNotificationCategoryOptions = []) { self.identifier = identifier }
 }
-public struct UNNotificationCategoryOptions: OptionSet, Sendable {
+public struct UNNotificationCategoryOptions: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let customDismissAction = UNNotificationCategoryOptions(rawValue: 1)

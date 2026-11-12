@@ -6,8 +6,8 @@
 /// `snappy`, `bouncy`, `interpolatingSpring`); `delay`, `speed`, `repeatCount` and
 /// `repeatForever` transform any of them. `value(at:)` maps seconds since the start to the
 /// progress 0…1 (springs may overshoot).
-public struct Animation: Equatable, Sendable {
-    package enum Curve: Equatable, Sendable {
+public struct Animation: Hashable, Sendable {
+    package enum Curve: Hashable, Sendable {
         case linear
         case bezier(Double, Double, Double, Double)
         /// A spring towards the target from rest: natural frequency and damping ratio.

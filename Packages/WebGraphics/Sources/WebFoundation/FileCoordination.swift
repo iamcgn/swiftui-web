@@ -25,7 +25,7 @@ open class NSFileAccessIntent: NSObject, @unchecked Sendable {
 }
 
 open class NSFileCoordinator: NSObject, @unchecked Sendable {
-    public struct ReadingOptions: OptionSet, Sendable {
+    public struct ReadingOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let withoutChanges = ReadingOptions(rawValue: 1 << 0)
@@ -34,7 +34,7 @@ open class NSFileCoordinator: NSObject, @unchecked Sendable {
         public static let forUploading = ReadingOptions(rawValue: 1 << 3)
     }
 
-    public struct WritingOptions: OptionSet, Sendable {
+    public struct WritingOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let forDeleting = WritingOptions(rawValue: 1 << 0)

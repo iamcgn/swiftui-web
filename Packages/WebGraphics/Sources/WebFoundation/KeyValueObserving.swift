@@ -11,7 +11,7 @@
 #if os(WASI)
 import Observation
 
-public struct NSKeyValueObservingOptions: OptionSet, Sendable {
+public struct NSKeyValueObservingOptions: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let new = NSKeyValueObservingOptions(rawValue: 1 << 0)

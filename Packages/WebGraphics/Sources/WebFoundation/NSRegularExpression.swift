@@ -132,7 +132,7 @@ public enum _RegexHost {
 
 /// An immutable representation of a compiled regular expression that you apply to Unicode strings.
 public final class NSRegularExpression: @unchecked Sendable {
-    public struct Options: OptionSet, Sendable {
+    public struct Options: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let caseInsensitive = Options(rawValue: 1 << 0)
@@ -144,7 +144,7 @@ public final class NSRegularExpression: @unchecked Sendable {
         public static let useUnicodeWordBoundaries = Options(rawValue: 1 << 6)
     }
 
-    public struct MatchingOptions: OptionSet, Sendable {
+    public struct MatchingOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let reportProgress = MatchingOptions(rawValue: 1 << 0)
@@ -210,7 +210,7 @@ public final class NSRegularExpression: @unchecked Sendable {
         }
     }
 
-    public struct MatchingFlags: OptionSet, Sendable {
+    public struct MatchingFlags: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let progress = MatchingFlags(rawValue: 1 << 0)
@@ -311,7 +311,7 @@ public final class NSTextCheckingResult: @unchecked Sendable {
     public func range(withName name: String) -> NSRange { .notFound }
     public var resultType: CheckingType { .regularExpression }
 
-    public struct CheckingType: OptionSet, Sendable {
+    public struct CheckingType: OptionSet, Hashable, Sendable {
         public let rawValue: UInt64
         public init(rawValue: UInt64) { self.rawValue = rawValue }
         public static let regularExpression = CheckingType(rawValue: 1 << 10)

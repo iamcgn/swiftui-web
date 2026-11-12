@@ -744,7 +744,7 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
 
     // MARK: Nested types
 
-    public struct AutoresizingMask: OptionSet, Sendable {
+    public struct AutoresizingMask: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let flexibleLeftMargin = AutoresizingMask(rawValue: 1)
@@ -764,7 +764,7 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
         case automatic = 0, normal, dimmed
     }
 
-    public struct AnimationOptions: OptionSet, Sendable {
+    public struct AnimationOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let layoutSubviews = AnimationOptions(rawValue: 1 << 0)
@@ -869,7 +869,7 @@ public enum UISemanticContentAttribute: Int, Sendable {
 }
 
 /// Accessibility traits a view reports.
-public struct UIAccessibilityTraits: OptionSet, Sendable {
+public struct UIAccessibilityTraits: OptionSet, Hashable, Sendable {
     public let rawValue: UInt64
     public init(rawValue: UInt64) { self.rawValue = rawValue }
     public static let none = UIAccessibilityTraits([])

@@ -197,7 +197,7 @@ public protocol UIDropSession: UIDragDropSession {
     func loadObjects(ofClass aClass: String.Type, completion: @escaping ([String]) -> Void)
 }
 
-public struct UIDropSessionProgressIndicatorStyle: OptionSet, Sendable {
+public struct UIDropSessionProgressIndicatorStyle: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let none = UIDropSessionProgressIndicatorStyle([])

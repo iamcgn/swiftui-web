@@ -21,7 +21,7 @@ public final class NSLayoutConstraint {
         case lessThanOrEqual = -1, equal = 0, greaterThanOrEqual = 1
     }
 
-    public struct FormatOptions: OptionSet, Sendable {
+    public struct FormatOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let alignAllLeft = FormatOptions(rawValue: 1 << 1)

@@ -12,7 +12,7 @@
 public final class PropertyListSerialization {
     /// Whether the containers read back are mutable: every value read here is a Swift value, so
     /// the options only exist for the calls that pass them.
-    public struct MutabilityOptions: OptionSet, Sendable {
+    public struct MutabilityOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let mutableContainers = MutabilityOptions(rawValue: 1)
