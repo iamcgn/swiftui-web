@@ -131,7 +131,7 @@ extension View {
     /// (`.foreground`) leave it.
     nonisolated public func foregroundStyle<S: ShapeStyle>(_ style: S) -> some View {
         transformEnvironment(\.self) { environment in
-            if let color = style as? Color {
+            if let color = style._asColor {
                 environment.foregroundColor = color
                 environment.foregroundGradient = nil
             } else if let level = style as? HierarchicalShapeStyle {

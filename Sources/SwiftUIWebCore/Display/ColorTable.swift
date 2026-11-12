@@ -189,7 +189,7 @@ extension ShapeStyle where Self == Color {
 extension ShapeStyle {
     /// Resolves the style to a flat colour. Gradients and materials arrive in Phase 2.
     package func resolveColor(in environment: EnvironmentValues) -> RGBA {
-        if let color = self as? Color {
+        if let color = _asColor {
             return color.resolve(in: environment)
         }
         if let erased = self as? AnyShapeStyle {
