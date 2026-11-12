@@ -13,6 +13,8 @@
 // re-exports through Foundation and Darwin.
 @_exported import WebFoundation
 @_exported import WASILibc
+// Image sources (`CGImageSource`), which Apple's UIKit brings with it.
+@_exported import WebImageIO
 #else
 // Linux: Foundation, and WebFoundation's stand-ins for what it lacks (`NSItemProvider`).
 @_exported import Foundation

@@ -109,4 +109,49 @@ extension Data: _ObjectiveCBridgeable {
     }
     public static func _unconditionallyBridgeFromObjectiveC(_ source: NSData?) -> Data { source?._data ?? Data() }
 }
+
+// MARK: Compression
+
+extension NSData {
+    /// The algorithms `compressed(using:)` and `decompressed(using:)` take.
+    public enum CompressionAlgorithm: Int, Sendable {
+        case lzfse = 0, lz4 = 1, lzma = 2, zlib = 3
+    }
+
+    /// The bytes compressed with `algorithm`. `zlib` is raw DEFLATE, as Apple's is. The page
+    /// has no LZFSE, LZ4 or LZMA encoder, so those write raw DEFLATE too: what this runtime
+    /// compressed it decompresses again, whichever algorithm both calls name.
+    open func compressed(using algorithm: CompressionAlgorithm) throws -> NSData {
+        NSData(data: Data(_deflate(_bytes)))
+    }
+
+    /// The bytes decompressed. Throws when they are not a DEFLATE stream, which includes LZFSE,
+    /// LZ4 and LZMA bytes another device wrote.
+    open func decompressed(using algorithm: CompressionAlgorithm) throws -> NSData {
+        guard let bytes = try? _inflate(_bytes) else { throw CocoaError(.fileReadCorruptFile) }
+        return NSData(data: Data(bytes))
+    }
+}
+
+extension NSMutableData {
+    /// Compresses the bytes in place.
+    open func compress(using algorithm: CompressionAlgorithm) throws { _bytes = _deflate(_bytes) }
+
+    /// Decompresses the bytes in place, or throws and leaves them as they were.
+    open func decompress(using algorithm: CompressionAlgorithm) throws {
+        guard let bytes = try? _inflate(_bytes) else { throw CocoaError(.fileReadCorruptFile) }
+        _bytes = bytes
+    }
+}
+
+// MARK: Core Foundation's mutable data
+
+/// Core Foundation's mutable data, which is `NSMutableData` toll-free (`NSMutableData() as
+/// CFMutableData`).
+public typealias CFMutableData = NSMutableData
+
+/// An empty mutable data object (the capacity is a hint).
+public func CFDataCreateMutable(_ allocator: CFAllocator?, _ capacity: CFIndex) -> CFMutableData! {
+    NSMutableData(capacity: capacity)
+}
 #endif

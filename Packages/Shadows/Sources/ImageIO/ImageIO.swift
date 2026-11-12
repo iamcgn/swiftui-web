@@ -21,10 +21,6 @@ import WebFoundation
 import WebFoundationFormats
 import WebGraphics
 
-/// Core Foundation's mutable data is Foundation's `NSMutableData`, as on Apple platforms
-/// (`NSMutableData() as CFMutableData`).
-public typealias CFMutableData = NSMutableData
-
 /// Where image files are written: a mutable data object or a file.
 public final class CGImageDestination: @unchecked Sendable {
     let data: NSMutableData?
