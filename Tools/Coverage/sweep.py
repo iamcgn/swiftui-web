@@ -850,6 +850,20 @@ let stack: [LinkerSetting] = [.unsafeFlags(["-Xlinker", "-z", "-Xlinker", "stack
 
 DECL_NAME = re.compile(r'name: "([^"]+)"')
 
+# A file that names a type through its module (`Foundation.Date`) without importing Foundation
+# itself: on iOS `import UIKit` or `import SwiftUI` makes the module name visible, here neither
+# can re-export the Foundation shadow (it lives in Packages/Shadows, which depends on them).
+FOUNDATION_QUALIFIED = re.compile(r"(?<![\w.])Foundation\.[A-Za-z_]")
+IMPORTS_FOUNDATION = re.compile(r"^\s*(?:@\w+\s+)*import\s+(?:\w+\s+)?Foundation\b", re.M)
+# Such a target imports the shadow implicitly, as the app's own manifest would (README, "Naming
+# Foundation"); only those targets, so Combine and the rest of what the shadow re-exports stay
+# out of files that do not see them on iOS (a package's own `Future` beside Combine's).
+IMPLICIT_FOUNDATION = '.unsafeFlags(["-Xfrontend", "-import-module", "-Xfrontend", "Foundation"], .when(platforms: [.wasi]))'
+
+
+def names_foundation_without_importing(text):
+    return bool(FOUNDATION_QUALIFIED.search(text)) and not IMPORTS_FOUNDATION.search(text)
+
 
 def render_manifest(parts, drops=None):
     """The sweep package's manifest from prepare's parts, with `drops` ({module: dependencies})
@@ -962,6 +976,7 @@ def cmd_prepare(args):
                 )
                 continue
             used = set()
+            foundation_name = False
             for f in t["files"]:
                 rel = Path(f).relative_to(t["source_root"]) if t["source_root"] != "." else Path(f)
                 name = rel.name
@@ -974,6 +989,7 @@ def cmd_prepare(args):
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 text = (clone_dir / f).read_text(errors="replace")
                 traits_needed |= set(app_traits.needed_in_text(text))
+                foundation_name = foundation_name or names_foundation_without_importing(text)
                 if args.ios:
                     text = ios_conditions(text)
                 dest.write_text(strip_imports(text, strip))
@@ -1034,6 +1050,8 @@ def cmd_prepare(args):
                 if t.get("catalogs") or any(r.endswith('.xcassets")') for r in resources) else [])
             kind = "executableTarget" if t.get("app") else "target"
             settings = [f".swiftLanguageMode(.{t['mode']})"] + t["settings"]
+            if foundation_name:
+                settings.append(IMPLICIT_FOUNDATION)
             extra = [json.dumps(d) for d in t["deps"]]
             if t.get("syntax"):
                 uses_syntax = True
