@@ -6,7 +6,7 @@ import WebFoundation   // Foundation itself off wasm, the stand-ins on it (decis
 // (uikit/imageview/tints); animated images step on the scene's clock.
 
 /// An object that manages image data in your app.
-public final class UIImage: Hashable, @unchecked Sendable {
+public final class UIImage: UIObjectBase, @unchecked Sendable {
     public enum RenderingMode: Int, Sendable { case automatic = 0, alwaysOriginal, alwaysTemplate }
     /// How an image's pixels are turned to show it upright (an image from a CGImage made with
     /// one; files decode upright on the web, so images from data are `.up`).
@@ -50,15 +50,19 @@ public final class UIImage: Hashable, @unchecked Sendable {
         self.duration = duration
         self.imageOrientation = orientation
         self.madeFromCGImage = cgImage
+        super.init()
     }
 
     /// An empty image (no size, draws nothing).
-    public convenience init() {
+    public convenience override init() {
         self.init(name: "", isSystemSymbol: false, scale: 1, size: .zero)
     }
 
-    /// Images do not change, so a copy is the image itself (`UIImage` is `NSCopying` on iOS).
+    #if !canImport(ObjectiveC)
+    /// Images do not change, so a copy is the image itself (`UIImage` is `NSCopying` on iOS;
+    /// with the Objective-C runtime NSObject's `copy()` reaches `copy(with:)` below).
     public func copy() -> Any { self }
+    #endif
 
     /// An image from PNG, JPEG, GIF or WebP bytes at `scale` (1 by default: a 40 × 40 pixel PNG
     /// is 40 points wide); nil for bytes of another kind. The painters load it as a data URL,
@@ -170,10 +174,15 @@ public final class UIImage: Hashable, @unchecked Sendable {
         return UIImage(name: name, isSystemSymbol: isSystemSymbol, renderingMode: renderingMode, scale: scale, size: CGSize(width: side, height: side), tint: tint, symbolConfiguration: configuration)
     }
 
-    public static func == (lhs: UIImage, rhs: UIImage) -> Bool {
-        lhs.name == rhs.name && lhs.isSystemSymbol == rhs.isSystemSymbol && lhs.renderingMode == rhs.renderingMode && lhs.size == rhs.size && lhs.tint == rhs.tint && lhs.drawing === rhs.drawing && lhs.images?.count == rhs.images?.count
+    /// Images are equal when they draw the same: the same catalog image or symbol, rendering
+    /// mode, size and tint, the same recording and as many frames.
+    func drawsTheSame(as other: UIImage) -> Bool {
+        name == other.name && isSystemSymbol == other.isSystemSymbol && renderingMode == other.renderingMode && size == other.size && tint == other.tint && drawing === other.drawing && images?.count == other.images?.count
     }
-    public func hash(into hasher: inout Hasher) { hasher.combine(name) }
+    #if canImport(ObjectiveC)
+    public override func isEqual(_ object: Any?) -> Bool { (object as? UIImage).map(drawsTheSame(as:)) ?? false }
+    public override var hash: Int { name.hashValue }
+    #endif
 
     /// An image's configuration. Apple's is a class that `SymbolConfiguration` subclasses; the
     /// symbol configuration is the only one an image here holds, so the two are one type.
@@ -402,3 +411,15 @@ open class UIImageView: UIView, ClockAnimating {
 
 /// Whether a video at the path could be saved (any file the page can read).
 @preconcurrency @MainActor public func UIVideoAtPathIsCompatibleWithSavedPhotosAlbum(_ videoPath: String) -> Bool { FileManager.default.fileExists(atPath: videoPath) }
+
+#if canImport(ObjectiveC)
+/// Images do not change, so a copy is the image itself.
+extension UIImage: NSCopying {
+    public func copy(with zone: NSZone? = nil) -> Any { self }
+}
+#else
+extension UIImage: Hashable {
+    public static func == (lhs: UIImage, rhs: UIImage) -> Bool { lhs.drawsTheSame(as: rhs) }
+    public func hash(into hasher: inout Hasher) { hasher.combine(name) }
+}
+#endif

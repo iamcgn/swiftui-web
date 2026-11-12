@@ -3,7 +3,7 @@
 // them on an iPhone (UIFontMetricsTable, generated from Fixtures/Goldens/uikit/font-metrics.json).
 
 /// A font as UIKit describes it: a resolved font for the text engine plus UIKit's metrics.
-public final class UIFont: Hashable, @unchecked Sendable {
+public final class UIFont: UIObjectBase, @unchecked Sendable {
     /// A weight of the system font.
     public struct Weight: Hashable, Sendable, RawRepresentable {
         public let rawValue: CGFloat
@@ -99,10 +99,13 @@ public final class UIFont: Hashable, @unchecked Sendable {
         self.weight = weight
         self.textStyle = textStyle
         self.scaledCategory = scaledCategory
+        super.init()
     }
 
-    public static func == (lhs: UIFont, rhs: UIFont) -> Bool { lhs.resolved == rhs.resolved }
-    public func hash(into hasher: inout Hasher) { hasher.combine(resolved) }
+    #if canImport(ObjectiveC)
+    public override func isEqual(_ object: Any?) -> Bool { (object as? UIFont)?.resolved == resolved }
+    public override var hash: Int { resolved.hashValue }
+    #endif
 
     // MARK: Factories
 
@@ -285,3 +288,10 @@ extension UIFont {
         self.init(resolved: resolved, weight: descriptor.font.weight, textStyle: descriptor.font.textStyle)
     }
 }
+
+#if !canImport(ObjectiveC)
+extension UIFont: Hashable {
+    public static func == (lhs: UIFont, rhs: UIFont) -> Bool { lhs.resolved == rhs.resolved }
+    public func hash(into hasher: inout Hasher) { hasher.combine(resolved) }
+}
+#endif

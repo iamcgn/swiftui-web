@@ -46,6 +46,10 @@ section symbols; lists are marked `llvm.used` so `wasm-ld --gc-sections` keeps t
   `perform(_:with:)` and target-action work on every responder; its standard edit actions are
   `@objc`. `canPerformAction(_:withSender:)`, `target(forAction:withSender:)`,
   `buildMenu(with:)` and `validate(_:)` are added.
+- `UIColor`, `UIFont` and `UIImage` are rooted at `NSObject` too (`UIObjectBase`), so an
+  `@objc` method or protocol can take or return them (CVCalendar's appearance delegate). With
+  the runtime they compare and hash by `isEqual(_:)` and `hash`, and `UIImage` is `NSCopying`;
+  without it they keep their `Hashable` conformances.
 - `UICommand` (selector actions) is `UIKeyCommand`'s superclass; `UIKeyCommand` keeps the
   closure form and gains UIKit's selector initializers. A key command's selector is sent
   down the responder chain from the key responder, the application and the app delegate last
