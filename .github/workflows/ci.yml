@@ -12,6 +12,7 @@ jobs:
         run: git config --global --add safe.directory '*' && git -C head worktree add --detach "$GITHUB_WORKSPACE/base" 123d850
       - name: wasm SDK
         run: |
+          apt-get update -qq && apt-get install -y -qq python3 >/dev/null
           swift sdk install https://download.swift.org/swift-6.3.3-release/wasm-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_wasm.artifactbundle.tar.gz \
             --checksum cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7
       - name: Build both with maps
