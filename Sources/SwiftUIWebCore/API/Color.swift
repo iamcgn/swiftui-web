@@ -17,6 +17,8 @@ public struct Color: Hashable, Sendable, _ExpressibleByColorLiteral {
         case named(String)
         /// A colour resolved for each appearance already (`Color(uiColor:)`).
         case dynamic(light: RGBA, dark: RGBA)
+        /// Two colours mixed by a fraction of the second (`mix(with:by:in:)`), resolved together.
+        indirect case mixed(Color, Color, fraction: Double, perceptual: Bool)
     }
 
     package enum SystemColor: String, Hashable, Sendable, CaseIterable {
@@ -126,6 +128,12 @@ public struct Color: Hashable, Sendable, _ExpressibleByColorLiteral {
         Color(storage: storage, opacityMultiplier: opacityMultiplier * opacity)
     }
 
+    /// Returns a version of self mixed with the given color by `fraction` (0 is this color, 1
+    /// the other), blended in Oklab (`perceptual`) or in sRGB components (`device`).
+    public func mix(with rhs: Color, by fraction: Double, in colorSpace: Gradient.ColorSpace = .perceptual) -> Color {
+        Color(storage: .mixed(self, rhs, fraction: min(max(fraction, 0), 1), perceptual: colorSpace.perceptual))
+    }
+
     public static let red = Color(storage: .system(.red))
     public static let orange = Color(storage: .system(.orange))
     public static let yellow = Color(storage: .system(.yellow))
@@ -174,6 +182,9 @@ extension Color: CustomStringConvertible {
         case let .named(name):
             let base = "NamedColor(name: \"\(name)\", bundle: nil)"
             return opacityMultiplier == 1 ? base : "\(Int((opacityMultiplier * 100).rounded()))% \(base)"
+        case let .mixed(base, other, fraction, _):
+            let mixed = "\(base) mixed with \(other) by \(fraction)"
+            return opacityMultiplier == 1 ? mixed : "\(Int((opacityMultiplier * 100).rounded()))% \(mixed)"
         }
     }
 }

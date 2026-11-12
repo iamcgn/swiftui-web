@@ -217,6 +217,16 @@ jobs:
           python3 -m http.server 8784 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8784/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node simplescores-probe.mjs "http://127.0.0.1:8784/index.html?platform=ios" --out ../.build/apps/simplescores)
+      - name: Apps — SimpleToDo compiles for wasm from its unmodified sources (List selection, EditButton under an editMode set outside the toolbar, a bottom bar item, a segmented Picker, Combine's debounce)
+        run: |
+          . ~/.swiftly/env.sh
+          scripts/build-wasm.sh Apps --debug --product SimpleToDo
+      - name: Apps — SimpleToDo in Chromium (Edit disabled with no items, two items added, a detail renamed and set to High, one marked completed, the items back after a reload, Edit, a row selected, Delete selected)
+        id: simpletodo
+        run: |
+          python3 -m http.server 8785 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8785/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node simpletodo-probe.mjs "http://127.0.0.1:8785/index.html?platform=ios" --out ../.build/apps/simpletodo)
       # SwiftUI-2048 needs `@objc`/`#selector`, which the stock wasm SDK cannot compile: it is
       # built with the Objective-C runtime SDK of decision 0023 (swift-objc-wasm's v0.1.1
       # release, pinned by URL and checksum; its own patched compilers over the same swiftly
@@ -253,9 +263,9 @@ jobs:
           (cd Playwright && node pompaddo-probe.mjs "http://127.0.0.1:8783/index.html?platform=ios" --out ../.build/apps/pompaddo)
       - name: Apps — the evidence the probe must leave (report.json with full_app_pass, screenshots, trace)
         if: always() && steps.scrumdinger.outcome != 'skipped'
-        env: { EMBER_PROBE: "${{ steps.ember.outcome }}", SWIFTUI2048_PROBE: "${{ steps.swiftui2048.outcome }}", CHARTS_PROBE: "${{ steps.charts.outcome }}", BUTTONCRAFT_PROBE: "${{ steps.buttoncraft.outcome }}", POMPADDO_PROBE: "${{ steps.pompaddo.outcome }}", SIMPLESCORES_PROBE: "${{ steps.simplescores.outcome }}" }
+        env: { EMBER_PROBE: "${{ steps.ember.outcome }}", SWIFTUI2048_PROBE: "${{ steps.swiftui2048.outcome }}", CHARTS_PROBE: "${{ steps.charts.outcome }}", BUTTONCRAFT_PROBE: "${{ steps.buttoncraft.outcome }}", POMPADDO_PROBE: "${{ steps.pompaddo.outcome }}", SIMPLESCORES_PROBE: "${{ steps.simplescores.outcome }}", SIMPLETODO_PROBE: "${{ steps.simpletodo.outcome }}" }
         run: |
-          for app in scrumdinger ember charts buttoncraft 2048 pompaddo simplescores; do
+          for app in scrumdinger ember charts buttoncraft 2048 pompaddo simplescores simpletodo; do
             # A probe is skipped when its build step failed: its evidence is then the build log.
             if [ "$app" = ember ] && [ "$EMBER_PROBE" = skipped ]; then echo "ember: probe not run"; continue; fi
             if [ "$app" = 2048 ] && [ "$SWIFTUI2048_PROBE" = skipped ]; then echo "2048: probe not run"; continue; fi
@@ -263,8 +273,9 @@ jobs:
             if [ "$app" = buttoncraft ] && [ "$BUTTONCRAFT_PROBE" = skipped ]; then echo "buttoncraft: probe not run"; continue; fi
             if [ "$app" = pompaddo ] && [ "$POMPADDO_PROBE" = skipped ]; then echo "pompaddo: probe not run"; continue; fi
             if [ "$app" = simplescores ] && [ "$SIMPLESCORES_PROBE" = skipped ]; then echo "simplescores: probe not run"; continue; fi
+            if [ "$app" = simpletodo ] && [ "$SIMPLETODO_PROBE" = skipped ]; then echo "simpletodo: probe not run"; continue; fi
             test -s .build/apps/$app/report.json && test -s .build/apps/$app/trace.zip && ls .build/apps/$app/*.png >/dev/null
-            # All seven are full passes (Scrumdinger's meeting since decision 0022's recogniser).
+            # All eight are full passes (Scrumdinger's meeting since decision 0022's recogniser).
             python3 -c "import json; r=json.load(open('.build/apps/$app/report.json')); assert r['full_app_pass'] is True, r['full_app_pass']; print('$app', {k: v['outcome'] for k, v in r['flows'].items()})"
           done
       # Evidence, kept whatever the steps above did: Tier B's renders and diffs

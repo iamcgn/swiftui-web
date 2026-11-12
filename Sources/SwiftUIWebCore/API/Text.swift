@@ -98,6 +98,8 @@ public struct Text: Equatable, Sendable {
         package var monospaced = false
         /// `monospacedDigit()`: the font's tabular figures.
         package var monospacedDigit = false
+        /// `fontDesign(_:)`: the design of a system font (an explicit design of the font wins).
+        package var design: Font.Design?
         /// A link (markdown `[text](url)`, the `link` attribute): accent-coloured, pressable.
         package var link: URL?
 
@@ -113,6 +115,7 @@ public struct Text: Equatable, Sendable {
             result.tracking = tracking ?? parent.tracking
             result.monospaced = monospaced || parent.monospaced
             result.monospacedDigit = monospacedDigit || parent.monospacedDigit
+            result.design = design ?? parent.design
             result.link = link ?? parent.link
             return result
         }
@@ -199,6 +202,11 @@ public struct Text: Equatable, Sendable {
     public func italic() -> Text { var t = self; t.modifiers.italic = true; return t }
     /// Fixed-width digits (the font's tabular figures), as `Font.monospacedDigit()`.
     public func monospacedDigit() -> Text { var t = self; t.modifiers.monospacedDigit = true; return t }
+    /// Sets the font design of the text (rounded, serif, monospaced) when its font is a system
+    /// font without a design of its own.
+    public func fontDesign(_ design: Font.Design?) -> Text { var t = self; t.modifiers.design = design; return t }
+    /// Sets the font width of the text. Stored only: the text engine draws one width.
+    public func fontWidth(_ width: Font.Width?) -> Text { self }
     /// The monospaced design (`Font.monospaced()`), for the whole text.
     public func monospaced(_ isActive: Bool = true) -> Text { var t = self; t.modifiers.monospaced = isActive; return t }
     public func italic(_ isActive: Bool) -> Text { isActive ? italic() : self }
@@ -823,9 +831,12 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
         } else if environment._boldTrait {
             resolved.weight = environment.platformProfile.boldTraitWeight(for: resolved.textStyle); resolved.weightOverridden = true
         }
-        if modifiers.italic { resolved.italic = true }
-        if modifiers.monospaced, resolved.family.hasPrefix("system") { resolved.family = "system-monospaced" }
-        if modifiers.monospacedDigit { resolved.tabularDigits = true }
+        if modifiers.italic || environment._italicTrait { resolved.italic = true }
+        if resolved.family == "system", let design = modifiers.design ?? environment._fontDesign {
+            resolved.family = Font.Design._familyName(design)
+        }
+        if modifiers.monospaced || environment._monospacedTrait, resolved.family.hasPrefix("system") { resolved.family = "system-monospaced" }
+        if modifiers.monospacedDigit || environment._monospacedDigitTrait { resolved.tabularDigits = true }
         return resolved
     }
 
@@ -1182,10 +1193,87 @@ extension EnvironmentValues {
     }
 }
 
+package struct FontDesignKey: EnvironmentKey {
+    package static let defaultValue: Font.Design? = nil
+}
+
+package struct ItalicTraitKey: EnvironmentKey {
+    package static let defaultValue = false
+}
+
+package struct MonospacedTraitKey: EnvironmentKey {
+    package static let defaultValue = false
+}
+
+package struct MonospacedDigitTraitKey: EnvironmentKey {
+    package static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// The design applied to system fonts in this environment (`View.fontDesign`).
+    package var _fontDesign: Font.Design? {
+        get { self[FontDesignKey.self] }
+        set { self[FontDesignKey.self] = newValue }
+    }
+
+    /// Whether text in this environment is italic (`View.italic`).
+    package var _italicTrait: Bool {
+        get { self[ItalicTraitKey.self] }
+        set { self[ItalicTraitKey.self] = newValue }
+    }
+
+    /// Whether text in this environment takes the monospaced design (`View.monospaced`).
+    package var _monospacedTrait: Bool {
+        get { self[MonospacedTraitKey.self] }
+        set { self[MonospacedTraitKey.self] = newValue }
+    }
+
+    /// Whether text in this environment uses fixed-width digits (`View.monospacedDigit`).
+    package var _monospacedDigitTrait: Bool {
+        get { self[MonospacedDigitTraitKey.self] }
+        set { self[MonospacedDigitTraitKey.self] = newValue }
+    }
+}
+
+extension Font.Design {
+    /// The text engine's family for a system font of this design.
+    package static func _familyName(_ design: Font.Design) -> String {
+        switch design {
+        case .default: return "system"
+        case .rounded: return "system-rounded"
+        case .serif: return "system-serif"
+        case .monospaced: return "system-monospaced"
+        }
+    }
+}
+
 extension View {
     /// Sets the font weight of the text and symbol images in this view.
     nonisolated public func fontWeight(_ weight: Font.Weight?) -> some View {
         environment(\._fontWeight, weight)
+    }
+
+    /// Sets the font design of the text in this view (system fonts without a design of their own).
+    nonisolated public func fontDesign(_ design: Font.Design?) -> some View {
+        environment(\._fontDesign, design)
+    }
+
+    /// Sets the font width of the text in this view. Stored only: the text engine draws one width.
+    nonisolated public func fontWidth(_ width: Font.Width?) -> some View { self }
+
+    /// Applies italics to the text in this view.
+    nonisolated public func italic(_ isActive: Bool = true) -> some View {
+        environment(\._italicTrait, isActive)
+    }
+
+    /// Modifies the fonts of the text in this view to use the monospaced design.
+    nonisolated public func monospaced(_ isActive: Bool = true) -> some View {
+        environment(\._monospacedTrait, isActive)
+    }
+
+    /// Modifies the fonts of the text in this view to use fixed-width digits.
+    nonisolated public func monospacedDigit() -> some View {
+        environment(\._monospacedDigitTrait, true)
     }
 
     /// Applies a bold font weight to the text and symbol images in this view.
