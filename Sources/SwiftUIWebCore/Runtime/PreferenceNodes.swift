@@ -128,3 +128,79 @@ package final class GeometryReaderNode<Content: View>: LayoutNode<GeometryReader
     override package var paintedChildren: [ViewNode] { child?.layoutChildren ?? [] }
     override package var nodeDescription: String { "GeometryReader" }
 }
+
+/// Node for `anchorPreference` and `transformAnchorPreference`: the anchor is taken from this
+/// node's frame in the root's coordinates when the preference is read (after the content is
+/// placed), so a reader converting it with `GeometryProxy` gets the view's current geometry.
+@MainActor
+package final class AnchorPreferenceNode<Content: View, A, K: PreferenceKey>: UnaryLayoutModifierNode<Content, _AnchorPreferenceModifier<A, K>> {
+    override package func transformPreference<Key: PreferenceKey>(_ key: Key.Type, _ value: Key.Value?) -> Key.Value? {
+        guard Key.self == K.self else { return value }
+        let anchor = modifier.source.make(frameInRoot)
+        switch modifier.write {
+        case .set(let transform):
+            return transform(anchor) as? Key.Value
+        case .transform(let transform):
+            var current = (value as? K.Value) ?? K.defaultValue
+            transform(&current, anchor)
+            return current as? Key.Value
+        }
+    }
+
+    override package var nodeDescription: String { "AnchorPreference" }
+}
+
+/// Node for `overlayPreferenceValue` and `backgroundPreferenceValue`: once the content is
+/// placed, the layer is rebuilt from the content's value of the key (anchors in it resolve
+/// against the frames just laid out), proposed the content's size and aligned within it.
+@MainActor
+package final class PreferenceValueLayerNode<Content: View, K: PreferenceKey, Layer: View>:
+    UnaryLayoutModifierNode<Content, _PreferenceValueLayerModifier<K, Layer>>
+{
+    package private(set) var layer: TypedNode<Layer>!
+
+    override package init(_ context: _NodeContext<ModifiedContent<Content, _PreferenceValueLayerModifier<K, Layer>>>) {
+        super.init(context)
+        layer = Layer._makeNode(_NodeContext(view: modifier.transform(currentValue), parent: self, environment: context.environment))
+    }
+
+    /// The content's value of the key.
+    private var currentValue: K.Value { child.preferenceValue(for: K.self) ?? K.defaultValue }
+
+    override package func update(view: ModifiedContent<Content, _PreferenceValueLayerModifier<K, Layer>>, environment: EnvironmentValues, force: Bool) {
+        super.update(view: view, environment: environment, force: force)
+        layer.update(view: modifier.transform(currentValue), environment: environment, force: force)
+    }
+
+    override package func placeTarget(_ target: ViewNode, in bounds: CGRect, proposal: ProposedViewSize, by placer: ViewNode) {
+        super.placeTarget(target, in: bounds, proposal: proposal, by: placer)
+        guard target === targets.first else { return }
+        layer.update(view: modifier.transform(currentValue), environment: environment, force: false)
+        let alignment = modifier.alignment
+        let container = ViewDimensions(size: bounds.size)
+        let layerProposal = ProposedViewSize(bounds.size)
+        for node in layer.layoutChildren {
+            let dims = node.dimensions(in: layerProposal)
+            let origin = CGPoint(x: bounds.minX + container[alignment.horizontal] - dims[alignment.horizontal],
+                                 y: bounds.minY + container[alignment.vertical] - dims[alignment.vertical])
+            node.place(at: origin, anchor: .topLeading, proposal: layerProposal, by: placer)
+        }
+    }
+
+    override package func paintTarget(_ target: ViewNode, in node: ViewNode, into list: inout DisplayList, context: PaintContext) {
+        let layerNodes = target === targets.first ? layer.layoutChildren : []
+        if !modifier.isOverlay {
+            for layerNode in layerNodes { layerNode.paint(into: &list, context: context.child(at: layerNode.presentedFrame)) }
+        }
+        super.paintTarget(target, in: node, into: &list, context: context)
+        if modifier.isOverlay {
+            for layerNode in layerNodes { layerNode.paint(into: &list, context: context.child(at: layerNode.presentedFrame)) }
+        }
+    }
+
+    override package var structuralChildren: [ViewNode] {
+        guard let layer else { return [child] }
+        return [child, layer]
+    }
+    override package var nodeDescription: String { modifier.isOverlay ? "PreferenceOverlay" : "PreferenceBackground" }
+}

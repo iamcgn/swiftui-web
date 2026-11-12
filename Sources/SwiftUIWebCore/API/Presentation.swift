@@ -696,3 +696,55 @@ extension View {
         modifier(_PresentationOptionsModifier(interactiveDismissDisabled: isDisabled))
     }
 }
+
+// MARK: - Sheet background and interaction
+
+/// Whether people can interact with the view behind a presentation: always, never, or while
+/// the sheet rests at or below a detent.
+public struct PresentationBackgroundInteraction: Sendable {
+    package enum Kind: Sendable { case automatic, enabled, disabled, enabledUpThrough(PresentationDetent) }
+    package let kind: Kind
+
+    /// The default behaviour: the view behind a sheet is disabled.
+    public static let automatic = PresentationBackgroundInteraction(kind: .automatic)
+    /// People can interact with the view behind the presentation.
+    public static let enabled = PresentationBackgroundInteraction(kind: .enabled)
+    /// People can't interact with the view behind the presentation.
+    public static let disabled = PresentationBackgroundInteraction(kind: .disabled)
+    /// People can interact with the view behind the presentation while it rests at or below
+    /// `detent`.
+    public static func enabled(upThrough detent: PresentationDetent) -> PresentationBackgroundInteraction {
+        PresentationBackgroundInteraction(kind: .enabledUpThrough(detent))
+    }
+}
+
+/// Which behaviour a swipe in a resizable sheet's content has: resizing the sheet or scrolling
+/// the content.
+public struct PresentationContentInteraction: Equatable, Sendable {
+    package let tag: UInt8
+    public static let automatic = PresentationContentInteraction(tag: 0)
+    public static let resizes = PresentationContentInteraction(tag: 1)
+    public static let scrolls = PresentationContentInteraction(tag: 2)
+}
+
+extension View {
+    /// Sets the presentation background of the enclosing sheet. Stored only: the runtime's sheet
+    /// keeps its own background.
+    nonisolated public func presentationBackground<S: ShapeStyle>(_ style: S) -> some View { self }
+
+    /// Sets the presentation background of the enclosing sheet to a custom view. Stored only:
+    /// the runtime's sheet keeps its own background.
+    nonisolated public func presentationBackground<V: View>(alignment: Alignment = .center, @ViewBuilder content: () -> V) -> some View { self }
+
+    /// Controls whether people can interact with the view behind a presentation. The runtime's
+    /// sheet always takes the presses outside it, which is the automatic behaviour.
+    nonisolated public func presentationBackgroundInteraction(_ interaction: PresentationBackgroundInteraction) -> some View { self }
+
+    /// Configures the behaviour of swipe gestures on a presentation. The runtime's sheet does
+    /// not resize by swiping, so its content always scrolls.
+    nonisolated public func presentationContentInteraction(_ behavior: PresentationContentInteraction) -> some View { self }
+
+    /// Requests that the presentation have a specific corner radius. Stored only: the runtime's
+    /// sheet keeps the platform's radius.
+    nonisolated public func presentationCornerRadius(_ cornerRadius: CGFloat?) -> some View { self }
+}
