@@ -136,6 +136,15 @@ products of this package. When the app's own files `import Foundation` or `impor
 .product(name: "Combine", package: "Shadows", condition: .when(platforms: [.wasi])),
 ```
 
+Naming Foundation. On iOS a file that imports only UIKit or SwiftUI can still write
+`Foundation.Date`, because both re-export Foundation; here they cannot re-export the shadow
+(Packages/Shadows depends on them). A target whose files do that without importing Foundation
+themselves imports it implicitly on wasm, which the coverage sweep adds for such targets:
+
+```swift
+swiftSettings: [.unsafeFlags(["-Xfrontend", "-import-module", "-Xfrontend", "Foundation"], .when(platforms: [.wasi]))]
+```
+
 `Examples/Landing` is the project's landing page written in SwiftUI and rendered by SwiftUIWeb: a
 sales page with live controls and the support matrix (generated from `Docs/support.json` by
 `scripts/gen-progress.py`). `scripts/build-landing.sh` builds it into `Examples/Landing/dist`

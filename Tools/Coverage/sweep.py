@@ -570,6 +570,24 @@ def describe_app(entry, root: Path, work: Path = None):
         if Path(".") in pkg_dirs and any(rel.is_relative_to(Path(t["source_root"])) for t in targets if not t.get("remote")):
             continue
         app_files.append(str(rel))
+    # The iOS app target's own files, when its Xcode project says which they are: a repository
+    # with a macOS app, extensions or a watch app beside it shares some folders and declares its
+    # own copy of other types in each, which redeclare one another in one module.
+    pbx_files = [p for p in sorted(root.rglob("project.pbxproj"))
+                 if not excluded(p.relative_to(root).parent.parent / "x", extra)
+                 and not any(p.relative_to(root).is_relative_to(d) for d in pkg_dirs if str(d) != ".")]
+    try:
+        app_target = xcodeproj.app_target_files(root, pbx_files)
+    except Exception as e:  # an unreadable project leaves the folder-based guess
+        app_target = None
+        notes.append(f"Xcode project not read ({type(e).__name__}: {str(e)[:120]})")
+    if app_target:
+        name, members, base = app_target
+        kept = [f for f in app_files if f in members or not Path(f).is_relative_to(base)]
+        if kept:
+            if len(kept) < len(app_files):
+                notes.append(f"app target {name}: {len(kept)} of {len(app_files)} Swift files outside the packages")
+            app_files = kept
     # One @main: the SwiftUI App (or the UIKit delegate) of the iOS app, the others' files left out.
     mains = [f for f in app_files if MAIN.search((root / f).read_text(errors="replace"))]
     if len(mains) > 1:
@@ -745,6 +763,8 @@ def cmd_fetch(args):
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "Traits"))
 import traits as app_traits  # noqa: E402  (Tools/Traits: which package traits an app needs, decision 0024)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import xcodeproj  # noqa: E402  (the iOS app target's files, from its project.pbxproj)
 
 
 # MARK: prepare
@@ -829,6 +849,20 @@ let stack: [LinkerSetting] = [.unsafeFlags(["-Xlinker", "-z", "-Xlinker", "stack
 
 
 DECL_NAME = re.compile(r'name: "([^"]+)"')
+
+# A file that names a type through its module (`Foundation.Date`) without importing Foundation
+# itself: on iOS `import UIKit` or `import SwiftUI` makes the module name visible, here neither
+# can re-export the Foundation shadow (it lives in Packages/Shadows, which depends on them).
+FOUNDATION_QUALIFIED = re.compile(r"(?<![\w.])Foundation\.[A-Za-z_]")
+IMPORTS_FOUNDATION = re.compile(r"^\s*(?:@\w+\s+)*import\s+(?:\w+\s+)?Foundation\b", re.M)
+# Such a target imports the shadow implicitly, as the app's own manifest would (README, "Naming
+# Foundation"); only those targets, so Combine and the rest of what the shadow re-exports stay
+# out of files that do not see them on iOS (a package's own `Future` beside Combine's).
+IMPLICIT_FOUNDATION = '.unsafeFlags(["-Xfrontend", "-import-module", "-Xfrontend", "Foundation"], .when(platforms: [.wasi]))'
+
+
+def names_foundation_without_importing(text):
+    return bool(FOUNDATION_QUALIFIED.search(text)) and not IMPORTS_FOUNDATION.search(text)
 
 
 def render_manifest(parts, drops=None):
@@ -942,6 +976,7 @@ def cmd_prepare(args):
                 )
                 continue
             used = set()
+            foundation_name = False
             for f in t["files"]:
                 rel = Path(f).relative_to(t["source_root"]) if t["source_root"] != "." else Path(f)
                 name = rel.name
@@ -954,6 +989,7 @@ def cmd_prepare(args):
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 text = (clone_dir / f).read_text(errors="replace")
                 traits_needed |= set(app_traits.needed_in_text(text))
+                foundation_name = foundation_name or names_foundation_without_importing(text)
                 if args.ios:
                     text = ios_conditions(text)
                 dest.write_text(strip_imports(text, strip))
@@ -1014,6 +1050,8 @@ def cmd_prepare(args):
                 if t.get("catalogs") or any(r.endswith('.xcassets")') for r in resources) else [])
             kind = "executableTarget" if t.get("app") else "target"
             settings = [f".swiftLanguageMode(.{t['mode']})"] + t["settings"]
+            if foundation_name:
+                settings.append(IMPLICIT_FOUNDATION)
             extra = [json.dumps(d) for d in t["deps"]]
             if t.get("syntax"):
                 uses_syntax = True
