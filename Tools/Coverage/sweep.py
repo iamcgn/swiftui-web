@@ -570,6 +570,24 @@ def describe_app(entry, root: Path, work: Path = None):
         if Path(".") in pkg_dirs and any(rel.is_relative_to(Path(t["source_root"])) for t in targets if not t.get("remote")):
             continue
         app_files.append(str(rel))
+    # The iOS app target's own files, when its Xcode project says which they are: a repository
+    # with a macOS app, extensions or a watch app beside it shares some folders and declares its
+    # own copy of other types in each, which redeclare one another in one module.
+    pbx_files = [p for p in sorted(root.rglob("project.pbxproj"))
+                 if not excluded(p.relative_to(root).parent.parent / "x", extra)
+                 and not any(p.relative_to(root).is_relative_to(d) for d in pkg_dirs if str(d) != ".")]
+    try:
+        app_target = xcodeproj.app_target_files(root, pbx_files)
+    except Exception as e:  # an unreadable project leaves the folder-based guess
+        app_target = None
+        notes.append(f"Xcode project not read ({type(e).__name__}: {str(e)[:120]})")
+    if app_target:
+        name, members, base = app_target
+        kept = [f for f in app_files if f in members or not Path(f).is_relative_to(base)]
+        if kept:
+            if len(kept) < len(app_files):
+                notes.append(f"app target {name}: {len(kept)} of {len(app_files)} Swift files outside the packages")
+            app_files = kept
     # One @main: the SwiftUI App (or the UIKit delegate) of the iOS app, the others' files left out.
     mains = [f for f in app_files if MAIN.search((root / f).read_text(errors="replace"))]
     if len(mains) > 1:
@@ -745,6 +763,8 @@ def cmd_fetch(args):
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "Traits"))
 import traits as app_traits  # noqa: E402  (Tools/Traits: which package traits an app needs, decision 0024)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import xcodeproj  # noqa: E402  (the iOS app target's files, from its project.pbxproj)
 
 
 # MARK: prepare
