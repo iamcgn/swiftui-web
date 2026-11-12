@@ -199,6 +199,20 @@ open class NSObject: NSObjectProtocol, Hashable, CustomStringConvertible {
     open class var description: String { "\(self)" }
     public func isKind(of aClass: AnyClass) -> Bool { type(of: self) == aClass }
     public func isMember(of aClass: AnyClass) -> Bool { type(of: self) == aClass }
+
+    // Sending a message by selector. Without the runtime no method is registered under a
+    // selector, so an object responds to none and a send returns nothing: code that checks
+    // first (`responds(to:)`, then `perform`), as Kingfisher does for `sharedApplication`,
+    // takes its branch for a missing method. A class overrides these to answer for itself.
+    open func responds(to aSelector: Selector!) -> Bool { false }
+    open class func responds(to aSelector: Selector!) -> Bool { false }
+    open class func instancesRespond(to aSelector: Selector!) -> Bool { false }
+    open func perform(_ aSelector: Selector!) -> Unmanaged<AnyObject>! { nil }
+    open func perform(_ aSelector: Selector!, with object: Any!) -> Unmanaged<AnyObject>! { nil }
+    open func perform(_ aSelector: Selector!, with object1: Any!, with object2: Any!) -> Unmanaged<AnyObject>! { nil }
+    open class func perform(_ aSelector: Selector!) -> Unmanaged<AnyObject>! { nil }
+    open class func perform(_ aSelector: Selector!, with object: Any!) -> Unmanaged<AnyObject>! { nil }
+    open class func perform(_ aSelector: Selector!, with object1: Any!, with object2: Any!) -> Unmanaged<AnyObject>! { nil }
 }
 #endif
 
