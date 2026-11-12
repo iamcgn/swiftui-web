@@ -79,7 +79,8 @@ public final class PropertyListEncoder: @unchecked Sendable {
         options.urlsAsStrings = true
         options.userInfo = userInfo
         let node = try options.node(for: value, codingPath: []).resolved
-        return try PropertyListSerialization.data(fromPropertyList: _PlistValue(node: node).object, format: outputFormat, options: 0)
+        // The value itself, not its objects: an empty `[Int]` stays an array, not data.
+        return try PropertyListSerialization.data(fromPropertyList: try _PlistValue(node: node), format: outputFormat, options: 0)
     }
 }
 
@@ -173,7 +174,6 @@ indirect enum _PlistValue {
         case let number as Float: self = .real(Double(number))
         case let date as Date: self = .date(date)
         case let data as Data: self = .data(Array(data))
-        case let bytes as [UInt8]: self = .data(bytes)
         case let dictionary as [String: Any]: self = .dictionary(try dictionary.map { ($0.key, try _PlistValue($0.value)) })
         case let dictionary as [AnyHashable: Any]:
             self = .dictionary(try dictionary.map { entry in
@@ -613,16 +613,26 @@ enum _PlistBinary {
             return value
         }
         let trailer = bytes.count - 32
+        /// A count or offset the bytes give, refused when it can't be one in this file (a
+        /// malformed list's huge values trap in `Int(_:)`, and in arithmetic on wasm32's `Int`).
+        func integer(_ value: UInt64) throws -> Int {
+            guard value <= UInt64(bytes.count) else { throw corrupt() }
+            return Int(value)
+        }
+        /// Whether `amount` items of `unit` bytes from `start` end before the trailer.
+        func fits(_ start: Int, _ amount: Int, _ unit: Int) -> Bool {
+            start >= 0 && start <= trailer && unit > 0 && amount <= (trailer - start) / unit
+        }
         let offsetSize = Int(bytes[trailer + 6])
         let referenceSize = Int(bytes[trailer + 7])
-        let count = Int(try number(at: trailer + 8, size: 8))
-        let top = Int(try number(at: trailer + 16, size: 8))
-        let tableOffset = Int(try number(at: trailer + 24, size: 8))
-        guard count > 0, top < count, tableOffset + count * offsetSize <= trailer else { throw corrupt() }
+        let count = try integer(try number(at: trailer + 8, size: 8))
+        let top = try integer(try number(at: trailer + 16, size: 8))
+        let tableOffset = try integer(try number(at: trailer + 24, size: 8))
+        guard count > 0, top < count, fits(tableOffset, count, offsetSize) else { throw corrupt() }
 
         func object(_ reference: Int, depth: Int) throws -> _PlistValue {
             guard reference < count, depth < 512 else { throw corrupt() }
-            let offset = Int(try number(at: tableOffset + reference * offsetSize, size: offsetSize))
+            let offset = try integer(try number(at: tableOffset + reference * offsetSize, size: offsetSize))
             guard offset < trailer else { throw corrupt() }
             let marker = bytes[offset]
             let low = Int(marker & 0x0F)
@@ -631,10 +641,11 @@ enum _PlistBinary {
                 guard low == 0x0F else { return (low, offset + 1) }
                 guard offset + 1 < trailer, bytes[offset + 1] >> 4 == 0x1 else { throw corrupt() }
                 let size = 1 << Int(bytes[offset + 1] & 0x0F)
-                return (Int(try number(at: offset + 2, size: size)), offset + 2 + size)
+                return (try integer(try number(at: offset + 2, size: size)), offset + 2 + size)
             }
             func references(_ amount: Int, from start: Int) throws -> [Int] {
-                try (0..<amount).map { Int(try number(at: start + $0 * referenceSize, size: referenceSize)) }
+                guard fits(start, amount, referenceSize) else { throw corrupt() }
+                return try (0..<amount).map { try integer(try number(at: start + $0 * referenceSize, size: referenceSize)) }
             }
             switch marker >> 4 {
             case 0x0:
@@ -656,25 +667,26 @@ enum _PlistBinary {
                 return .date(Date(timeIntervalSinceReferenceDate: Double(bitPattern: try number(at: offset + 1, size: 8))))
             case 0x4:
                 let (amount, start) = try length()
-                guard start + amount <= trailer else { throw corrupt() }
+                guard fits(start, amount, 1) else { throw corrupt() }
                 return .data(Array(bytes[start..<(start + amount)]))
             case 0x5:
                 let (amount, start) = try length()
-                guard start + amount <= trailer else { throw corrupt() }
+                guard fits(start, amount, 1) else { throw corrupt() }
                 return .string(String(decoding: bytes[start..<(start + amount)], as: UTF8.self))
             case 0x6:
                 let (amount, start) = try length()
-                guard start + amount * 2 <= trailer else { throw corrupt() }
+                guard fits(start, amount, 2) else { throw corrupt() }
                 let units = try (0..<amount).map { UInt16(try number(at: start + $0 * 2, size: 2)) }
                 return .string(String(decoding: units, as: UTF16.self))
             case 0x8:
                 // A keyed archive's UID, read as Foundation's coders see it: a dictionary.
-                return .dictionary([("CF$UID", .integer(Int64(try number(at: offset + 1, size: low + 1))))])
+                return .dictionary([("CF$UID", .integer(Int64(bitPattern: try number(at: offset + 1, size: low + 1))))])
             case 0xA:
                 let (amount, start) = try length()
                 return .array(try references(amount, from: start).map { try object($0, depth: depth + 1) })
             case 0xD:
                 let (amount, start) = try length()
+                guard fits(start, amount, 2 * referenceSize) else { throw corrupt() }
                 let keys = try references(amount, from: start)
                 let values = try references(amount, from: start + amount * referenceSize)
                 return .dictionary(try zip(keys, values).map { key, value in

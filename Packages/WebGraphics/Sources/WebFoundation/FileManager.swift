@@ -120,14 +120,21 @@ public final class FileManager: @unchecked Sendable {
     public func isExecutableFile(atPath path: String) -> Bool { false }
     /// The name to show for the item: its last path component.
     public func displayName(atPath path: String) -> String { URL(fileURLWithPath: path).lastPathComponent }
-    /// True when both paths name files with the same bytes, or both name directories.
+    /// True when both paths name files with the same bytes, or directories holding the same
+    /// names whose contents are equal in turn, as Foundation compares them.
     public func contentsEqual(atPath path1: String, andPath path2: String) -> Bool {
-        let first = URL(fileURLWithPath: path1), second = URL(fileURLWithPath: path2)
-        if _MemoryFiles.isDirectory(first) || _MemoryFiles.isDirectory(second) {
-            return _MemoryFiles.isDirectory(first) && _MemoryFiles.isDirectory(second)
+        Self._contentsEqual(URL(fileURLWithPath: path1), URL(fileURLWithPath: path2))
+    }
+    private static func _contentsEqual(_ first: URL, _ second: URL) -> Bool {
+        let firstIsDirectory = _MemoryFiles.isDirectory(first), secondIsDirectory = _MemoryFiles.isDirectory(second)
+        guard firstIsDirectory == secondIsDirectory else { return false }
+        guard firstIsDirectory else {
+            guard let a = _MemoryFiles.read(first), let b = _MemoryFiles.read(second) else { return false }
+            return a == b
         }
-        guard let a = _MemoryFiles.read(first), let b = _MemoryFiles.read(second) else { return false }
-        return a == b
+        let firstChildren = _MemoryFiles.contents(of: first), secondChildren = _MemoryFiles.contents(of: second)
+        guard firstChildren.map(\.lastPathComponent) == secondChildren.map(\.lastPathComponent) else { return false }
+        return zip(firstChildren, secondChildren).allSatisfy { _contentsEqual($0, $1) }
     }
     /// Every path under the directory, relative to it, depth first.
     public func subpathsOfDirectory(atPath path: String) throws -> [String] {
