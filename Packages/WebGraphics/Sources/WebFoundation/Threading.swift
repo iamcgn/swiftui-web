@@ -279,4 +279,14 @@ public func os_unfair_lock_assert_owner(_ lock: os_unfair_lock_t) {
 public func os_unfair_lock_assert_not_owner(_ lock: os_unfair_lock_t) {
     precondition(lock.pointee._os_unfair_lock_opaque == 0, "os_unfair_lock is held")
 }
+
+// MARK: - Autorelease pools
+
+#if !canImport(ObjectiveC)
+/// Runs `body` in an autorelease pool, which Swift's own memory management makes a plain call
+/// here (Apple's ObjectiveC module declares it; the image caches drain one per decoded image).
+public func autoreleasepool<Result>(invoking body: () throws -> Result) rethrows -> Result {
+    try body()
+}
+#endif
 #endif

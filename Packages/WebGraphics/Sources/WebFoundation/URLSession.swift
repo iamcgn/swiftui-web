@@ -510,6 +510,9 @@ open class URLSessionTask: NSObject, @unchecked Sendable {
     public private(set) var state: State = .suspended
     public var priority: Float = URLSessionTask.defaultPriority
     public var taskDescription: String?
+    /// Whether the delegate hears the body as it arrives. A page's fetch delivers it whole, so
+    /// the flag is stored only.
+    public var prefersIncrementalDelivery = true
     public static let defaultPriority: Float = 0.5
     public static let lowPriority: Float = 0.25
     public static let highPriority: Float = 0.75
