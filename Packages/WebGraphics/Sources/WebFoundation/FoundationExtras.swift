@@ -19,7 +19,7 @@ public enum _SecurityHost {
 /// An object that converts between JSON and the equivalent Foundation objects: arrays,
 /// dictionaries keyed by strings, strings, numbers, booleans and `NSNull`.
 public final class JSONSerialization {
-    public struct ReadingOptions: OptionSet, Sendable {
+    public struct ReadingOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let mutableContainers = ReadingOptions(rawValue: 1 << 0)
@@ -31,7 +31,7 @@ public final class JSONSerialization {
         public static let topLevelDictionaryAssumed = ReadingOptions(rawValue: 1 << 4)
     }
 
-    public struct WritingOptions: OptionSet, Sendable {
+    public struct WritingOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let prettyPrinted = WritingOptions(rawValue: 1 << 0)

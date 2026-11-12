@@ -59,7 +59,7 @@ public final class UIAction: UIMenuElement {
         public init(rawValue: String) { self.rawValue = rawValue }
     }
 
-    public struct Attributes: OptionSet, Sendable {
+    public struct Attributes: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let disabled = Attributes(rawValue: 1)
@@ -74,7 +74,7 @@ public final class UIAction: UIMenuElement {
 /// intention in response to user interactions.
 @preconcurrency @MainActor
 open class UIControl: UIView {
-    public struct Event: OptionSet, Sendable {
+    public struct Event: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let touchDown = Event(rawValue: 1 << 0)

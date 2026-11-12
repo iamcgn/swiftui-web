@@ -530,7 +530,7 @@ open class UICollectionView: UIScrollView {
     /// Keyboard focus (Events/Keyboard.swift): whether the cells take it, and whether it selects.
     open var allowsFocus = true
     open var selectionFollowsFocus = false
-    public struct ScrollPosition: OptionSet, Sendable {
+    public struct ScrollPosition: OptionSet, Hashable, Sendable {
         public let rawValue: Int
         public init(rawValue: Int) { self.rawValue = rawValue }
         public static let top = ScrollPosition(rawValue: 1)

@@ -14,14 +14,14 @@ public final class FileManager: @unchecked Sendable {
         case downloadsDirectory = 15, moviesDirectory = 17, musicDirectory = 18, picturesDirectory = 19, sharedPublicDirectory = 21
         case itemReplacementDirectory = 99, trashDirectory = 102
     }
-    public struct SearchPathDomainMask: OptionSet, Sendable {
+    public struct SearchPathDomainMask: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let userDomainMask = SearchPathDomainMask(rawValue: 1)
         public static let localDomainMask = SearchPathDomainMask(rawValue: 2)
         public static let allDomainsMask = SearchPathDomainMask(rawValue: 0x0ffff)
     }
-    public struct DirectoryEnumerationOptions: OptionSet, Sendable {
+    public struct DirectoryEnumerationOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let skipsHiddenFiles = DirectoryEnumerationOptions(rawValue: 4)
@@ -93,7 +93,7 @@ public final class FileManager: @unchecked Sendable {
     public func linkItem(atPath srcPath: String, toPath dstPath: String) throws { try copyItem(atPath: srcPath, toPath: dstPath) }
 
     /// The options of `replaceItemAt` (none changes what happens here).
-    public struct ItemReplacementOptions: OptionSet, Sendable {
+    public struct ItemReplacementOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let usingNewMetadataOnly = ItemReplacementOptions(rawValue: 1)

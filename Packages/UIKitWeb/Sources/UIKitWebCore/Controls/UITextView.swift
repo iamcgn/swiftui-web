@@ -40,7 +40,7 @@ public enum UITextItemInteraction: Int, Sendable { case invokeDefaultAction = 0,
 
 /// The kinds of data a non-editable text view turns into links; only `.link` (URLs starting
 /// `http://`, `https://` or `www.`) is detected here.
-public struct UIDataDetectorTypes: OptionSet, Sendable {
+public struct UIDataDetectorTypes: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let phoneNumber = UIDataDetectorTypes(rawValue: 1 << 0)

@@ -369,7 +369,7 @@ open class UIPanGestureRecognizer: UIGestureRecognizer {
 /// A discrete gesture recognizer that interprets swiping gestures in one or more directions.
 @preconcurrency @MainActor
 open class UISwipeGestureRecognizer: UIGestureRecognizer {
-    public struct Direction: OptionSet, Sendable {
+    public struct Direction: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let right = Direction(rawValue: 1 << 0)

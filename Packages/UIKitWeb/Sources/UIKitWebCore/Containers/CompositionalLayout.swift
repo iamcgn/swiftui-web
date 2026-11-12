@@ -80,7 +80,7 @@ open class NSCollectionLayoutItem {
 }
 
 /// The edges of a directional rectangle.
-public struct NSDirectionalRectEdge: OptionSet, Sendable {
+public struct NSDirectionalRectEdge: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let top = NSDirectionalRectEdge(rawValue: 1 << 0)

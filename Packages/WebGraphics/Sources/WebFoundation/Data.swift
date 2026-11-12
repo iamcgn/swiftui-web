@@ -94,7 +94,7 @@ public struct Data: Hashable, Sendable, Codable, CustomStringConvertible, Custom
         }
         return nil
     }
-    public struct SearchOptions: OptionSet, Sendable {
+    public struct SearchOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let backwards = SearchOptions(rawValue: 1)
@@ -273,7 +273,7 @@ extension Data {
         _MemoryFiles.write(self, to: url)
     }
 
-    public struct WritingOptions: OptionSet, Sendable {
+    public struct WritingOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }
         public static let atomic = WritingOptions(rawValue: 1)

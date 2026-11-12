@@ -42,7 +42,7 @@ open class UICommand: UIMenuElement {
         super.init(title: title, image: image)
     }
 
-    public struct Attributes: OptionSet, Sendable {
+    public struct Attributes: OptionSet, Hashable, Sendable {
         public let rawValue: Int
         public init(rawValue: Int) { self.rawValue = rawValue }
         public static let disabled = Attributes(rawValue: 1)
@@ -161,7 +161,7 @@ public final class UIFocusUpdateContext {
     }
 }
 
-public struct UIFocusHeading: OptionSet, Sendable {
+public struct UIFocusHeading: OptionSet, Hashable, Sendable {
     public let rawValue: Int
     public init(rawValue: Int) { self.rawValue = rawValue }
     public static let up = UIFocusHeading(rawValue: 1)

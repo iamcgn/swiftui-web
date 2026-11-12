@@ -3,9 +3,9 @@
 /// gradient fill and stroke ops.
 
 /// A color gradient represented as an array of color stops, each having a parametric location value.
-public struct Gradient: Equatable, Sendable {
+public struct Gradient: Hashable, Sendable {
     /// One color stop in the gradient.
-    public struct Stop: Equatable, Sendable {
+    public struct Stop: Hashable, Sendable {
         public var color: Color
         public var location: CGFloat
         public init(color: Color, location: CGFloat) {
@@ -540,8 +540,8 @@ package enum _MeshCache {
 /// marks filled `color.gradient`), or a `Gradient` wrapped for a style. It runs from the top of
 /// the bounds to the bottom; a colour's gradient goes from the colour a little lightened at the
 /// top to the colour itself at the bottom (approximate: SwiftUI's is as subtle).
-public struct AnyGradient: ShapeStyle, Equatable, Sendable {
-    package enum Source: Equatable, Sendable {
+public struct AnyGradient: ShapeStyle, Hashable, Sendable {
+    package enum Source: Hashable, Sendable {
         case gradient(Gradient)
         case color(Color)
     }

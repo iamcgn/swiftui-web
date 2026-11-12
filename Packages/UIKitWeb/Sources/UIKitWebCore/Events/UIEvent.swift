@@ -109,7 +109,7 @@ public struct UIKey: Sendable {
     }
 }
 
-public struct UIKeyModifierFlags: OptionSet, Sendable {
+public struct UIKeyModifierFlags: OptionSet, Hashable, Sendable {
     public let rawValue: Int
     public init(rawValue: Int) { self.rawValue = rawValue }
     public static let alphaShift = UIKeyModifierFlags(rawValue: 1 << 16)

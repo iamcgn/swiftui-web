@@ -102,7 +102,7 @@ extension UISheetPresentationControllerDelegate {
 }
 
 /// The directions a popover's arrow may point.
-public struct UIPopoverArrowDirection: OptionSet, Sendable {
+public struct UIPopoverArrowDirection: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let up = UIPopoverArrowDirection(rawValue: 1 << 0)
