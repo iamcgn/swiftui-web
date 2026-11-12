@@ -1,5 +1,14 @@
 name: CI
-on: [push, pull_request]
+# A pull request's commits run once, as the pull request (a push to its branch as well ran every
+# job twice, on the five macOS runners the sweeps also use); main runs on push. A newer commit on
+# a pull request replaces the run of the one before it, which nothing would read.
+on:
+  push:
+    branches: [main]
+  pull_request:
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 env:
   SWIFT_VERSION: "6.3.3"
 jobs:
