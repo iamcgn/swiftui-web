@@ -5,7 +5,11 @@
 // namespace becomes a nested enum (`ImageResource.Fountain.terracotta` for the catalog name
 // `Fountain/Terracotta`); other folders only group.
 //
-//   AssetSymbolsGen <output.swift> <catalog.xcassets>...
+// With `--extensions` it also writes the framework members Xcode adds when a target sets
+// ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS for SwiftUI: `Color.accent` and
+// the same on `ShapeStyle`, so `.foregroundStyle(.accent)` compiles.
+//
+//   AssetSymbolsGen [--extensions] <output.swift> <catalog.xcassets>...
 
 #if os(WASI)
 print("AssetSymbolsGen runs on the build host")
@@ -151,6 +155,26 @@ func literal(_ string: String) -> String {
     return result + "\""
 }
 
+/// The sets of one kind in a scope that get a symbol, in catalog order, after the namespaces
+/// in `used` took their names: a set's whole name first, so `Stone` keeps `stone` when
+/// `Stone Image` would shorten to it.
+func owned(_ scope: Scope, images: Bool, used: Set<String>) -> [(identifier: String, name: String)] {
+    let entries = images ? scope.images : scope.colors
+    func isWhole(_ entry: (identifier: String, name: String)) -> Bool {
+        camel(entry.name.split(separator: "/").last.map(String.init) ?? entry.name) == entry.identifier
+    }
+    var owner: [String: String] = [:]
+    for entry in entries.filter(isWhole) + entries.filter({ !isWhole($0) }) where !used.contains(entry.identifier) && owner[entry.identifier] == nil {
+        owner[entry.identifier] = entry.name
+    }
+    var result: [(identifier: String, name: String)] = []
+    for (identifier, name) in entries where owner[identifier] == name {
+        owner[identifier] = nil
+        result.append((identifier, name))
+    }
+    return result
+}
+
 /// The declarations of one kind in a scope, indented.
 func emit(_ scope: Scope, images: Bool, type: String, indent: String, into lines: inout [String]) {
     var used: Set<String> = []
@@ -160,24 +184,51 @@ func emit(_ scope: Scope, images: Bool, type: String, indent: String, into lines
         emit(namespace.scope, images: images, type: type, indent: indent + "    ", into: &lines)
         lines.append("\(indent)}")
     }
-    // A set's whole name first, so `Stone` keeps `stone` when `Stone Image` would shorten to it.
-    let entries = images ? scope.images : scope.colors
-    func isWhole(_ entry: (identifier: String, name: String)) -> Bool {
-        camel(entry.name.split(separator: "/").last.map(String.init) ?? entry.name) == entry.identifier
-    }
-    var owner: [String: String] = [:]
-    for entry in entries.filter(isWhole) + entries.filter({ !isWhole($0) }) where !used.contains(entry.identifier) && owner[entry.identifier] == nil {
-        owner[entry.identifier] = entry.name
-    }
-    for (identifier, name) in entries where owner[identifier] == name {
-        owner[identifier] = nil
+    for (identifier, name) in owned(scope, images: images, used: used) {
         lines.append("\(indent)static let \(escaped(identifier)) = \(type)(name: \(literal(name)), bundle: .main)")
     }
 }
 
-let arguments = CommandLine.arguments
+/// The members the frameworks already have, which a set's symbol leaves alone (Xcode skips a
+/// set whose name would clash with one, so `Color(.red)` names the set and `Color.red` stays the
+/// system colour).
+let colorMembers: Set<String> = [
+    "accentColor", "black", "blue", "brown", "clear", "cyan", "gray", "green", "indigo", "mint",
+    "orange", "pink", "primary", "purple", "red", "secondary", "teal", "white", "yellow",
+]
+let shapeStyleMembers: Set<String> = colorMembers.union([
+    "background", "bar", "fill", "foreground", "link", "placeholder", "quaternary", "quinary",
+    "regularMaterial", "selection", "separator", "tertiary", "thickMaterial", "thinMaterial", "tint",
+    "ultraThickMaterial", "ultraThinMaterial", "windowBackground",
+])
+
+/// The SwiftUI members for the catalog root's colour sets, as Xcode writes them when the target
+/// asks for asset symbol extensions: `Color.accent` and `.foregroundStyle(.accent)`. Sets inside a
+/// namespace folder keep only their resource symbols. Not written yet: Xcode's `UIColor` and
+/// `UIImage` members, which would turn `Color(.accent)` into `Color(UIColor.accent)` here.
+func emitExtensions(_ root: Scope, module: String, into lines: inout [String]) {
+    let used = Set(root.namespaces.map(\.identifier))
+    func usable(_ identifier: String, _ members: Set<String>) -> Bool {
+        !members.contains(identifier) && !identifier.hasPrefix("system")
+    }
+    let colors = owned(root, images: false, used: used)
+    func block(_ header: String, _ entries: [(identifier: String, name: String)], _ members: Set<String>, _ member: (String) -> String) -> [String] {
+        let kept = entries.filter { usable($0.identifier, members) }
+        guard !kept.isEmpty else { return [] }
+        return ["", "extension \(header) {"] + kept.map { "    " + member(escaped($0.identifier)) } + ["}"]
+    }
+    let swiftUI = block("SwiftUI.Color", colors, colorMembers) { "static var \($0): SwiftUI.Color { .init(\(module).ColorResource.\($0)) }" }
+        + block("SwiftUI.ShapeStyle where Self == SwiftUI.Color", colors, shapeStyleMembers) { "static var \($0): SwiftUI.Color { .init(\(module).ColorResource.\($0)) }" }
+    if !swiftUI.isEmpty {
+        lines += ["", "#if canImport(SwiftUI)", "import SwiftUI"] + swiftUI + ["#endif"]
+    }
+}
+
+var arguments = CommandLine.arguments
+let extensions = arguments.contains("--extensions")
+arguments.removeAll { $0 == "--extensions" }
 guard arguments.count >= 2 else {
-    FileHandle.standardError.write(Data("usage: AssetSymbolsGen <output.swift> <catalog.xcassets>...\n".utf8))
+    FileHandle.standardError.write(Data("usage: AssetSymbolsGen [--extensions] <output.swift> <catalog.xcassets>...\n".utf8))
     exit(2)
 }
 let root = Scope()
@@ -202,6 +253,7 @@ if root.hasImages || root.hasColors {
             emit(root, images: false, type: "\(module).ColorResource", indent: "    ", into: &lines)
             lines += ["}", ""]
         }
+        if extensions { emitExtensions(root, module: module, into: &lines) }
     }
     lines.append("#endif")
 }

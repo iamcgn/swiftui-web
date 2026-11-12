@@ -234,11 +234,12 @@ let package = Package(
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))],
             plugins: ["CoreDataModel"]
         ),
-        // The symbols the AssetSymbols plugin writes for Tests/AssetSymbolsTests/Media.xcassets.
+        // The symbols the AssetSymbols plugin writes for Tests/AssetSymbolsTests/Media.xcassets, with
+        // the framework extensions its `AssetSymbolExtensions` file asks for.
         .testTarget(
             name: "AssetSymbolsTests",
             dependencies: ["SwiftUI", .product(name: "WebFoundation", package: "WebGraphics")],
-            exclude: ["Media.xcassets"],
+            exclude: ["Media.xcassets", "AssetSymbolExtensions"],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))],
             plugins: ["AssetSymbols"]
         ),

@@ -12,6 +12,20 @@ public typealias UIResponderBase = NSObject
 @preconcurrency @MainActor
 open class UIResponderBase {
     public init() {}
+
+    // NSObject's sends by selector, as UIKit's responders inherit them. Without the runtime no
+    // method is registered under a selector, so a responder responds to none and a send
+    // returns nothing: Kingfisher's `UIApplication.responds(to: "sharedApplication")` check
+    // takes its branch for an app extension. Nonisolated, as NSObject's are.
+    nonisolated open func responds(to aSelector: Selector!) -> Bool { false }
+    nonisolated open class func responds(to aSelector: Selector!) -> Bool { false }
+    nonisolated open class func instancesRespond(to aSelector: Selector!) -> Bool { false }
+    nonisolated open func perform(_ aSelector: Selector!) -> Unmanaged<AnyObject>! { nil }
+    nonisolated open func perform(_ aSelector: Selector!, with object: Any!) -> Unmanaged<AnyObject>! { nil }
+    nonisolated open func perform(_ aSelector: Selector!, with object1: Any!, with object2: Any!) -> Unmanaged<AnyObject>! { nil }
+    nonisolated open class func perform(_ aSelector: Selector!) -> Unmanaged<AnyObject>! { nil }
+    nonisolated open class func perform(_ aSelector: Selector!, with object: Any!) -> Unmanaged<AnyObject>! { nil }
+    nonisolated open class func perform(_ aSelector: Selector!, with object1: Any!, with object2: Any!) -> Unmanaged<AnyObject>! { nil }
 }
 #endif
 
