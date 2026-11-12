@@ -28,8 +28,14 @@ public struct SceneStorage<Value>: DynamicProperty {
 }
 
 /// The suite scene storage keeps its values in.
+/// `UserDefaults` is `Sendable` on Apple platforms and wasm but not in Linux's Foundation, where
+/// the shared suite needs unsafe isolation (a view's storage is read on the main actor).
 package enum _SceneStore {
+    #if os(Linux)
+    package nonisolated(unsafe) static let defaults: UserDefaults = UserDefaults(suiteName: "SwiftUIWeb.SceneStorage") ?? .standard
+    #else
     package static let defaults: UserDefaults = UserDefaults(suiteName: "SwiftUIWeb.SceneStorage") ?? .standard
+    #endif
 }
 
 extension SceneStorage {
