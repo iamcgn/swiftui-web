@@ -660,8 +660,19 @@ final class BarPlatterButton: UIControl {
         isEnabled = item.isEnabled
         accessibilityLabel = item.title ?? item.systemTitle ?? item.systemImageName
         if let action = item.primaryAction { addAction(action, for: .primaryActionTriggered) }
+        #if canImport(ObjectiveC)
+        // The classic target and selector: sent with the item as the sender, as UIKit sends it
+        // (a nil target: up the responder chain).
+        if item.primaryAction == nil, let selector = item.action as? Selector {
+            addAction(UIAction { [weak item] _ in
+                guard let item else { return }
+                UIApplication.shared.sendAction(selector, to: item.target, from: item, for: nil)
+            }, for: .primaryActionTriggered)
+        }
+        sendsSelector = item.primaryAction == nil && item.action is Selector
+        #endif
         // An item with a menu and no primary action opens the menu on a tap; with both, a long press.
-        if item.primaryAction == nil, item.menu != nil {
+        if item.primaryAction == nil, !sendsSelector, item.menu != nil {
             addAction(UIAction { [weak self] _ in
                 guard let self, let menu = self.item?.menu else { return }
                 MenuPresenter.present(menu, from: self)
@@ -669,7 +680,9 @@ final class BarPlatterButton: UIControl {
         }
     }
 
-    override var longPressMenu: UIMenu? { item?.primaryAction != nil ? item?.menu : nil }
+    override var longPressMenu: UIMenu? { item?.primaryAction != nil || sendsSelector ? item?.menu : nil }
+    /// Whether a tap sends the item's selector (the runtime build), leaving its menu to a long press.
+    private var sendsSelector = false
 
     init(kind: Kind) {
         self.kind = kind

@@ -35,8 +35,9 @@ open class UIBarButtonItem: UIBarItem {
     open var tintColor: UIColor?
     open var primaryAction: UIAction? { didSet { itemDidChange() } }
     open var menu: UIMenu?
-    /// The target and action of the classic initializer are kept for `#selector`-free
-    /// dispatch through `primaryAction`; there is no Objective-C runtime to send them with.
+    /// The target and action of the classic initializer. With the Objective-C runtime (decision
+    /// 0023) a tap sends the action, a selector, to the target; without it there is nothing to
+    /// send them with, and `primaryAction` is the way to act on a tap.
     open weak var target: AnyObject?
     open var action: Any?
 

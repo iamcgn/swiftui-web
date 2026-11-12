@@ -1,6 +1,8 @@
 // Gesture recognizers (Docs/elements/UIKit/Gestures.md). Without an Objective-C runtime there
 // is no `#selector`: recognizers take a closure handler (`UITapGestureRecognizer { _ in }`),
-// and `addTarget(_:action:)` accepts a closure too.
+// and `addTarget(_:action:)` accepts a closure too. With the runtime (decision 0023) they are
+// NSObjects, as UIKit's are, so an `@objc` method can take one, and they take targets and
+// selectors (`UITapGestureRecognizer(target: self, action: #selector(tapped(_:)))`).
 
 /// The state of a gesture recognizer.
 public enum UIGestureRecognizerState: Int, Sendable {
@@ -10,7 +12,7 @@ public enum UIGestureRecognizerState: Int, Sendable {
 
 /// The base class for gesture recognizers.
 @preconcurrency @MainActor
-open class UIGestureRecognizer {
+open class UIGestureRecognizer: UIResponderBase {
     public typealias State = UIGestureRecognizerState
 
     public private(set) var state: State = .possible
@@ -62,13 +64,48 @@ open class UIGestureRecognizer {
             || (other.delegate?.gestureRecognizer(other, shouldRecognizeSimultaneouslyWith: self) ?? false)
     }
 
-    public init() {}
+    public override init() { super.init() }
 
     /// A recognizer that calls `handler` on every state change past `possible`.
     public convenience init(handler: @escaping (UIGestureRecognizer) -> Void) {
         self.init()
         handlers.append(handler)
     }
+
+    #if canImport(ObjectiveC)
+    /// The targets and selectors added with `addTarget(_:action:)`, sent after the handlers.
+    /// A target is held weakly, as UIKit holds it; one that has gone is skipped.
+    private var targetActions: [(target: Weak, action: Selector)] = []
+    private struct Weak { weak var object: AnyObject? }
+
+    /// A recognizer that sends `action` to `target` on every state change past `possible`
+    /// (a nil target or action: none until one is added).
+    public init(target: Any?, action: Selector?) {
+        super.init()
+        if let target, let action { addTarget(target, action: action) }
+    }
+
+    /// Adds a target and selector; the selector takes the recognizer or nothing.
+    open func addTarget(_ target: Any, action: Selector) {
+        let object = target as AnyObject
+        guard !targetActions.contains(where: { $0.target.object === object && $0.action == action }) else { return }
+        targetActions.append((Weak(object: object), action))
+    }
+
+    /// Removes a target and selector (a nil target: every target; a nil action: every action).
+    open func removeTarget(_ target: Any?, action: Selector?) {
+        let object = target.map { $0 as AnyObject }
+        targetActions.removeAll { entry in
+            (object == nil || entry.target.object === object) && (action == nil || entry.action == action)
+        }
+    }
+
+    private func sendTargetActions() {
+        for entry in targetActions {
+            (entry.target.object as? NSObject)?._send(entry.action, passing: self)
+        }
+    }
+    #endif
 
     /// Adds a handler (the closure form of target-action).
     open func addTarget(_ handler: @escaping (UIGestureRecognizer) -> Void) {
@@ -119,6 +156,9 @@ open class UIGestureRecognizer {
         // Actions see began, changed, ended and cancelled; a failure is not reported.
         if newState != .possible, newState != .failed {
             for handler in handlers { handler(self) }
+            #if canImport(ObjectiveC)
+            sendTargetActions()
+            #endif
         }
         if newState == .ended || newState == .cancelled || newState == .failed {
             // Recognizers reset after a frame; here at once, once the handlers have run.

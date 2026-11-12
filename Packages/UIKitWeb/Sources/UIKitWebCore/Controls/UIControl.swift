@@ -1,6 +1,8 @@
 // UIControl (Docs/elements/UIKit/UIControl.md): tracking and target-action. Without an
 // Objective-C runtime there is no `#selector`, so actions are `UIAction`s (`addAction(_:for:)`,
-// the closure form iOS 14 added) and `addTarget(_:action:for:)` takes a closure.
+// the closure form iOS 14 added) and `addTarget(_:action:for:)` takes a closure. With the runtime
+// (decision 0023) `addTarget(_:action:for:)` takes a selector as UIKit's does, sent through
+// `UIApplication.sendAction(_:to:from:for:)` (a nil target: up the responder chain).
 
 /// An item in a menu: an action, a submenu or a deferred element (Containers/Menus.swift).
 @preconcurrency @MainActor
@@ -155,6 +157,70 @@ open class UIControl: UIView {
     open func addTarget(_ target: AnyObject? = nil, action: @escaping (UIControl) -> Void, for controlEvents: Event) {
         addAction(UIAction { [weak self] _ in if let self { action(self) } }, for: controlEvents)
     }
+
+    #if canImport(ObjectiveC)
+    /// The targets and selectors added with `addTarget(_:action:for:)`, each sent by an action in
+    /// `actions` so the two kinds fire in the order they were added. A target is held weakly, as
+    /// UIKit holds it.
+    private struct TargetAction {
+        weak var target: AnyObject?
+        let hasTarget: Bool
+        let selector: Selector
+        let action: UIAction
+    }
+    private var targetActions: [TargetAction] = []
+
+    /// Sends `action` to `target` (nil: the first responder that handles it) on `controlEvents`.
+    /// Adding a target and selector again adds the events to the first.
+    open func addTarget(_ target: Any?, action: Selector, for controlEvents: Event) {
+        let object = target.map { $0 as AnyObject }
+        if let existing = targetActions.first(where: { $0.hasTarget == (object != nil) && $0.target === object && $0.selector == action }),
+           let index = actions.firstIndex(where: { $0.action === existing.action }) {
+            actions[index].events.formUnion(controlEvents)
+            return
+        }
+        let hasTarget = object != nil
+        let send = UIAction { [weak self, weak object] _ in
+            guard let self, !hasTarget || object != nil else { return }
+            self.sendAction(action, to: object, for: nil)
+        }
+        targetActions.append(TargetAction(target: object, hasTarget: hasTarget, selector: action, action: send))
+        actions.append((send, controlEvents))
+    }
+
+    /// Takes `controlEvents` off the matching targets and selectors (a nil target: every target;
+    /// a nil action: every selector), dropping those left with no events.
+    open func removeTarget(_ target: Any?, action: Selector?, for controlEvents: Event) {
+        let object = target.map { $0 as AnyObject }
+        for entry in targetActions where (object == nil || entry.target === object) && (action == nil || entry.selector == action) {
+            guard let index = actions.firstIndex(where: { $0.action === entry.action }) else { continue }
+            actions[index].events.subtract(controlEvents)
+            if actions[index].events.isEmpty { actions.remove(at: index) }
+        }
+        targetActions.removeAll { entry in !actions.contains { $0.action === entry.action } }
+    }
+
+    /// The targets added with `addTarget(_:action:for:)` that are still alive.
+    open var allTargets: Set<AnyHashable> {
+        Set(targetActions.compactMap { $0.target as? AnyHashable })
+    }
+
+    /// The selector names sent to `target` (nil: the responder chain) on `controlEvent`, or nil.
+    open func actions(forTarget target: Any?, forControlEvent controlEvent: Event) -> [String]? {
+        let object = target.map { $0 as AnyObject }
+        let names = targetActions.filter { entry in
+            entry.hasTarget == (object != nil) && entry.target === object
+                && actions.contains { $0.action === entry.action && !$0.events.intersection(controlEvent).isEmpty }
+        }.map { NSStringFromSelector($0.selector) }
+        return names.isEmpty ? nil : names
+    }
+
+    /// Sends `action` as the control's target-action does: through the application, to
+    /// `target` or, with none, up the responder chain from the first responder.
+    open func sendAction(_ action: Selector, to target: Any?, for event: UIEvent?) {
+        UIApplication.shared.sendAction(action, to: target, from: self, for: event)
+    }
+    #endif
 
     open var allControlEvents: Event { actions.reduce(Event()) { $0.union($1.events) } }
 
