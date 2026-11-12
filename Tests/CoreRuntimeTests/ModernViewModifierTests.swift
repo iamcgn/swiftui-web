@@ -51,24 +51,23 @@ private struct BoundsKey: PreferenceKey {
         #expect(frames == [300, 150])
     }
 
-    @Test func anchorsAreDrawnOverInTheirPlace() {
+    @Test func anchorsResolveInTheOverlay() {
+        final class Box { var rect: CGRect? }
+        let box = Box()
         let runtime = Runtime()
         runtime.mount(VStack(spacing: 0) {
             Color.clear.frame(width: 100, height: 50)
-            Text("Target").anchorPreference(key: BoundsKey.self, value: .bounds) { $0 }
+            Color.red.frame(width: 40, height: 20).anchorPreference(key: BoundsKey.self, value: .bounds) { $0 }
         }
         .overlayPreferenceValue(BoundsKey.self, alignment: .topLeading) { anchor in
             GeometryReader { proxy in
-                if let anchor {
-                    Text("Marker").offset(x: proxy[anchor].minX, y: proxy[anchor].minY)
-                }
+                let _ = { box.rect = anchor.map { proxy[$0] } }()
+                Color.clear
             }
         })
         runtime.layout(in: CGSize(width: 300, height: 300))
-        let target = node(runtime, "Target")?.frameInRoot
-        let marker = node(runtime, "Marker")?.frameInRoot
-        #expect(target != nil && marker != nil)
-        if let target, let marker { #expect(marker.minY == target.minY) }
+        // The red box sits under the 50-point spacer, centred in the stack's 100-point width.
+        #expect(box.rect == CGRect(x: 30, y: 50, width: 40, height: 20))
     }
 
     @Test func controlGroupsShowTheirControls() {
