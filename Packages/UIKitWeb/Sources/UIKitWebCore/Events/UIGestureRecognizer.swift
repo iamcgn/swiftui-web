@@ -1,3 +1,4 @@
+import WebFoundation   // the Objective-C runtime's `Selector` and `NSObject` where there is one
 // Gesture recognizers (Docs/elements/UIKit/Gestures.md). Without an Objective-C runtime there
 // is no `#selector`: recognizers take a closure handler (`UITapGestureRecognizer { _ in }`),
 // and `addTarget(_:action:)` accepts a closure too. With the runtime (decision 0023) they are
