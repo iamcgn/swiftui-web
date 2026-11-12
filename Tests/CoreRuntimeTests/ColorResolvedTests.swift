@@ -23,8 +23,10 @@ import WebFoundation
         let primaryLight: Color.Resolved = Color.primary.resolve(in: light)
         let primaryDark: Color.Resolved = Color.primary.resolve(in: dark)
         #expect(primaryLight != primaryDark)
+        // A fixed colour is the same in both. (Typed, since this package also sees the RGBA overload.)
         let red: Color.Resolved = Color(red: 1, green: 0, blue: 0).resolve(in: light)
-        #expect(red == Color(red: 1, green: 0, blue: 0).resolve(in: dark))
+        let redDark: Color.Resolved = Color(red: 1, green: 0, blue: 0).resolve(in: dark)
+        #expect(red == redDark)
     }
 
     @Test func linearComponentsAndRoundTrips() throws {
