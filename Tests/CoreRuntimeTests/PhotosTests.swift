@@ -234,9 +234,9 @@ private struct Movie: Transferable {
         #expect(saved.map(\.name) == ["Photo.png"])
         let options = PHFetchOptions()
         #if canImport(Darwin)
+        // Linux's Foundation sorts only by key paths to comparable values, which an asset's
+        // optional dates are not.
         options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-        #else
-        options.sortDescriptors = [NSSortDescriptor(keyPath: \PHAsset.creationDate, ascending: false)]
         #endif
         options.fetchLimit = 1
         let newest = PHAsset.fetchAssets(with: .image, options: options)
