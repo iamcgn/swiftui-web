@@ -522,7 +522,13 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
     /// Updates the layer when it needs display (Core Animation's `CALayerDelegate`), before it
     /// paints: the default does nothing (the view's content is `draw(_:)`'s); a subclass may
     /// set `layer.contents` here, which then shows in place of the view's own content.
+    #if canImport(ObjectiveC)
+    /// `@objc`, as the layer delegate's requirement is, so `#selector(display(_:))` names it
+    /// (Gifu's image view asks whether UIImageView responds to it before calling super).
+    @objc open func display(_ layer: CALayer) {}
+    #else
     open func display(_ layer: CALayer) {}
+    #endif
 
     /// Renders the view and its subviews into the current graphics context at `rect` (a
     /// snapshot for an image renderer: EnvironmentOverrides' screenshot, decision 0021). The

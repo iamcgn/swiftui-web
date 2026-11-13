@@ -3,7 +3,8 @@
 // `trimmingCharacters(in:)` over the `CharacterSet` stand-in, the byte-count format style
 // (`.byteCount(style:)`, as ICU's en_US: "1.2 MB", "Zero KB"), the compact-name notation on
 // integers ("1.2K", "3.4M", as ICU's short compact form), and a file URL's resource values
-// (size, modification date, directory) from the in-memory file system.
+// (size, modification date, directory) from the in-memory file system, and the security-scoped
+// access a picked file's URL asks for (always granted: the URL names the app's own copy).
 #if os(WASI)
 
 // MARK: - The keychain's host
@@ -321,6 +322,13 @@ extension URL {
         values.fileAllocatedSize = data.count
         return values
     }
+
+    /// Access to a file a panel or a drop handed the app needs no grant here: the URL names a
+    /// copy the app may read (an in-memory file), so access always starts.
+    public func startAccessingSecurityScopedResource() -> Bool { true }
+
+    /// Ends access started with `startAccessingSecurityScopedResource()`: nothing to release.
+    public func stopAccessingSecurityScopedResource() {}
 }
 
 #endif

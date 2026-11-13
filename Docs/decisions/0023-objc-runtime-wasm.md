@@ -50,6 +50,9 @@ section symbols; lists are marked `llvm.used` so `wasm-ld --gc-sections` keeps t
   `@objc` method or protocol can take or return them (CVCalendar's appearance delegate). With
   the runtime they compare and hash by `isEqual(_:)` and `hash`, and `UIImage` is `NSCopying`;
   without it they keep their `Hashable` conformances.
+- `CALayer` is rooted at `NSObject` too (`CALayerBase`), and `UIView.display(_:)` is `@objc`, so
+  `#selector(display(_:))` names the layer delegate's method (Gifu). A key a layer has no
+  property for keeps what `setValue(_:forKey:)` sets under it, as Core Animation's does.
 - `UICommand` (selector actions) is `UIKeyCommand`'s superclass; `UIKeyCommand` keeps the
   closure form and gains UIKit's selector initializers. A key command's selector is sent
   down the responder chain from the key responder, the application and the app delegate last
