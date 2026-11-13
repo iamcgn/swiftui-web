@@ -242,6 +242,7 @@ extension NSItemProvider {
 /// Why an item provider could not load a representation.
 public struct _ItemProviderError: Error, CustomStringConvertible {
     public let description: String
+    package init(description: String) { self.description = description }
 }
 
 extension NSItemProvider {
