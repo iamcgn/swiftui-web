@@ -192,10 +192,10 @@ open class BGTaskScheduler: NSObject, @unchecked Sendable {
         // A UIKit app's scene reports its state through UIApplication's notifications.
         let center = NotificationCenter.default
         _ = center.addObserver(forName: Notification.Name("UIApplicationDidEnterBackgroundNotification"), object: nil, queue: nil) { _ in
-            Self.onMain { _BackgroundTasksHost.setInBackground(true) }
+            Self.onMain { _BackgroundTasksHost.appStateChanged(inBackground: true) }
         }
         _ = center.addObserver(forName: Notification.Name("UIApplicationWillEnterForegroundNotification"), object: nil, queue: nil) { _ in
-            Self.onMain { _BackgroundTasksHost.setInBackground(false) }
+            Self.onMain { _BackgroundTasksHost.appStateChanged(inBackground: false) }
         }
     }
 

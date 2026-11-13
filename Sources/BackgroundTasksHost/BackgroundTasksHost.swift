@@ -11,7 +11,18 @@ public enum _BackgroundTasksHost {
     /// Told when `inBackground` changes, with its new value.
     public static var observers: [@MainActor (_ inBackground: Bool) -> Void] = []
 
-    /// Reports the app's state; the observers hear a change.
+    /// Whether the app's own reports (the SwiftUI runtime's page visibility, the UIKit scene's
+    /// notifications) set the state. Tests turn it off and set the state themselves, so the
+    /// runtimes other tests drive leave it alone.
+    public static var followsApp = true
+
+    /// The app reports its state (the page hidden or shown).
+    public static func appStateChanged(inBackground value: Bool) {
+        guard followsApp else { return }
+        setInBackground(value)
+    }
+
+    /// Sets the app's state; the observers hear a change.
     public static func setInBackground(_ value: Bool) {
         guard value != inBackground else { return }
         inBackground = value
@@ -22,8 +33,10 @@ public enum _BackgroundTasksHost {
     /// identifier: what an app refresh task with that identifier runs.
     public static var appRefreshActions: [String: @Sendable () async -> Void] = [:]
 
-    /// Tests: forgets the state, the observers and the actions.
+    /// Tests: forgets the state, the observers and the actions, and stops following the app's
+    /// reports (tests set the state with `setInBackground`).
     public static func _reset() {
+        followsApp = false
         inBackground = false
         observers.removeAll()
         appRefreshActions.removeAll()

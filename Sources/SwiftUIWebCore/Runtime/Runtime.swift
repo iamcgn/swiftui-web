@@ -112,7 +112,7 @@ public final class Runtime {
             applyScenePhase()
             hostVisibilityChangedForTimelines()
             // A hidden page is an app in the background: BackgroundTasks launches its work.
-            _BackgroundTasksHost.setInBackground(!hostIsVisible)
+            _BackgroundTasksHost.appStateChanged(inBackground: !hostIsVisible)
             for observer in Self._hostLifecycleObservers { observer(hostIsVisible, hostIsFocused) }
         }
     }
