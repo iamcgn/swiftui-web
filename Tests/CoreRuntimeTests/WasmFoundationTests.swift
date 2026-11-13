@@ -230,6 +230,14 @@ import WebCombine
         #expect(bundle.localizedString(forKey: "Hello", value: "Hallo", table: nil) == "Hallo")
     }
 
+    /// Inject's `Bundle(path:)?.load()` in a debug build: only the app's own code is loaded.
+    @Test func onlyTheAppsBundleHasLoadedCode() throws {
+        #expect(Bundle.main.isLoaded && Bundle.main.load())
+        let other = try #require(Bundle(path: "/Applications/InjectionIII.app/Contents/Resources/iOSInjection.bundle"))
+        #expect(!other.isLoaded && !other.load() && !other.unload())
+        #expect(throws: NSError.self) { try other.loadAndReturnError() }
+    }
+
     /// `Bundle.localizations` is what the app's string catalogs and `.lproj` folders hold, as
     /// the build recorded them (scripts/assets.py → the manifest → the host); the development
     /// language is the catalogs' source; the preferred one follows the current locale

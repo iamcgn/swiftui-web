@@ -85,6 +85,15 @@ extension NSError {
     #endif
 }
 
+#if canImport(ObjectiveC)
+/// An error domain's name: `NSString` under the Objective-C runtime, as Foundation's is on Apple
+/// platforms (RevenueCat's obsoleted `ErrorDomain: NSErrorDomain`).
+public typealias NSErrorDomain = NSString
+#else
+/// An error domain's name, which Swift spells as a string.
+public typealias NSErrorDomain = String
+#endif
+
 public let NSLocalizedDescriptionKey = "NSLocalizedDescription"
 public let NSLocalizedFailureReasonErrorKey = "NSLocalizedFailureReason"
 public let NSLocalizedRecoverySuggestionErrorKey = "NSLocalizedRecoverySuggestion"
