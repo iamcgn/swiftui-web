@@ -421,10 +421,9 @@ open class CMMotionManager: NSObject, @unchecked Sendable {
             handler(data, error)
             return
         }
-        nonisolated(unsafe) let handler = handler
-        nonisolated(unsafe) let data = data
-        nonisolated(unsafe) let error = error
-        queue.addOperation { handler(data, error) }
+        nonisolated(unsafe) let run = handler
+        nonisolated(unsafe) let reading = data
+        queue.addOperation { run(reading, error) }
     }
 
     // MARK: Converting the browser's readings
