@@ -283,14 +283,14 @@ open class CALayer: CALayerBase {
         case "zPosition": if let v = Self.number(value) { zPosition = v }
         case "transform": if let v = value as? CATransform3D { transform = v }
         case "frame": if let v = Self.rect(value) { frame = v }
-        case "backgroundColor": if value == nil || value is CGColor { backgroundColor = value as? CGColor }
+        case "backgroundColor": if let v = Self.color(value) { backgroundColor = v }
         case "cornerRadius": if let v = Self.number(value) { cornerRadius = v }
         case "borderWidth": if let v = Self.number(value) { borderWidth = v }
-        case "borderColor": if value == nil || value is CGColor { borderColor = value as? CGColor }
+        case "borderColor": if let v = Self.color(value) { borderColor = v }
         case "opacity": if let v = Self.number(value) { opacity = Float(v) }
         case "hidden", "isHidden": if let v = Self.flag(value) { isHidden = v }
         case "masksToBounds": if let v = Self.flag(value) { masksToBounds = v }
-        case "shadowColor": if value == nil || value is CGColor { shadowColor = value as? CGColor }
+        case "shadowColor": if let v = Self.color(value) { shadowColor = v }
         case "shadowOpacity": if let v = Self.number(value) { shadowOpacity = Float(v) }
         case "shadowOffset": if let v = Self.size(value) { shadowOffset = v }
         case "shadowRadius": if let v = Self.number(value) { shadowRadius = v }
@@ -321,6 +321,19 @@ open class CALayer: CALayerBase {
         case let v as NSNumber: return v.boolValue
         default: return nil
         }
+    }
+
+    /// A color value: `.some(nil)` for nil, `.some(color)` for a `CGColor`, nil for anything else.
+    private static func color(_ value: Any?) -> CGColor?? {
+        guard let value else { return .some(nil) }
+        #if os(WASI)
+        return (value as? CGColor).map { .some($0) }
+        #else
+        // Off wasm `CGColor` is a Core Foundation type, which `as?` can't test: compare type IDs.
+        let object = value as AnyObject
+        guard CFGetTypeID(object) == CGColor.typeID else { return nil }
+        return .some(unsafeBitCast(object, to: CGColor.self))
+        #endif
     }
 
     private static func rect(_ value: Any?) -> CGRect? { (value as? CGRect) ?? (value as? NSValue)?.cgRectValue }
