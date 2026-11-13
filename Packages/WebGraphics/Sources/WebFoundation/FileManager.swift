@@ -5,7 +5,7 @@
 // under `swiftuiweb.files`), so a saved document is there after a reload. A declaration here
 // shadows FoundationEssentials' `FileManager` for every file that imports this module.
 #if os(WASI)
-public final class FileManager: @unchecked Sendable {
+public final class FileManager: _WebObjectBase, @unchecked Sendable {
     public static let `default` = FileManager()
 
     public enum SearchPathDirectory: Int, Sendable {

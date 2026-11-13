@@ -133,5 +133,13 @@ fbb333cf with a clean tree.
   ambiguous (combine-schedulers' Timer, RevenueCat's models). swift-objc-wasm's
   `ObjectiveC.apinotes` (its #1) makes Swift see the runtime's as `__description`; CI adds the file
   to the installed v0.1.1 SDK (`scripts/objc-sdk/add-api-notes.sh`) until a release carries it.
+- 2026-11-13, Foundation's classes: `NSNumber` (so `NSDecimalNumber`, and `Decimal`, which
+  bridges to it), `UserDefaults`, `NotificationCenter`, `Bundle`, `FileManager`, `URLSession`,
+  `Timer` and `RunLoop` are rooted at `NSObject` on this SDK, as Apple's are, through
+  WebFoundation's `_WebObjectBase` (an empty class on the stock SDK), so `@objc` members that take
+  or return them compile (RevenueCat's `with(userDefaults:)` and `pricePerDay`). `Notification`
+  bridges in a value holder like `Date`, so a selector observer's method takes it and
+  `addObserver(_:selector:name:object:)` passes it; `Timer` gains the target-action
+  `scheduledTimer(timeInterval:target:selector:userInfo:repeats:)`, which passes the timer.
 - `#selector`-based `UIKeyCommand`s do nothing on builds without the runtime; the closure
   form works everywhere.

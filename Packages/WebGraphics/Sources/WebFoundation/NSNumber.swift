@@ -7,7 +7,7 @@
 #if os(WASI)
 
 /// An object wrapper for primitive scalar numeric values.
-public final class NSNumber: Hashable, Comparable, @unchecked Sendable, CustomStringConvertible,
+public final class NSNumber: _WebObjectBase, Comparable, @unchecked Sendable,
                      ExpressibleByIntegerLiteral, ExpressibleByFloatLiteral, ExpressibleByBooleanLiteral {
     private enum Storage: Sendable { case int(Int64), uint(UInt64), double(Double), bool(Bool) }
     private let storage: Storage
@@ -83,7 +83,21 @@ public final class NSNumber: Hashable, Comparable, @unchecked Sendable, CustomSt
     /// The number as an address (Foundation's NSValue reading, used on return-address lists).
     public var pointerValue: UnsafeMutableRawPointer? { UnsafeMutableRawPointer(bitPattern: uintValue) }
 
-    public var description: String {
+    #if canImport(ObjectiveC)
+    // An `NSObject` (ObjectBase.swift), so `@objc` members take `NSNumber` and `NSDecimalNumber`
+    // (RevenueCat's `pricePerDay`) and `Decimal`, which bridges to it, is representable too.
+    public override var description: String { _description }
+    /// Equal to another number of the same value, as Foundation's are.
+    public override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NSNumber else { return false }
+        return self == other
+    }
+    public override var hash: Int { doubleValue.hashValue }
+    #else
+    public var description: String { _description }
+    #endif
+
+    private var _description: String {
         switch storage {
         case .int(let v): return String(v)
         case .uint(let v): return String(v)
@@ -116,9 +130,13 @@ public final class NSNumber: Hashable, Comparable, @unchecked Sendable, CustomSt
         default: return lhs.doubleValue < rhs.doubleValue
         }
     }
+}
 
+#if !canImport(ObjectiveC)
+extension NSNumber: Hashable, CustomStringConvertible {
     public func hash(into hasher: inout Hasher) { hasher.combine(doubleValue) }
 }
+#endif
 
 extension Int {
     /// The number's value, truncated toward zero when it has a fractional part.

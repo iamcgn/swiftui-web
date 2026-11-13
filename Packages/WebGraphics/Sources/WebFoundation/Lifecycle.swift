@@ -7,7 +7,7 @@
 
 /// A timer: the frameworks' `Timer.publish(every:tolerance:on:in:)` schedules through tasks; a
 /// scheduled timer runs its block on the main actor after its interval.
-public final class Timer: @unchecked Sendable {
+public final class Timer: _WebObjectBase, @unchecked Sendable {
     public let timeInterval: TimeInterval
     public let repeats: Bool
     private var task: Task<Void, Never>?
@@ -37,10 +37,33 @@ public final class Timer: @unchecked Sendable {
         task?.cancel()
         task = nil
     }
+
+    #if canImport(ObjectiveC)
+    /// What the timer was made with for its target (`userInfo`).
+    public private(set) var userInfo: Any? {
+        get { _userInfo?.value }
+        set { _userInfo = _Box(newValue) }
+    }
+    private var _userInfo: _Box<Any?>?
+
+    /// Sends `aSelector` to `target` after each interval, passing the timer when the selector
+    /// takes an argument (`tick:`), as Foundation's target-action timer does. The timer holds
+    /// the target until it is invalidated, as Foundation's does.
+    @discardableResult
+    public static func scheduledTimer(timeInterval ti: TimeInterval, target aTarget: Any, selector aSelector: Selector,
+                                      userInfo: Any?, repeats yesOrNo: Bool) -> Timer {
+        let target = _Box(aTarget as AnyObject)
+        let timer = scheduledTimer(withTimeInterval: ti, repeats: yesOrNo) { timer in
+            _ = (target.value as? NSObject)?._send(aSelector, passing: timer)
+        }
+        timer.userInfo = userInfo
+        return timer
+    }
+    #endif
 }
 
 /// The run loop: the browser's event loop stands in for every mode.
-public final class RunLoop: @unchecked Sendable {
+public final class RunLoop: _WebObjectBase, @unchecked Sendable {
     public struct Mode: Hashable, Sendable, RawRepresentable {
         public let rawValue: String
         public init(rawValue: String) { self.rawValue = rawValue }
@@ -74,8 +97,15 @@ public struct Notification: Hashable, @unchecked Sendable {
 
 public typealias NSNotification = Notification
 
+#if canImport(ObjectiveC)
+// With an Objective-C runtime (decision 0023) a notification bridges as itself in a value object
+// (ObjectiveCBridging.swift), as Foundation's bridges to `NSNotification`, so the observer method
+// a selector names can take it (`@objc func keyboardWillShow(_ notification: Notification)`).
+extension Notification: _ObjectiveCBridgeable, _WebValueBridged { public typealias _ObjectiveCType = _WebNSValue }
+#endif
+
 /// A notification centre: observers keyed by name (and optionally sender), called on post.
-public final class NotificationCenter: @unchecked Sendable {
+public final class NotificationCenter: _WebObjectBase, @unchecked Sendable {
     public static let `default` = NotificationCenter()
 
     private struct Observer {
@@ -89,7 +119,7 @@ public final class NotificationCenter: @unchecked Sendable {
     private var observers: [Int: Observer] = [:]
     private var nextID = 0
 
-    public init() {}
+    public override init() {}
 
     /// Adds an observer (the queue is accepted; blocks run where `post` runs, which is the main
     /// thread, the only one here). Returns a token for `removeObserver`.
@@ -114,15 +144,17 @@ public final class NotificationCenter: @unchecked Sendable {
     }
 
     #if canImport(ObjectiveC)
-    /// Sends `selector` to `observer` for each matching post while the observer lives (the
-    /// notification is not passed: it is a struct here, so an `@objc` method cannot take it).
-    /// A selector with no argument (`synchronize`, `refresh`) is sent with none, one with an
-    /// argument (`didChange:`) with nil (`_send(_:passing:)`).
+    /// Sends `selector` to `observer` for each matching post while the observer lives. A
+    /// selector with no argument (`synchronize`, `refresh`) is sent with none, one with an
+    /// argument (`keyboardWillShow:`) with the notification, which bridges to Objective-C as
+    /// Foundation's does (`_send(_:passing:)`).
     public func addObserver(_ observer: Any, selector: Selector, name: Notification.Name?, object: Any?) {
         let target = _WeakTarget(observer as AnyObject)
         nextID += 1
         observers[nextID] = Observer(name: name, object: object.map { $0 as AnyObject }, filtersObject: object != nil,
-                                     block: { _ in (target.object as? NSObject)?._send(selector, passing: nil) },
+                                     block: { notification in
+                                         _ = (target.object as? NSObject)?._send(selector, passing: notification._bridgeToObjectiveC())
+                                     },
                                      owner: ObjectIdentifier(observer as AnyObject))
     }
     #endif
