@@ -335,17 +335,84 @@ public struct SubscriptionStoreView<Content: View>: View {
     }
 }
 
-extension SubscriptionStoreView where Content == EmptyView {
+extension SubscriptionStoreView where Content == AutomaticSubscriptionStoreMarketingContent {
     public init(groupID: String, visibleRelationships: Product.SubscriptionRelationship = .all) {
-        self.init(groupID: groupID, visibleRelationships: visibleRelationships) { EmptyView() }
+        self.init(groupID: groupID, visibleRelationships: visibleRelationships) { AutomaticSubscriptionStoreMarketingContent() }
     }
 
     public init(productIDs: some Collection<Product.ID>) {
-        self.init(productIDs: productIDs) { EmptyView() }
+        self.init(productIDs: productIDs) { AutomaticSubscriptionStoreMarketingContent() }
     }
 
     public init(subscriptions: some Collection<Product>) {
-        self.init(subscriptions: subscriptions) { EmptyView() }
+        self.init(subscriptions: subscriptions) { AutomaticSubscriptionStoreMarketingContent() }
+    }
+}
+
+/// The marketing content of a subscription store given none: the store's own, which on the web,
+/// where no plan loads, is nothing.
+public struct AutomaticSubscriptionStoreMarketingContent: View {
+    public init() {}
+    public var body: some View { EmptyView() }
+}
+
+/// What a subscription store lists: its plans, grouped into sections or tabs (iOS 18).
+public protocol StoreContent {}
+
+/// Builds a subscription store's content from its groups and sections.
+@resultBuilder
+public enum StoreContentBuilder {
+    public static func buildExpression<C: StoreContent>(_ content: C) -> C { content }
+    public static func buildBlock() -> EmptyStoreContent { EmptyStoreContent() }
+    public static func buildBlock<C: StoreContent>(_ content: C) -> C { content }
+    public static func buildBlock<each C: StoreContent>(_ content: repeat each C) -> TupleStoreContent<repeat each C> {
+        TupleStoreContent(repeat each content)
+    }
+    public static func buildOptional<C: StoreContent>(_ content: C?) -> C? { content }
+    public static func buildEither<T: StoreContent, F: StoreContent>(first: T) -> _ConditionalStoreContent<T, F> { .init(first: first) }
+    public static func buildEither<T: StoreContent, F: StoreContent>(second: F) -> _ConditionalStoreContent<T, F> { .init(second: second) }
+    public static func buildLimitedAvailability<C: StoreContent>(_ content: C) -> C { content }
+}
+
+extension Optional: StoreContent where Wrapped: StoreContent {}
+
+/// No store content.
+public struct EmptyStoreContent: StoreContent {
+    public init() {}
+}
+
+/// Several pieces of store content in order.
+public struct TupleStoreContent<each C: StoreContent>: StoreContent {
+    public let value: (repeat each C)
+    public init(_ value: repeat each C) { self.value = (repeat each value) }
+}
+
+/// One of two pieces of store content, from an `if`/`else`.
+public struct _ConditionalStoreContent<T: StoreContent, F: StoreContent>: StoreContent {
+    let first: T?
+    let second: F?
+    init(first: T) { self.first = first; self.second = nil }
+    init(second: F) { self.first = nil; self.second = second }
+}
+
+/// A subscription store's content as its marketing view: its groups list no plan on the web.
+public struct SubscriptionStoreContentView<C: StoreContent>: View {
+    let content: C
+    public var body: some View { EmptyView() }
+}
+
+extension SubscriptionStoreView {
+    public init<C: StoreContent>(groupID: String, visibleRelationships: Product.SubscriptionRelationship = .all,
+                                 @StoreContentBuilder content: () -> C) where Content == SubscriptionStoreContentView<C> {
+        self.init(groupID: groupID, visibleRelationships: visibleRelationships) { SubscriptionStoreContentView(content: content()) }
+    }
+
+    public init<C: StoreContent>(productIDs: some Collection<Product.ID>, @StoreContentBuilder content: () -> C) where Content == SubscriptionStoreContentView<C> {
+        self.init(productIDs: productIDs) { SubscriptionStoreContentView(content: content()) }
+    }
+
+    public init<C: StoreContent>(subscriptions: some Collection<Product>, @StoreContentBuilder content: () -> C) where Content == SubscriptionStoreContentView<C> {
+        self.init(subscriptions: subscriptions) { SubscriptionStoreContentView(content: content()) }
     }
 }
 

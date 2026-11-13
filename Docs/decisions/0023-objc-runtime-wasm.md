@@ -146,5 +146,12 @@ fbb333cf with a clean tree.
   `NSString` there, as it is on Apple platforms, so overloads on `[NSError.UserInfoKey: Any]`
   and `[String: Any]` stay two functions. `UTType(_:)` is failable on both SDKs, as Apple's is
   (nil for an empty identifier).
+- 2026-11-13, Inject and RevenueCat: with `Bundle` an `NSObject`, `bundle.load()` found
+  `NSObject`'s class `load` and Inject's `Bundle(path:)?.load()` stopped compiling, so `Bundle`
+  has its instance `load()` (true only for the app's own bundle, whose code is the running
+  module), `isLoaded`, `unload()` and `loadAndReturnError()`. `NSErrorDomain` is `NSString` under
+  the runtime and `String` without it, like `UserInfoKey`. `SKRequest` carries the delegate, as
+  StoreKit's does, so `SKReceiptRefreshRequest` (which fails: no App Store receipt on the web)
+  takes any `SKRequestDelegate`.
 - `#selector`-based `UIKeyCommand`s do nothing on builds without the runtime; the closure
   form works everywhere.
