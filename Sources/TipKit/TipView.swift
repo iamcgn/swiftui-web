@@ -179,6 +179,12 @@ struct _PopoverTipModifier<T: Tip>: ViewModifier {
     let arrowEdge: Edge
     let action: (Tips.Action) -> Void
 
+    nonisolated init(tip: T, arrowEdge: Edge, action: @escaping (Tips.Action) -> Void) {
+        self.tip = tip
+        self.arrowEdge = arrowEdge
+        self.action = action
+    }
+
     func body(content: Content) -> some View {
         let _ = _TipsObserver.shared.revision
         let tip = tip
