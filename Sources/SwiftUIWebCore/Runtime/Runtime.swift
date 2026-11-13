@@ -3,6 +3,7 @@ import WebFoundation   // never full Foundation on wasm: it links ICU (decisions
 #else
 import Foundation
 #endif
+import BackgroundTasksHost
 /// Owns one mounted view tree, its scheduler and (from step 9) the layout and painting
 /// pipeline. Hosts (canvas, headless) create one runtime per window.
 @MainActor
@@ -110,6 +111,8 @@ public final class Runtime {
             guard hostIsVisible != oldValue else { return }
             applyScenePhase()
             hostVisibilityChangedForTimelines()
+            // A hidden page is an app in the background: BackgroundTasks launches its work.
+            _BackgroundTasksHost.setInBackground(!hostIsVisible)
             for observer in Self._hostLifecycleObservers { observer(hostIsVisible, hostIsFocused) }
         }
     }
