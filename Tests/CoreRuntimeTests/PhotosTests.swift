@@ -233,7 +233,11 @@ private struct Movie: Transferable {
         }
         #expect(saved.map(\.name) == ["Photo.png"])
         let options = PHFetchOptions()
+        #if canImport(Darwin)
         options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+        #else
+        options.sortDescriptors = [NSSortDescriptor(keyPath: \PHAsset.creationDate, ascending: false)]
+        #endif
         options.fetchLimit = 1
         let newest = PHAsset.fetchAssets(with: .image, options: options)
         #expect(newest.count == 1)

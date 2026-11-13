@@ -603,7 +603,7 @@ package enum _PhotoLibraryStore {
     static func assets(where include: (PHAsset) -> Bool, options: PHFetchOptions?) -> [PHAsset] {
         var found = saved.filter { include($0) && (options?.includeHiddenAssets == true || !$0.isHidden) }
         for descriptor in (options?.sortDescriptors ?? []).reversed() {
-            guard let key = descriptor.key, key == "creationDate" || key == "modificationDate" else { continue }
+            guard let key = sortKey(descriptor), key == "creationDate" || key == "modificationDate" else { continue }
             let ascending = descriptor.ascending
             found.sort { a, b in
                 let x = (key == "creationDate" ? a.creationDate : a.modificationDate) ?? .distantPast
@@ -612,6 +612,18 @@ package enum _PhotoLibraryStore {
             }
         }
         return limited(found, options)
+    }
+
+    /// The descriptor's key: its name, or on Linux (whose Foundation has no key-value coding)
+    /// the name of the asset date its key path reads.
+    static func sortKey(_ descriptor: NSSortDescriptor) -> String? {
+        #if canImport(Darwin) || os(WASI)
+        return descriptor.key
+        #else
+        if descriptor.keyPath == \PHAsset.creationDate { return "creationDate" }
+        if descriptor.keyPath == \PHAsset.modificationDate { return "modificationDate" }
+        return nil
+        #endif
     }
 
     static func limited(_ assets: [PHAsset], _ options: PHFetchOptions?) -> [PHAsset] {

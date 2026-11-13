@@ -58,7 +58,7 @@ public struct PHPickerFilter: Hashable, Sendable {
     /// The host's open panel for what the filter offers (photos and videos when none, or when
     /// it offers nothing a panel can tell apart).
     package static func _request(_ filter: PHPickerFilter?, allowsMultiple: Bool) -> HostFileOpenRequest {
-        let accepts = filter?._accepts ?? (false, false)
+        let accepts: (images: Bool, videos: Bool) = filter?._accepts ?? (false, false)
         switch (accepts.images, accepts.videos) {
         case (true, false): return HostFileOpenRequest(extensions: [], allowsMultiple: allowsMultiple, imagesOnly: true)
         case (false, true): return HostFileOpenRequest(extensions: _videoExtensions, allowsMultiple: allowsMultiple)
