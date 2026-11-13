@@ -2555,6 +2555,18 @@
           "noFixture": "Nothing to draw: FrameworkTests check the declined requests and the throwing save"
         },
         {
+          "api": "PhotosPicker / photosPicker / PhotosPickerItem / PHPickerViewController / PHPickerConfiguration / PHPickerFilter / PHPickerResult (PhotosUI)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-13): the pickers open the host's file panel (a browser's file input, which a phone fills from its photo library or camera) for the filter's photos, videos or both, and the chosen files become the selection, capped at the maximum count; closing the panel without a choice keeps the selection. Picker items load as `Data` and through an app's own representations (IceCubes' file representations of movies and GIFs); `PHPickerViewController` hands its delegate an item provider for each file, which loads as `UIImage`, data or a transferable value. Not done: the inline and compact styles (the panel always takes the screen), live photos, and the person's library albums",
+          "noFixture": "Nothing new to draw: CoreRuntimeTests drive the pickers through the runtime's open panel"
+        },
+        {
+          "api": "PHPhotoLibrary / PHAsset / PHFetchResult / PHAssetCreationRequest / PHImageManager (Photos)",
+          "status": "stub",
+          "notes": "pf-small-frameworks (2026-11-13): a page cannot read the person's photos, so the library holds what the app saved or the person picked this session. Access is granted at once; creation requests (from an image, image or video data, or a file) save each photo or video as a download and add it to the library, which fetches (by media type, identifier, creation date, fetch limit) and the image manager (images, image data, player items) read back. Not done: the person's own photos and albums, predicates (every saved asset matches), and change details",
+          "noFixture": "Nothing to draw: CoreRuntimeTests check the saves, fetches and image requests"
+        },
+        {
           "api": "AudioServicesPlaySystemSound / AudioServicesPlayAlertSound / SystemSoundID (AudioToolbox)",
           "status": "stub",
           "notes": "pf-small-frameworks (2026-11-09): a page has no system sound set and no vibration, so system sounds (and kSystemSoundID_Vibrate) play silently; the completion forms call their block at once. Not done: any sound (an app's own audio plays through AVAudioPlayer)",
