@@ -13,6 +13,7 @@ the project's folder (another project's app, in a repository of several) are the
 The format is an old-style (OpenStep) property list; `parse` reads it into dictionaries, lists
 and strings.
 """
+import os
 import re
 from pathlib import Path
 
@@ -106,7 +107,10 @@ class Project:
             if tree != "<group>":
                 return None
             oid = self.parents.get(oid)
-        return self.base.joinpath(*reversed(parts)) if parts else self.base
+        # Normalized: a file a group reaches through `..` (a group at `Sources`, a file at
+        # `../Shared/X.swift`) must match the folder walk's `Shared/X.swift`, or the sweep leaves it out.
+        path = Path(os.path.normpath(self.base.joinpath(*reversed(parts)))) if parts else self.base
+        return None if path.parts[:1] == ("..",) else path
 
     def build_setting(self, target, key):
         values = []

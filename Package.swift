@@ -24,6 +24,7 @@ let package = Package(
         .library(name: "Charts", targets: ["Charts"]),
         .library(name: "MapKit", targets: ["MapKit"]),
         .library(name: "AVFoundation", targets: ["AVFoundation"]),
+        .library(name: "AVFAudio", targets: ["AVFAudio"]),
         .library(name: "AVKit", targets: ["AVKit"]),
         .library(name: "Speech", targets: ["Speech"]),
         .library(name: "SwiftData", targets: ["SwiftData"]),
@@ -40,6 +41,8 @@ let package = Package(
         .library(name: "WebCoreImage", targets: ["WebCoreImage"]),
         .library(name: "WidgetKit", targets: ["WidgetKit"]),
         .library(name: "EventKit", targets: ["EventKit"]),
+        .library(name: "ActivityKit", targets: ["ActivityKit"]),
+        .library(name: "BackgroundTasks", targets: ["BackgroundTasks"]),
         .library(name: "Photos", targets: ["Photos"]),
         .library(name: "PhotosUI", targets: ["PhotosUI"]),
         .library(name: "AuthenticationServices", targets: ["AuthenticationServices"]),
@@ -98,7 +101,13 @@ let package = Package(
         .target(name: "CoreLocationHost", swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "CoreLocation", dependencies: ["CoreLocationHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "MapKit", dependencies: ["SwiftUI", "CoreLocation"], swiftSettings: [.treatAllWarnings(as: .error)]),
-        .target(name: "AVFoundation", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Audio (AVFAudio, which the browser host links), and the player and the camera (AVFoundation,
+        // which re-exports AVFAudio as Apple's does). The camera's preview is a CALayer (UIKitWebCore's);
+        // its host hook is a module of its own so the host links no capture code (decision 0006).
+        .target(name: "AVFAudio", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "AVCaptureHost", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "AVFoundation", dependencies: ["AVFAudio", "AVCaptureHost", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "UIKitWebCore", package: "UIKitWeb")],
+                swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVKit", dependencies: ["SwiftUI", "AVFoundation"], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "SwiftData", dependencies: ["SwiftUIWebCore", "SwiftDataMacros", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // The `@Model`, `#Predicate` and `@ModelActor` macros (host-compiled, as `#Preview`'s plugin).
@@ -143,6 +152,12 @@ let package = Package(
         ),
         .target(name: "WidgetKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "EventKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Live Activities: a page has no Lock Screen or Dynamic Island, so none starts.
+        .target(name: "ActivityKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Background work, launched while the page is hidden. Its hook (the app's state, SwiftUI's
+        // `backgroundTask` actions) is a module of its own, which the SwiftUI runtime links.
+        .target(name: "BackgroundTasksHost", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "BackgroundTasks", dependencies: ["BackgroundTasksHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // The photo library (the app's own saves and picks this session) and the photo pickers
         // over the host's file panel.
         .target(
@@ -161,7 +176,7 @@ let package = Package(
         .target(name: "CoreMotionHost", swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "CoreMotion", dependencies: ["CoreMotionHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AudioToolbox", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
-        .target(name: "Speech", dependencies: ["AVFoundation", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "Speech", dependencies: ["AVFAudio", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
         // In-app purchases with an empty store (no products load on the web) and its SwiftUI views.
         .target(
@@ -190,7 +205,7 @@ let package = Package(
         ),
         .target(
             name: "SwiftUIWebCore",
-            dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
+            dependencies: ["BackgroundTasksHost", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
@@ -218,7 +233,7 @@ let package = Package(
                 // The audio, speech, notification and data stand-ins' host hooks (decisions
                 // 0021, 0022): Web Audio, the microphone, the on-device recogniser fed the app's
                 // buffers, the Notification API, geolocation, localStorage for SwiftData's stores.
-                "AVFoundation", "Speech", "UserNotifications", "CoreLocationHost", "CoreMotionHost", "SwiftData", "AuthenticationServicesHost",
+                "AVFAudio", "AVCaptureHost", "Speech", "UserNotifications", "CoreLocationHost", "CoreMotionHost", "SwiftData", "AuthenticationServicesHost",
                 // The on-screen keyboard's frame from the visual viewport into UIKitScene (KeyboardHost.swift).
                 .product(name: "UIKitWebCore", package: "UIKitWeb"),
                 .product(name: "WebGraphicsCanvas", package: "WebGraphics"),
@@ -244,7 +259,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // Core Data against a model the plugin generates (Tests/CoreDataTests/Library.xcdatamodeld).

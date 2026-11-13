@@ -40,6 +40,13 @@ private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsReq
     func requestDidFinish(_ request: SKRequest) { finished = true }
 }
 
+private final class ReceiptRefresh: SKRequestDelegate {
+    var failure: (any Error)?
+    var finished = false
+    func requestDidFinish(_ request: SKRequest) { finished = true }
+    func request(_ request: SKRequest, didFailWithError error: any Error) { failure = error }
+}
+
 @Suite @MainActor struct StoreKitTests {
     private func texts(_ runtime: Runtime) -> [String] {
         runtime.root.descendants(where: { $0 is TextNode }).compactMap { ($0 as? TextNode)?.view.resolvedString }
@@ -114,6 +121,14 @@ private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsReq
         #expect(observer.response?.invalidProductIdentifiers == ["tip", "unlock"])
         #expect(observer.finished)
 
+        // RevenueCat's receipt refresh: there is no App Store receipt to fetch on the web.
+        let refresh = ReceiptRefresh()
+        let receiptRequest: SKRequest = SKReceiptRefreshRequest()
+        receiptRequest.delegate = refresh
+        receiptRequest.start()
+        #expect((refresh.failure as? SKError)?.code == .unknown && !refresh.finished)
+        #expect(SKReceiptRefreshRequest(receiptProperties: [SKReceiptPropertyIsExpired: true]).receiptProperties?.count == 1)
+
         let product = SKProduct(productIdentifier: "unlock", localizedTitle: "Unlock", price: NSDecimalNumber(string: "1.99"), priceLocale: Locale(identifier: "en_US"))
         queue.add(SKPayment(product: product))
         #expect(observer.updated.count == 1)
@@ -157,6 +172,45 @@ private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsReq
                 .onInAppPurchaseCompletion { _, _ in }
         })
         #expect(texts(runtime) == ["Unavailable", "Unavailable", "Go Pro", "Subscriptions unavailable"])
+    }
+
+    @Test func aStoreBuiltFromStoreContentShowsTheNote() {
+        let runtime = render(VStack {
+            SubscriptionStoreView(productIDs: ["pro.monthly", "pro.yearly"]) {
+                EmptyStoreContent()
+                EmptyStoreContent()
+            }
+            SubscriptionStoreView(groupID: "pro")
+        })
+        #expect(texts(runtime) == ["Subscriptions unavailable", "Subscriptions unavailable"])
+    }
+
+    @Test func billingPlansPurchaseIntentsAndTheCustomLinkAreEmpty() async throws {
+        let plan: Product.SubscriptionInfo.BillingPlanType = .monthly
+        switch plan {
+        case .upFront: Issue.record("monthly matched upFront")
+        case .monthly: break
+        default: Issue.record("monthly matched nothing")
+        }
+        let terms = Product.SubscriptionInfo.PricingTerms(
+            billingPlanType: .monthly, billingPrice: 4.99, billingDisplayPrice: "$4.99",
+            commitmentInfo: .init(period: .yearly))
+        #expect(terms.commitmentInfo.period == .yearly)
+        #expect(terms.subscriptionOffers.isEmpty)
+
+        // No purchase intent arrives: the sequence waits until its task is cancelled.
+        let waiting = Task { () -> Int in
+            var count = 0
+            for await _ in PurchaseIntent.intents { count += 1 }
+            return count
+        }
+        try await Task.sleep(nanoseconds: 50_000_000)
+        waiting.cancel()
+        #expect(await waiting.value == 0)
+
+        #expect(await ExternalPurchaseCustomLink.isEligible == false)
+        #expect(try await ExternalPurchaseCustomLink.token(for: "ACQUISITION") == nil)
+        await #expect(throws: StoreKitError.self) { try await ExternalPurchaseCustomLink.showNotice(type: .browser) }
     }
 
     @Test func storeSheetsCloseAndTasksDeliverNoEntitlements() async {

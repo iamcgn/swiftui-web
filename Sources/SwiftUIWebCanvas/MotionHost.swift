@@ -36,15 +36,23 @@ enum MotionHost {
         var moved = false;
         var onMotion = function (e) { moved = true; send(e); };
         var onTurn = function (e) { o = [v(e.alpha), v(e.beta), v(e.gamma)]; if (!moved) send(null); };
-        var listen = function () { window.addEventListener('devicemotion', onMotion); window.addEventListener('deviceorientation', onTurn); };
+        // Stopped while the permission prompt is still open: the answer then starts nothing.
+        var stopped = false;
+        var listen = function () {
+          if (stopped) return;
+          window.addEventListener('devicemotion', onMotion); window.addEventListener('deviceorientation', onTurn);
+        };
         var ask = window.DeviceMotionEvent && DeviceMotionEvent.requestPermission;
+        var retry = null;
         if (ask) {
-          var retry = function () { document.removeEventListener('pointerup', retry, true);
+          retry = function () { document.removeEventListener('pointerup', retry, true); if (stopped) return;
             DeviceMotionEvent.requestPermission().then(function (s) { if (s === 'granted') listen(); }, function () {}); };
           DeviceMotionEvent.requestPermission().then(function (s) { if (s === 'granted') listen(); },
-            function () { document.addEventListener('pointerup', retry, true); });
+            function () { if (!stopped) document.addEventListener('pointerup', retry, true); });
         } else { listen(); }
         return function () {
+          stopped = true;
+          if (retry) document.removeEventListener('pointerup', retry, true);
           window.removeEventListener('devicemotion', onMotion);
           window.removeEventListener('deviceorientation', onTurn);
         };

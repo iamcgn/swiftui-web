@@ -186,13 +186,17 @@ public protocol HostedScene: AnyObject {
     func hostElements() -> [HostElement]
 }
 
-/// An element a host shows over the canvas at a view's frame (`VideoPlayer`, `WebView`).
+/// An element a host shows over the canvas at a view's frame (`VideoPlayer`, `WebView`, a
+/// camera preview).
 public struct HostElement: Equatable, Sendable {
     public enum Kind: Equatable, Sendable {
         /// A video: its source, whether it should be playing, muted or looping, with controls.
         case video(url: String, playing: Bool, muted: Bool, loops: Bool, controls: Bool, rate: Double)
         /// A web page by URL or inline HTML.
         case web(url: String?, html: String?)
+        /// A camera's live picture (`AVCaptureVideoPreviewLayer`): the capture session's stream,
+        /// once it is live, mirrored or not, fitted by the layer's video gravity.
+        case camera(session: Int, live: Bool, mirrored: Bool, gravity: String)
 
         public var isVideo: Bool { if case .video = self { return true } else { return false } }
     }

@@ -5,6 +5,14 @@ import Testing
 import UIKit
 @testable import UIKitWebCore
 
+/// A label whose class supplies its own font, as apps' styled label subclasses do.
+private final class TitleLabel: UILabel {
+    override var font: UIFont! {
+        get { .systemFont(ofSize: 34) }
+        set {}
+    }
+}
+
 @Suite @MainActor struct LabelOptionalStyleTests {
     @Test func optionalsAssignAndNilRestoresTheDefaults() {
         let label = UILabel()
@@ -31,5 +39,17 @@ import UIKit
         let small = label.intrinsicContentSize
         label.font = .systemFont(ofSize: 34)
         #expect(label.intrinsicContentSize.height > small.height)
+    }
+
+    @Test func aSubclasssOverriddenFontIsTheOneMeasured() {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.configureScreen(size: CGSize(width: 320, height: 400), scale: 2)
+        scene.textEngine = try! Goldens.textEngine()
+        let plain = UILabel()
+        plain.text = "Hello"
+        let title = TitleLabel()
+        title.text = "Hello"
+        #expect(title.intrinsicContentSize.height > plain.intrinsicContentSize.height)
     }
 }

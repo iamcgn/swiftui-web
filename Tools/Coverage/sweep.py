@@ -30,11 +30,11 @@ from pathlib import Path
 # and what the wasm SDK itself carries.
 OURS = {
     "SwiftUI", "UIKit", "Foundation", "Combine", "Security", "SafariServices", "Charts", "MapKit",
-    "CoreLocation", "AVFoundation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit",
+    "CoreLocation", "AVFoundation", "AVFAudio", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit",
     "os", "OSLog", "CoreGraphics", "UniformTypeIdentifiers", "CoreData", "CryptoKit", "CoreHaptics", "CoreImage", "WidgetKit", "StoreKit", "AppIntents",
     "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices", "SystemConfiguration",
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit",
-    "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion",
+    "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks",
 }
 # `Builtin` is the compiler's own module (swift-collections imports it with the BuiltinModule
 # feature); `XCTest` ships in the wasm SDK, and packages import it on wasm where Apple's platforms
@@ -790,6 +790,7 @@ WEB_PRODUCTS = [
     ("Charts", "SwiftUIWeb"),
     ("MapKit", "SwiftUIWeb"),
     ("AVFoundation", "SwiftUIWeb"),
+    ("AVFAudio", "SwiftUIWeb"),
     ("AVKit", "SwiftUIWeb"),
     ("Speech", "SwiftUIWeb"),
     ("SwiftData", "SwiftUIWeb"),
@@ -806,6 +807,8 @@ WEB_PRODUCTS = [
     ("PhotosUI", "SwiftUIWeb"),
     ("AuthenticationServices", "SwiftUIWeb"),
     ("CoreMotion", "SwiftUIWeb"),
+    ("ActivityKit", "SwiftUIWeb"),
+    ("BackgroundTasks", "SwiftUIWeb"),
     ("UIKit", "UIKitWeb"),
     ("Foundation", "Shadows"),
     ("Combine", "Shadows"),

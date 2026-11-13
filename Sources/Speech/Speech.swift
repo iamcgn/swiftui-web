@@ -6,7 +6,7 @@
 // are cumulative, as Apple's are; the one final result comes when the audio ends.
 // Written against Scrumdinger's SpeechService.
 @_exported import WebFoundation   // as Apple's Speech re-exports Foundation
-import AVFoundation
+import AVFAudio
 
 // MARK: - The host
 

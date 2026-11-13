@@ -659,30 +659,40 @@ final class BarPlatterButton: UIControl {
         configure()
         isEnabled = item.isEnabled
         accessibilityLabel = item.title ?? item.systemTitle ?? item.systemImageName
-        if let action = item.primaryAction { addAction(action, for: .primaryActionTriggered) }
-        #if canImport(ObjectiveC)
-        // The classic target and selector: sent with the item as the sender, as UIKit sends it
-        // (a nil target: up the responder chain).
-        if item.primaryAction == nil, let selector = item.action as? Selector {
-            addAction(UIAction { [weak item] _ in
-                guard let item else { return }
-                UIApplication.shared.sendAction(selector, to: item.target, from: item, for: nil)
-            }, for: .primaryActionTriggered)
-        }
-        sendsSelector = item.primaryAction == nil && item.action is Selector
-        #endif
-        // An item with a menu and no primary action opens the menu on a tap; with both, a long press.
-        if item.primaryAction == nil, !sendsSelector, item.menu != nil {
-            addAction(UIAction { [weak self] _ in
-                guard let self, let menu = self.item?.menu else { return }
-                MenuPresenter.present(menu, from: self)
-            }, for: .primaryActionTriggered)
+        // A primary action replaces the button (the item rebuilds its bar when it changes); the
+        // target, selector and menu are read when the tap lands, as UIKit reads them, so an item
+        // whose `action` or `target` changes after the bar is built sends the current pair.
+        if let action = item.primaryAction {
+            addAction(action, for: .primaryActionTriggered)
+        } else {
+            addAction(UIAction { [weak self] _ in self?.itemTapped() }, for: .primaryActionTriggered)
         }
     }
 
+    /// A tap on an item without a primary action: its selector where it has one (the runtime
+    /// build; sent with the item as the sender, a nil target going up the responder chain), else
+    /// its menu.
+    private func itemTapped() {
+        guard let item, item.primaryAction == nil else { return }
+        #if canImport(ObjectiveC)
+        if let selector = item.action as? Selector {
+            UIApplication.shared.sendAction(selector, to: item.target, from: item, for: nil)
+            return
+        }
+        #endif
+        if let menu = item.menu { MenuPresenter.present(menu, from: self) }
+    }
+
+    /// An item's menu opens on a long press when a tap does something else.
     override var longPressMenu: UIMenu? { item?.primaryAction != nil || sendsSelector ? item?.menu : nil }
     /// Whether a tap sends the item's selector (the runtime build), leaving its menu to a long press.
-    private var sendsSelector = false
+    private var sendsSelector: Bool {
+        #if canImport(ObjectiveC)
+        return item?.primaryAction == nil && item?.action is Selector
+        #else
+        return false
+        #endif
+    }
 
     init(kind: Kind) {
         self.kind = kind

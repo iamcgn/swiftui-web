@@ -23,9 +23,9 @@ IOS_DOMAINS = {"iOS", "iPadOS", "*"}
 # (swift-syntax, JavaScriptKit), which are not API an app reaches for.
 OUR_MODULES = {
     "SwiftUI", "SwiftUIWebCore", "SwiftUIWebUIKit", "SwiftUIWebCanvas", "Charts", "MapKit", "CoreLocation",
-    "AVFoundation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "UIKit", "UIKitWebCore",
+    "AVFoundation", "AVFAudio", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "UIKit", "UIKitWebCore",
     "WebFoundation", "WebFoundationFormats", "WebDecimalFormats", "WebCombine", "WebGraphics", "Foundation", "Combine", "Security", "SafariServices",
-    "CoreData", "WebCoreData", "CryptoKit", "CoreHaptics", "CoreImage", "WebCoreImage", "WidgetKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion",
+    "CoreData", "WebCoreData", "CryptoKit", "CoreHaptics", "CoreImage", "WebCoreImage", "WidgetKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks",
 }
 SKIP_KINDS = {"swift.deinit"}
 
