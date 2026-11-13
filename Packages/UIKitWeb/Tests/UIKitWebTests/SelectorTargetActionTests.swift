@@ -99,5 +99,24 @@ import UIKit
         #expect(target.calls == ["tapped item"])
         #expect(platter.longPressMenu == nil)
     }
+
+    /// The selector and target are read on the tap: an item changed after its bar was built (an
+    /// Edit button switched to Done, a target set later) sends the current pair.
+    @Test func aBarButtonItemSendsItsCurrentSelector() {
+        let first = ActionTarget(), second = ActionTarget()
+        let item = UIBarButtonItem(title: "Edit", style: .plain, target: first, action: #selector(ActionTarget.tapped(_:)))
+        let platter = BarPlatterButton(item: item)
+        item.target = second
+        item.action = #selector(ActionTarget.refresh)
+        platter.sendActions(for: .primaryActionTriggered)
+        #expect(first.calls.isEmpty && second.calls == ["refresh"])
+
+        let late = UIBarButtonItem(title: "Done", style: .done, target: nil, action: nil)
+        let latePlatter = BarPlatterButton(item: late)
+        late.target = first
+        late.action = #selector(ActionTarget.tapped(_:))
+        latePlatter.sendActions(for: .primaryActionTriggered)
+        #expect(first.calls == ["tapped item"])
+    }
 }
 #endif
