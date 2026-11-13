@@ -66,8 +66,9 @@ struct TipKitTests {
         return runtime
     }
 
+    /// Lays the mounted view out again: the pass applies pending updates first (a separate
+    /// `flush` would leave it nothing to do at the same size, and the new rows unplaced).
     private func refresh(_ runtime: Runtime) -> [String] {
-        runtime.flush()
         runtime.layout(in: CGSize(width: 390, height: 700))
         _ = runtime.render(scale: 2)
         return runtime.semanticsTree().map(\.label)
@@ -82,7 +83,7 @@ struct TipKitTests {
         try Tips.configure()
         #expect(tip.shouldDisplay)
         #if canImport(Darwin)
-        // The mounted view follows the store. (On the Linux runner the store's change reaches it
+        // The mounted view follows the store. (On the Linux runner the store's change can reach it
         // through a main-queue hop the synchronous test does not wait for.)
         #expect(refresh(before).contains("Save as favorite"))
         #endif
