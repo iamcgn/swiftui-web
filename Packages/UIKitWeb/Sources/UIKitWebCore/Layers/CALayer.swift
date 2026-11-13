@@ -332,7 +332,7 @@ open class CALayer: CALayerBase {
         // Off wasm `CGColor` is a Core Foundation type, which `as?` can't test: compare type IDs.
         let object = value as AnyObject
         guard CFGetTypeID(object) == CGColor.typeID else { return nil }
-        return .some(unsafeBitCast(object, to: CGColor.self))
+        return .some(unsafeDowncast(object, to: CGColor.self))
         #endif
     }
 
