@@ -4,7 +4,9 @@
 // and drags from outside (Runtime/DragDropNodes.swift). An item provider carries the drag's
 // representations that conform to the requested types; its bytes load at once.
 import WebFoundation
-import Foundation
+#if !os(WASI)
+import Foundation   // on wasm WebFoundation stands in for it
+#endif
 
 /// The operation a drop performs, which a delegate proposes while the drag moves.
 public enum DropOperation: Hashable, Sendable {

@@ -4,7 +4,9 @@
 // browser). Both read the runtime's file handlers through the environment, so a view without
 // a host (a headless test runtime with none installed) reports a failure and resets the binding.
 import WebFoundation
-import Foundation
+#if !os(WASI)
+import Foundation   // on wasm WebFoundation stands in for it
+#endif
 
 /// The runtime whose host shows the file panels, for the file dialog modifiers.
 package struct _FileDialogs {
