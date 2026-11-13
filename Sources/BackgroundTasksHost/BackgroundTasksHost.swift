@@ -10,6 +10,9 @@ public enum _BackgroundTasksHost {
     public private(set) static var inBackground = false
     /// Told when `inBackground` changes, with its new value.
     public static var observers: [@MainActor (_ inBackground: Bool) -> Void] = []
+    /// BackgroundTasks' scheduler, told after the observers. Set from any thread (the scheduler
+    /// installs it when the app first submits a request, which need not be on the main actor).
+    nonisolated(unsafe) public static var scheduler: (@MainActor (_ inBackground: Bool) -> Void)?
 
     /// Whether the app's own reports (the SwiftUI runtime's page visibility, the UIKit scene's
     /// notifications) set the state. Tests turn it off and set the state themselves, so the
@@ -27,6 +30,7 @@ public enum _BackgroundTasksHost {
         guard value != inBackground else { return }
         inBackground = value
         for observer in observers { observer(value) }
+        scheduler?(value)
     }
 
     /// The actions of the app's `.backgroundTask(.appRefresh(identifier))` scene modifiers, by
@@ -39,6 +43,7 @@ public enum _BackgroundTasksHost {
         followsApp = false
         inBackground = false
         observers.removeAll()
+        scheduler = nil
         appRefreshActions.removeAll()
     }
 }

@@ -148,7 +148,8 @@ open class BGTaskScheduler: NSObject, @unchecked Sendable {
         }
         pending.append(taskRequest)
         lock.unlock()
-        Self.onMain { self.observeApp(); self.launchDue() }
+        observeApp()
+        Self.onMain { self.launchDue() }
     }
 
     /// Withdraws the pending request with the identifier.
@@ -182,14 +183,19 @@ open class BGTaskScheduler: NSObject, @unchecked Sendable {
         if Thread.isMainThread { MainActor.assumeIsolated(work) } else { DispatchQueue.main.async { MainActor.assumeIsolated(work) } }
     }
 
-    @MainActor private func observeApp() {
-        guard !observing else { return }
+    /// Follows the app's state: the host tells the scheduler when it changes, and a UIKit app's
+    /// scene reports it through UIApplication's notifications. Installed from whatever thread
+    /// first submits, so a launch never waits on a hop to the main actor.
+    private func observeApp() {
+        lock.lock()
+        let first = !observing
         observing = true
-        _BackgroundTasksHost.observers.append { [weak self] inBackground in
+        lock.unlock()
+        guard first else { return }
+        _BackgroundTasksHost.scheduler = { [weak self] inBackground in
             guard let self else { return }
             if inBackground { self.launchDue() } else { self.appCameToForeground() }
         }
-        // A UIKit app's scene reports its state through UIApplication's notifications.
         let center = NotificationCenter.default
         _ = center.addObserver(forName: Notification.Name("UIApplicationDidEnterBackgroundNotification"), object: nil, queue: nil) { _ in
             Self.onMain { _BackgroundTasksHost.appStateChanged(inBackground: true) }
@@ -284,8 +290,8 @@ open class BGTaskScheduler: NSObject, @unchecked Sendable {
         scheduler.handlers.removeAll()
         scheduler.pending.removeAll()
         scheduler.running.removeAll()
-        scheduler.lock.unlock()
         scheduler.observing = false
+        scheduler.lock.unlock()
         refreshTime = UInt64(refreshSeconds * 1_000_000_000)
     }
 }

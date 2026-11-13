@@ -106,13 +106,13 @@ struct BackgroundTasksTests {
         scheduler.cancelAllTaskRequests()
     }
 
-    @Test func aRequestSubmittedInTheBackgroundLaunchesRightAway() throws {
+    @Test func aRequestSubmittedInTheBackgroundLaunchesRightAway() async throws {
         let scheduler = BGTaskScheduler.shared
         let launched = Box(0)
         scheduler.register(forTaskWithIdentifier: "now", using: nil) { launched.value += 1; $0.setTaskCompleted(success: true) }
         _BackgroundTasksHost.setInBackground(true)
         try scheduler.submit(BGAppRefreshTaskRequest(identifier: "now"))
-        #expect(launched.value == 1)
+        #expect(await eventually { launched.value == 1 })
     }
 
     @Test func aRefreshTaskExpiresAfterItsTime() async throws {
@@ -152,19 +152,18 @@ struct BackgroundTasksTests {
         scheduler.cancelAllTaskRequests()
     }
 
-    @Test func aUIKitAppsBackgroundNotificationLaunchesTheTasks() throws {
+    @Test func aUIKitAppsBackgroundNotificationLaunchesTheTasks() async throws {
         let scheduler = BGTaskScheduler.shared
         let launched = Box(0)
         scheduler.register(forTaskWithIdentifier: "uikit", using: nil) { launched.value += 1; $0.setTaskCompleted(success: true) }
         try scheduler.submit(BGAppRefreshTaskRequest(identifier: "uikit"))
-        // Follows the app's notifications only for this synchronous stretch, which other tests'
-        // runtimes cannot interleave with.
+        // Follows the app's notifications while this test waits for them.
         _BackgroundTasksHost.followsApp = true
         defer { _BackgroundTasksHost.followsApp = false }
         NotificationCenter.default.post(name: Notification.Name("UIApplicationDidEnterBackgroundNotification"), object: nil)
-        #expect(launched.value == 1)
+        #expect(await eventually { launched.value == 1 })
         NotificationCenter.default.post(name: Notification.Name("UIApplicationWillEnterForegroundNotification"), object: nil)
-        #expect(!_BackgroundTasksHost.inBackground)
+        #expect(await eventually { !_BackgroundTasksHost.inBackground })
     }
 
     @Test func swiftUIsAppRefreshActionRunsAsTheTask() async throws {
