@@ -176,7 +176,8 @@ private struct Movie: Transferable {
     }
 }
 
-@Suite @MainActor struct PhotoLibraryTests {
+// Serialized: the saving tests share the library's save handler.
+@Suite(.serialized) @MainActor struct PhotoLibraryTests {
     @Test func accessIsGranted() async {
         #expect(PHPhotoLibrary.authorizationStatus(for: .readWrite) == .authorized)
         #expect(await PHPhotoLibrary.requestAuthorization(for: .addOnly) == .authorized)
