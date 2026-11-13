@@ -389,6 +389,23 @@ struct CaptureTests {
         StandInCamera.uninstall()
     }
 
+    @Test func stoppingTheSessionMidRecordingStillWritesTheMovie() throws {
+        StandInCamera.install()
+        let session = try makeSession()
+        let output = AVCaptureMovieFileOutput()
+        session.addOutput(output)
+        session.startRunning()
+        StandInCamera.goLive()
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("capture-\(UUID().uuidString).mov")
+        let receiver = MovieReceiver()
+        output.startRecording(to: url, recordingDelegate: receiver)
+        session.stopRunning()
+        #expect(!output.isRecording && receiver.finished == url)
+        #expect(try Data(contentsOf: url) == Data([1, 2, 3]))
+        try? FileManager.default.removeItem(at: url)
+        StandInCamera.uninstall()
+    }
+
     @Test(arguments: [false, true])
     func aPreviewInARepresentableIsAHostElement(asSublayer: Bool) throws {
         StandInCamera.install()

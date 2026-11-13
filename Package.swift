@@ -41,6 +41,8 @@ let package = Package(
         .library(name: "WebCoreImage", targets: ["WebCoreImage"]),
         .library(name: "WidgetKit", targets: ["WidgetKit"]),
         .library(name: "EventKit", targets: ["EventKit"]),
+        .library(name: "ActivityKit", targets: ["ActivityKit"]),
+        .library(name: "BackgroundTasks", targets: ["BackgroundTasks"]),
         .library(name: "TipKit", targets: ["TipKit"]),
         .library(name: "Photos", targets: ["Photos"]),
         .library(name: "PhotosUI", targets: ["PhotosUI"]),
@@ -151,6 +153,12 @@ let package = Package(
         ),
         .target(name: "WidgetKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "EventKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Live Activities: a page has no Lock Screen or Dynamic Island, so none starts.
+        .target(name: "ActivityKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Background work, launched while the page is hidden. Its hook (the app's state, SwiftUI's
+        // `backgroundTask` actions) is a module of its own, which the SwiftUI runtime links.
+        .target(name: "BackgroundTasksHost", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "BackgroundTasks", dependencies: ["BackgroundTasksHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // Tips (TipView, popoverTip) with their rules, parameters and events, kept in the page's
         // user defaults; `#Rule` and `@Parameter` are host-compiled macros.
         .target(name: "TipKit", dependencies: ["SwiftUI", "TipKitMacros", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -209,7 +217,7 @@ let package = Package(
         ),
         .target(
             name: "SwiftUIWebCore",
-            dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
+            dependencies: ["BackgroundTasksHost", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
@@ -263,7 +271,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "TipKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // Core Data against a model the plugin generates (Tests/CoreDataTests/Library.xcdatamodeld).
