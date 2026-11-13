@@ -191,8 +191,10 @@ public struct URLRequest: Hashable, Sendable {
     }
 }
 
-/// The metadata associated with the response to a URL load request.
-open class URLResponse: @unchecked Sendable {
+/// The metadata associated with the response to a URL load request. An `NSObject` under the
+/// Objective-C runtime, as Foundation's is, so it is `Equatable` and `@objc` members can take it
+/// (RevenueCat's `NetworkError` synthesizes `Equatable` over a `URLResponse?`).
+open class URLResponse: _WebObjectBase, @unchecked Sendable {
     public let url: URL?
     public let mimeType: String?
     public let expectedContentLength: Int64
@@ -202,6 +204,7 @@ open class URLResponse: @unchecked Sendable {
         self.mimeType = mimeType
         self.expectedContentLength = Int64(expectedContentLength)
         self.textEncodingName = textEncodingName
+        super.init()
     }
     public var suggestedFilename: String? { url?.lastPathComponent }
 }
