@@ -12,8 +12,8 @@ import TranslationHost
 
 /// Plays the browser's translator: English to French is on the device, English to German and
 /// Japanese to the person's language download, nothing translates to Klingon. A translation is
-/// the target's code and the text; Japanese text is detected, other text is not.
-@MainActor
+/// the target's code and the text; Japanese text is detected, other text is not. Not main-actor
+/// isolated: sessions call the browser from wherever they run.
 private enum StandInTranslator {
     nonisolated(unsafe) static var installed: Set<String> = []
     nonisolated(unsafe) static var downloads: [String] = []
