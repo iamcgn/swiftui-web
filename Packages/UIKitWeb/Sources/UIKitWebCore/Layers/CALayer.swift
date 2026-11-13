@@ -228,6 +228,117 @@ open class CALayer: CALayerBase {
     nonisolated open override func value(forUndefinedKey key: String) -> Any? {
         valuesForUndefinedKeys[key]
     }
+
+    /// A layer's own properties by their Core Animation key (`opacity`, `cornerRadius`,
+    /// `hidden`…), as `setValue(_:forKey:)` sets them on iOS: the layer's Swift properties are not
+    /// visible to the runtime's key-value coding, so without this a key like `opacity` would land
+    /// among the undefined keys and the layer would not change. A value of the wrong type, or nil
+    /// for a non-optional property, leaves the property as it was.
+    nonisolated open override func setValue(_ value: Any?, forKey key: String) {
+        nonisolated(unsafe) let value = value
+        let handled = MainActor.assumeIsolated { self.setLayerProperty(value, forKey: key) }
+        if !handled { super.setValue(value, forKey: key) }
+    }
+
+    nonisolated open override func value(forKey key: String) -> Any? {
+        nonisolated(unsafe) var found: Any?? = nil
+        MainActor.assumeIsolated { found = self.layerProperty(forKey: key) }
+        if let found { return found }
+        return super.value(forKey: key)
+    }
+
+    /// The value of a layer property by its key, or nil when the layer has no such property.
+    func layerProperty(forKey key: String) -> Any?? {
+        switch key {
+        case "bounds": return .some(bounds)
+        case "position": return .some(position)
+        case "anchorPoint": return .some(anchorPoint)
+        case "zPosition": return .some(zPosition)
+        case "transform": return .some(transform)
+        case "frame": return .some(frame)
+        case "backgroundColor": return .some(backgroundColor)
+        case "cornerRadius": return .some(cornerRadius)
+        case "borderWidth": return .some(borderWidth)
+        case "borderColor": return .some(borderColor)
+        case "opacity": return .some(opacity)
+        case "hidden", "isHidden": return .some(isHidden)
+        case "masksToBounds": return .some(masksToBounds)
+        case "shadowColor": return .some(shadowColor)
+        case "shadowOpacity": return .some(shadowOpacity)
+        case "shadowOffset": return .some(shadowOffset)
+        case "shadowRadius": return .some(shadowRadius)
+        case "contents": return .some(contents)
+        case "contentsScale": return .some(contentsScale)
+        case "name": return .some(name)
+        default: return nil
+        }
+    }
+
+    /// Sets a layer property by its key; false when the layer has no such property.
+    func setLayerProperty(_ value: Any?, forKey key: String) -> Bool {
+        switch key {
+        case "bounds": if let v = Self.rect(value) { bounds = v }
+        case "position": if let v = Self.point(value) { position = v }
+        case "anchorPoint": if let v = Self.point(value) { anchorPoint = v }
+        case "zPosition": if let v = Self.number(value) { zPosition = v }
+        case "transform": if let v = value as? CATransform3D { transform = v }
+        case "frame": if let v = Self.rect(value) { frame = v }
+        case "backgroundColor": if let v = Self.color(value) { backgroundColor = v }
+        case "cornerRadius": if let v = Self.number(value) { cornerRadius = v }
+        case "borderWidth": if let v = Self.number(value) { borderWidth = v }
+        case "borderColor": if let v = Self.color(value) { borderColor = v }
+        case "opacity": if let v = Self.number(value) { opacity = Float(v) }
+        case "hidden", "isHidden": if let v = Self.flag(value) { isHidden = v }
+        case "masksToBounds": if let v = Self.flag(value) { masksToBounds = v }
+        case "shadowColor": if let v = Self.color(value) { shadowColor = v }
+        case "shadowOpacity": if let v = Self.number(value) { shadowOpacity = Float(v) }
+        case "shadowOffset": if let v = Self.size(value) { shadowOffset = v }
+        case "shadowRadius": if let v = Self.number(value) { shadowRadius = v }
+        case "contents": contents = value
+        case "contentsScale": if let v = Self.number(value) { contentsScale = v }
+        case "name": if value == nil || value is String { name = value as? String }
+        default: return false
+        }
+        return true
+    }
+
+    private static func number(_ value: Any?) -> CGFloat? {
+        switch value {
+        #if !os(WASI)
+        case let v as CGFloat: return v   // CoreGraphics' own type off wasm
+        #endif
+        case let v as Double: return CGFloat(v)
+        case let v as Float: return CGFloat(v)
+        case let v as Int: return CGFloat(v)
+        case let v as NSNumber: return CGFloat(v.doubleValue)
+        default: return nil
+        }
+    }
+
+    private static func flag(_ value: Any?) -> Bool? {
+        switch value {
+        case let v as Bool: return v
+        case let v as NSNumber: return v.boolValue
+        default: return nil
+        }
+    }
+
+    /// A color value: `.some(nil)` for nil, `.some(color)` for a `CGColor`, nil for anything else.
+    private static func color(_ value: Any?) -> CGColor?? {
+        guard let value else { return .some(nil) }
+        #if os(WASI)
+        return (value as? CGColor).map { .some($0) }
+        #else
+        // Off wasm `CGColor` is a Core Foundation type, which `as?` can't test: compare type IDs.
+        let object = value as AnyObject
+        guard CFGetTypeID(object) == CGColor.typeID else { return nil }
+        return .some(unsafeDowncast(object, to: CGColor.self))
+        #endif
+    }
+
+    private static func rect(_ value: Any?) -> CGRect? { (value as? CGRect) ?? (value as? NSValue)?.cgRectValue }
+    private static func point(_ value: Any?) -> CGPoint? { (value as? CGPoint) ?? (value as? NSValue)?.cgPointValue }
+    private static func size(_ value: Any?) -> CGSize? { (value as? CGSize) ?? (value as? NSValue)?.cgSizeValue }
     #endif
 
     /// A copy of a layer's properties (`init(layer:)` in CoreAnimation).

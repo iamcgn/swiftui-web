@@ -148,6 +148,9 @@ public protocol SKProductsRequestDelegate: SKRequestDelegate {
 
 /// A request to the App Store.
 open class SKRequest: NSObject {
+    /// The object told when the request finishes or fails. A products request's delegate is an
+    /// `SKProductsRequestDelegate`, which also hears the response.
+    open weak var delegate: (any SKRequestDelegate)?
     /// Sends the request.
     open func start() {}
     /// Cancels the request.
@@ -158,7 +161,6 @@ open class SKRequest: NSObject {
 /// identifier as invalid.
 open class SKProductsRequest: SKRequest {
     public let productIdentifiers: Set<String>
-    open weak var delegate: (any SKProductsRequestDelegate)?
     private var cancelled = false
 
     public init(productIdentifiers: Set<String>) {
@@ -169,12 +171,37 @@ open class SKProductsRequest: SKRequest {
     open override func start() {
         guard !cancelled, let delegate else { return }
         let response = SKProductsResponse(products: [], invalidProductIdentifiers: productIdentifiers.sorted())
-        delegate.productsRequest(self, didReceive: response)
+        (delegate as? any SKProductsRequestDelegate)?.productsRequest(self, didReceive: response)
         delegate.requestDidFinish(self)
     }
 
     open override func cancel() { cancelled = true }
 }
+
+/// A request to refresh the app's App Store receipt. The web has no App Store to issue one, so
+/// the request fails (`SKError.Code.unknown`) and `Bundle.main.appStoreReceiptURL` stays `nil`.
+open class SKReceiptRefreshRequest: SKRequest {
+    /// The properties of a test receipt to make (in the sandbox on iOS); unused on the web.
+    public let receiptProperties: [String: Any]?
+    private var cancelled = false
+
+    public init(receiptProperties: [String: Any]? = nil) {
+        self.receiptProperties = receiptProperties
+        super.init()
+    }
+
+    open override func start() {
+        guard !cancelled, let delegate else { return }
+        delegate.request(self, didFailWithError: SKError(.unknown))
+    }
+
+    open override func cancel() { cancelled = true }
+}
+
+/// Keys of a test receipt's properties.
+public let SKReceiptPropertyIsExpired = "expired"
+public let SKReceiptPropertyIsRevoked = "revoked"
+public let SKReceiptPropertyIsVolumePurchase = "vpp"
 
 // MARK: - Payments
 
