@@ -162,10 +162,11 @@ extension Notification.Name {
     public static let AVCaptureInputPortFormatDescriptionDidChange = Notification.Name("AVCaptureInputPortFormatDescriptionDidChangeNotification")
 }
 
-/// Reports a change of `keyPath` to the object's key-value observers (wasm's and Apple's;
-/// Linux's Foundation has none).
+/// Reports a change of `keyPath` to the object's key-value observers on wasm (WebFoundation's
+/// key-value observing). Apple's needs `@objc` properties, which these are not, and Linux's
+/// Foundation has none.
 private func _reportChange<Object: NSObject, Value>(_ object: Object, _ keyPath: KeyPath<Object, Value>, _ change: () -> Void) {
-    #if os(WASI) || canImport(ObjectiveC)
+    #if os(WASI)
     object.willChangeValue(for: keyPath)
     change()
     object.didChangeValue(for: keyPath)
