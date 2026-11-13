@@ -177,9 +177,9 @@ public struct TipView<Content: Tip>: View {
 struct _PopoverTipModifier<T: Tip>: ViewModifier {
     let tip: T
     let arrowEdge: Edge
-    let action: (Tips.Action) -> Void
+    let action: @Sendable (Tips.Action) -> Void
 
-    nonisolated init(tip: T, arrowEdge: Edge, action: @escaping (Tips.Action) -> Void) {
+    nonisolated init(tip: T, arrowEdge: Edge, action: @escaping @Sendable (Tips.Action) -> Void) {
         self.tip = tip
         self.arrowEdge = arrowEdge
         self.action = action
@@ -202,7 +202,8 @@ struct _PopoverTipModifier<T: Tip>: ViewModifier {
 extension View {
     /// Presents the tip in a popover anchored to the view while its status is available.
     nonisolated public func popoverTip<Content: Tip>(_ tip: Content, arrowEdge: Edge? = nil, action: @escaping (Tips.Action) -> Void = { _ in }) -> some View {
-        modifier(_PopoverTipModifier(tip: tip, arrowEdge: arrowEdge ?? .top, action: action))
+        nonisolated(unsafe) let action = action
+        return modifier(_PopoverTipModifier(tip: tip, arrowEdge: arrowEdge ?? .top, action: { action($0) }))
     }
 
     /// How the tip views inside draw their tips.
