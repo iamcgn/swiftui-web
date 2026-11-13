@@ -171,7 +171,8 @@ extension GeometryProxy {
     /// The share of the view's area that shows in its nearest scroll view (the window when it
     /// is in none), from 0 to 1.
     nonisolated package var _visibleFraction: Double {
-        MainActor.assumeIsolated { Self._visibleFraction(of: node) }
+        nonisolated(unsafe) let node = self.node
+        return MainActor.assumeIsolated { Self._visibleFraction(of: node) }
     }
 
     @MainActor

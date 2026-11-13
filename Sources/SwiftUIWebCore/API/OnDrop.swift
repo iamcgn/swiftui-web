@@ -40,13 +40,13 @@ public struct DropInfo {
     public func hasItemsConforming(to contentTypes: [UTType]) -> Bool { item.conforms(toAnyOf: contentTypes) }
 
     /// Whether the drag carries an item of one of the type identifiers.
-    public func hasItemsConforming(to types: [String]) -> Bool { hasItemsConforming(to: types.map(UTType.init)) }
+    public func hasItemsConforming(to types: [String]) -> Bool { hasItemsConforming(to: types.map { UTType($0) }) }
 
     /// Item providers for the drag's items that conform to one of the types.
     public func itemProviders(for contentTypes: [UTType]) -> [NSItemProvider] { item.itemProviders(for: contentTypes) }
 
     /// Item providers for the drag's items that conform to one of the type identifiers.
-    public func itemProviders(for types: [String]) -> [NSItemProvider] { itemProviders(for: types.map(UTType.init)) }
+    public func itemProviders(for types: [String]) -> [NSItemProvider] { itemProviders(for: types.map { UTType($0) }) }
 }
 
 /// An interface that a drop destination's delegate implements to follow and perform the drop.
@@ -134,20 +134,20 @@ extension View {
     /// Makes this view a drop destination for items of the type identifiers.
     nonisolated public func onDrop(of supportedTypes: [String], isTargeted: Binding<Bool>?,
                                    perform action: @escaping (_ providers: [NSItemProvider]) -> Bool) -> some View {
-        onDrop(of: supportedTypes.map(UTType.init), isTargeted: isTargeted, perform: action)
+        onDrop(of: supportedTypes.map { UTType($0) }, isTargeted: isTargeted, perform: action)
     }
 
     /// Makes this view a drop destination for items of the type identifiers; `action` also gets
     /// the location.
     nonisolated public func onDrop(of supportedTypes: [String], isTargeted: Binding<Bool>?,
                                    perform action: @escaping (_ providers: [NSItemProvider], _ location: CGPoint) -> Bool) -> some View {
-        onDrop(of: supportedTypes.map(UTType.init), isTargeted: isTargeted, perform: action)
+        onDrop(of: supportedTypes.map { UTType($0) }, isTargeted: isTargeted, perform: action)
     }
 
     /// Makes this view a drop destination for items of the type identifiers, following the
     /// drag through `delegate`.
     nonisolated public func onDrop(of supportedTypes: [String], delegate: some DropDelegate) -> some View {
-        onDrop(of: supportedTypes.map(UTType.init), delegate: delegate)
+        onDrop(of: supportedTypes.map { UTType($0) }, delegate: delegate)
     }
 }
 
@@ -244,7 +244,7 @@ public struct _ItemProviderError: Error, CustomStringConvertible {
 
 extension NSItemProvider {
     /// The content types the provider has items for.
-    public var registeredContentTypes: [UTType] { registeredTypeIdentifiers.map(UTType.init) }
+    public var registeredContentTypes: [UTType] { registeredTypeIdentifiers.map { UTType($0) } }
 
     /// The registered identifier that names `contentType` or one of its subtypes.
     private func _identifier(conformingTo contentType: UTType) -> String? {

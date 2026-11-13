@@ -13,7 +13,7 @@ package struct _FileDialogs {
 }
 
 package struct FileDialogsKey: EnvironmentKey {
-    package nonisolated(unsafe) static let defaultValue = _FileDialogs()
+    package static let defaultValue = _FileDialogs()
 }
 
 extension EnvironmentValues {
