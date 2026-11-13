@@ -14,7 +14,8 @@
 // reports no biometry, as on a device without it), `FoundationNetworking` (the URLSession names,
 // where Linux's Foundation keeps them), `FoundationXML` (XMLParser, likewise) and
 // `UniformTypeIdentifiers` (`UTType`), `CommonCrypto` (the C digest and HMAC functions over
-// SwiftUIWeb's CryptoKit) are here for the same reason as the rest, and so is
+// SwiftUIWeb's CryptoKit), `Compression` and `zlib` (the coders over WebFoundationFormats' formats)
+// are here for the same reason as the rest, and so is
 // `CoreData` (WebCoreData; the app's models go through SwiftUIWeb's CoreDataModel plugin). With
 // `CoreGraphics` importable on wasm, SwiftUIWeb's own sources test for Apple's with
 // `canImport(CoreGraphics) && !os(WASI)`.
@@ -55,6 +56,8 @@ let package = Package(
         .library(name: "Dispatch", targets: ["Dispatch"]),
         .library(name: "CoreFoundation", targets: ["CoreFoundation"]),
         .library(name: "CommonCrypto", targets: ["CommonCrypto"]),
+        .library(name: "Compression", targets: ["Compression"]),
+        .library(name: "zlib", targets: ["zlib"]),
     ],
     // `CoreData` (decision 0024): `import Foundation` re-exports WebCoreData too, as Apple's
     // declares `NSPredicate`, `NSSortDescriptor` and `NSExpression`. Enable it with SwiftUIWeb's.
@@ -155,6 +158,16 @@ let package = Package(
         .target(
             name: "CommonCrypto",
             dependencies: [.product(name: "CryptoKit", package: "SwiftUIWeb")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "Compression",
+            dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "zlib",
+            dependencies: [.product(name: "WebFoundationFormats", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
