@@ -73,20 +73,32 @@ struct TipKitTests {
         return runtime.semanticsTree().map(\.label)
     }
 
-    @Test func aTipShowsOnceTipKitIsConfiguredAndClosesForGood() throws {
+    /// Lays out again until `condition` holds of the labels: the store's change reaches the view
+    /// through the main queue, which Linux's test runner may drain only after this test yields.
+    private func refreshed(_ runtime: Runtime, until condition: ([String]) -> Bool) async -> [String] {
+        var labels = refresh(runtime)
+        for _ in 0..<200 where !condition(labels) {
+            try? await Task.sleep(nanoseconds: 10_000_000)
+            labels = refresh(runtime)
+        }
+        return labels
+    }
+
+    @Test func aTipShowsOnceTipKitIsConfiguredAndClosesForGood() async throws {
         let tip = FavoriteTip()
         #expect(tip.status == .pending)
         let runtime = render(VStack { TipView(tip); Text("Recipe") })
         #expect(!runtime.semanticsTree().map(\.label).contains("Save as favorite"))
         try Tips.configure()
         #expect(tip.shouldDisplay)
-        let labels = refresh(runtime)
+        let labels = await refreshed(runtime) { $0.contains("Save as favorite") }
         #expect(labels.contains("Save as favorite"))
         #expect(labels.contains("Tap the heart to keep this recipe."))
         let close = try #require(runtime.semanticsTree().first { $0.label == "Close" })
         runtime.activate(semanticsIdentifier: close.identifier)
         #expect(tip.status == .invalidated(.tipClosed))
-        #expect(!refresh(runtime).contains("Save as favorite"))
+        let closed = await refreshed(runtime) { !$0.contains("Save as favorite") }
+        #expect(!closed.contains("Save as favorite"))
         #expect(throws: TipKitError.tipsDatastoreAlreadyConfigured) { try Tips.configure() }
     }
 
