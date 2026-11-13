@@ -40,6 +40,8 @@ let package = Package(
         .library(name: "WebCoreImage", targets: ["WebCoreImage"]),
         .library(name: "WidgetKit", targets: ["WidgetKit"]),
         .library(name: "EventKit", targets: ["EventKit"]),
+        .library(name: "Photos", targets: ["Photos"]),
+        .library(name: "PhotosUI", targets: ["PhotosUI"]),
         .library(name: "AudioToolbox", targets: ["AudioToolbox"]),
         .library(name: "StoreKit", targets: ["StoreKit"]),
         .library(name: "AppIntents", targets: ["AppIntents"]),
@@ -139,6 +141,16 @@ let package = Package(
         ),
         .target(name: "WidgetKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "EventKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // The photo library (the app's own saves and picks this session) and the photo pickers
+        // over the host's file panel.
+        .target(
+            name: "Photos",
+            dependencies: ["SwiftUI", "CoreLocation", "AVFoundation", .product(name: "WebFoundation", package: "WebGraphics"),
+                           .target(name: "WebCoreData", condition: .when(platforms: [.wasi])),
+                           .product(name: "WebImageIO", package: "WebGraphics", condition: .when(platforms: [.wasi]))],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(name: "PhotosUI", dependencies: ["SwiftUI", "Photos"], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AudioToolbox", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "Speech", dependencies: ["AVFoundation", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -223,7 +235,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // Core Data against a model the plugin generates (Tests/CoreDataTests/Library.xcdatamodeld).

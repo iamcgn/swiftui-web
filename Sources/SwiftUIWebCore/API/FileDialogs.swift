@@ -44,19 +44,19 @@ package final class _FileDialogBox {
 
 /// Runs `present` with the host's runtime when the binding turns true (and at appearance when
 /// it already is): the view that reads the environment for the file dialog modifiers.
-struct _FileDialogTrigger<Content: View>: View {
+package struct _FileDialogTrigger<Content: View>: View {
     let content: Content
     let isPresented: Binding<Bool>
     let present: _FileDialogPresenter
     @Environment(\._fileDialogs) var dialogs
 
-    init(content: Content, isPresented: Binding<Bool>, present: _FileDialogPresenter) {
+    package init(content: Content, isPresented: Binding<Bool>, present: _FileDialogPresenter) {
         self.content = content
         self.isPresented = isPresented
         self.present = present
     }
 
-    var body: some View {
+    package var body: some View {
         let dialogs = self.dialogs, present = self.present
         return content.onChange(of: isPresented.wrappedValue, initial: true) { _, shown in
             if shown { present.run(dialogs.runtime) }
