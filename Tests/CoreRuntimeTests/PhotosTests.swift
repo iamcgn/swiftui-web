@@ -224,6 +224,25 @@ private struct Movie: Transferable {
         #expect(item != nil)
     }
 
+    @Test func aBlockThatOnlyDeletesRemovesTheAssets() throws {
+        _PhotoLibraryStore.saveHandler = { _ in }
+        defer { _PhotoLibraryStore.saveHandler = nil }
+        let photo = png
+        nonisolated(unsafe) var identifier: String?
+        try PHPhotoLibrary.shared().performChangesAndWait {
+            let request = PHAssetCreationRequest.forAsset()
+            request.addResource(with: .photo, data: photo, options: nil)
+            identifier = request.placeholderForCreatedAsset?.localIdentifier
+        }
+        let id = try #require(identifier)
+        let fetched = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil)
+        #expect(fetched.count == 1)
+        try PHPhotoLibrary.shared().performChangesAndWait {
+            PHAssetChangeRequest.deleteAssets(fetched)
+        }
+        #expect(PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil).count == 0)
+    }
+
     @Test func imagesSaveAndFetchesSortNewestFirst() throws {
         var saved: [HostFile] = []
         _PhotoLibraryStore.saveHandler = { saved.append($0) }

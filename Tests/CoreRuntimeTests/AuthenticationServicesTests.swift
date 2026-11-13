@@ -242,6 +242,30 @@ private func json(_ object: [String: Any]) -> String {
         #expect(assertion.credentialID == Data([8]) && assertion.userID == Data())
     }
 
+    @Test func aPhonesPasskeyAnsweringBothKindsIsAPasskey() async throws {
+        let browser = StandInCredentials()
+        browser.install()
+        let passkeys = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: "example.com")
+        let keys = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(relyingPartyIdentifier: "example.com")
+        let requests: [ASAuthorizationRequest] = [passkeys.createCredentialAssertionRequest(challenge: Data([1])),
+                                                  keys.createCredentialAssertionRequest(challenge: Data([1]))]
+        // 32 bytes of relying party hash, then the flags: 0x1D is user present and verified,
+        // backup eligible and backed up (a synced passkey); 0x05 is a key's present and verified.
+        func answer(flags: UInt8) -> String {
+            json(["type": "public-key", "id": b64url([9]), "rawId": b64url([9]), "authenticatorAttachment": "cross-platform",
+                  "response": ["clientDataJSON": b64url([1]), "authenticatorData": b64url(Array(repeating: 0, count: 32) + [flags, 0, 0, 0, 1]),
+                               "signature": b64url([3]), "userHandle": b64url([7])]])
+        }
+        browser.answer = (answer(flags: 0x1D), nil)
+        let phone = try await EnvironmentValues().authorizationController.performRequests(requests)
+        guard case let .passkeyAssertion(passkey) = phone else { Issue.record("not a passkey"); return }
+        #expect(passkey.attachment == .crossPlatform && passkey.credentialID == Data([9]))
+
+        browser.answer = (answer(flags: 0x05), nil)
+        let key = try await EnvironmentValues().authorizationController.performRequests(requests)
+        guard case .securityKeyAssertion = key else { Issue.record("not a key assertion"); return }
+    }
+
     @Test func theBrowsersRefusalsBecomeAuthorizationErrors() async throws {
         let browser = StandInCredentials()
         browser.install()

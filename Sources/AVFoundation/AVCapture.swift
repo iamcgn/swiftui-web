@@ -783,6 +783,9 @@ open class AVCaptureSession: NSObject, @unchecked Sendable {
     }
 
     private func close() {
+        // A recording still running finishes first, so stopping the session (or switching the
+        // camera, or a runtime error) writes the movie and tells the delegate, as Apple's does.
+        for case let output as AVCaptureFileOutput in outputs where output.isRecording { output.stopRecording() }
         stream?.stop()
         streamDevice?.attach(nil, nil)
         stream = nil

@@ -707,14 +707,28 @@ struct _ASCredentialCall {
             return .failure(ASAuthorizationError(.invalidResponse))
         }
         let userID = _data(base64URL: response["userHandle"] as? String) ?? Data()
-        // A security key answers as cross-platform; a passkey (here or on a phone nearby) as either.
-        if let keyAssertion, attachment == .crossPlatform || passkeyAssertion == nil {
+        if let keyAssertion, passkeyAssertion == nil || Self.isSecurityKey(id: id, authenticatorData: authenticatorData, attachment: attachment,
+                                                                              keys: keyAssertion.allowedCredentials.map(\.credentialID),
+                                                                              passkeys: passkeyAssertion?.allowedCredentials.map(\.credentialID) ?? []) {
             let credential = ASAuthorizationSecurityKeyPublicKeyCredentialAssertion(credentialID: id, rawClientDataJSON: clientData, rawAuthenticatorData: authenticatorData, signature: signature, userID: userID)
             return .success(ASAuthorization(provider: keyAssertion.provider, credential: credential))
         }
         guard let passkeyAssertion else { return .failure(ASAuthorizationError(.invalidResponse)) }
         let credential = ASAuthorizationPlatformPublicKeyCredentialAssertion(credentialID: id, rawClientDataJSON: clientData, rawAuthenticatorData: authenticatorData, signature: signature, userID: userID, attachment: attachment)
         return .success(ASAuthorization(provider: passkeyAssertion.provider, credential: credential))
+    }
+
+    /// Whether an assertion answering both a passkey and a security key request came from the key.
+    /// The credential's listing settles it; otherwise a passkey is backup eligible (flag 0x08 of the
+    /// authenticator data) where a security key is not, and a phone nearby answers as cross-platform
+    /// like a key does, so the attachment alone decides only a platform answer.
+    static func isSecurityKey(id: Data, authenticatorData: Data, attachment: ASAuthorizationPublicKeyCredentialAttachment,
+                              keys: [Data], passkeys: [Data]) -> Bool {
+        if keys.contains(id) { return true }
+        if passkeys.contains(id) { return false }
+        guard attachment == .crossPlatform else { return false }
+        guard authenticatorData.count > 32 else { return true }
+        return authenticatorData[authenticatorData.startIndex + 32] & 0x08 == 0
     }
 
     /// The authorization error for a `DOMException` WebAuthn rejects with.

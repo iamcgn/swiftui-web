@@ -318,10 +318,18 @@ open class PHPhotoLibrary: NSObject, @unchecked Sendable {
     @MainActor
     private static func _commit(_ changeBlock: () -> Void) throws {
         _PhotoLibraryStore.pending = []
+        _PhotoLibraryStore.deletions = []
         changeBlock()
         let requests = _PhotoLibraryStore.pending
         _PhotoLibraryStore.pending = []
-        guard !requests.isEmpty else { return }
+        // A block that only deletes has no change request to commit: its deletions apply here.
+        let deletes = !_PhotoLibraryStore.deletions.isEmpty
+        if deletes {
+            let doomed = Set(_PhotoLibraryStore.deletions)
+            _PhotoLibraryStore.deletions = []
+            _PhotoLibraryStore.saved.removeAll { doomed.contains($0.localIdentifier) }
+        }
+        guard !requests.isEmpty || deletes else { return }
         for request in requests {
             try request._commit()
         }
@@ -385,6 +393,11 @@ open class PHAssetChangeRequest: NSObject, @unchecked Sendable {
     /// Deletes the assets the app saved.
     open class func deleteAssets(_ assets: [PHAsset]) {
         _PhotoLibraryStore.deletions.append(contentsOf: assets.map(\.localIdentifier))
+    }
+
+    /// Deletes the assets a fetch returned.
+    open class func deleteAssets(_ assets: PHFetchResult<PHAsset>) {
+        assets.enumerateObjects { asset, _, _ in _PhotoLibraryStore.deletions.append(asset.localIdentifier) }
     }
 
     @MainActor
