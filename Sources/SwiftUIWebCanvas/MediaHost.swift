@@ -5,7 +5,7 @@
 // the buffers an app appends to its request, which on Scrumdinger's path are these.
 #if os(WASI)
 import JavaScriptKit
-import AVFoundation
+import AVFAudio
 
 @MainActor
 enum MediaHost {

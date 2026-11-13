@@ -8,17 +8,29 @@
 import Foundation
 #endif
 import Observation
+// The audio half is AVFAudio, as on Apple's platforms, where AVFoundation re-exports it; the
+// browser host links only AVFAudio, so an app that never uses the player or the camera carries
+// neither (decision 0006).
+@_exported import AVFAudio
 
 /// A time in seconds (CoreMedia's `CMTime` reduced to what the hosts can seek to).
 public struct CMTime: Hashable, Sendable {
     public var seconds: Double
     public init(seconds: Double, preferredTimescale: Int32 = 600) { self.seconds = seconds }
+    /// `value / timescale` seconds (a frame duration: `CMTime(value: 1, timescale: 30)`).
+    public init(value: CMTimeValue, timescale: CMTimeScale) {
+        seconds = timescale == 0 ? .nan : Double(value) / Double(timescale)
+    }
     public static let zero = CMTime(seconds: 0)
     public static let invalid = CMTime(seconds: .nan)
     public var isValid: Bool { !seconds.isNaN }
 }
 
-public func CMTimeMake(value: Int64, timescale: Int32) -> CMTime { CMTime(seconds: Double(value) / Double(timescale)) }
+public typealias CMTimeValue = Int64
+public typealias CMTimeScale = Int32
+
+public func CMTimeMake(value: Int64, timescale: Int32) -> CMTime { CMTime(value: value, timescale: timescale) }
+public func CMTimeMakeWithSeconds(_ seconds: Double, preferredTimescale: Int32) -> CMTime { CMTime(seconds: seconds, preferredTimescale: preferredTimescale) }
 public func CMTimeGetSeconds(_ time: CMTime) -> Double { time.seconds }
 
 /// An item a player plays: a URL.

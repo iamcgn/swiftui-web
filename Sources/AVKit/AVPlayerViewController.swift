@@ -7,15 +7,7 @@ import WebFoundation
 import Foundation
 #endif
 import SwiftUI
-
-/// How a video fills the bounds of the view that shows it.
-public struct AVLayerVideoGravity: RawRepresentable, Hashable, Sendable {
-    public let rawValue: String
-    public init(rawValue: String) { self.rawValue = rawValue }
-    public static let resizeAspect = AVLayerVideoGravity(rawValue: "AVLayerVideoGravityResizeAspect")
-    public static let resizeAspectFill = AVLayerVideoGravity(rawValue: "AVLayerVideoGravityResizeAspectFill")
-    public static let resize = AVLayerVideoGravity(rawValue: "AVLayerVideoGravityResize")
-}
+import AVFoundation
 
 /// Methods a player view controller calls on its delegate; each has a do-nothing default.
 @MainActor

@@ -95,14 +95,35 @@ final class RepresentableTree: _PlatformViewTree {
         func walk(_ view: UIView, clip: CGRect?) {
             guard !view.isHidden, view.alpha > 0 else { return }
             let frame = view.convert(view.bounds, to: hosted.window)
-            if let provider = view as? _UIHostElementProviding, let kind = provider._hostElementKind {
+            func add(_ provider: AnyObject, _ kind: HostElement.Kind, _ frame: CGRect, clip: CGRect?) {
                 let absolute = context.absoluteRect(frame)
                 var visible = absolute
                 if let clip { visible = visible.intersection(context.absoluteRect(clip)) }
                 if let rect = context.clipRect { visible = visible.intersection(rect) }
-                elements.append(HostElement(identifier: identify(view), kind: kind, frame: absolute, visibleFrame: visible.isNull ? .zero : visible))
+                elements.append(HostElement(identifier: identify(provider), kind: kind, frame: absolute, visibleFrame: visible.isNull ? .zero : visible))
+            }
+            if let provider = view as? _UIHostElementProviding, let kind = provider._hostElementKind {
+                add(view, kind, frame, clip: clip)
             }
             let inner = view.clipsToBounds ? (clip.map { $0.intersection(frame) } ?? frame) : clip
+            // A layer can be one too (a camera's `AVCaptureVideoPreviewLayer`): the view's own
+            // (its `layerClass`) or one the app added below it, but not a subview's (walked next).
+            if let provider = view.layer as? _UIHostElementProviding, let kind = provider._hostElementKind {
+                add(view.layer, kind, frame, clip: clip)
+            }
+            if let sublayers = view.layer.sublayers, !sublayers.isEmpty {
+                let owned = Set(view.subviews.map { ObjectIdentifier($0.layer) })
+                func walkLayers(_ layers: [CALayer]) {
+                    for layer in layers where !owned.contains(ObjectIdentifier(layer)) && !layer.isHidden && layer.opacity > 0 {
+                        if let provider = layer as? _UIHostElementProviding, let kind = provider._hostElementKind {
+                            let local = view.layer.convert(layer.bounds, from: layer)
+                            add(layer, kind, view.convert(local, to: hosted.window), clip: inner)
+                        }
+                        if let next = layer.sublayers { walkLayers(next) }
+                    }
+                }
+                walkLayers(sublayers)
+            }
             for subview in view.subviews { walk(subview, clip: inner) }
         }
         walk(hosted.window, clip: nil)
@@ -201,10 +222,3 @@ enum RepresentableSizing {
     }
 }
 
-/// A UIKit view the host shows as an element of its own where the view is (a `WKWebView`'s
-/// page in the host's `<iframe>`): the kind says what, nil says nothing yet. The hosting tree
-/// collects them when it paints; a change of page asks for a repaint (`setNeedsDisplay`).
-@MainActor
-public protocol _UIHostElementProviding: AnyObject {
-    var _hostElementKind: HostElement.Kind? { get }
-}

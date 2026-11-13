@@ -1202,6 +1202,15 @@ public final class CanvasSceneHost {
                     created = document.createElement!("iframe").object!
                     _ = created.setAttribute!("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups")
                     _ = created.setAttribute!("referrerpolicy", "no-referrer")
+                case .camera:
+                    // The capture session's stream (SwiftUIWebCanvas's CaptureHost keeps it in
+                    // `__swiftuiWebCapture`). Touches go through to the canvas: the app's own
+                    // gestures on the preview (tap to focus, pinch to zoom) are the canvas's.
+                    created = document.createElement!("video").object!
+                    _ = created.setAttribute!("playsinline", "")
+                    _ = created.setAttribute!("autoplay", "")
+                    created.muted = .boolean(true)
+                    wrapperStyle.pointerEvents = .string("none")
                 }
                 let style = created.style.object!
                 style.position = .string("absolute")
@@ -1211,7 +1220,7 @@ public final class CanvasSceneHost {
                 style.display = .string("block")
                 // A frame is clear: a page paints its own background, and one that refuses to
                 // be framed paints nothing (WebKit), so what the view drew beneath shows.
-                style.background = .string(element.kind.isVideo ? "black" : "transparent")
+                if case .web = element.kind { style.background = .string("transparent") } else { style.background = .string("black") }
                 _ = wrapper.appendChild!(created)
                 if case .web = element.kind {
                     // A page that refuses to be framed (`X-Frame-Options`, `frame-ancestors`:
@@ -1253,6 +1262,7 @@ public final class CanvasSceneHost {
     private static func sameElementKind(_ a: HostElement.Kind, _ b: HostElement.Kind) -> Bool {
         switch (a, b) {
         case (.video, .video), (.web, .web): return true
+        case (.camera(let a, _, _, _), .camera(let b, _, _, _)): return a == b
         default: return false
         }
     }
@@ -1281,6 +1291,24 @@ public final class CanvasSceneHost {
                 } else {
                     open.style.object!.display = .string("none")
                 }
+            }
+        case (.camera(_, let wasLive, let wasMirrored, let oldGravity), .camera(let session, let live, let mirrored, let gravity)):
+            if fresh || wasLive != live {
+                let entry = JSObject.global.__swiftuiWebCapture.object?[String(session)].object
+                element.srcObject = live ? (entry?.stream ?? .null) : .null
+                if live { _ = element.play?() }
+            }
+            if fresh || wasMirrored != mirrored {
+                element.style.object!.transform = .string(mirrored ? "scaleX(-1)" : "")
+            }
+            if fresh || oldGravity != gravity {
+                let fit: String
+                switch gravity {
+                case "AVLayerVideoGravityResizeAspectFill": fit = "cover"
+                case "AVLayerVideoGravityResize": fit = "fill"
+                default: fit = "contain"
+                }
+                element.style.object!.objectFit = .string(fit)
             }
         default:
             break
