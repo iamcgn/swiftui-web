@@ -181,24 +181,25 @@ extension _VisualEffectStep {
     }
 
     func interpolated(to other: _VisualEffectStep, by t: Double) -> _VisualEffectStep {
+        // Local functions can't overload (CGFloat is Double on some platforms), so each has its own name.
         func mix(_ x: Double, _ y: Double) -> Double { x + (y - x) * t }
-        func mix(_ x: CGFloat, _ y: CGFloat) -> CGFloat { x + (y - x) * CGFloat(t) }
-        func mix(_ x: CGSize, _ y: CGSize) -> CGSize { CGSize(width: mix(x.width, y.width), height: mix(x.height, y.height)) }
-        func mix(_ x: Angle, _ y: Angle) -> Angle { .radians(mix(x.radians, y.radians)) }
+        func mixLength(_ x: CGFloat, _ y: CGFloat) -> CGFloat { x + (y - x) * CGFloat(t) }
+        func mixSize(_ x: CGSize, _ y: CGSize) -> CGSize { CGSize(width: mixLength(x.width, y.width), height: mixLength(x.height, y.height)) }
+        func mixAngle(_ x: Angle, _ y: Angle) -> Angle { .radians(mix(x.radians, y.radians)) }
         switch (self, other) {
         case (.opacity(let x), .opacity(let y)): return .opacity(mix(x, y))
-        case (.scale(let x, _), .scale(let y, let anchor)): return .scale(mix(x, y), anchor: anchor)
-        case (.offset(let x), .offset(let y)): return .offset(mix(x, y))
-        case (.rotation(let x, _), .rotation(let y, let anchor)): return .rotation(mix(x, y), anchor: anchor)
-        case (.rotation3D(let x, _, _), .rotation3D(let y, let axis, let anchor)): return .rotation3D(mix(x, y), axis: axis, anchor: anchor)
+        case (.scale(let x, _), .scale(let y, let anchor)): return .scale(mixSize(x, y), anchor: anchor)
+        case (.offset(let x), .offset(let y)): return .offset(mixSize(x, y))
+        case (.rotation(let x, _), .rotation(let y, let anchor)): return .rotation(mixAngle(x, y), anchor: anchor)
+        case (.rotation3D(let x, _, _), .rotation3D(let y, let axis, let anchor)): return .rotation3D(mixAngle(x, y), axis: axis, anchor: anchor)
         case (.transform(let x), .transform(let y)):
-            return .transform(CGAffineTransform(a: mix(x.a, y.a), b: mix(x.b, y.b), c: mix(x.c, y.c), d: mix(x.d, y.d), tx: mix(x.tx, y.tx), ty: mix(x.ty, y.ty)))
-        case (.blur(let x, _), .blur(let y, let opaque)): return .blur(mix(x, y), opaque: opaque)
+            return .transform(CGAffineTransform(a: mixLength(x.a, y.a), b: mixLength(x.b, y.b), c: mixLength(x.c, y.c), d: mixLength(x.d, y.d), tx: mixLength(x.tx, y.tx), ty: mixLength(x.ty, y.ty)))
+        case (.blur(let x, _), .blur(let y, let opaque)): return .blur(mixLength(x, y), opaque: opaque)
         case (.color(.brightness(let x)), .color(.brightness(let y))): return .color(.brightness(mix(x, y)))
         case (.color(.contrast(let x)), .color(.contrast(let y))): return .color(.contrast(mix(x, y)))
         case (.color(.saturation(let x)), .color(.saturation(let y))): return .color(.saturation(mix(x, y)))
         case (.color(.grayscale(let x)), .color(.grayscale(let y))): return .color(.grayscale(mix(x, y)))
-        case (.color(.hueRotation(let x)), .color(.hueRotation(let y))): return .color(.hueRotation(mix(x, y)))
+        case (.color(.hueRotation(let x)), .color(.hueRotation(let y))): return .color(.hueRotation(mixAngle(x, y)))
         default: return t < 0.5 ? self : other
         }
     }
