@@ -4,7 +4,7 @@
 // bundle made from any path answers for the app, and `Bundle.module` (SwiftPM's generated
 // accessor extends `Foundation.Bundle` with it) resolves. Resource URLs are relative to the page.
 #if os(WASI)
-open class Bundle: @unchecked Sendable {
+open class Bundle: _WebObjectBase, @unchecked Sendable {
     /// The app's bundle.
     public static let main = Bundle(_path: "/")
 

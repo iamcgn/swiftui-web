@@ -568,7 +568,7 @@ open class URLSessionDownloadTask: URLSessionTask, @unchecked Sendable {
 }
 
 /// An object that coordinates a group of related, network data transfer tasks.
-public final class URLSession: @unchecked Sendable {
+public final class URLSession: _WebObjectBase, @unchecked Sendable {
     public static let shared = URLSession(configuration: .default)
     public let configuration: URLSessionConfiguration
     public var sessionDescription: String?
