@@ -159,6 +159,45 @@ private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsReq
         #expect(texts(runtime) == ["Unavailable", "Unavailable", "Go Pro", "Subscriptions unavailable"])
     }
 
+    @Test func aStoreBuiltFromStoreContentShowsTheNote() {
+        let runtime = render(VStack {
+            SubscriptionStoreView(productIDs: ["pro.monthly", "pro.yearly"]) {
+                EmptyStoreContent()
+                EmptyStoreContent()
+            }
+            SubscriptionStoreView(groupID: "pro")
+        })
+        #expect(texts(runtime) == ["Subscriptions unavailable", "Subscriptions unavailable"])
+    }
+
+    @Test func billingPlansPurchaseIntentsAndTheCustomLinkAreEmpty() async throws {
+        let plan: Product.SubscriptionInfo.BillingPlanType = .monthly
+        switch plan {
+        case .upFront: Issue.record("monthly matched upFront")
+        case .monthly: break
+        default: Issue.record("monthly matched nothing")
+        }
+        let terms = Product.SubscriptionInfo.PricingTerms(
+            billingPlanType: .monthly, billingPrice: 4.99, billingDisplayPrice: "$4.99",
+            commitmentInfo: .init(period: .yearly))
+        #expect(terms.commitmentInfo.period == .yearly)
+        #expect(terms.subscriptionOffers.isEmpty)
+
+        // No purchase intent arrives: the sequence waits until its task is cancelled.
+        let waiting = Task { () -> Int in
+            var count = 0
+            for await _ in PurchaseIntent.intents { count += 1 }
+            return count
+        }
+        try await Task.sleep(nanoseconds: 50_000_000)
+        waiting.cancel()
+        #expect(await waiting.value == 0)
+
+        #expect(await ExternalPurchaseCustomLink.isEligible == false)
+        #expect(try await ExternalPurchaseCustomLink.token(for: "ACQUISITION") == nil)
+        await #expect(throws: StoreKitError.self) { try await ExternalPurchaseCustomLink.showNotice(type: .browser) }
+    }
+
     @Test func storeSheetsCloseAndTasksDeliverNoEntitlements() async {
         let log = StoreLog()
         let runtime = render(Text("Store")

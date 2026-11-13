@@ -225,10 +225,15 @@ public struct Product: Identifiable, Equatable, Hashable, Sendable {
         public let groupDisplayName: String
         public let introductoryOffer: Product.SubscriptionOffer?
         public let promotionalOffers: [Product.SubscriptionOffer]
+        /// The billing plans the subscription is sold with (paying up front, or monthly over a
+        /// commitment), each with its price and offers.
+        public let pricingTerms: [Product.SubscriptionInfo.PricingTerms]
 
         package init(subscriptionGroupID: String, subscriptionPeriod: Product.SubscriptionPeriod, groupLevel: Int = 1,
                      groupDisplayName: String = "", introductoryOffer: Product.SubscriptionOffer? = nil,
-                     promotionalOffers: [Product.SubscriptionOffer] = []) {
+                     promotionalOffers: [Product.SubscriptionOffer] = [],
+                     pricingTerms: [Product.SubscriptionInfo.PricingTerms] = []) {
+            self.pricingTerms = pricingTerms
             self.subscriptionGroupID = subscriptionGroupID
             self.subscriptionPeriod = subscriptionPeriod
             self.groupLevel = groupLevel
