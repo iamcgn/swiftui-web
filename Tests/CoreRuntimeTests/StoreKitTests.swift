@@ -40,6 +40,13 @@ private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsReq
     func requestDidFinish(_ request: SKRequest) { finished = true }
 }
 
+private final class ReceiptRefresh: SKRequestDelegate {
+    var failure: (any Error)?
+    var finished = false
+    func requestDidFinish(_ request: SKRequest) { finished = true }
+    func request(_ request: SKRequest, didFailWithError error: any Error) { failure = error }
+}
+
 @Suite @MainActor struct StoreKitTests {
     private func texts(_ runtime: Runtime) -> [String] {
         runtime.root.descendants(where: { $0 is TextNode }).compactMap { ($0 as? TextNode)?.view.resolvedString }
@@ -113,6 +120,14 @@ private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsReq
         #expect(observer.response?.products.isEmpty == true)
         #expect(observer.response?.invalidProductIdentifiers == ["tip", "unlock"])
         #expect(observer.finished)
+
+        // RevenueCat's receipt refresh: there is no App Store receipt to fetch on the web.
+        let refresh = ReceiptRefresh()
+        let receiptRequest: SKRequest = SKReceiptRefreshRequest()
+        receiptRequest.delegate = refresh
+        receiptRequest.start()
+        #expect((refresh.failure as? SKError)?.code == .unknown && !refresh.finished)
+        #expect(SKReceiptRefreshRequest(receiptProperties: [SKReceiptPropertyIsExpired: true]).receiptProperties?.count == 1)
 
         let product = SKProduct(productIdentifier: "unlock", localizedTitle: "Unlock", price: NSDecimalNumber(string: "1.99"), priceLocale: Locale(identifier: "en_US"))
         queue.add(SKPayment(product: product))

@@ -89,6 +89,11 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
     open var edgesForExtendedLayout: UIRectEdge = .all
     open var modalPresentationStyle: UIModalPresentationStyle = .automatic
     open var modalTransitionStyle: UIModalTransitionStyle = .coverVertical
+    /// Whether a `currentContext` presentation from a child covers this controller's view. Kept
+    /// for the app to read; the web presents the current-context styles over the whole window.
+    open var definesPresentationContext = false
+    /// Whether this controller's `modalTransitionStyle` is used for presentations it is the context of.
+    open var providesPresentationContextTransitionStyle = false
     /// Supplies custom animators for the controller's presentation and dismissal.
     open weak var transitioningDelegate: (any UIViewControllerTransitioningDelegate)?
 

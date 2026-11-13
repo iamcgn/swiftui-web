@@ -55,6 +55,24 @@ open class Bundle: _WebObjectBase, @unchecked Sendable {
     public convenience init(for aClass: AnyClass) { self.init(_path: "/") }
     public convenience init?(identifier: String) { self.init(_path: "/") }
 
+    /// Whether the bundle's executable code is loaded. The app's code is all in its one wasm
+    /// module, which is running, so the main bundle's is; no other bundle has code on the web.
+    public var isLoaded: Bool { bundlePath == Bundle.main.bundlePath }
+
+    /// Loads the bundle's executable code. A page can't load code from another bundle, so this
+    /// answers `true` for the app's own (already loaded) and `false` for any other, as a bundle
+    /// whose code fails to load does on iOS (Inject's `InjectionIII` bundle in a debug build).
+    @discardableResult
+    open func load() -> Bool { isLoaded }
+
+    /// Unloads the bundle's code: nothing a page loaded can be unloaded, so `false`.
+    open func unload() -> Bool { false }
+
+    /// Loads the bundle's code, throwing `NSExecutableLoadError` (3587) where `load()` answers `false`.
+    open func loadAndReturnError() throws {
+        guard load() else { throw NSError(domain: NSCocoaErrorDomain, code: 3587, userInfo: [NSFilePathErrorKey: bundlePath]) }
+    }
+
     public func object(forInfoDictionaryKey key: String) -> Any? { infoDictionary?[key] }
 
     /// The URL of a resource beside the app's assets: `assets/<name>.<ext>`.
