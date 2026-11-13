@@ -2579,6 +2579,12 @@
           "noFixture": "Nothing to draw yet: CoreRuntimeTests check the WebAuthn options, the credentials and the errors"
         },
         {
+          "api": "CMMotionManager / CMAccelerometerData / CMGyroData / CMDeviceMotion / CMAttitude (CoreMotion)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-13): the motion manager reads the browser's devicemotion and deviceorientation events, so on a phone or tablet the accelerometer reports the acceleration it feels in g (lying flat, z = -1), the gyroscope its rotation in radians per second, and device motion splits gravity from the person's acceleration and adds the attitude (roll, pitch, yaw, its matrix and quaternion). Updates come as the browser fires them, no faster than the update interval; the pull-style properties (deviceMotion, accelerometerData) hold the latest reading while a sensor runs, and handlers on a queue other than main run through it. Safari on iOS asks the person first, from a tap. A computer has no motion sensors, so every sensor is unavailable there. Not done: the magnetometer and north-referenced frames (a browser gives no magnetic field), the altimeter, the pedometer and activity recognition, which read unavailable",
+          "noFixture": "Nothing to draw: CoreRuntimeTests feed the manager browser readings and check the conversions"
+        },
+        {
           "api": "AudioServicesPlaySystemSound / AudioServicesPlayAlertSound / SystemSoundID (AudioToolbox)",
           "status": "stub",
           "notes": "pf-small-frameworks (2026-11-09): a page has no system sound set and no vibration, so system sounds (and kSystemSoundID_Vibrate) play silently; the completion forms call their block at once. Not done: any sound (an app's own audio plays through AVAudioPlayer)",
