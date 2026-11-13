@@ -2525,10 +2525,10 @@
           "noFixture": "Nothing to draw: CoreLocationTests drive the manager against a fake browser; the browser host is GeolocationHost.swift"
         },
         {
-          "api": "SHA256 / SHA384 / SHA512 / Insecure.SHA1 / Insecure.MD5 / HMAC / SymmetricKey (CryptoKit)",
+          "api": "SHA256 / SHA384 / SHA512 / Insecure.SHA1 / Insecure.MD5 / HMAC / SymmetricKey / Curve25519.Signing (CryptoKit)",
           "status": "partial",
-          "notes": "pf-small-frameworks (2026-10-31): the hash functions (one-shot and incremental, digests as byte sequences described as Apple's), HMAC over any of them with constant-time validation, and symmetric keys from data or random bytes, in pure Swift. Not done: AES, ChaChaPoly, Curve25519, P256, HKDF, the Secure Enclave",
-          "noFixture": "Nothing to draw: FrameworkTests hold every hash and HMAC to the FIPS 180-4, RFC 1321 and RFC 4231 answers"
+          "notes": "pf-small-frameworks (2026-10-31): the hash functions (one-shot and incremental, digests as byte sequences described as Apple's), HMAC over any of them with constant-time validation, and symmetric keys from data or random bytes, in pure Swift. Ed25519 signatures (Curve25519.Signing, 2026-11-13): keys from their raw bytes or random, deterministic signing and verification (S must be below the group order), matching RFC 8032. Not done: AES, ChaChaPoly, Curve25519 key agreement, P256, HKDF, the Secure Enclave",
+          "noFixture": "Nothing to draw: FrameworkTests hold every hash and HMAC to the FIPS 180-4, RFC 1321 and RFC 4231 answers, and Ed25519 to RFC 8032's vectors"
         },
         {
           "api": "CHHapticEngine / CHHapticPattern / CHHapticEvent / CHHapticPatternPlayer (CoreHaptics)",
