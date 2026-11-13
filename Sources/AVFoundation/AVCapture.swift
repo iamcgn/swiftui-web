@@ -1050,7 +1050,7 @@ open class AVCaptureMetadataOutput: AVCaptureOutput, @unchecked Sendable {
         // Apple calls the delegate only when something is found.
         guard !objects.isEmpty else { return }
         nonisolated(unsafe) let target = delegate
-        nonisolated(unsafe) let found = objects
+        let found = objects
         let connection = self.connection
         guard let queue = metadataObjectsCallbackQueue, queue !== DispatchQueue.main else {
             target.metadataOutput(self, didOutput: found, from: connection)
