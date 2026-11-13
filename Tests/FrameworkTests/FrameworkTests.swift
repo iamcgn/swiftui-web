@@ -152,3 +152,64 @@ private func hex<S: Sequence>(_ bytes: S) -> String where S.Element == UInt8 {
         #expect(formatter.date(from: "2026-10-31") == Date(timeIntervalSince1970: 1_793_404_800))
     }
 }
+
+/// Ed25519 against RFC 8032's test vectors (section 7.1).
+@Suite struct Curve25519SigningTests {
+    private func bytes(_ hex: String) -> [UInt8] {
+        var out: [UInt8] = []
+        var index = hex.startIndex
+        while index < hex.endIndex {
+            let next = hex.index(index, offsetBy: 2)
+            out.append(UInt8(hex[index..<next], radix: 16)!)
+            index = next
+        }
+        return out
+    }
+
+    @Test func rfc8032Vectors() throws {
+        let vectors: [(secret: String, publicKey: String, message: String, signature: String)] = [
+            ("9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+             "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a", "",
+             "e5564300c360ac729086e2cc806e828a84877f1eb8e5d974d873e065224901555fb8821590a33bacc61e39701cf9b46bd25bf5f0595bbe24655141438e7a100b"),
+            ("4ccd089b28ff96da9db6c346ec114e0f5b8a319f35aba624da8cf6ed4fb8a6fb",
+             "3d4017c3e843895a92b70aa74d1b7ebc9c982ccf2ec4968cc0cd55f12af4660c", "72",
+             "92a009a9f0d4cab8720e820b5f642540a2b27b5416503f8fb3762223ebdb69da085ac1e43e15996e458f3613d0f11d8c387b2eaeb4302aeeb00d291612bb0c00"),
+            ("c5aa8df43f9f837bedb7442f31dcb7b166d38535076f094b85ce3a2e0b4458f7",
+             "fc51cd8e6218a1a38da47ed00230f0580816ed13ba3303ac5deb911548908025", "af82",
+             "6291d657deec24024827e69c3abe01a30ce548a284743a445e3680d7db5ac3ac18ff9b538d16f290ae67f760984dc6594a7c15e9716ed28dc027beceea1ec40a"),
+        ]
+        for vector in vectors {
+            let key = try Curve25519.Signing.PrivateKey(rawRepresentation: bytes(vector.secret))
+            #expect(hex(key.publicKey.rawRepresentation) == vector.publicKey)
+            let message = bytes(vector.message)
+            let signature = try key.signature(for: message)
+            #expect(hex(signature) == vector.signature)
+            let publicKey = try Curve25519.Signing.PublicKey(rawRepresentation: bytes(vector.publicKey))
+            #expect(publicKey.isValidSignature(bytes(vector.signature), for: message))
+        }
+    }
+
+    @Test func aChangedMessageOrSignatureFails() throws {
+        let key = Curve25519.Signing.PrivateKey()
+        let message = Array("receipt".utf8)
+        let signature = Array(try key.signature(for: message))
+        #expect(key.publicKey.isValidSignature(signature, for: message))
+        #expect(!key.publicKey.isValidSignature(signature, for: Array("receipT".utf8)))
+        var flipped = signature
+        flipped[10] ^= 1
+        #expect(!key.publicKey.isValidSignature(flipped, for: message))
+        // S at or above the group order is rejected, even though it reduces to the same scalar.
+        var malleable = signature
+        let order: [UInt8] = [0xed, 0xd3, 0xf5, 0x5c, 0x1a, 0x63, 0x12, 0x58, 0xd6, 0x9c, 0xf7, 0xa2, 0xde, 0xf9, 0xde, 0x14,
+                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x10]
+        var carry = 0
+        for i in 0..<32 {
+            let sum = Int(malleable[32 + i]) + Int(order[i]) + carry
+            malleable[32 + i] = UInt8(sum & 0xff)
+            carry = sum >> 8
+        }
+        #expect(!key.publicKey.isValidSignature(malleable, for: message))
+        #expect(!key.publicKey.isValidSignature(Array(signature.prefix(63)), for: message))
+        #expect(throws: CryptoKitError.incorrectKeySize) { try Curve25519.Signing.PublicKey(rawRepresentation: [UInt8](repeating: 0, count: 31)) }
+    }
+}

@@ -768,7 +768,16 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
         }
     }
 
-    public func data(from url: URL, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) { try await data(for: URLRequest(url: url)) }
+    public func data(from url: URL, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) { try await data(for: URLRequest(url: url), delegate: delegate) }
+
+    // The forms without a delegate are their own methods on Apple's URLSession (iOS 15), so a
+    // protocol that requires `data(from:)` (RevenueCat's FontDownloadSession) finds them: a
+    // defaulted parameter does not satisfy a requirement.
+    public func data(for request: URLRequest) async throws -> (Data, URLResponse) { try await data(for: request, delegate: nil) }
+    public func data(from url: URL) async throws -> (Data, URLResponse) { try await data(for: URLRequest(url: url), delegate: nil) }
+    public func download(for request: URLRequest) async throws -> (URL, URLResponse) { try await download(for: request, delegate: nil) }
+    public func download(from url: URL) async throws -> (URL, URLResponse) { try await download(for: URLRequest(url: url), delegate: nil) }
+    public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) { try await upload(for: request, from: bodyData, delegate: nil) }
 
     /// Downloads to a file under the temporary directory (the in-memory file system on wasm,
     /// `Data(contentsOf:)` reads it back, as the Countries image repository does) and answers
@@ -777,7 +786,7 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
         let (data, response) = try await data(for: request)
         return (try Self.temporaryDownload(data), response)
     }
-    public func download(from url: URL, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (URL, URLResponse) { try await download(for: URLRequest(url: url)) }
+    public func download(from url: URL, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (URL, URLResponse) { try await download(for: URLRequest(url: url), delegate: delegate) }
 
     /// Uploads `bodyData` with the request's method (POST unless the request says otherwise).
     public func upload(for request: URLRequest, from bodyData: Data, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {
