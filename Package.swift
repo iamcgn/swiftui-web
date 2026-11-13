@@ -42,6 +42,7 @@ let package = Package(
         .library(name: "EventKit", targets: ["EventKit"]),
         .library(name: "Photos", targets: ["Photos"]),
         .library(name: "PhotosUI", targets: ["PhotosUI"]),
+        .library(name: "AuthenticationServices", targets: ["AuthenticationServices"]),
         .library(name: "CoreMotion", targets: ["CoreMotion"]),
         .library(name: "AudioToolbox", targets: ["AudioToolbox"]),
         .library(name: "StoreKit", targets: ["StoreKit"]),
@@ -152,6 +153,10 @@ let package = Package(
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(name: "PhotosUI", dependencies: ["SwiftUI", "Photos"], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Web sign-in, passkeys, saved passwords and Sign in with Apple's button, over the hooks
+        // SwiftUIWebCanvas installs (a sign-in window, `navigator.credentials`).
+        .target(name: "AuthenticationServicesHost", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "AuthenticationServices", dependencies: ["SwiftUI", "AuthenticationServicesHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // The motion manager over the browser's motion events.
         .target(name: "CoreMotionHost", swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "CoreMotion", dependencies: ["CoreMotionHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -213,7 +218,7 @@ let package = Package(
                 // The audio, speech, notification and data stand-ins' host hooks (decisions
                 // 0021, 0022): Web Audio, the microphone, the on-device recogniser fed the app's
                 // buffers, the Notification API, geolocation, localStorage for SwiftData's stores.
-                "AVFoundation", "Speech", "UserNotifications", "CoreLocationHost", "CoreMotionHost", "SwiftData",
+                "AVFoundation", "Speech", "UserNotifications", "CoreLocationHost", "CoreMotionHost", "SwiftData", "AuthenticationServicesHost",
                 // The on-screen keyboard's frame from the visual viewport into UIKitScene (KeyboardHost.swift).
                 .product(name: "UIKitWebCore", package: "UIKitWeb"),
                 .product(name: "WebGraphicsCanvas", package: "WebGraphics"),
@@ -239,7 +244,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "CoreMotion", "CoreMotionHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // Core Data against a model the plugin generates (Tests/CoreDataTests/Library.xcdatamodeld).

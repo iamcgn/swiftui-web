@@ -29,6 +29,7 @@ public final class CanvasHost {
         DataHost.install()
         SecurityHost.install()
         RegexHost.install()
+        AuthenticationHost.install()
         let host = CanvasHost()
         KeyboardHost.install()
         let windows = windows()
