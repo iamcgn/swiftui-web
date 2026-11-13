@@ -2,7 +2,7 @@
 
 /// Node for `onGeometryChange`: after each layout pass it derives the value from its own frame
 /// and queues the action when the value changed (the first pass runs it with the value as both
-/// the old and the new one).
+/// the old and the new one), scrolled frames included.
 @MainActor
 package final class GeometryChangeNode<Content: View, Value: Equatable>:
     UnaryLayoutModifierNode<Content, _GeometryChangeModifier<Value>>, _PreferenceObserver
@@ -27,6 +27,10 @@ package final class GeometryChangeNode<Content: View, Value: Equatable>:
         last = value
         runtime.scheduler.enqueue { modifier.action(previous, value) }
     }
+
+    /// Its value can follow the frame in the window, which a scroll moves: a scroll view
+    /// around it lays out on each scroll frame so the value is read again.
+    override package var readsGeometry: Bool { true }
 
     override package var nodeDescription: String { "OnGeometryChange" }
 }
