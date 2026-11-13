@@ -27,12 +27,12 @@ open class BGTaskRequest: NSObject, @unchecked Sendable {
 }
 
 /// A request to launch the app briefly to refresh its content.
-open class BGAppRefreshTaskRequest: BGTaskRequest {
+open class BGAppRefreshTaskRequest: BGTaskRequest, @unchecked Sendable {
     public init(identifier: String) { super.init(_identifier: identifier) }
 }
 
 /// A request to launch the app for longer work, such as maintenance.
-open class BGProcessingTaskRequest: BGTaskRequest {
+open class BGProcessingTaskRequest: BGTaskRequest, @unchecked Sendable {
     /// Whether the work needs the network (a page that is running has it).
     open var requiresNetworkConnectivity = false
     /// Whether the work waits for the device to be charging (a page cannot tell, so it waits).
@@ -41,7 +41,7 @@ open class BGProcessingTaskRequest: BGTaskRequest {
 }
 
 /// A request to launch the app to process health research data.
-open class BGHealthResearchTaskRequest: BGProcessingTaskRequest {
+open class BGHealthResearchTaskRequest: BGProcessingTaskRequest, @unchecked Sendable {
     /// The file protection the data needs (`FileProtectionType`'s raw value).
     open var protectionTypeOfRequiredData = "NSFileProtectionCompleteUntilFirstUserAuthentication"
 }
@@ -81,11 +81,11 @@ open class BGTask: NSObject, @unchecked Sendable {
 }
 
 /// A task that refreshes the app's content (30 seconds).
-open class BGAppRefreshTask: BGTask {}
+open class BGAppRefreshTask: BGTask, @unchecked Sendable {}
 /// A task for longer work (until the app comes back to the foreground).
-open class BGProcessingTask: BGTask {}
+open class BGProcessingTask: BGTask, @unchecked Sendable {}
 /// A task that processes health research data.
-open class BGHealthResearchTask: BGProcessingTask {}
+open class BGHealthResearchTask: BGProcessingTask, @unchecked Sendable {}
 
 // MARK: - Scheduler
 
