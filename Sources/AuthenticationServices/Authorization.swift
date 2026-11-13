@@ -55,10 +55,11 @@ public struct ASAuthorizationError: CustomNSError, Hashable, Sendable {
     public static var failed: Code { .failed }
     public static var notInteractive: Code { .notInteractive }
     public static var matchedExcludedCredential: Code { .matchedExcludedCredential }
+}
 
-    public static func ~= (code: Code, error: any Error) -> Bool {
-        (error as? ASAuthorizationError)?.code == code
-    }
+/// Lets `catch ASAuthorizationError.canceled` match the error.
+public func ~= (code: ASAuthorizationError.Code, error: any Error) -> Bool {
+    (error as? ASAuthorizationError)?.code == code
 }
 
 // MARK: - Authorizations, providers, requests and credentials
@@ -577,7 +578,7 @@ open class ASAuthorizationController: NSObject, @unchecked Sendable {
             return
         }
         running = true
-        nonisolated(unsafe) weak let controller = self
+        weak let controller = self
         let abort = credentials(call.method, call.options) { result, errorName in
             controller?.finish(call.authorization(from: result, errorName: errorName))
         }
@@ -592,8 +593,7 @@ open class ASAuthorizationController: NSObject, @unchecked Sendable {
     }
 
     private func deliver(_ result: Result<ASAuthorization, any Error>) {
-        nonisolated(unsafe) let controller = self
-        nonisolated(unsafe) let result = result
+        let controller = self
         Task { @MainActor in
             switch result {
             case let .success(authorization): controller.delegate?.authorizationController(controller: controller, didCompleteWithAuthorization: authorization)

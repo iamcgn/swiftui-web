@@ -43,10 +43,11 @@ public struct ASWebAuthenticationSessionError: CustomNSError, Hashable, Sendable
     public static var canceledLogin: Code { .canceledLogin }
     public static var presentationContextNotProvided: Code { .presentationContextNotProvided }
     public static var presentationContextInvalid: Code { .presentationContextInvalid }
+}
 
-    public static func ~= (code: Code, error: any Error) -> Bool {
-        (error as? ASWebAuthenticationSessionError)?.code == code
-    }
+/// Lets `catch ASWebAuthenticationSessionError.canceledLogin` match the error.
+public func ~= (code: ASWebAuthenticationSessionError.Code, error: any Error) -> Bool {
+    (error as? ASWebAuthenticationSessionError)?.code == code
 }
 
 /// Provides the window a web authentication session presents its sign-in page from.
@@ -136,7 +137,7 @@ open class ASWebAuthenticationSession: NSObject, @unchecked Sendable {
         }
         started = true
         let callback = callback
-        nonisolated(unsafe) weak let session = self
+        weak let session = self
         let close = open(url.absoluteString, { address in
             guard let reached = URL(string: address) else { return false }
             guard let callback else { return reached.scheme.map { !["http", "https", "about"].contains($0.lowercased()) } ?? false }
