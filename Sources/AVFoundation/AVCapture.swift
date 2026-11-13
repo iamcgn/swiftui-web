@@ -174,6 +174,12 @@ private func _reportChange<Object: NSObject, Value>(_ object: Object, _ keyPath:
     #endif
 }
 
+/// Whether a delegate queue is the main queue, where a delegate is called at once (the host's
+/// callbacks are on the main thread). Linux's `DispatchQueue.main` is a new object each time.
+private func _isMainQueue(_ queue: DispatchQueue) -> Bool {
+    queue === DispatchQueue.main || queue.label == DispatchQueue.main.label
+}
+
 /// Runs on the main actor, after what is running now.
 private func _onMain(_ work: @escaping @MainActor @Sendable () -> Void) {
     Task { @MainActor in work() }
@@ -915,7 +921,7 @@ open class AVCaptureVideoDataOutput: AVCaptureOutput, @unchecked Sendable {
         guard let delegate = sampleBufferDelegate, connection.isEnabled else { return }
         nonisolated(unsafe) let target = delegate
         let connection = self.connection
-        guard let queue = sampleBufferCallbackQueue, queue !== DispatchQueue.main else {
+        guard let queue = sampleBufferCallbackQueue, !_isMainQueue(queue) else {
             target.captureOutput(self, didOutput: buffer, from: connection)
             return
         }
@@ -1052,7 +1058,7 @@ open class AVCaptureMetadataOutput: AVCaptureOutput, @unchecked Sendable {
         nonisolated(unsafe) let target = delegate
         let found = objects
         let connection = self.connection
-        guard let queue = metadataObjectsCallbackQueue, queue !== DispatchQueue.main else {
+        guard let queue = metadataObjectsCallbackQueue, !_isMainQueue(queue) else {
             target.metadataOutput(self, didOutput: found, from: connection)
             return
         }
