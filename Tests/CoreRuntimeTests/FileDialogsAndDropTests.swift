@@ -1,6 +1,7 @@
 // fileImporter and fileExporter through the runtime's file handlers, onDrop with item providers
 // and drop delegates, onScrollVisibilityChange, and the iOS 18-26 presentation and bar modifiers
 // apps put on their views (IceCubes, Dime, IcySky, CriticalMaps, OscarWeather).
+import Foundation
 import Testing
 import SwiftUI
 import SwiftUIWebCore
@@ -21,15 +22,17 @@ private struct Importer: View {
     let model: DialogModel
     var multiple = false
     var body: some View {
-        Color.clear.frame(width: 10, height: 10)
+        let model = self.model
+        let completion: (Result<[URL], any Error>) -> Void = { result in
+            switch result {
+            case .success(let urls): model.imported += urls
+            case .failure: model.failures += 1
+            }
+        }
+        return Color.clear.frame(width: 10, height: 10)
             .fileImporter(isPresented: Binding(get: { model.importing }, set: { model.importing = $0 }),
                           allowedContentTypes: [.commaSeparatedText], allowsMultipleSelection: multiple,
-                          onCompletion: { result in
-                              switch result {
-                              case .success(let urls): model.imported += urls
-                              case .failure: model.failures += 1
-                              }
-                          }, onCancellation: { model.cancellations += 1 })
+                          onCompletion: completion, onCancellation: { model.cancellations += 1 })
     }
 }
 
@@ -313,6 +316,8 @@ private struct VisibilityRows: View {
     }
 }
 
+// Deprecated API in a deprecated context: no warnings (the package treats them as errors).
+@available(*, deprecated)
 private struct Modern: View {
     @Namespace private var namespace
     @State private var text = ""
@@ -352,6 +357,7 @@ private struct Modern: View {
         #expect(log.events == ["0 true", "0 false", "20 true"])
     }
 
+    @available(*, deprecated)
     @Test func modernModifiersKeepTheView() {
         let runtime = Runtime()
         runtime.mount(Modern())
