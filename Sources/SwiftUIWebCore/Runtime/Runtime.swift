@@ -341,6 +341,7 @@ public final class Runtime {
         self.root = RootNode(runtime: self, environment: environment)
         installPasteboard()
         rootEnvironment.resetFocus = ResetFocusAction(runtime: self)
+        rootEnvironment._fileDialogs = _FileDialogs(runtime: self)
         root.environment = rootEnvironment
     }
 
