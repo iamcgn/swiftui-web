@@ -30,7 +30,7 @@ from pathlib import Path
 # and what the wasm SDK itself carries.
 OURS = {
     "SwiftUI", "UIKit", "Foundation", "Combine", "Security", "SafariServices", "Charts", "MapKit",
-    "CoreLocation", "AVFoundation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit",
+    "CoreLocation", "AVFoundation", "AVFAudio", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit",
     "os", "OSLog", "CoreGraphics", "UniformTypeIdentifiers", "CoreData", "CryptoKit", "CoreHaptics", "CoreImage", "WidgetKit", "StoreKit", "AppIntents",
     "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices", "SystemConfiguration",
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit",
@@ -790,6 +790,7 @@ WEB_PRODUCTS = [
     ("Charts", "SwiftUIWeb"),
     ("MapKit", "SwiftUIWeb"),
     ("AVFoundation", "SwiftUIWeb"),
+    ("AVFAudio", "SwiftUIWeb"),
     ("AVKit", "SwiftUIWeb"),
     ("Speech", "SwiftUIWeb"),
     ("SwiftData", "SwiftUIWeb"),

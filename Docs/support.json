@@ -2585,6 +2585,12 @@
           "noFixture": "Nothing to draw: CoreRuntimeTests feed the manager browser readings and check the conversions"
         },
         {
+          "api": "AVCaptureSession / AVCaptureDevice / AVCaptureVideoPreviewLayer / AVCapturePhotoOutput / AVCaptureVideoDataOutput / AVCaptureMetadataOutput / AVCaptureMovieFileOutput (AVFoundation)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-13): the capture session opens the browser's camera (getUserMedia, asking the person the first time) with the facing its device asks for (the back camera is the browser's environment camera, the front its user camera, so on a computer both are its webcam) at about the preset's width. The preview layer, as a view's layerClass or a sublayer, shows the stream live in a video element where the layer is, fitted by its video gravity and mirrored for the front camera; a video data output gets the stream's frames as BGRA pixel buffers in sample buffers, a photo output stills as JPEG data with their pixels (fileDataRepresentation, cgImageRepresentation), a metadata output the codes the browser's BarcodeDetector reads (QR, EAN, UPC, Code 39, 93 and 128, PDF417, Aztec, Data Matrix, ITF, Codabar, where the browser has it) with their corners, which the preview layer converts to its points, and a movie file output what MediaRecorder records, written to the file. The torch, zoom and point of interest go to the camera where the browser can set them; a refused or missing camera posts the runtime error notification. AVFAudio is its own module, as on Apple's platforms. Not done: flash, RAW, depth, Live Photos, bracketed exposures (each is the same still), exposure and focus locks, multiple cameras at once, and face detection",
+          "noFixture": "Nothing to draw: CoreRuntimeTests drive sessions through a stand-in camera and check the preview's host element in a representable"
+        },
+        {
           "api": "AudioServicesPlaySystemSound / AudioServicesPlayAlertSound / SystemSoundID (AudioToolbox)",
           "status": "stub",
           "notes": "pf-small-frameworks (2026-11-09): a page has no system sound set and no vibration, so system sounds (and kSystemSoundID_Vibrate) play silently; the completion forms call their block at once. Not done: any sound (an app's own audio plays through AVAudioPlayer)",

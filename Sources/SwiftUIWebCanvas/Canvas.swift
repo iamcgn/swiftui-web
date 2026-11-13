@@ -25,6 +25,7 @@ public final class CanvasHost {
         NotificationsHost.install()
         GeolocationHost.install()
         MotionHost.install()
+        CaptureHost.install()
         NetworkHost.install()
         DataHost.install()
         SecurityHost.install()

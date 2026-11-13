@@ -1,4 +1,5 @@
-// Audio for the web (decision 0021, pf-avfoundation-audio): `AVAudioPlayer` over the host's
+// Audio for the web (decision 0021, pf-avfoundation-audio), in AVFAudio as on Apple's platforms
+// (AVFoundation re-exports it): `AVAudioPlayer` over the host's
 // audio element, `AVAudioSession` and `AVAudioApplication` over its microphone permission,
 // `AVAudioEngine` whose input node is the microphone delivering `AVAudioPCMBuffer`s to a tap.
 // The module is host-agnostic: a host installs `_AVAudioHost` (the browser host with Web Audio
