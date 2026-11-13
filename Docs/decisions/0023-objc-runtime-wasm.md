@@ -141,5 +141,10 @@ fbb333cf with a clean tree.
   bridges in a value holder like `Date`, so a selector observer's method takes it and
   `addObserver(_:selector:name:object:)` passes it; `Timer` gains the target-action
   `scheduledTimer(timeInterval:target:selector:userInfo:repeats:)`, which passes the timer.
+- 2026-11-13, RevenueCat and Gifu: `URLResponse` is an `NSObject` under the runtime, as
+  Foundation's is, so types holding one synthesize `Equatable`; `NSError.UserInfoKey` is
+  `NSString` there, as it is on Apple platforms, so overloads on `[NSError.UserInfoKey: Any]`
+  and `[String: Any]` stay two functions. `UTType(_:)` is failable on both SDKs, as Apple's is
+  (nil for an empty identifier).
 - `#selector`-based `UIKeyCommand`s do nothing on builds without the runtime; the closure
   form works everywhere.

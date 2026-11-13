@@ -357,7 +357,7 @@ extension UTType {
         case "application/octet-stream", "files": identifier = "public.data"
         default: identifier = mime
         }
-        self.init(identifier)
+        self.init(_declared: identifier)
     }
 
     /// Whether the type is text (its bytes are UTF-8 to read as a string).
@@ -394,7 +394,7 @@ extension UTType {
     public var supertypes: Set<UTType> {
         var found: Set<UTType> = [.data, .item, .content]
         var current = identifier
-        while let parent = Self._parents[current] { found.insert(UTType(parent)); current = parent }
+        while let parent = Self._parents[current] { found.insert(UTType(_declared: parent)); current = parent }
         if isText && self != .url && self != .fileURL { found.insert(.text) }
         found.remove(self)
         return found
@@ -461,7 +461,7 @@ extension UTType {
             "text/tab-separated-values": "public.tab-separated-values-text", "application/epub+zip": "org.idpf.epub-container",
         ]
         if let identifier = extra[lower] {
-            self = UTType(identifier)
+            self = UTType(_declared: identifier)
         } else {
             let type = UTType(_mime: lower)
             guard type.identifier != lower, type != .data else { return nil }

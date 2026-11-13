@@ -234,7 +234,7 @@ extension Color {
 
 extension UTType {
     /// A colour on the pasteboard (AppKit's `NSPasteboard.PasteboardType.color`).
-    public static let color = UTType("com.apple.cocoa.pasteboard.color")
+    public static let color = UTType(_declared: "com.apple.cocoa.pasteboard.color")
 }
 
 /// Colours drag and drop (`draggable`, `dropDestination(for: Color.self)`, a colour well): the

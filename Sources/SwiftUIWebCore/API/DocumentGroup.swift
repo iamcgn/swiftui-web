@@ -216,5 +216,5 @@ extension UTType {
 
     // rtf, html and commaSeparatedText are WebGraphics' own: declaring them here too makes
     // `.commaSeparatedText` ambiguous in a module that sees both.
-    public static let xml = UTType("public.xml")
+    public static let xml = UTType(_declared: "public.xml")
 }

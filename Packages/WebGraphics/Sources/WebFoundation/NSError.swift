@@ -73,8 +73,16 @@ open class NSError: Error, CustomStringConvertible, @unchecked Sendable {
 #endif
 
 extension NSError {
+    #if canImport(ObjectiveC)
+    /// The keys of an error's user info. Under the Objective-C runtime it is `NSString`, as
+    /// Foundation's is on Apple platforms, so an overload on `[NSError.UserInfoKey: Any]` and one
+    /// on `[String: Any]` are two functions (RevenueCat's `Error.addingUserInfo`), and a key
+    /// converts with `as String`.
+    public typealias UserInfoKey = NSString
+    #else
     /// The keys of an error's user info, which Swift spells as strings.
     public typealias UserInfoKey = String
+    #endif
 }
 
 public let NSLocalizedDescriptionKey = "NSLocalizedDescription"
