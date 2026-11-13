@@ -47,14 +47,17 @@ private func appendLE32(_ out: inout [UInt8], _ value: some BinaryInteger) {
     for shift in stride(from: 0, to: 32, by: 8) { out.append(UInt8(truncatingIfNeeded: value >> shift)) }
 }
 
+/// The four bytes at `at` as a size or tag. On wasm an `Int` is 32 bits, so a value from 2 GB up
+/// (a corrupt or hostile header) throws rather than turning negative and trapping a slice.
 private func le32(_ bytes: [UInt8], _ at: Int) throws -> Int {
-    guard at >= 0, at + 4 <= bytes.count else { throw _CompressionError() }
-    return Int(bytes[at]) | Int(bytes[at + 1]) << 8 | Int(bytes[at + 2]) << 16 | Int(bytes[at + 3]) << 24
+    guard let value = Int(exactly: try le32u(bytes, at)) else { throw _CompressionError() }
+    return value
 }
 
-/// The four bytes at `at` as a 32-bit value, for checksums (an `Int` is 32 bits on wasm).
+/// The four bytes at `at` as a 32-bit value, for checksums.
 private func le32u(_ bytes: [UInt8], _ at: Int) throws -> UInt32 {
-    UInt32(truncatingIfNeeded: try le32(bytes, at))
+    guard at >= 0, at <= bytes.count - 4 else { throw _CompressionError() }
+    return UInt32(bytes[at]) | UInt32(bytes[at + 1]) << 8 | UInt32(bytes[at + 2]) << 16 | UInt32(bytes[at + 3]) << 24
 }
 
 private func magic(_ text: String) -> Int {
@@ -154,13 +157,13 @@ private func readLZ4Frame(_ source: [UInt8]) throws -> [UInt8] {
         case lz4Stored:
             let size = try le32(source, p + 4)
             p += 8
-            guard p + size <= source.count else { throw _CompressionError() }
+            guard size <= source.count - p else { throw _CompressionError() }
             out += source[p..<(p + size)]
             p += size
         case lz4Block:
             let size = try le32(source, p + 4), payload = try le32(source, p + 8)
             p += 12
-            guard p + payload <= source.count else { throw _CompressionError() }
+            guard payload <= source.count - p else { throw _CompressionError() }
             let before = out.count
             try lz4Decode(source, p, p + payload, &out)
             guard out.count - before == size else { throw _CompressionError() }
@@ -265,13 +268,13 @@ private func readLZFSEFrame(_ source: [UInt8]) throws -> [UInt8] {
         case lzfseStored:
             let size = try le32(source, p + 4)
             p += 8
-            guard p + size <= source.count else { throw _CompressionError() }
+            guard size <= source.count - p else { throw _CompressionError() }
             out += source[p..<(p + size)]
             p += size
         case lzfseLZVN:
             let size = try le32(source, p + 4), payload = try le32(source, p + 8)
             p += 12
-            guard p + payload <= source.count else { throw _CompressionError() }
+            guard payload <= source.count - p else { throw _CompressionError() }
             let before = out.count
             try lzvnDecode(source, p, p + payload, &out)
             guard out.count - before == size else { throw _CompressionError() }

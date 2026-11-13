@@ -330,6 +330,7 @@ package final class OnDropNode<Content: View>: UnaryLayoutModifierNode<Content, 
     private var targeted = false
     private var item: _TransferItem?
     private var location: CGPoint = .zero
+    private var proposed: DropOperation?
 
     private func info(_ item: _TransferItem) -> DropInfo { DropInfo(location: location, item: item) }
 
@@ -351,12 +352,15 @@ package final class OnDropNode<Content: View>: UnaryLayoutModifierNode<Content, 
     package func dragUpdated(_ item: _TransferItem, at point: CGPoint) {
         self.item = item
         location = point
-        _ = modifier.delegate.dropUpdated(info: info(item))
+        proposed = modifier.delegate.dropUpdated(info: info(item))?.operation
     }
 
     package func perform(_ item: _TransferItem, at point: CGPoint) -> Bool {
         self.item = item
         location = point
+        // A delegate that last proposed cancelling or forbidding the drop is not asked to perform it.
+        defer { proposed = nil }
+        if proposed == .cancel || proposed == .forbidden { return false }
         return modifier.delegate.performDrop(info: info(item))
     }
 
