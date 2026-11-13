@@ -42,6 +42,15 @@ import Foundation
         #expect(Array(_compress(Self.text, .lzma).prefix(6)) == [0xFD, 0x37, 0x7A, 0x58, 0x5A, 0x00])
     }
 
+    @Test func aHeaderClaimingTwoGigabytesOrMoreThrows() {
+        // A stored block whose size has its top bit set: negative as a 32-bit Int, which once
+        // made a slice trap on wasm instead of throwing.
+        let huge: [UInt8] = [0xFF, 0xFF, 0xFF, 0x80]
+        #expect(throws: (any Error).self) { try _decompress(Array("bv4-".utf8) + huge + [1, 2, 3], .lz4) }
+        #expect(throws: (any Error).self) { try _decompress(Array("bvx-".utf8) + huge + [1, 2, 3], .lzfse) }
+        #expect(throws: (any Error).self) { try _decompress(Array("bvxn".utf8) + [4, 0, 0, 0] + huge + [1, 2, 3], .lzfse) }
+    }
+
     @Test func rejectsAnotherAlgorithmsBytes() {
         let packed = _compress(Self.text, .lz4)
         for format in [_CompressionFormat.lzfse, .lzma, .zlib] {

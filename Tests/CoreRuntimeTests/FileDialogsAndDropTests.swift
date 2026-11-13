@@ -184,13 +184,14 @@ private final class DropLog {
     var performed: [CGPoint] = []
     var providers: [[NSItemProvider]] = []
     var accept = true
+    var proposal: DropOperation = .move
 }
 
 private struct Delegate: DropDelegate {
     let log: DropLog
     func validateDrop(info: DropInfo) -> Bool { log.accept && info.hasItemsConforming(to: [.text]) }
     func dropEntered(info: DropInfo) { log.entered += 1 }
-    func dropUpdated(info: DropInfo) -> DropProposal? { log.updated += 1; return DropProposal(operation: .move) }
+    func dropUpdated(info: DropInfo) -> DropProposal? { log.updated += 1; return DropProposal(operation: log.proposal) }
     func dropExited(info: DropInfo) { log.exited += 1 }
     func performDrop(info: DropInfo) -> Bool {
         log.performed.append(info.location)
@@ -263,6 +264,18 @@ private struct DropBoard: View {
         r.pointerMoved(to: CGPoint(x: 180, y: 100))
         r.pointerUp(at: CGPoint(x: 180, y: 100))
         #expect(log.entered == 0 && log.performed.isEmpty)
+    }
+
+    @Test func aForbiddenProposalIsNotPerformed() {
+        let log = DropLog()
+        log.proposal = .forbidden
+        let r = board(log)
+        r.pointerDown(at: CGPoint(x: 70, y: 100))
+        r.pointerMoved(to: CGPoint(x: 80, y: 100))
+        r.pointerMoved(to: CGPoint(x: 180, y: 100))
+        r.pointerMoved(to: CGPoint(x: 190, y: 110))
+        r.pointerUp(at: CGPoint(x: 190, y: 110))
+        #expect(log.updated >= 1 && log.performed.isEmpty)
     }
 
     @Test func actionGetsProvidersAndTheBindingFollows() {
