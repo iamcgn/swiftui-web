@@ -11,7 +11,8 @@ public struct UTType: Hashable, Sendable, CustomStringConvertible {
         guard !identifier.isEmpty else { return nil }
         self.identifier = identifier
     }
-    init(_declared identifier: String) { self.identifier = identifier }
+    /// The type with an identifier the SDK declares itself (its constants, MIME and drag lookups).
+    public init(_declared identifier: String) { self.identifier = identifier }
     /// A type the app declares (its Info.plist's exported types on iOS; here the identifier).
     public init(exportedAs identifier: String, conformingTo parentType: UTType? = nil) { self.identifier = identifier }
     /// A type another app declares, which this one uses.

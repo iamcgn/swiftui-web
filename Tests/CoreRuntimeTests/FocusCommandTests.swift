@@ -85,7 +85,7 @@ import SwiftUIWebHeadless
         #expect(log.events.last == "pasted 1")
         // The paste handler's types must include a text type.
         let image = Log()
-        let other = runtime(Button("One") {}.onPasteCommand(of: [UTType("public.png")]) { _ in image.events.append("pasted") })
+        let other = runtime(Button("One") {}.onPasteCommand(of: [.png]) { _ in image.events.append("pasted") })
         other.setPasteboard([_TransferItem("text")])
         other.moveFocus()
         #expect(!other.keyDown(key("v", [.command])) && image.events.isEmpty)

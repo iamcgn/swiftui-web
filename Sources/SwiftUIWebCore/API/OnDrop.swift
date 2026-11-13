@@ -42,13 +42,13 @@ public struct DropInfo {
     public func hasItemsConforming(to contentTypes: [UTType]) -> Bool { item.conforms(toAnyOf: contentTypes) }
 
     /// Whether the drag carries an item of one of the type identifiers.
-    public func hasItemsConforming(to types: [String]) -> Bool { hasItemsConforming(to: types.map { UTType($0) }) }
+    public func hasItemsConforming(to types: [String]) -> Bool { hasItemsConforming(to: types.map { UTType(_declared: $0) }) }
 
     /// Item providers for the drag's items that conform to one of the types.
     public func itemProviders(for contentTypes: [UTType]) -> [NSItemProvider] { item.itemProviders(for: contentTypes) }
 
     /// Item providers for the drag's items that conform to one of the type identifiers.
-    public func itemProviders(for types: [String]) -> [NSItemProvider] { itemProviders(for: types.map { UTType($0) }) }
+    public func itemProviders(for types: [String]) -> [NSItemProvider] { itemProviders(for: types.map { UTType(_declared: $0) }) }
 }
 
 /// An interface that a drop destination's delegate implements to follow and perform the drop.
@@ -136,20 +136,20 @@ extension View {
     /// Makes this view a drop destination for items of the type identifiers.
     nonisolated public func onDrop(of supportedTypes: [String], isTargeted: Binding<Bool>?,
                                    perform action: @escaping (_ providers: [NSItemProvider]) -> Bool) -> some View {
-        onDrop(of: supportedTypes.map { UTType($0) }, isTargeted: isTargeted, perform: action)
+        onDrop(of: supportedTypes.map { UTType(_declared: $0) }, isTargeted: isTargeted, perform: action)
     }
 
     /// Makes this view a drop destination for items of the type identifiers; `action` also gets
     /// the location.
     nonisolated public func onDrop(of supportedTypes: [String], isTargeted: Binding<Bool>?,
                                    perform action: @escaping (_ providers: [NSItemProvider], _ location: CGPoint) -> Bool) -> some View {
-        onDrop(of: supportedTypes.map { UTType($0) }, isTargeted: isTargeted, perform: action)
+        onDrop(of: supportedTypes.map { UTType(_declared: $0) }, isTargeted: isTargeted, perform: action)
     }
 
     /// Makes this view a drop destination for items of the type identifiers, following the
     /// drag through `delegate`.
     nonisolated public func onDrop(of supportedTypes: [String], delegate: some DropDelegate) -> some View {
-        onDrop(of: supportedTypes.map { UTType($0) }, delegate: delegate)
+        onDrop(of: supportedTypes.map { UTType(_declared: $0) }, delegate: delegate)
     }
 }
 
@@ -247,11 +247,11 @@ public struct _ItemProviderError: Error, CustomStringConvertible {
 
 extension NSItemProvider {
     /// The content types the provider has items for.
-    public var registeredContentTypes: [UTType] { registeredTypeIdentifiers.map { UTType($0) } }
+    public var registeredContentTypes: [UTType] { registeredTypeIdentifiers.map { UTType(_declared: $0) } }
 
     /// The registered identifier that names `contentType` or one of its subtypes.
     private func _identifier(conformingTo contentType: UTType) -> String? {
-        registeredTypeIdentifiers.first { UTType($0).conforms(to: contentType) }
+        registeredTypeIdentifiers.first { UTType(_declared: $0).conforms(to: contentType) }
             ?? (hasItemConformingToTypeIdentifier(contentType.identifier) ? contentType.identifier : nil)
     }
 
@@ -271,7 +271,7 @@ extension NSItemProvider {
     @discardableResult
     public func loadDataRepresentation(forTypeIdentifier typeIdentifier: String,
                                        completionHandler: @escaping (Data?, (any Error)?) -> Void) -> Progress {
-        loadDataRepresentation(for: UTType(typeIdentifier), completionHandler: completionHandler)
+        loadDataRepresentation(for: UTType(_declared: typeIdentifier), completionHandler: completionHandler)
     }
 
     /// Loads the bytes of the item of a type that conforms to `contentType`; the handler runs
@@ -299,7 +299,7 @@ extension NSItemProvider {
                 completionHandler(.success(value))
                 return progress
             }
-            let type = UTType(identifier)
+            let type = UTType(_declared: identifier)
             let external: ExternalDragItem
             if let url = item as? URL, url.isFileURL || url.scheme == "memory" {
                 external = ExternalDragItem(type: type._mime, data: try? Data(contentsOf: url), fileName: url.lastPathComponent)
