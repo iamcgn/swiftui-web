@@ -52,10 +52,15 @@ public struct CALayerCornerCurve: Hashable, Sendable, RawRepresentable {
     public static let continuous = CALayerCornerCurve(rawValue: "continuous")
 }
 
+/// The layer tree's root: with an Objective-C runtime (decision 0023) it is `NSObject`, as
+/// Core Animation's is, so a layer can be passed to and returned from `@objc` methods (the
+/// layer delegate's `display(_:)`); without one it is the responders' plain root.
+public typealias CALayerBase = UIResponderBase
+
 /// An object that manages image-based content and allows you to perform animations on that
 /// content.
 @preconcurrency @MainActor
-open class CALayer {
+open class CALayer: CALayerBase {
     // MARK: Geometry
 
     /// The layer's own coordinate rectangle: its size, and the origin its content is scrolled to.
@@ -208,7 +213,22 @@ open class CALayer {
     /// The explicit animations added by key (Layers/CAAnimation.swift).
     var explicitAnimations: [String: (animation: CAAnimation, group: UIViewAnimationGroup)] = [:]
 
-    public required init() {}
+    public override required init() { super.init() }
+
+    #if canImport(ObjectiveC)
+    /// Key-value coding on a layer, as Core Animation's: a key the layer has no property for
+    /// holds whatever is set under it (apps tag layers with `setValue(_:forKey:)`), where
+    /// NSObject's default would raise. Nonisolated, as NSObject's key-value coding is.
+    nonisolated(unsafe) private var valuesForUndefinedKeys: [String: Any] = [:]
+
+    nonisolated open override func setValue(_ value: Any?, forUndefinedKey key: String) {
+        valuesForUndefinedKeys[key] = value
+    }
+
+    nonisolated open override func value(forUndefinedKey key: String) -> Any? {
+        valuesForUndefinedKeys[key]
+    }
+    #endif
 
     /// A copy of a layer's properties (`init(layer:)` in CoreAnimation).
     public init(layer: Any) {
