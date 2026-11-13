@@ -4,7 +4,7 @@
 // (`_hostStore`: the browser host keeps it in localStorage under the suite's name); registered
 // defaults answer for missing keys as Foundation's do.
 #if os(WASI)
-public final class UserDefaults: @unchecked Sendable {
+public final class UserDefaults: _WebObjectBase, @unchecked Sendable {
     /// The app's defaults.
     public static let standard = UserDefaults(suite: nil)
     public static let didChangeNotification = Notification.Name("NSUserDefaultsDidChangeNotification")
@@ -27,7 +27,11 @@ public final class UserDefaults: @unchecked Sendable {
 
     public func object(forKey key: String) -> Any? { _stored(forKey: key)?.any }
     /// Key-value coding's read, which on Apple's platforms answers as `object(forKey:)`.
+    #if canImport(ObjectiveC)
+    public override func value(forKey key: String) -> Any? { object(forKey: key) }
+    #else
     public func value(forKey key: String) -> Any? { object(forKey: key) }
+    #endif
     public func string(forKey key: String) -> String? {
         switch _stored(forKey: key) {
         case .string(let s)?: return s
@@ -94,7 +98,11 @@ public final class UserDefaults: @unchecked Sendable {
     public func set(_ url: URL?, forKey key: String) { set(url?.absoluteString as Any?, forKey: key) }
     public func removeObject(forKey key: String) { set(nil, forKey: key) }
     /// Key-value coding's write, which on Apple's platforms stores as `set(_:forKey:)`.
+    #if canImport(ObjectiveC)
+    public override func setValue(_ value: Any?, forKey key: String) { set(value, forKey: key) }
+    #else
     public func setValue(_ value: Any?, forKey key: String) { set(value, forKey: key) }
+    #endif
     public func register(defaults: [String: Any]) {
         for (key, value) in defaults { if let stored = _Value(value) { registered[key] = stored } }
     }
