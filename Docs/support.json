@@ -2567,6 +2567,18 @@
           "noFixture": "Nothing to draw: CoreRuntimeTests check the saves, fetches and image requests"
         },
         {
+          "api": "ASWebAuthenticationSession / WebAuthenticationSession / webAuthenticationSession (AuthenticationServices)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-13): the session opens the sign-in page in a window of its own and reads the address that window reaches once it is back on the page's origin; when that address is the callback, the window closes and the session (or the async `authenticate`) returns it, and closing the window cancels with canceledLogin. An https callback on the app's own site completes (the API IceCubes', Thunderbird's and GistHub's OAuth sign-ins call). Not done: custom-scheme callbacks (a browser cannot hand `myapp://` back to the page, so those end when the window closes), ephemeral sessions (the browser's windows share their cookies) and extra header fields",
+          "noFixture": "Nothing to draw: CoreRuntimeTests drive sessions through a stand-in window"
+        },
+        {
+          "api": "ASAuthorizationController / authorizationController / passkeys, security keys, passwords / SignInWithAppleButton (AuthenticationServices)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-13): passkey and security-key registrations and assertions go to the browser's WebAuthn (`navigator.credentials`) with the request's relying party, challenge, user, allowed and excluded credentials and preferences, and the browser's credential comes back unchanged (client data, attestation object, authenticator data, signature, user handle), to the delegate or as an ASAuthorizationResult; a password request asks for a saved password with them. Dismissing the browser's sheet is canceled, an excluded credential matchedExcludedCredential. The Sign in with Apple button draws Apple's black, white and outlined buttons and its requests end as notHandled, and an Apple ID's state is notFound. Not done: Sign in with Apple itself (it needs the developer's web service ID), relying parties other than the page's own site, single sign-on providers and custom methods",
+          "noFixture": "Nothing to draw yet: CoreRuntimeTests check the WebAuthn options, the credentials and the errors"
+        },
+        {
           "api": "AudioServicesPlaySystemSound / AudioServicesPlayAlertSound / SystemSoundID (AudioToolbox)",
           "status": "stub",
           "notes": "pf-small-frameworks (2026-11-09): a page has no system sound set and no vibration, so system sounds (and kSystemSoundID_Vibrate) play silently; the completion forms call their block at once. Not done: any sound (an app's own audio plays through AVAudioPlayer)",
