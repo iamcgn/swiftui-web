@@ -25,7 +25,7 @@ OUR_MODULES = {
     "SwiftUI", "SwiftUIWebCore", "SwiftUIWebUIKit", "SwiftUIWebCanvas", "Charts", "MapKit", "CoreLocation",
     "AVFoundation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "UIKit", "UIKitWebCore",
     "WebFoundation", "WebFoundationFormats", "WebDecimalFormats", "WebCombine", "WebGraphics", "Foundation", "Combine", "Security", "SafariServices",
-    "CoreData", "WebCoreData", "CryptoKit", "CoreHaptics", "CoreImage", "WebCoreImage", "WidgetKit", "StoreKit", "AppIntents",
+    "CoreData", "WebCoreData", "CryptoKit", "CoreHaptics", "CoreImage", "WebCoreImage", "WidgetKit", "StoreKit", "AppIntents", "Photos", "PhotosUI",
 }
 SKIP_KINDS = {"swift.deinit"}
 
