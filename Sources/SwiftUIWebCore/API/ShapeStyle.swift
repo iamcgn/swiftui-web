@@ -304,11 +304,15 @@ extension _BlendModeShapeStyle: _GradientStyle {
 }
 
 extension ShapeStyle {
-    /// The style composited onto what is behind it with `mode`. Disfavoured, so a colour or
-    /// gradient used as a view (`.overlay(Color.black.blendMode(.multiply))`) keeps the view's
-    /// `blendMode(_:)`.
+    /// The style composited onto what is behind it with `mode` (nil draws it normally).
+    ///
+    /// A colour or gradient is a view too, and `overlay` and `background` take a view or a style,
+    /// so `.overlay(Color.black.blendMode(.multiply))` could mean either. The view's
+    /// `blendMode(_:)` is what such code has always meant: this one is disfavoured, and its
+    /// optional parameter costs the mode a conversion, so it loses to the view's even where the
+    /// view-taking `overlay` is disfavoured too.
     @_disfavoredOverload
-    nonisolated public func blendMode(_ mode: BlendMode) -> _BlendModeShapeStyle<Self> {
-        _BlendModeShapeStyle(base: self, blendMode: mode)
+    nonisolated public func blendMode(_ mode: BlendMode?) -> _BlendModeShapeStyle<Self> {
+        _BlendModeShapeStyle(base: self, blendMode: mode ?? .normal)
     }
 }

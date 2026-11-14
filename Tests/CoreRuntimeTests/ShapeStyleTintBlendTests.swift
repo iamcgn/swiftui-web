@@ -43,9 +43,9 @@ import SwiftUIWebHeadless
         #expect(Color(_resolving: AnyShapeStyle(Color.primary), in: light) == .primary)
         #expect(Color(_resolving: Color.blue, in: dark) == .blue)
         // Any other style is resolved in each appearance.
-        let material = Color(_resolving: Material.regular, in: light)
-        #expect(material.resolve(in: light) == Material.regular.tint(in: light))
-        #expect(material.resolve(in: dark) == Material.regular.tint(in: dark))
+        let material = Color(_resolving: Material.regularMaterial, in: light)
+        #expect(material.resolve(in: light) == Material.regularMaterial.tint(in: light))
+        #expect(material.resolve(in: dark) == Material.regularMaterial.tint(in: dark))
     }
 
     @Test func aBlendedStyleDrawsInABlendGroup() {
@@ -65,7 +65,7 @@ import SwiftUIWebHeadless
 
     @Test func aBlendedStyleIsItsBaseAsAColour() {
         let environment = EnvironmentValues()
-        let style = Color.blue.blendMode(.plusDarker)
+        let style: _BlendModeShapeStyle<Color> = Color.blue.blendMode(.plusDarker)
         #expect(style.resolveColor(in: environment) == Color.blue.resolve(in: environment))
         #expect(style._asColor == .blue)
         #expect(Color(_resolving: style, in: environment) == .blue)
