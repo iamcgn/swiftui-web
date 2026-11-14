@@ -114,4 +114,22 @@ extension FoundationGapsTests {
         #expect("Ab".localizedLowercase == "ab")
         #expect("Ab".localizedUppercase == "AB")
     }
+
+    #if os(WASI) || canImport(Darwin)
+    /// `NotificationCenter.notifications(named:)`: the posts after the sequence is made, in order
+    /// (CloudKitSyncMonitor reads the container's sync events this way).
+    @Test func notificationsAsAnAsyncSequence() async {
+        let center = NotificationCenter()
+        let name = Notification.Name("FoundationGapsTests.ping")
+        let iterator = center.notifications(named: name).makeAsyncIterator()
+        center.post(name: name, object: nil, userInfo: ["n": 1])
+        center.post(name: Notification.Name("FoundationGapsTests.other"), object: nil)
+        center.post(name: name, object: nil, userInfo: ["n": 2])
+        let first = await iterator.next()
+        let second = await iterator.next()
+        #expect(first?.userInfo?["n"] as? Int == 1)
+        #expect(second?.userInfo?["n"] as? Int == 2)
+        #expect(second?.name == name)
+    }
+    #endif
 }

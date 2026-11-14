@@ -606,6 +606,24 @@ struct CoreDataTests {
         runtime.layout(in: CGSize(width: 320, height: 400))
         #expect(texts(runtime) == ["Dune", "Emma"])
     }
+
+    /// Sync monitors read CloudKit events from the container's notification; nothing syncs here,
+    /// but an event posted the way Core Data posts one reads back as on Apple platforms.
+    @Test func cloudKitEventsReadFromTheNotification() {
+        #expect(NSPersistentCloudKitContainer.eventChangedNotification.rawValue == "NSPersistentCloudKitContainerEventChangedNotification")
+        #expect(NSPersistentCloudKitContainer.EventType.import.rawValue == 1)
+        let start = Date(timeIntervalSince1970: 100)
+        let event = NSPersistentCloudKitContainer.Event(storeIdentifier: "store", type: .export, startDate: start,
+                                                        endDate: start.addingTimeInterval(2), succeeded: true)
+        let notification = Notification(name: NSPersistentCloudKitContainer.eventChangedNotification, object: nil,
+                                        userInfo: [NSPersistentCloudKitContainer.eventNotificationUserInfoKey: event])
+        let read = notification.userInfo?[NSPersistentCloudKitContainer.eventNotificationUserInfoKey] as? NSPersistentCloudKitContainer.Event
+        #expect(read?.type == .export)
+        #expect(read?.succeeded == true)
+        #expect(read?.endDate == start.addingTimeInterval(2))
+        #expect(read?.error == nil)
+        #expect(event.description.contains("type: Export"))
+    }
 }
 
 /// Adds a book named for the count shown, inserting before reading the count (as an app's
