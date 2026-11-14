@@ -70,11 +70,15 @@ private final class Box: @unchecked Sendable {
         #expect(seconds(.milliseconds(1500)) == 1.5 && seconds(.never) == .infinity)
         #expect(DispatchTimeInterval.seconds(1) == .milliseconds(1000) && DispatchTimeInterval.seconds(1) != .seconds(2))
         if case .microseconds(let us) = DispatchTimeInterval.microseconds(7) { #expect(us == 7) } else { Issue.record("not microseconds") }
+        // `distance(to:)` and `advanced(by:)` come from Apple's Dispatch overlay (and ours on
+        // wasm); Linux's corelibs Dispatch has neither.
+        #if os(WASI) || canImport(Darwin)
         let start = DispatchTime(uptimeNanoseconds: 5_000_000_000)
         let end = DispatchTime(uptimeNanoseconds: 7_000_000_000)
         #expect(abs(seconds(start.distance(to: end)) - 2) < 0.001)
         #expect(abs(seconds(end.distance(to: start)) + 2) < 0.001)
         #expect(start.advanced(by: .seconds(2)) == end)
+        #endif
     }
 
     /// Lets queued work run: the wasm test runner has no event loop to sleep on (Node's WASI
