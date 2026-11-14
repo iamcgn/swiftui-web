@@ -169,12 +169,16 @@ import Foundation
         #expect(commands.contains { if case .drawBitmap = $0 { return true } else { return false } })
 
         var bytes = [UInt8](repeating: 0, count: 48)
-        bytes.withUnsafeMutableBytes { buffer in
-            #expect(CGContext(data: buffer.baseAddress, width: 4, height: 3, bitsPerComponent: 8, bytesPerRow: 16,
-                              space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) == nil)
+        let overMemory: Bool = bytes.withUnsafeMutableBytes { buffer -> Bool in
+            let made: CGContext? = CGContext(data: buffer.baseAddress, width: 4, height: 3, bitsPerComponent: 8, bytesPerRow: 16,
+                                             space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+            return made != nil
         }
-        #expect(CGContext(data: nil, width: 0, height: 3, bitsPerComponent: 8, bytesPerRow: 0,
-                          space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: 0) == nil)
+        #expect(!overMemory)
+        let empty: CGContext? = CGContext(data: nil, width: 0, height: 3, bitsPerComponent: 8, bytesPerRow: 0,
+                                          space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: 0)
+        let refusedEmpty = empty == nil
+        #expect(refusedEmpty)
     }
 
     @Test func layerContentsPaintByGravity() throws {
