@@ -34,7 +34,7 @@ OURS = {
     "os", "OSLog", "CoreGraphics", "UniformTypeIdentifiers", "CoreData", "CryptoKit", "CoreHaptics", "CoreImage", "WidgetKit", "StoreKit", "AppIntents",
     "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices", "SystemConfiguration",
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit",
-    "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit",
+    "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit", "Compression", "zlib",
 }
 # `Builtin` is the compiler's own module (swift-collections imports it with the BuiltinModule
 # feature); `XCTest` ships in the wasm SDK, and packages import it on wasm where Apple's platforms
@@ -831,6 +831,8 @@ WEB_PRODUCTS = [
     ("FoundationNetworking", "Shadows"),
     ("FoundationXML", "Shadows"),
     ("CommonCrypto", "Shadows"),
+    ("Compression", "Shadows"),
+    ("zlib", "Shadows"),
 ]
 
 
