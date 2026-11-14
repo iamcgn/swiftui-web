@@ -44,6 +44,7 @@ extension UIKitScene {
             let previous = storedKeyboardFrame
             guard previous != newValue else { return }
             storedKeyboardFrame = newValue
+            updateInputAccessory()
             let screen = UIScreen.main.bounds
             let hidden = CGRect(x: 0, y: screen.maxY, width: screen.width, height: previous?.height ?? newValue?.height ?? 0)
             let begin = previous ?? hidden

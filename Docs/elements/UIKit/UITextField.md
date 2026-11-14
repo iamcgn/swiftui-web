@@ -68,3 +68,16 @@ Measured on `uikit/textfield/looks` (iOS 26 simulator, light):
 
 Tier C within 2.3 % (glyph anti-aliasing, the simulator's caret). Open: `attributedText` with
 several runs, `adjustsFontSizeToFitWidth`, the dark clear button, truncated centred text.
+
+## Input views (2026-11-14)
+
+`UIInputView` (`.default` with no background, `.keyboard` with the keyboard's 209/212/217
+gray, 43/43/43 dark), `UIInputViewAudioFeedback`, and `inputView` / `inputAccessoryView` on
+`UIResponder`, settable on `UITextField`, `UITextView` and `UISearchBar` (KeyboardToolbar's
+toolbar above Runestone's editor in GistHub). While a responder with an accessory is first
+responder, its window shows the accessory along the bottom at its frame's height (or its
+intrinsic or fitting height): above the home indicator, or on top of the keyboard when the
+host reports one, moving as the keyboard frame changes. A press on the accessory does not end
+the editing; a press elsewhere does, and the accessory goes. `reloadInputViews()` shows a
+changed accessory. Checked by UIKitWeb's `InputViewTests`. Open: a custom `inputView` is kept
+but not shown (the browser keeps its own keyboard), `UIInputViewController`, input clicks.

@@ -19,8 +19,12 @@ public final class UIKitScene: HostedScene {
         didSet {
             guard firstResponder !== oldValue else { return }
             for entry in hostedTrees { entry.tree?.firstResponderDidChange(from: oldValue, to: firstResponder) }
+            updateInputAccessory()
         }
     }
+    /// The first responder's input accessory, shown along the bottom of its window
+    /// (Controls/UIInputView.swift).
+    weak var dockedInputAccessory: UIView?
 
     // MARK: Trees hosted in other scenes (decision 0014: SwiftUIWeb's representables)
 
