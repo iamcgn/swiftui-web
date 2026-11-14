@@ -107,6 +107,13 @@ private final class ReceiptRefresh: SKRequestDelegate {
         if case .success(.verified(let t)) = purchase { #expect(t.purchasedQuantity == 1) } else { Issue.record("purchase result") }
     }
 
+    #if canImport(ObjectiveC)
+    /// RevenueCat names the redemption sheet by selector, as Apple's is an Objective-C method.
+    @Test func theRedemptionSheetIsNamedBySelector() {
+        #expect(SKPaymentQueue.default().responds(to: #selector(SKPaymentQueue.presentCodeRedemptionSheet)))
+    }
+    #endif
+
     @Test func theOriginalAPIRefusesPayments() {
         let observer = PaymentObserver()
         let queue = SKPaymentQueue.default()

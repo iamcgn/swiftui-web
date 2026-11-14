@@ -5,8 +5,15 @@
 // unavailable, the way they do on a device whose storefront doesn't offer the products.
 #if os(WASI)
 // Apple's StoreKit re-exports Foundation: a file that imports only StoreKit names `Date` and
-// `NSObject` (RevenueCat's StoreKit wrappers, the sweep).
+// `NSObject` (RevenueCat's StoreKit wrappers, the sweep), and `NSLocale` where the app takes
+// Foundation's object forms (the `FoundationFormats` trait, as SwiftUI re-exports them).
 @_exported import WebFoundation
+#if FoundationFormats
+@_exported import WebFoundationFormats
+#endif
+// And UIKit, as iOS's StoreKit does: a file that imports only StoreKit names `UIScene` for
+// `purchase(confirmIn:)` and `UIViewController` for the store sheets (RevenueCat).
+@_exported import UIKit
 import WebDecimalFormats
 #else
 import Foundation

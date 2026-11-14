@@ -238,6 +238,18 @@ import WebCombine
         #expect(throws: NSError.self) { try other.loadAndReturnError() }
     }
 
+    /// RevenueCat's JSON encoding tells a boolean from the integers 0 and 1 by Core Foundation
+    /// type, and a string object is equal to and hashes as another with the same characters.
+    @Test func coreFoundationTypeIDsTellBooleansFromNumbers() {
+        #expect(CFGetTypeID(NSNumber(value: true)) == CFBooleanGetTypeID())
+        #expect(CFGetTypeID(NSNumber(value: 1)) == CFNumberGetTypeID() && CFGetTypeID(NSNumber(value: 0.5)) == CFNumberGetTypeID())
+        #expect(CFGetTypeID(NSString(string: "a")) == CFStringGetTypeID() && CFGetTypeID(NSError(domain: "d", code: 1)) == CFErrorGetTypeID())
+        #expect(CFBooleanGetTypeID() != CFNumberGetTypeID())
+        let a = NSString(string: "key"), b: NSString = "key"
+        #expect(a == b && a.hashValue == b.hashValue && Set([a, b, NSString(string: "other")]).count == 2)
+        #expect(a.description == "key" && NSString().length == 0)
+    }
+
     /// `Bundle.localizations` is what the app's string catalogs and `.lproj` folders hold, as
     /// the build recorded them (scripts/assets.py → the manifest → the host); the development
     /// language is the catalogs' source; the preferred one follows the current locale

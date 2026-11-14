@@ -365,8 +365,14 @@ open class SKPaymentQueue: NSObject {
         restoreCompletedTransactions()
     }
 
-    /// Shows the App Store's offer code redemption (none on the web).
+    /// Shows the App Store's offer code redemption (none on the web). An Objective-C method,
+    /// as Apple's is, so `#selector(SKPaymentQueue.presentCodeRedemptionSheet)` names it
+    /// (RevenueCat's StoreKit workarounds).
+    #if canImport(ObjectiveC)
+    @objc open func presentCodeRedemptionSheet() {}
+    #else
     open func presentCodeRedemptionSheet() {}
+    #endif
 }
 
 // MARK: - Review prompt

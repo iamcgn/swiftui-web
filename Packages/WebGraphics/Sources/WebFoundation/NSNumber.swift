@@ -164,4 +164,147 @@ extension Float {
 extension Bool {
     public init(truncating number: NSNumber) { self = number.boolValue }
 }
+
+#if canImport(ObjectiveC)
+// With the Objective-C runtime the number types bridge to `NSNumber`, as Foundation's do:
+// `count as NSNumber` converts (RevenueCat's promotional offer signature), `number as? Int`
+// succeeds when the number holds that value exactly, and `as!` takes the value truncated.
+
+/// A number type that converts to and from `NSNumber` across the bridge.
+public protocol _WebNumberBridged: _ObjectiveCBridgeable where _ObjectiveCType == NSNumber {
+    /// The number's value when this type holds it exactly, else nil.
+    static func _webExactly(_ number: NSNumber) -> Self?
+    /// The number's value, converted as `init(truncating:)` does.
+    static func _webTruncating(_ number: NSNumber) -> Self
+    var _webNumber: NSNumber { get }
+}
+
+extension _WebNumberBridged {
+    public func _bridgeToObjectiveC() -> NSNumber { _webNumber }
+    public static func _forceBridgeFromObjectiveC(_ source: NSNumber, result: inout Self?) {
+        result = _webExactly(source) ?? _webTruncating(source)
+    }
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSNumber, result: inout Self?) -> Bool {
+        result = _webExactly(source)
+        return result != nil
+    }
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSNumber?) -> Self {
+        guard let source else { return _webTruncating(NSNumber(value: 0)) }
+        return _webExactly(source) ?? _webTruncating(source)
+    }
+}
+
+extension NSNumber {
+    fileprivate func _webExactInteger<T: BinaryInteger>(_ type: T.Type) -> T? {
+        switch storage {
+        case .int(let v): return T(exactly: v)
+        case .uint(let v): return T(exactly: v)
+        case .double(let v): return T(exactly: v)
+        case .bool(let v): return v ? 1 : 0
+        }
+    }
+    fileprivate var _webExactDouble: Double? {
+        switch storage {
+        case .int(let v): return Double(exactly: v)
+        case .uint(let v): return Double(exactly: v)
+        case .double(let v): return v
+        case .bool(let v): return v ? 1 : 0
+        }
+    }
+    /// True or false for a boolean, or for a number that is exactly 1 or 0.
+    fileprivate var _webExactBool: Bool? {
+        switch storage {
+        case .bool(let v): return v
+        default:
+            let value = doubleValue
+            return value == 0 ? false : value == 1 ? true : nil
+        }
+    }
+}
+
+extension Int: @retroactive _ObjectiveCBridgeable, _WebNumberBridged {
+    public typealias _ObjectiveCType = NSNumber
+    public static func _webExactly(_ number: NSNumber) -> Int? { number._webExactInteger(Int.self) }
+    public static func _webTruncating(_ number: NSNumber) -> Int { number.intValue }
+    public var _webNumber: NSNumber { NSNumber(value: self) }
+}
+extension Int8: @retroactive _ObjectiveCBridgeable, _WebNumberBridged {
+    public typealias _ObjectiveCType = NSNumber
+    public static func _webExactly(_ number: NSNumber) -> Int8? { number._webExactInteger(Int8.self) }
+    public static func _webTruncating(_ number: NSNumber) -> Int8 { number.int8Value }
+    public var _webNumber: NSNumber { NSNumber(value: self) }
+}
+extension Int16: @retroactive _ObjectiveCBridgeable, _WebNumberBridged {
+    public typealias _ObjectiveCType = NSNumber
+    public static func _webExactly(_ number: NSNumber) -> Int16? { number._webExactInteger(Int16.self) }
+    public static func _webTruncating(_ number: NSNumber) -> Int16 { number.int16Value }
+    public var _webNumber: NSNumber { NSNumber(value: self) }
+}
+extension Int32: @retroactive _ObjectiveCBridgeable, _WebNumberBridged {
+    public typealias _ObjectiveCType = NSNumber
+    public static func _webExactly(_ number: NSNumber) -> Int32? { number._webExactInteger(Int32.self) }
+    public static func _webTruncating(_ number: NSNumber) -> Int32 { number.int32Value }
+    public var _webNumber: NSNumber { NSNumber(value: self) }
+}
+extension Int64: @retroactive _ObjectiveCBridgeable, _WebNumberBridged {
+    public typealias _ObjectiveCType = NSNumber
+    public static func _webExactly(_ number: NSNumber) -> Int64? { number._webExactInteger(Int64.self) }
+    public static func _webTruncating(_ number: NSNumber) -> Int64 { number.int64Value }
+    public var _webNumber: NSNumber { NSNumber(value: self) }
+}
+extension UInt: @retroactive _ObjectiveCBridgeable, _WebNumberBridged {
+    public typealias _ObjectiveCType = NSNumber
+    public static func _webExactly(_ number: NSNumber) -> UInt? { number._webExactInteger(UInt.self) }
+    public static func _webTruncating(_ number: NSNumber) -> UInt { number.uintValue }
+    public var _webNumber: NSNumber { NSNumber(value: self) }
+}
+extension UInt8: @retroactive _ObjectiveCBridgeable, _WebNumberBridged {
+    public typealias _ObjectiveCType = NSNumber
+    public static func _webExactly(_ number: NSNumber) -> UInt8? { number._webExactInteger(UInt8.self) }
+    public static func _webTruncating(_ number: NSNumber) -> UInt8 { number.uint8Value }
+    public var _webNumber: NSNumber { NSNumber(value: self) }
+}
+extension UInt16: @retroactive _ObjectiveCBridgeable, _WebNumberBridged {
+    public typealias _ObjectiveCType = NSNumber
+    public static func _webExactly(_ number: NSNumber) -> UInt16? { number._webExactInteger(UInt16.self) }
+    public static func _webTruncating(_ number: NSNumber) -> UInt16 { number.uint16Value }
+    public var _webNumber: NSNumber { NSNumber(value: self) }
+}
+extension UInt32: @retroactive _ObjectiveCBridgeable, _WebNumberBridged {
+    public typealias _ObjectiveCType = NSNumber
+    public static func _webExactly(_ number: NSNumber) -> UInt32? { number._webExactInteger(UInt32.self) }
+    public static func _webTruncating(_ number: NSNumber) -> UInt32 { number.uint32Value }
+    public var _webNumber: NSNumber { NSNumber(value: self) }
+}
+extension UInt64: @retroactive _ObjectiveCBridgeable, _WebNumberBridged {
+    public typealias _ObjectiveCType = NSNumber
+    public static func _webExactly(_ number: NSNumber) -> UInt64? { number._webExactInteger(UInt64.self) }
+    public static func _webTruncating(_ number: NSNumber) -> UInt64 { number.uint64Value }
+    public var _webNumber: NSNumber { NSNumber(value: self) }
+}
+extension Double: @retroactive _ObjectiveCBridgeable, _WebNumberBridged {
+    public typealias _ObjectiveCType = NSNumber
+    public static func _webExactly(_ number: NSNumber) -> Double? { number._webExactDouble }
+    public static func _webTruncating(_ number: NSNumber) -> Double { number.doubleValue }
+    public var _webNumber: NSNumber { NSNumber(value: self) }
+}
+extension Float: @retroactive _ObjectiveCBridgeable, _WebNumberBridged {
+    public typealias _ObjectiveCType = NSNumber
+    /// A double the float holds to within its precision, as Foundation lets `0.1` read as a float.
+    public static func _webExactly(_ number: NSNumber) -> Float? {
+        guard let value = number._webExactDouble else { return nil }
+        if value.isNaN { return .nan }
+        guard value.isInfinite || abs(value) <= Double(Float.greatestFiniteMagnitude) else { return nil }
+        return Float(value)
+    }
+    public static func _webTruncating(_ number: NSNumber) -> Float { number.floatValue }
+    public var _webNumber: NSNumber { NSNumber(value: self) }
+}
+extension Bool: @retroactive _ObjectiveCBridgeable, _WebNumberBridged {
+    public typealias _ObjectiveCType = NSNumber
+    public static func _webExactly(_ number: NSNumber) -> Bool? { number._webExactBool }
+    public static func _webTruncating(_ number: NSNumber) -> Bool { number.boolValue }
+    public var _webNumber: NSNumber { NSNumber(value: self) }
+}
+#endif
 #endif

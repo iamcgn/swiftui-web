@@ -38,6 +38,41 @@ public func CFErrorGetCode(_ err: CFError!) -> CFIndex { err.code }
 public func CFErrorCopyUserInfo(_ err: CFError!) -> CFDictionary! { err.userInfo }
 public func CFErrorCopyDescription(_ err: CFError!) -> CFString! { err.localizedDescription }
 
+/// A Core Foundation type's identifier: what `CFGetTypeID` answers for an object, compared with
+/// a type's own (`CFGetTypeID(number) == CFBooleanGetTypeID()` tells a JSON boolean from the
+/// integers 0 and 1, as RevenueCat's JSON encoding does). The values are this module's own.
+public typealias CFTypeID = UInt
+public func CFStringGetTypeID() -> CFTypeID { 7 }
+public func CFNullGetTypeID() -> CFTypeID { 16 }
+public func CFDictionaryGetTypeID() -> CFTypeID { 18 }
+public func CFArrayGetTypeID() -> CFTypeID { 19 }
+public func CFDataGetTypeID() -> CFTypeID { 20 }
+public func CFBooleanGetTypeID() -> CFTypeID { 21 }
+public func CFNumberGetTypeID() -> CFTypeID { 22 }
+public func CFURLGetTypeID() -> CFTypeID { 29 }
+public func CFErrorGetTypeID() -> CFTypeID { 30 }
+public func CFDateGetTypeID() -> CFTypeID { 42 }
+
+/// The Core Foundation type the object stands for: a number holding a boolean is a `CFBoolean`,
+/// any other number a `CFNumber`, a string a `CFString`, and so on; 1 for any other object.
+public func CFGetTypeID(_ cf: CFTypeRef!) -> CFTypeID {
+    guard let cf else { return CFNullGetTypeID() }
+    if let number = cf as? NSNumber {
+        return number.objCType.pointee == CChar(UInt8(ascii: "c")) ? CFBooleanGetTypeID() : CFNumberGetTypeID()
+    }
+    switch cf {
+    case is Bool: return CFBooleanGetTypeID()
+    case is Int, is Int8, is Int16, is Int32, is Int64, is UInt, is UInt8, is UInt16, is UInt32, is UInt64,
+         is Double, is Float: return CFNumberGetTypeID()
+    case is NSString, is String: return CFStringGetTypeID()
+    case is NSError: return CFErrorGetTypeID()
+    case is Data: return CFDataGetTypeID()
+    case is URL: return CFURLGetTypeID()
+    case is Date: return CFDateGetTypeID()
+    default: return 1
+    }
+}
+
 // Implicitly unwrapped, as Apple's Swift overlay declares them.
 public let kCFBooleanTrue: CFBoolean! = true
 public let kCFBooleanFalse: CFBoolean! = false

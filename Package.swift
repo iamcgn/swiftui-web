@@ -193,7 +193,9 @@ let package = Package(
         // In-app purchases with an empty store (no products load on the web) and its SwiftUI views.
         .target(
             name: "StoreKit",
-            dependencies: ["SwiftUI", .product(name: "WebFoundation", package: "WebGraphics"),
+            dependencies: ["SwiftUI", .product(name: "UIKit", package: "UIKitWeb"),
+                           .product(name: "WebFoundation", package: "WebGraphics"),
+                           .product(name: "WebFoundationFormats", package: "WebGraphics", condition: .when(platforms: [.wasi], traits: ["FoundationFormats"])),
                            .product(name: "WebDecimalFormats", package: "WebGraphics", condition: .when(platforms: [.wasi]))],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
