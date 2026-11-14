@@ -145,6 +145,43 @@ import Foundation
         #expect(commands.contains { if case .drawBitmap(_, let rect) = $0 { return rect == CGRect(x: 1, y: 1, width: 2, height: 1) } else { return false } })
     }
 
+    /// A bitmap context as CoreGraphics makes one (Nuke's decompression): pixels, y up from the
+    /// bottom left, an image drawn into it comes out as `makeImage()`, and one asked to draw into
+    /// caller memory, or with no pixels, is not made. (Named by its class: `CGContext` is its name on
+    /// wasm only, and these tests also run on Linux.)
+    @Test func bitmapContextsDrawUpwardAndMakeImages() throws {
+        let ctx = try #require(UIGraphicsRecordingContext(data: nil, width: 4, height: 3, bitsPerComponent: 8, bytesPerRow: 0,
+                                         space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        #expect(ctx.width == 4 && ctx.height == 3 && ctx.data == nil)
+        #expect(ctx.ctm == CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 3))
+        // The bottom row in CoreGraphics's space is the last row of the image.
+        #expect(CGRect(x: 0, y: 0, width: 4, height: 1).applying(ctx.ctm) == CGRect(x: 0, y: 2, width: 4, height: 1))
+
+        let pixels = try #require(CGDataProvider(data: Data([0, 0, 255, 255])))
+        let dot = try #require(CGImage(width: 1, height: 1, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: 4,
+                                       space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGBitmapInfo(alphaInfo: .premultipliedLast),
+                                       provider: pixels, decode: nil, shouldInterpolate: true, intent: .defaultIntent))
+        ctx.interpolationQuality = .high
+        ctx.draw(dot, in: CGRect(x: 0, y: 0, width: 4, height: 3))
+        let image = try #require(ctx.makeImage())
+        #expect(image.width == 4 && image.height == 3)
+        guard case .recording(let commands, let size, let scale) = image._content else { Issue.record("not a recording"); return }
+        #expect(size == CGSize(width: 4, height: 3) && scale == 1)
+        #expect(commands.contains { if case .drawBitmap = $0 { return true } else { return false } })
+
+        var bytes = [UInt8](repeating: 0, count: 48)
+        let overMemory: Bool = bytes.withUnsafeMutableBytes { buffer -> Bool in
+            let made: UIGraphicsRecordingContext? = UIGraphicsRecordingContext(data: buffer.baseAddress, width: 4, height: 3, bitsPerComponent: 8, bytesPerRow: 16,
+                                             space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+            return made != nil
+        }
+        #expect(!overMemory)
+        let empty: UIGraphicsRecordingContext? = UIGraphicsRecordingContext(data: nil, width: 0, height: 3, bitsPerComponent: 8, bytesPerRow: 0,
+                                          space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: 0)
+        let refusedEmpty = empty == nil
+        #expect(refusedEmpty)
+    }
+
     @Test func layerContentsPaintByGravity() throws {
         let scene = UIKitScene.shared
         scene.removeAllWindows()
