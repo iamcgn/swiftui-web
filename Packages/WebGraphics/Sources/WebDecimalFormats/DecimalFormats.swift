@@ -85,18 +85,20 @@ extension NSNumber {
 /// `price as NSNumber` (`Double(truncating: price as NSNumber)`) and, with the runtime,
 /// `product.price as Decimal`: the decimal number holds the decimal's double. The bridge is to
 /// `NSDecimalNumber`, which with the runtime is a subclass of `NSNumber` and else `NSNumber` itself.
+/// Back, the number reads as its shortest decimal (`decimalValue`), so 4.99 stays 4.99 and not the
+/// double's binary expansion.
 extension Decimal: @retroactive _ObjectiveCBridgeable {
     public typealias _ObjectiveCType = NSDecimalNumber
     public func _bridgeToObjectiveC() -> NSDecimalNumber { NSDecimalNumber(value: _double) }
     public static func _forceBridgeFromObjectiveC(_ source: NSDecimalNumber, result: inout Decimal?) {
-        result = Decimal(source.doubleValue)
+        result = source.decimalValue
     }
     public static func _conditionallyBridgeFromObjectiveC(_ source: NSDecimalNumber, result: inout Decimal?) -> Bool {
-        result = Decimal(source.doubleValue)
+        result = source.decimalValue
         return true
     }
     public static func _unconditionallyBridgeFromObjectiveC(_ source: NSDecimalNumber?) -> Decimal {
-        Decimal(source?.doubleValue ?? 0)
+        source?.decimalValue ?? 0
     }
 }
 #endif

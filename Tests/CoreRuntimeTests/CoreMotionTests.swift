@@ -141,6 +141,28 @@ struct CoreMotionTests {
         var stepsError: (any Error)?
         CMPedometer().queryPedometerData(from: Date(), to: Date()) { _, error in stepsError = error }
         #expect(stepsError.map { ($0 as NSError).domain } == CMErrorDomain)
+        var eventError: (any Error)?
+        #expect(!CMPedometer.isPedometerEventTrackingAvailable())
+        CMPedometer().startEventUpdates { event, error in
+            #expect(event == nil)
+            eventError = error
+        }
+        #expect(eventError.map { ($0 as NSError).code } == Int(CMErrorNotAvailable.rawValue))
+        #expect(CMPedometerEventType.resume.rawValue == 1)
+    }
+
+    /// Fall detection is a watch's: a page, like a phone, has none, and the app is told so.
+    @Test func noFallsAreDetected() {
+        final class Listener: CMFallDetectionDelegate {}
+        let manager = CMFallDetectionManager()
+        let listener = Listener()
+        manager.delegate = listener
+        #expect(!CMFallDetectionManager.isAvailable)
+        var status: CMAuthorizationStatus?
+        manager.requestAuthorization { status = $0 }
+        #expect(status == .restricted)
+        #expect(manager.delegate === listener)
+        #expect(CMFallDetectionEvent.UserResolution.unresponsive.rawValue == 3)
     }
 }
 #endif

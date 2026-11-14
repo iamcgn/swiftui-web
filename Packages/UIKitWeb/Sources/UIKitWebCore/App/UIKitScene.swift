@@ -19,8 +19,12 @@ public final class UIKitScene: HostedScene {
         didSet {
             guard firstResponder !== oldValue else { return }
             for entry in hostedTrees { entry.tree?.firstResponderDidChange(from: oldValue, to: firstResponder) }
+            updateInputAccessory()
         }
     }
+    /// The first responder's input accessory, shown along the bottom of its window
+    /// (Controls/UIInputView.swift).
+    weak var dockedInputAccessory: UIView?
 
     // MARK: Trees hosted in other scenes (decision 0014: SwiftUIWeb's representables)
 
@@ -650,7 +654,8 @@ public final class UIKitScene: HostedScene {
     }
 
     public func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int) {
-        guard let view = view(withSemanticsIdentifier: semanticsIdentifier), view is any UITextInput else { return }
+        // A text view keeps its own selection (its host input is a text field's, not a key-input view's).
+        guard let view = view(withSemanticsIdentifier: semanticsIdentifier), !(view is any HostTextInput), view is any UITextInput else { return }
         relayHostSelection(start: start, end: end, to: view)
     }
 

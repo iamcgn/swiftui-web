@@ -97,3 +97,34 @@ it and `textWillChange`/`textDidChange` around; the host's selection arrives as
 `UITextInteraction(for: .editable)` added to the view makes a tap begin editing. The view
 paints its own text and caret. `TextInputProtocolTests`.
 
+
+## TextKit (2026-11-14; `Controls/TextKit.swift`)
+
+TextKit 1 as UIKit code drives it. A text view has its own `textStorage`, `layoutManager` and
+`textContainer` (the container follows the view's width inside its insets); a stand-alone
+`NSTextStorage` given an `NSLayoutManager` given an `NSTextContainer(size:)` works too (link
+hit-testing over a label). Glyphs are the text's UTF-16 units one for one, so glyph and
+character ranges are the same. The lines come from the text engine with the text view's own
+wrapping at the container's width less its line fragment padding (a zero or unbounded width
+leaves the text unwrapped); a line fragment is the container's width wide and a line pitch tall
+and owns the characters up to the next line's first (its trailing space and newline); its used
+rectangle is the line's width with the padding either side. A glyph sits after the width of
+the line's text before it, so `boundingRect(forGlyphRange:in:)`, `location(forGlyphAt:)`,
+`enumerateLineFragments`, `characterIndex(for:in:fractionOfDistanceBetweenInsertionPoints:)`
+and the rest answer from that; a text view's layout manager answers for the text as the view
+draws it (fonts, insets, alignment). Every storage edit is processed at once or, inside
+`beginEditing()`/`endEditing()`, gathered into one at the last `endEditing()`; the storage's
+delegate and layout managers hear it, and a text view shows its storage's text and attributes.
+Setting the view's text fills the storage. On wasm `NSTextStorage` is WebFoundation's
+`NSMutableAttributedString` (whose mutators report each change); on the host it wraps
+Foundation's.
+
+`UITextView` is a `UITextInput` with UTF-16 positions, as `selectedRange`: `selectedTextRange`,
+`text(in:)`, `replace(_:withText:)`, `insertText`/`deleteBackward` (a whole character),
+`caretRect(for:)` (2 points wide at the glyph's left edge, the line's height; a subclass may
+override it), `firstRect(for:)` and `closestPosition(to:)` (after a character when past its
+middle). Its host input stays the text field's: the scene's key-input relay skips it.
+
+Not done: exclusion paths and the extra line fragment after a final newline in the layout
+manager's answers, glyph drawing (`drawGlyphs`), TextKit 2 (`textLayoutManager`),
+`UITextView(frame:textContainer:)`. `TextKitTests`.

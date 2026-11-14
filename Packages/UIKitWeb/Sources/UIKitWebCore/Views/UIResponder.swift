@@ -100,6 +100,20 @@ open class UIResponder: UIResponderBase {
     /// Adjusts a command's state before it is shown; the default changes nothing.
     open func validate(_ command: UICommand) {}
 
+    // MARK: Input views (Controls/UIInputView.swift)
+
+    /// The view shown in place of the keyboard while this responder is first responder (none:
+    /// the system keyboard). Text fields and text views take one; the web shows none.
+    open var inputView: UIView? { nil }
+    /// The view shown above the keyboard while this responder is first responder, along the
+    /// bottom of the window. Text fields and text views take one.
+    open var inputAccessoryView: UIView? { nil }
+
+    /// Shows this responder's input views again after they changed, when it is first responder.
+    open func reloadInputViews() {
+        if isFirstResponder { UIKitScene.shared.updateInputAccessory() }
+    }
+
     open var canBecomeFirstResponder: Bool { false }
     open var canResignFirstResponder: Bool { true }
 

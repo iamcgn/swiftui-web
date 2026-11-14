@@ -50,9 +50,11 @@ final class TouchRouter {
         if !recognizers.contains(where: { $0.hasRecognized && $0.cancelsTouchesInView }) {
             hit?.touchesBegan([touch], with: event)
         }
-        // A press outside the first responder ends its editing.
+        // A press outside the first responder ends its editing (one on its input accessory,
+        // the toolbar above the keyboard, does not).
         let scene = UIKitScene.shared
-        if let responder = scene.firstResponder as? UIView, responder.window === window,
+        let onAccessory = hit.map { view in scene.dockedInputAccessory.map { view.isDescendant(of: $0) } ?? false } ?? false
+        if let responder = scene.firstResponder as? UIView, responder.window === window, !onAccessory,
            hit !== responder, !(hit?.isDescendant(of: responder) ?? false) {
             _ = responder.resignFirstResponder()
         }

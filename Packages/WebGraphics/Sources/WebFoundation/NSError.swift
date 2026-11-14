@@ -30,7 +30,9 @@ open class NSError: NSObject, Error, @unchecked Sendable {
     public let code: Int
     public let userInfo: [String: Any]
 
-    public init(domain: String, code: Int, userInfo: [String: Any]? = nil) {
+    /// Required, so a generic `Result: NSError` can be made from its metatype, as an imported
+    /// Objective-C class's initializer can (RevenueCat's `Error.addingUserInfo`).
+    public required init(domain: String, code: Int, userInfo: [String: Any]? = nil) {
         self.domain = domain
         self.code = code
         self.userInfo = userInfo ?? [:]

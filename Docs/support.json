@@ -398,9 +398,9 @@
           ]
         },
         {
-          "api": "ProgressView (value/total, labels, currentValueLabel) / ProgressViewStyle (automatic, linear, circular) / ControlSize / controlSize(_:) / tint(_:)",
+          "api": "ProgressView (value/total, labels, currentValueLabel) / ProgressViewStyle (automatic, linear, circular) / ControlSize / controlSize(_:) / tint(_:) (a colour or any shape style)",
           "status": "partial",
-          "notes": "Determinate bars and rings measured exactly (inactive-window greys); the indeterminate spinner and bar are the animation's first frame; tint accepted without effect; no Progress objects or timer intervals; iOS profile: a 4 pt accent bar, the circular style always the 20 pt spinner (ios/progress/basic); the spinner's rotation and the indeterminate bar's motion (approximate), animated values under withAnimation, ProgressView(timerInterval:) through the animation timeline, ProgressView(_ progress:) (wasm's Progress is observable, Foundation's polled), tint on iOS and in an active macOS window (2026-10-04) Right-to-left (2026-10-09): the bar fills from the trailing end (RTLTests).",
+          "notes": "Determinate bars and rings measured exactly (inactive-window greys); the indeterminate spinner and bar are the animation's first frame; tint accepted without effect; no Progress objects or timer intervals; iOS profile: a 4 pt accent bar, the circular style always the 20 pt spinner (ios/progress/basic); the spinner's rotation and the indeterminate bar's motion (approximate), animated values under withAnimation, ProgressView(timerInterval:) through the animation timeline, ProgressView(_ progress:) (wasm's Progress is observable, Foundation's polled), tint on iOS and in an active macOS window (2026-10-04) Right-to-left (2026-10-09): the bar fills from the trailing end (RTLTests). tint(_:) with a shape style (2026-11-14): a colour as it is, any other style as the colour it resolves to in each appearance.",
           "fixtures": [
             "progress/basic",
             "progress/indeterminate",
@@ -1200,9 +1200,9 @@
           ]
         },
         {
-          "api": "blendMode(_:) / BlendMode (all 21 modes)",
+          "api": "blendMode(_:) on views and shape styles / BlendMode (all 21 modes)",
           "status": "full",
-          "notes": "Blend groups: canvas globalCompositeOperation (plusDarker computed by hand) and CGBlendMode transparency layers; softLight follows Apple's Pegtop formula natively and W3C's in the browser (within tolerance)",
+          "notes": "Blend groups: canvas globalCompositeOperation (plusDarker computed by hand) and CGBlendMode transparency layers; softLight follows Apple's Pegtop formula natively and W3C's in the browser (within tolerance); a shape style's blendMode(_:) (2026-11-14) draws the shapes it fills or strokes in a blend group and is its base colour as text or a tint",
           "fixtures": [
             "effects/blend"
           ]
@@ -1615,7 +1615,7 @@
         {
           "api": "UIButton",
           "status": "full",
-          "notes": "System, custom, tinted, gray, filled and configured buttons sized to fit, titles, images beside or above titles, subtitles, the button sizes, the pressed and disabled looks, iOS 26's corners, UIAction / addAction, configuration update handlers, menus; open: attributed titles, activity indicators (accepted)",
+          "notes": "System, custom, tinted, gray, filled and configured buttons sized to fit, titles, images beside or above titles, subtitles, the button sizes, the pressed and disabled looks, iOS 26's corners, UIAction / addAction, configuration update handlers, menus, preferred symbol configurations by state (2026-11-14: the weight drawn, a point size scaling the measured 17-point glyph, an assumption); open: attributed titles, activity indicators (accepted)",
           "fixtures": [
             "uikit/button/basic",
             "uikit/button/looks",
@@ -1730,6 +1730,12 @@
             "uikit/textview/heights",
             "uikit/textview/looks"
           ]
+        },
+        {
+          "api": "TextKit 1: NSTextStorage / NSLayoutManager / NSTextContainer, UITextView's UITextInput",
+          "status": "partial",
+          "notes": "A text view's textStorage, layoutManager and textContainer, and a stand-alone storage given a layout manager given a container of a size: glyphs are the UTF-16 units, lines come from the text engine with the text view's wrapping at the container's width less its padding, line fragment and used rectangles (the padding either side), glyph bounding rectangles, line fragment enumeration and the character under a point with its fraction; storage edits (batched by beginEditing/endEditing, heard by the storage's delegate) show in the view and the view's text fills the storage. UITextView is a UITextInput: positions are UTF-16 offsets, the caret (overridable), the first rectangle of a range, the closest position, insertText/deleteBackward/replace (2026-11-14); open: exclusion paths and the extra line fragment in the layout manager's answers, glyph drawing, TextKit 2",
+          "noFixture": "TextKitTests (a text view's glyph and line rectangles, wrapped lines, storage edits shown in the view, a stand-alone layout manager's hit testing, the text input)"
         },
         {
           "api": "UIFont",
@@ -2618,7 +2624,7 @@
         {
           "api": "CMMotionManager / CMAccelerometerData / CMGyroData / CMDeviceMotion / CMAttitude (CoreMotion)",
           "status": "partial",
-          "notes": "pf-small-frameworks (2026-11-13): the motion manager reads the browser's devicemotion and deviceorientation events, so on a phone or tablet the accelerometer reports the acceleration it feels in g (lying flat, z = -1), the gyroscope its rotation in radians per second, and device motion splits gravity from the person's acceleration and adds the attitude (roll, pitch, yaw, its matrix and quaternion). Updates come as the browser fires them, no faster than the update interval; the pull-style properties (deviceMotion, accelerometerData) hold the latest reading while a sensor runs, and handlers on a queue other than main run through it. Safari on iOS asks the person first, from a tap. A computer has no motion sensors, so every sensor is unavailable there. Not done: the magnetometer and north-referenced frames (a browser gives no magnetic field), the altimeter, the pedometer and activity recognition, which read unavailable",
+          "notes": "pf-small-frameworks (2026-11-13): the motion manager reads the browser's devicemotion and deviceorientation events, so on a phone or tablet the accelerometer reports the acceleration it feels in g (lying flat, z = -1), the gyroscope its rotation in radians per second, and device motion splits gravity from the person's acceleration and adds the attitude (roll, pitch, yaw, its matrix and quaternion). Updates come as the browser fires them, no faster than the update interval; the pull-style properties (deviceMotion, accelerometerData) hold the latest reading while a sensor runs, and handlers on a queue other than main run through it. Safari on iOS asks the person first, from a tap. A computer has no motion sensors, so every sensor is unavailable there. Not done: the magnetometer and north-referenced frames (a browser gives no magnetic field), the altimeter, the pedometer (its step counts and its pause and resume events) and activity recognition, which read unavailable, and a watch's fall detection, which is unavailable as on a phone",
           "noFixture": "Nothing to draw: CoreRuntimeTests feed the manager browser readings and check the conversions"
         },
         {
@@ -2650,6 +2656,12 @@
           "status": "stub",
           "notes": "pf-small-frameworks (2026-11-14): a browser signs in to no iCloud account, so a page is a device signed out of iCloud: the default container's account status is noAccount, and every request to a database (fetch, save, delete, query, zones, subscriptions, changes) fails with CKError.notAuthenticated, its completion handler or result block called before the call returns and its async form throwing; an operation added to a database or container runs at once and ends the same way, with no per-item callbacks. Records, record IDs, zones, references, assets, shares, queries (over Core Data's NSPredicate on wasm) and subscriptions are values an app builds, with fields set and read by subscript, so the code that would sync compiles and takes the signed-out path. CKNotification(fromRemoteNotificationDictionary:) answers nil: no CloudKit push reaches a page. Not done: any syncing or storage in iCloud, sharing UI, CKSyncEngine, user identity lookups",
           "noFixture": "Nothing to draw: CloudKitTests check the account status, the failures and the records"
+        },
+        {
+          "api": "JSContext / JSValue / JSVirtualMachine (JavaScriptCore)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-14): a context runs its scripts in the browser's own JavaScript engine, in a realm of its own (a hidden frame whose window is the context's global object), so a library's globals (highlight.js for Highlightr and HighlightSwift) stay out of the page. evaluateScript gives the completion value, objectForKeyedSubscript and setObject read and write globals, and a value's properties, elements, calls (call, construct, invokeMethod), comparisons and conversions (toString, toBool, toInt32, toDouble, toDate, toArray, toDictionary, toObject) behave as JavaScriptCore's. Swift values convert as Apple's do: strings, numbers, booleans, dates, arrays and dictionaries become their script forms, NSNull null and nil undefined, and any other Swift value an opaque object that converts back to itself. An exception a script, a call or a getter throws goes to the exception handler, which by default keeps it as the context's exception, and the operation gives undefined. Numbers come back as Double, not NSNumber. Not done: Swift blocks as script functions and JSExport (both need the Objective-C runtime), the current callee, this and arguments, and separate realms where the page has no document (a worker shares one global object)",
+          "noFixture": "Nothing to draw: JavaScriptCoreTests run scripts in the real engine under the wasm test runner"
         },
         {
           "api": "AVCaptureSession / AVCaptureDevice / AVCaptureVideoPreviewLayer / AVCapturePhotoOutput / AVCaptureVideoDataOutput / AVCaptureMetadataOutput / AVCaptureMovieFileOutput (AVFoundation)",

@@ -171,6 +171,15 @@ open class UISearchBar: UIView {
         searchTextField.searchController?.isActive = false
     }
 
+    /// The search field's input views (Controls/UIInputView.swift).
+    override open var inputView: UIView? {
+        get { searchTextField.inputView }
+        set { searchTextField.inputView = newValue }
+    }
+    override open var inputAccessoryView: UIView? {
+        get { searchTextField.inputAccessoryView }
+        set { searchTextField.inputAccessoryView = newValue }
+    }
     @discardableResult
     override open func becomeFirstResponder() -> Bool { searchTextField.becomeFirstResponder() }
     @discardableResult

@@ -45,6 +45,7 @@ let package = Package(
         .library(name: "BackgroundTasks", targets: ["BackgroundTasks"]),
         .library(name: "Translation", targets: ["Translation", "_Translation_SwiftUI"]),
         .library(name: "TipKit", targets: ["TipKit"]),
+        .library(name: "JavaScriptCore", targets: ["JavaScriptCore"]),
         .library(name: "CloudKit", targets: ["CloudKit"]),
         .library(name: "Photos", targets: ["Photos"]),
         .library(name: "PhotosUI", targets: ["PhotosUI"]),
@@ -168,6 +169,12 @@ let package = Package(
                                .product(name: "WebFoundationFormats", package: "WebGraphics")],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "_Translation_SwiftUI", dependencies: ["Translation"], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // JSContext and JSValue over the browser's own JavaScript engine, each context a realm of
+        // its own (an app links JavaScriptKit anyway, for the canvas host).
+        .target(name: "JavaScriptCore",
+                dependencies: [.product(name: "WebFoundation", package: "WebGraphics"),
+                               .product(name: "JavaScriptKit", package: "JavaScriptKit", condition: .when(platforms: [.wasi]))],
+                swiftSettings: [.treatAllWarnings(as: .error)]),
         // Tips (TipView, popoverTip) with their rules, parameters and events, kept in the page's
         // user defaults; `#Rule` and `@Parameter` are host-compiled macros.
         // iCloud containers, databases, records and operations: the browser has no iCloud account,
@@ -291,6 +298,13 @@ let package = Package(
             name: "CoreRuntimeTests",
             dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
+        ),
+        // JavaScriptCore on its own: under Node (the wasm tests) against its real engine; natively,
+        // where there is no engine, that no context is made.
+        .testTarget(
+            name: "JavaScriptCoreTests",
+            dependencies: ["JavaScriptCore", .product(name: "WebFoundation", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         // CloudKit on its own: the container, its databases and records (no other framework, so the
         // module is the only CloudKit the tests see on Apple's platforms).

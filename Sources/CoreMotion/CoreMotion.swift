@@ -6,7 +6,8 @@
 // as the browser fires its events (about 60 a second) and no more often than the update
 // interval asks. A computer has no motion sensors, so there every sensor reads unavailable, as
 // on a device without them. The magnetometer, the altimeter, the pedometer and activity
-// recognition have nothing behind them in a browser and read unavailable everywhere.
+// recognition have nothing behind them in a browser and read unavailable everywhere, as does a
+// watch's fall detection.
 #if os(WASI)
 import WebFoundation
 import WASILibc
@@ -524,7 +525,16 @@ open class CMPedometer: NSObject, @unchecked Sendable {
         handler(nil, _notAvailable())
     }
     open func stopUpdates() {}
+    /// Whether the pedometer reports when walking pauses and resumes (never in a browser).
+    open class func isPedometerEventTrackingAvailable() -> Bool { false }
+    open func startEventUpdates(handler: @escaping CMPedometerEventHandler) {
+        handler(nil, _notAvailable())
+    }
+    open func stopEventUpdates() {}
 }
+
+public typealias CMPedometerHandler = (CMPedometerData?, (any Error)?) -> Void
+public typealias CMPedometerEventHandler = (CMPedometerEvent?, (any Error)?) -> Void
 
 /// Steps and distance over a period.
 open class CMPedometerData: NSObject, @unchecked Sendable {
@@ -532,6 +542,13 @@ open class CMPedometerData: NSObject, @unchecked Sendable {
     public let endDate: Date
     public let numberOfSteps: NSNumber
     public let distance: NSNumber?
+    public let floorsAscended: NSNumber? = nil
+    public let floorsDescended: NSNumber? = nil
+    /// Seconds per metre.
+    public let currentPace: NSNumber? = nil
+    /// Steps per second.
+    public let currentCadence: NSNumber? = nil
+    public let averageActivePace: NSNumber? = nil
     package init(startDate: Date, endDate: Date, numberOfSteps: Int, distance: Double?) {
         self.startDate = startDate
         self.endDate = endDate
@@ -539,6 +556,68 @@ open class CMPedometerData: NSObject, @unchecked Sendable {
         self.distance = distance.map { NSNumber(value: $0) }
         super.init()
     }
+}
+
+/// Whether walking paused or resumed.
+public enum CMPedometerEventType: Int, Hashable, Sendable {
+    case pause = 0
+    case resume = 1
+}
+
+/// A pause or resumption of walking.
+open class CMPedometerEvent: NSObject, @unchecked Sendable {
+    public let date: Date
+    public let type: CMPedometerEventType
+    package init(date: Date, type: CMPedometerEventType) {
+        self.date = date
+        self.type = type
+        super.init()
+    }
+}
+
+// MARK: - Fall detection (a watch's; never available in a browser)
+
+/// Reports the falls a watch detects: unavailable in a browser, as on a phone.
+open class CMFallDetectionManager: NSObject, @unchecked Sendable {
+    public override init() { super.init() }
+    /// Whether the device detects falls.
+    open class var isAvailable: Bool { false }
+    open var authorizationStatus: CMAuthorizationStatus { .restricted }
+    open weak var delegate: (any CMFallDetectionDelegate)?
+    /// Asks the person to let the app hear of falls; answers with the status (restricted here).
+    open func requestAuthorization(handler: @escaping (CMAuthorizationStatus) -> Void) {
+        handler(authorizationStatus)
+    }
+}
+
+/// A fall the watch detected, and how the person answered its alert.
+open class CMFallDetectionEvent: NSObject, @unchecked Sendable {
+    public enum UserResolution: Int, Hashable, Sendable {
+        case confirmed = 0
+        case dismissed = 1
+        case rejected = 2
+        case unresponsive = 3
+    }
+    public let date: Date
+    public let resolution: UserResolution
+    package init(date: Date, resolution: UserResolution) {
+        self.date = date
+        self.resolution = resolution
+        super.init()
+    }
+}
+
+/// What hears of falls and of changes to the app's authorization.
+public protocol CMFallDetectionDelegate: AnyObject {
+    func fallDetectionManager(_ fallDetectionManager: CMFallDetectionManager, didDetect event: CMFallDetectionEvent,
+                              completionHandler handler: @escaping () -> Void)
+    func fallDetectionManagerDidChangeAuthorization(_ fallDetectionManager: CMFallDetectionManager)
+}
+
+extension CMFallDetectionDelegate {
+    public func fallDetectionManager(_ fallDetectionManager: CMFallDetectionManager, didDetect event: CMFallDetectionEvent,
+                                     completionHandler handler: @escaping () -> Void) { handler() }
+    public func fallDetectionManagerDidChangeAuthorization(_ fallDetectionManager: CMFallDetectionManager) {}
 }
 
 /// Walking, running, driving: unavailable in a browser.
