@@ -3,14 +3,54 @@
 // info; here every module that imports Foundation sees it. An integer keeps its exact value, a
 // floating-point number its double, a boolean its truth; the accessors convert as Foundation's
 // do (truncating toward zero), and numbers compare by value whatever they hold.
-// Final, unlike Apple's, so a wasm build drops the methods an app never calls (the size gate).
+// Final, unlike Apple's, so a wasm build drops the methods an app never calls (the size gate);
+// open only with the Objective-C runtime, for `NSDecimalNumber` (below).
 #if os(WASI)
 
+#if canImport(ObjectiveC)
+/// An object wrapper for primitive scalar numeric values. Open with the runtime, so that
+/// `NSDecimalNumber` is a kind of it, as Foundation's is: the compiler treats a bridge to
+/// `NSNumber` itself as a checked cast, so `price as Decimal` needs the subclass (RevenueCat).
+/// Members past the stored value and the initializers are in an extension, statically called.
+open class NSNumber: _WebObjectBase, Comparable, @unchecked Sendable,
+                     ExpressibleByIntegerLiteral, ExpressibleByFloatLiteral, ExpressibleByBooleanLiteral {
+    fileprivate enum Storage: Sendable { case int(Int64), uint(UInt64), double(Double), bool(Bool) }
+    fileprivate let storage: Storage
+
+    public init(value: Int) { storage = .int(Int64(value)) }
+    public init(value: Int8) { storage = .int(Int64(value)) }
+    public init(value: Int16) { storage = .int(Int64(value)) }
+    public init(value: Int32) { storage = .int(Int64(value)) }
+    public init(value: Int64) { storage = .int(value) }
+    public init(value: UInt) { storage = .uint(UInt64(value)) }
+    public init(value: UInt8) { storage = .uint(UInt64(value)) }
+    public init(value: UInt16) { storage = .uint(UInt64(value)) }
+    public init(value: UInt32) { storage = .uint(UInt64(value)) }
+    public init(value: UInt64) { storage = .uint(value) }
+    public init(value: Double) { storage = .double(value) }
+    public init(value: Float) { storage = .double(Double(value)) }
+    public init(value: Bool) { storage = .bool(value) }
+
+    public required convenience init(integerLiteral value: Int) { self.init(value: value) }
+    public required convenience init(floatLiteral value: Double) { self.init(value: value) }
+    public required convenience init(booleanLiteral value: Bool) { self.init(value: value) }
+
+    // An `NSObject` (ObjectBase.swift), so `@objc` members take `NSNumber` and `NSDecimalNumber`
+    // (RevenueCat's `pricePerDay`) and `Decimal`, which bridges to it, is representable too.
+    public override var description: String { _description }
+    /// Equal to another number of the same value, as Foundation's are.
+    public override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NSNumber else { return false }
+        return self == other
+    }
+    public override var hash: Int { doubleValue.hashValue }
+}
+#else
 /// An object wrapper for primitive scalar numeric values.
 public final class NSNumber: _WebObjectBase, Comparable, @unchecked Sendable,
                      ExpressibleByIntegerLiteral, ExpressibleByFloatLiteral, ExpressibleByBooleanLiteral {
-    private enum Storage: Sendable { case int(Int64), uint(UInt64), double(Double), bool(Bool) }
-    private let storage: Storage
+    fileprivate enum Storage: Sendable { case int(Int64), uint(UInt64), double(Double), bool(Bool) }
+    fileprivate let storage: Storage
 
     public init(value: Int) { storage = .int(Int64(value)) }
     public init(value: Int8) { storage = .int(Int64(value)) }
@@ -30,6 +70,11 @@ public final class NSNumber: _WebObjectBase, Comparable, @unchecked Sendable,
     public convenience init(floatLiteral value: Double) { self.init(value: value) }
     public convenience init(booleanLiteral value: Bool) { self.init(value: value) }
 
+    public var description: String { _description }
+}
+#endif
+
+extension NSNumber {
     public var doubleValue: Double {
         switch storage {
         case .int(let v): return Double(v)
@@ -83,20 +128,6 @@ public final class NSNumber: _WebObjectBase, Comparable, @unchecked Sendable,
     /// The number as an address (Foundation's NSValue reading, used on return-address lists).
     public var pointerValue: UnsafeMutableRawPointer? { UnsafeMutableRawPointer(bitPattern: uintValue) }
 
-    #if canImport(ObjectiveC)
-    // An `NSObject` (ObjectBase.swift), so `@objc` members take `NSNumber` and `NSDecimalNumber`
-    // (RevenueCat's `pricePerDay`) and `Decimal`, which bridges to it, is representable too.
-    public override var description: String { _description }
-    /// Equal to another number of the same value, as Foundation's are.
-    public override func isEqual(_ object: Any?) -> Bool {
-        guard let other = object as? NSNumber else { return false }
-        return self == other
-    }
-    public override var hash: Int { doubleValue.hashValue }
-    #else
-    public var description: String { _description }
-    #endif
-
     private var _description: String {
         switch storage {
         case .int(let v): return String(v)
@@ -143,11 +174,16 @@ extension Int {
     public init(truncating number: NSNumber) { self = number.intValue }
 }
 
-/// Foundation's decimal number class. Here it is `NSNumber` itself, holding a double, which is
-/// exact for prices and the amounts apps show (StoreKit's `SKProduct.price`). There is no bridge
-/// to `Decimal`: parsing one links FoundationEssentials' locale machinery, megabytes an app pays
-/// for even when it never calls it.
+/// Foundation's decimal number class, holding a double, which is exact for prices and the amounts
+/// apps show (StoreKit's `SKProduct.price`); its arithmetic is in NSDecimalNumber.swift, and its
+/// bridge to `Decimal` in WebDecimalFormats, where `Decimal` is linked. Without the runtime it is
+/// `NSNumber` itself. With it, a subclass: the compiler reads a bridge to `NSNumber` as a checked
+/// cast, so `Decimal`'s bridge is to this class and `price as Decimal` converts, as on Apple's.
+#if canImport(ObjectiveC)
+open class NSDecimalNumber: NSNumber, @unchecked Sendable {}
+#else
 public typealias NSDecimalNumber = NSNumber
+#endif
 
 extension Int64 {
     public init(truncating number: NSNumber) { self = number.int64Value }

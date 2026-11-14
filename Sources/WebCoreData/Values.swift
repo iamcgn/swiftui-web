@@ -95,8 +95,11 @@ public struct NSOrderedSet: RandomAccessCollection, Hashable, @unchecked Sendabl
 }
 
 #if os(WASI)
-/// `Date`, as Foundation bridges it: `date as NSDate` in a predicate's arguments.
+#if !canImport(ObjectiveC)
+/// `Date`, as Foundation bridges it: `date as NSDate` in a predicate's arguments. With the
+/// runtime, `NSDate` is WebFoundation's class, and `date as NSDate` an object (`_cdUnwrap`).
 public typealias NSDate = Date
+#endif
 /// A block that compares two objects (Foundation's `Comparator`).
 public typealias Comparator = (Any, Any) -> ComparisonResult
 #endif
@@ -117,6 +120,9 @@ extension Optional: _CDOptional {
 func _cdUnwrap(_ value: Any?) -> Any? {
     guard let value else { return nil }
     if let optional = value as? _CDOptional { return optional._cdWrapped }
+    #if os(WASI) && canImport(ObjectiveC)
+    if let date = value as? NSDate { return date._webValue }
+    #endif
     return value
 }
 
