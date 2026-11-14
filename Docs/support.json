@@ -704,7 +704,7 @@
         {
           "api": "Angle",
           "status": "full",
-          "notes": "radians/degrees, Comparable, Animatable",
+          "notes": "radians/degrees, Comparable, Animatable; adds, subtracts, scales and negates (SwiftUI's _VectorMath, as EdgeInsets does too) (2026-11-14)",
           "fixtures": [
             "shape/path"
           ]
