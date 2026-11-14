@@ -4,7 +4,9 @@
 // (`BarcodeDetector`, where the browser has it) and movies (`MediaRecorder`). The stream is kept
 // in `globalThis.__swiftuiWebCapture[session]`, where CanvasHost's camera elements find it for
 // the preview. At launch the host counts the cameras and microphones (`enumerateDevices`, which
-// asks the person nothing) and reads the camera permission where the browser says it.
+// asks the person nothing) and reads the camera permission where the browser says it. A movie's
+// frames, for the image generator, come from another hidden `<video>` loading the movie's URL,
+// seeked to the asked time and drawn to a canvas at the asked size.
 #if os(WASI)
 import AVCaptureHost
 import JavaScriptKit
@@ -143,6 +145,36 @@ enum CaptureHost {
               blob.arrayBuffer().then(function (buf) { done(new Uint8Array(buf), r.mimeType || ''); }, function () { done(null, ''); });
             };
             r.stop();
+          },
+          movieFrame: function (url, t, mw, mh, done) {
+            var v = document.createElement('video'), settled = false;
+            v.muted = true; v.playsInline = true; v.preload = 'auto'; v.crossOrigin = 'anonymous';
+            var finish = function (w, h, px, at) {
+              if (settled) return;
+              settled = true; clearTimeout(timer); v.removeAttribute('src'); v.load(); done(w, h, px, at);
+            };
+            var fail = function () { finish(0, 0, null, 0); };
+            var timer = setTimeout(fail, 20000);
+            var draw = function () {
+              try {
+                var w = v.videoWidth, h = v.videoHeight, s = 1;
+                if (!w || !h) { fail(); return; }
+                if (mw > 0) s = Math.min(s, mw / w);
+                if (mh > 0) s = Math.min(s, mh / h);
+                w = Math.max(1, Math.round(w * s)); h = Math.max(1, Math.round(h * s));
+                var c = document.createElement('canvas'); c.width = w; c.height = h;
+                var g = c.getContext('2d'); g.drawImage(v, 0, 0, w, h);
+                finish(w, h, new Uint8Array(g.getImageData(0, 0, w, h).data.buffer), v.currentTime);
+              } catch (x) { fail(); }
+            };
+            v.addEventListener('error', fail);
+            v.addEventListener('loadeddata', function () {
+              var d = v.duration, at = Math.max(0, isFinite(d) ? Math.min(t, Math.max(0, d - 0.001)) : t);
+              if (Math.abs(v.currentTime - at) < 0.001) { draw(); return; }
+              v.addEventListener('seeked', draw, { once: true });
+              v.currentTime = at;
+            }, { once: true });
+            v.src = url;
           }
         };
         """
@@ -151,7 +183,21 @@ enum CaptureHost {
     }()
 
     static func install() {
-        guard let js = helpers, js.supported!().boolean == true else { return }
+        guard let js = helpers else { return }
+        // A movie's frames, for AVFoundation's image generator: any browser that plays video.
+        _AVFrameHost.frame = { url, seconds, maxWidth, maxHeight, done in
+            let report = JSClosure { (arguments: [JSValue]) -> JSValue in
+                let width = Int(arguments[0].number ?? 0), height = Int(arguments[1].number ?? 0)
+                let pixels = CaptureStream.bytes(arguments[2])
+                let frame = width > 0 && height > 0 && !pixels.isEmpty
+                    ? _AVFrame(width: width, height: height, rgba: pixels, seconds: arguments[3].number ?? seconds) : nil
+                MainActor.assumeIsolated { done(frame) }
+                return .undefined
+            }
+            retained.append(report)
+            _ = js.movieFrame!(url, seconds, maxWidth, maxHeight, report)
+        }
+        guard js.supported!().boolean == true else { return }
         // There may be a camera until the browser has said.
         _AVCaptureHost.cameraCount = -1
         _AVCaptureHost.microphoneCount = -1
@@ -216,7 +262,7 @@ final class CaptureStream: _AVCaptureStream {
         self.entry = entry
     }
 
-    private static func bytes(_ value: JSValue) -> [UInt8] {
+    static func bytes(_ value: JSValue) -> [UInt8] {
         guard let array = value.object else { return [] }
         return JSTypedArray<UInt8>(unsafelyWrapping: array).withUnsafeBytes { Array($0) }
     }

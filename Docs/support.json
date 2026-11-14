@@ -2651,6 +2651,18 @@
           "noFixture": "Nothing to draw: CoreRuntimeTests drive sessions through a stand-in camera and check the preview's host element in a representable"
         },
         {
+          "api": "AVAssetImageGenerator (generateCGImagesAsynchronously, image(at:), maximumSize, cancelAllCGImageGeneration) / NSValue(time:) (AVFoundation)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-14), for Kingfisher's video thumbnails: the browser loads the asset's URL in a hidden video element, seeks to each asked time and draws that frame, scaled down to fit maximumSize, one request at a time in order; each answer carries the time asked, the frame as an image, the time the frame is from and the result. A movie the browser cannot play (or one from another site without CORS) fails with AVError.decodeFailed, and cancelling answers what is pending as cancelled. AVFoundation re-exports ImageIO's image sources; writing an image (CGImageDestination) needs import ImageIO, which Apple's AVFoundation brings with it, so Kingfisher's thumbnail JPEG writer still misses those three calls. Not done: copyCGImage(at:actualTime:) throws, as the browser answers only later; the time tolerances and aperture modes are kept but the browser picks the frame it shows.",
+          "noFixture": "Nothing to draw: CoreRuntimeTests drive the generator through a stand-in video and check the order, sizes, times, failures and cancelling"
+        },
+        {
+          "api": "vImage_Buffer / vImageBuffer_Init / vImageBoxConvolve_ARGB8888 / vImageBoxConvolve_Planar8 and the kvImage flags and errors (Accelerate)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-14), for Kingfisher's blur processor: the box filter over 8-bit pixels with each edge style (extend, background colour, truncated kernel, copy in place), regions of interest and kvImageLeaveAlphaUnchanged, rounded as vImage rounds (the macOS tests compare the bytes with Apple's). Not done: the rest of vImage and vDSP, BLAS and LAPACK.",
+          "noFixture": "Nothing to draw: WebFoundationFormatsTests hold the filter to its definition for every edge style, and on macOS to Apple's vImage byte for byte"
+        },
+        {
           "api": "AudioServicesPlaySystemSound / AudioServicesPlayAlertSound / SystemSoundID (AudioToolbox)",
           "status": "stub",
           "notes": "pf-small-frameworks (2026-11-09): a page has no system sound set and no vibration, so system sounds (and kSystemSoundID_Vibrate) play silently; the completion forms call their block at once. Not done: any sound (an app's own audio plays through AVAudioPlayer)",
