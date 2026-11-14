@@ -108,11 +108,9 @@ extension Set: _BothSetForms {}
         let uuidBytes: [UInt8] = Array(0..<16)
         let fromBytes = uuidBytes.withUnsafeBufferPointer { NSUUID(uuidBytes: $0.baseAddress!) }
         #expect(fromBytes.uuidString == "00010203-0405-0607-0809-0A0B0C0D0E0F")
-        #if !os(Linux) // corelibs Foundation's NSUUID has no getUUIDBytes(_:); Apple's and ours do
         var copied = [UInt8](repeating: 0, count: 16)
-        copied.withUnsafeMutableBufferPointer { fromBytes.getUUIDBytes($0.baseAddress!) }
+        copied.withUnsafeMutableBufferPointer { fromBytes.getBytes($0.baseAddress!) }
         #expect(copied == uuidBytes)
-        #endif
 
         let bytes = Data([1, 2, 3]) as NSData
         #expect(bytes.length == 3)

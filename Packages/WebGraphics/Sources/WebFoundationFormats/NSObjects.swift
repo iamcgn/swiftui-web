@@ -257,8 +257,8 @@ public final class NSUUID: _WebNSValue, _WebValueObject, @unchecked Sendable {
                                          b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15])))
     }
     public var uuidString: String { _webValue.uuidString }
-    /// Copies the UUID's 16 bytes into `uuid`.
-    public func getUUIDBytes(_ uuid: UnsafeMutablePointer<UInt8>!) {
+    /// Copies the UUID's 16 bytes into `uuid` (Objective-C's `getUUIDBytes:`).
+    public func getBytes(_ uuid: UnsafeMutablePointer<UInt8>!) {
         withUnsafeBytes(of: _webValue.uuid) { raw in
             for i in 0..<16 { uuid[i] = raw[i] }
         }
