@@ -17,13 +17,28 @@ public struct DispatchQoS: Sendable, Equatable {
     public static let unspecified = DispatchQoS(qosClass: .unspecified)
 }
 
-public struct DispatchTimeInterval: Sendable, Equatable {
-    public let _seconds: Double
-    public static func seconds(_ s: Int) -> DispatchTimeInterval { DispatchTimeInterval(_seconds: Double(s)) }
-    public static func milliseconds(_ ms: Int) -> DispatchTimeInterval { DispatchTimeInterval(_seconds: Double(ms) / 1_000) }
-    public static func microseconds(_ us: Int) -> DispatchTimeInterval { DispatchTimeInterval(_seconds: Double(us) / 1_000_000) }
-    public static func nanoseconds(_ ns: Int) -> DispatchTimeInterval { DispatchTimeInterval(_seconds: Double(ns) / 1_000_000_000) }
-    public static let never = DispatchTimeInterval(_seconds: .infinity)
+/// A span of time, as Apple's: an enum, so apps can match its cases (`case .seconds(let s)`).
+public enum DispatchTimeInterval: Sendable, Equatable, Hashable {
+    case seconds(Int)
+    case milliseconds(Int)
+    case microseconds(Int)
+    case nanoseconds(Int)
+    case never
+
+    /// The span in seconds (infinite for `never`).
+    public var _seconds: Double {
+        switch self {
+        case .seconds(let s): Double(s)
+        case .milliseconds(let ms): Double(ms) / 1_000
+        case .microseconds(let us): Double(us) / 1_000_000
+        case .nanoseconds(let ns): Double(ns) / 1_000_000_000
+        case .never: .infinity
+        }
+    }
+
+    /// Apple compares the spans themselves, so `.seconds(1) == .milliseconds(1000)`.
+    public static func == (a: DispatchTimeInterval, b: DispatchTimeInterval) -> Bool { a._seconds == b._seconds }
+    public func hash(into hasher: inout Hasher) { hasher.combine(_seconds) }
 }
 
 /// A point on the monotonic clock, in seconds since the page loaded.
@@ -41,6 +56,17 @@ public struct DispatchTime: Sendable, Comparable {
     public static func + (t: DispatchTime, interval: DispatchTimeInterval) -> DispatchTime { t + interval._seconds }
     public static func - (t: DispatchTime, interval: DispatchTimeInterval) -> DispatchTime { t - interval._seconds }
     public var _delay: Double { max(0, _seconds - _monotonicNow()) }
+
+    /// The span from this time to `other`, in nanoseconds (Apple's `Strideable` conformance).
+    public func distance(to other: DispatchTime) -> DispatchTimeInterval {
+        let span = other._seconds - _seconds
+        guard span.isFinite else { return .never }
+        let ns = (span * 1_000_000_000).rounded()
+        return .nanoseconds(ns >= Double(Int.max) ? .max : ns <= Double(Int.min) ? .min : Int(ns))
+    }
+
+    /// This time moved by `interval`.
+    public func advanced(by interval: DispatchTimeInterval) -> DispatchTime { self + interval }
 }
 
 /// Whether a wait ended because its condition was met or because its time ran out.

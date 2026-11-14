@@ -36,6 +36,7 @@ public struct SKError: Error, Hashable, @unchecked Sendable {
         case ineligibleForOffer = 18
         case unsupportedPlatform = 19
         case overlayPresentedInBackgroundScene = 20
+        case paymentMethodBindingConfigurationRequired = 21
     }
 
     public let code: Code

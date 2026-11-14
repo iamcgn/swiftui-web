@@ -54,6 +54,33 @@ private final class Box: @unchecked Sendable {
         #expect((now + .seconds(1)).uptimeNanoseconds > now.uptimeNanoseconds && (now + .seconds(1)) > now && (now - .milliseconds(1)) < now)
     }
 
+    /// Intervals are an enum whose cases code matches (RevenueCat converts them this way), equal
+    /// when they span the same time; the span between two times is one.
+    @Test func intervalsMatchAsCasesAndMeasureSpans() {
+        // `if case` rather than a switch: Apple's enum is resilient and wants `@unknown default`,
+        // which the others warn is never reached.
+        func seconds(_ interval: DispatchTimeInterval) -> Double {
+            if case .seconds(let s) = interval { return Double(s) }
+            if case .milliseconds(let ms) = interval { return Double(ms) / 1_000 }
+            if case .microseconds(let us) = interval { return Double(us) / 1_000_000 }
+            if case .nanoseconds(let ns) = interval { return Double(ns) / 1_000_000_000 }
+            if case .never = interval { return .infinity }
+            return .nan
+        }
+        #expect(seconds(.milliseconds(1500)) == 1.5 && seconds(.never) == .infinity)
+        #expect(DispatchTimeInterval.seconds(1) == .milliseconds(1000) && DispatchTimeInterval.seconds(1) != .seconds(2))
+        if case .microseconds(let us) = DispatchTimeInterval.microseconds(7) { #expect(us == 7) } else { Issue.record("not microseconds") }
+        // `distance(to:)` and `advanced(by:)` come from Apple's Dispatch overlay (and ours on
+        // wasm); Linux's corelibs Dispatch has neither.
+        #if os(WASI) || canImport(Darwin)
+        let start = DispatchTime(uptimeNanoseconds: 5_000_000_000)
+        let end = DispatchTime(uptimeNanoseconds: 7_000_000_000)
+        #expect(abs(seconds(start.distance(to: end)) - 2) < 0.001)
+        #expect(abs(seconds(end.distance(to: start)) + 2) < 0.001)
+        #expect(start.advanced(by: .seconds(2)) == end)
+        #endif
+    }
+
     /// Lets queued work run: the wasm test runner has no event loop to sleep on (Node's WASI
     /// can't wait), so there it yields to the main actor's queued jobs instead. For the same
     /// reason no test here takes a time limit: its watchdog sleeps. The loops are bounded.
