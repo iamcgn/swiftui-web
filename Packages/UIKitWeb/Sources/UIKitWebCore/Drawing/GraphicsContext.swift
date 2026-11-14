@@ -483,3 +483,19 @@ private extension DisplayGradient {
         return copy
     }
 }
+
+#if !canImport(CoreGraphics) || os(WASI)
+extension UIGraphicsRecordingContext {
+    /// A bitmap context of `width` by `height` pixels, as CoreGraphics makes one: its origin at the
+    /// bottom left with y going up, one point to a pixel. Image code (Nuke's decompression and
+    /// thumbnails) draws a CGImage into it and takes `makeImage()`. The context records the
+    /// drawing and holds no pixels, so a context asked to draw into caller memory (`data` not nil)
+    /// cannot be made, nor one with no pixels; both answer nil, which such code already handles.
+    public convenience init?(data: UnsafeMutableRawPointer?, width: Int, height: Int, bitsPerComponent: Int,
+                             bytesPerRow: Int, space: CGColorSpace, bitmapInfo: UInt32) {
+        guard data == nil, width > 0, height > 0, bitsPerComponent > 0, bytesPerRow >= 0 else { return nil }
+        self.init(origin: .zero, scale: 1, canvasSize: CGSize(width: width, height: height))
+        state.ctm = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: CGFloat(height))
+    }
+}
+#endif

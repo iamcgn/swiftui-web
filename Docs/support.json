@@ -2047,9 +2047,9 @@
           ]
         },
         {
-          "api": "CGGradient / CGContext.drawLinearGradient / drawRadialGradient, UIGraphicsImageRenderer, UIGraphicsBeginImageContext, UIImage.pngData()",
+          "api": "CGGradient / CGContext.drawLinearGradient / drawRadialGradient, UIGraphicsImageRenderer, UIGraphicsBeginImageContext, UIImage.pngData(), CGContext(data:width:height:bitsPerComponent:bytesPerRow:space:bitmapInfo:)",
           "status": "partial",
-          "notes": "Linear and radial gradients with colour stops, image contexts recording drawings into vector UIImages that UIImageView, draw(at:) and SwiftUI's Image replay, the renderer context's blend-mode fills and strokes; pngData rasterises through the host; open: UIImage from pixel data",
+          "notes": "Linear and radial gradients with colour stops, image contexts recording drawings into vector UIImages that UIImageView, draw(at:) and SwiftUI's Image replay, the renderer context's blend-mode fills and strokes; pngData rasterises through the host; open: UIImage from pixel data. Bitmap contexts (2026-11-14): CGContext(data: nil, width:height:...) records with CoreGraphics's y-up origin and makeImage() gives the drawing (Nuke decompresses through it); a context over caller memory is not made, as no pixels are held",
           "fixtures": [
             "uikit/draw/gradient",
             "ios/representable/renderedimage"
