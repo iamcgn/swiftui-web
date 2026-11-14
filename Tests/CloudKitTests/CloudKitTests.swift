@@ -144,9 +144,12 @@ final class Box<T>: @unchecked Sendable {
 
     @Test func queriesAndSubscriptions() {
         let query = CKQuery(recordType: "Note", predicate: NSPredicate(value: true))
-        query.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
         #expect(query.recordType == "Note")
+        #if !os(Linux)
+        // swift-corelibs-foundation has no key-based sort descriptors (no key-value coding).
+        query.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
         #expect(query.sortDescriptors?.count == 1)
+        #endif
         #expect(CKQueryOperation.maximumResults == 0)
 
         let subscription = CKQuerySubscription(recordType: "Note", predicate: NSPredicate(value: true), subscriptionID: "notes",
