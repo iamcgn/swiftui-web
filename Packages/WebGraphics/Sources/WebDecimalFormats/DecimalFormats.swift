@@ -77,7 +77,7 @@ extension NSNumber {
     public convenience init(decimal dcm: Decimal) { self.init(value: dcm._double) }
     /// The decimal the double's shortest spelling names (4.75, not 4.7499999…).
     public var decimalValue: Decimal {
-        let value = NSNumber._snap(doubleValue)
+        let value = NSDecimalNumber._snap(doubleValue)
         return Decimal(string: String(value)) ?? Decimal(value)
     }
 }

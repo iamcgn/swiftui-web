@@ -232,7 +232,9 @@ open class NSDate: _WebNSValue, @unchecked Sendable {
     public var timeIntervalSinceNow: TimeInterval { _webValue.timeIntervalSinceNow }
     public func timeIntervalSince(_ anotherDate: Date) -> TimeInterval { _webValue.timeIntervalSince(anotherDate) }
     public func addingTimeInterval(_ ti: TimeInterval) -> Date { _webValue.addingTimeInterval(ti) }
-    public func compare(_ other: Date) -> ComparisonResult { _webValue.compare(other) }
+    public func compare(_ other: Date) -> ComparisonResult {
+        _webValue < other ? .orderedAscending : _webValue > other ? .orderedDescending : .orderedSame
+    }
     public func isEqual(to otherDate: Date) -> Bool { _webValue == otherDate }
     public func earlierDate(_ anotherDate: Date) -> Date { min(_webValue, anotherDate) }
     public func laterDate(_ anotherDate: Date) -> Date { max(_webValue, anotherDate) }
