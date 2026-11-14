@@ -1,7 +1,7 @@
-// ImageIO's image destinations on wasm, re-exported by the `ImageIO` shadow (Packages/Shadows) and by
-// AVFoundation, which re-exports ImageIO on Apple's platforms (Kingfisher writes a video
-// thumbnail's JPEG through it with only AVKit imported). A module apart from WebImageIO's
-// sources, which every app links, so only an app that writes images links NSMutableData's module.
+// ImageIO's image destinations on wasm, re-exported by the `ImageIO` shadow (Packages/Shadows).
+// A module apart from WebImageIO's sources, which every app links, so only an app that writes
+// images links NSMutableData's module (AVFoundation, which re-exports ImageIO on Apple's platforms,
+// re-exports only the sources here for the same reason).
 // Writing image files (IceCubes' compressor, Oscar's screenshots): a destination collects images
 // and, when finalized, writes the first one's bytes into its data or file. This substrate ships no
 // JPEG, GIF or WebP encoder, so an image keeps its own file's bytes when that file is already of

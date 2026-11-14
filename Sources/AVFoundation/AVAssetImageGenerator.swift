@@ -9,10 +9,12 @@
 // `AVError.decodeFailed`.
 #if os(WASI)
 import WebFoundation
-// Apple's AVFoundation re-exports ImageIO, so a file importing only AVKit writes the thumbnail's
-// JPEG with `CGImageDestination` (Kingfisher's `CGImage.jpegData`).
+// Apple's AVFoundation re-exports ImageIO. Here it re-exports the image sources (WebImageIO, which
+// every app links anyway) but not the destinations: those bring Foundation's NSMutableData module,
+// about 800 KB that every app using AVFoundation would carry (the Gallery's size gate). A file
+// that writes images with only AVKit imported (Kingfisher's video thumbnail JPEG) needs
+// `import ImageIO`.
 @_exported import WebImageIO
-@_exported import WebImageDestination
 #else
 import Foundation
 #endif

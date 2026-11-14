@@ -74,8 +74,8 @@ let package = Package(
             dependencies: ["WebFoundation", "WebGraphics"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
-        // ImageIO's image destinations on wasm, which the `ImageIO` shadow and AVFoundation
-        // re-export (Apple's AVFoundation re-exports ImageIO). Apart from WebImageIO, which every
+        // ImageIO's image destinations on wasm, which the `ImageIO` shadow re-exports (AVFoundation
+        // re-exports only WebImageIO, to keep its apps small). Apart from WebImageIO, which every
         // app links, because a destination writes into Foundation's NSMutableData
         // (WebFoundationFormats).
         .target(
