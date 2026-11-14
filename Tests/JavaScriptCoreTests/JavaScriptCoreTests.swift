@@ -75,7 +75,7 @@ import Testing
         #expect(JSValue(undefinedIn: context).toObject() == nil)
         #expect(context.evaluateScript("'12' * 2").toDouble() == 24)
         #expect(context.evaluateScript("[3, 4]").toArray().count == 2)
-        #expect(context.evaluateScript("({ length: 2, 0: 'a', 1: 'b' })").toArray().map { $0 as? String } == ["a", "b"])
+        #expect((context.evaluateScript("({ length: 2, 0: 'a', 1: 'b' })").toArray() ?? []).map { $0 as? String } == ["a", "b"])
         #expect(context.evaluateScript("new Date(86400000)").toDate() == Date(timeIntervalSince1970: 86_400))
         #expect(context.evaluateScript("Symbol('tag')").toString() == "Symbol(tag)")
         #expect(context.evaluateScript("null").toString() == "null")
