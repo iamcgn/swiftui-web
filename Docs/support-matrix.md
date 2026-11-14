@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-11-06) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 183 | 43 | 126 | 3 | 10 | 1 |
-| UIKit | 61 | 22 | 35 | 4 | 0 | 0 |
+| UIKit | 62 | 22 | 36 | 4 | 0 | 0 |
 | Interop | 53 | 8 | 45 | 0 | 0 | 0 |
-| **All** | **297** | 73 | 206 | 7 | 10 | 1 |
+| **All** | **298** | 73 | 207 | 7 | 10 | 1 |
 
 ## App lifecycle
 
@@ -271,6 +271,7 @@ Generated from `Docs/support.json` (last edited 2026-11-06) by `scripts/gen-prog
 |---|---|---|---|
 | `UILabel` | ✅ full | Sized to fit at the system and text-style fonts, wrapping and truncation, tabular figures, attributed text with per-range fonts and colours, continuous scaling to fit with a minimum factor, tightening before truncation; the ink positions of text-style lines verified against the simulator (Docs/elements/UIKit/UILabel.md) | uikit/label/basic, uikit/label/fitting, uikit/label/tabular, uikit/label/wrapping |
 | `UITextView` | ✅ full | Wrapped body text with the 8 pt container insets and 5 pt fragment padding, scrolling, editing through the substrate's multi-line input, delegate callbacks, sizeThatFits, attributed runs, links (attributed and detected) opening through the delegate, the selection painted while editing, exclusion paths, the Helvetica 12 default font; open: the browser's selection in selectedRange, keyboard avoidance. UIKeyInput/UITextInput/UITextInteraction (2026-10-12): an app's own text views take the host's text element, the host's reports relayed as inserts and deletes or replacements of the changed range with the selection following | uikit/textview/basic, uikit/textview/heights, uikit/textview/looks |
+| `TextKit 1: NSTextStorage / NSLayoutManager / NSTextContainer, UITextView's UITextInput` | 🟢 partial | A text view's textStorage, layoutManager and textContainer, and a stand-alone storage given a layout manager given a container of a size: glyphs are the UTF-16 units, lines come from the text engine with the text view's wrapping at the container's width less its padding, line fragment and used rectangles (the padding either side), glyph bounding rectangles, line fragment enumeration and the character under a point with its fraction; storage edits (batched by beginEditing/endEditing, heard by the storage's delegate) show in the view and the view's text fills the storage. UITextView is a UITextInput: positions are UTF-16 offsets, the caret (overridable), the first rectangle of a range, the closest position, insertText/deleteBackward/replace (2026-11-14); open: exclusion paths and the extra line fragment in the layout manager's answers, glyph drawing, TextKit 2 | — TextKitTests (a text view's glyph and line rectangles, wrapped lines, storage edits shown in the view, a stand-alone layout manager's hit testing, the text input) |
 | `UIFont` | ✅ full | System fonts by size and weight, italic and monospaced faces, bundled fonts through the asset catalog with their tables' metrics, the text styles at every content size category with their own measured metrics, UIFontMetrics scaling, labels following the scene's category; tabular figures; a font's descriptor in another system design (rounded, serif, monospaced) or size, back through UIFont(descriptor:size:) (2026-11-01); open: reading the host's text size, a descriptor's traits and attributes (Docs/elements/UIKit/UIFont.md) | uikit/label/basic, uikit/label/fonts, uikit/textview/basic |
 | `NSAttributedString / NSString drawing (draw(at:), draw(in:), size(withAttributes:), boundingRect)` | ✅ full | Per-range fonts and colours, underlines and strikethroughs in their own colours drawn as UIKit's string drawing does (unsnapped lines, a 1 pt minimum), the paragraph alignment, NSMutableAttributedString edits; measured through the text engine; open: the bold faces' line metrics (a half-point at 24 pt bold) | uikit/draw/text, uikit/draw/rest |
 
