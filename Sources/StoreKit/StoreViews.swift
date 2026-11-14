@@ -300,12 +300,12 @@ extension StoreView where PlaceholderIcon == EmptyView {
 }
 
 extension StoreView where Icon == EmptyView, PlaceholderIcon == EmptyView {
-    public init(ids: some Collection<Product.ID>) {
-        self.init(ids: ids, icon: { _ in EmptyView() }, placeholderIcon: { EmptyView() })
+    public init(ids: some Collection<Product.ID>, prefersPromotionalIcon: Bool = false) {
+        self.init(ids: ids, prefersPromotionalIcon: prefersPromotionalIcon, icon: { _ in EmptyView() }, placeholderIcon: { EmptyView() })
     }
 
-    public init(products: some Collection<Product>) {
-        self.init(products: products, icon: { _ in EmptyView() }, placeholderIcon: { EmptyView() })
+    public init(products: some Collection<Product>, prefersPromotionalIcon: Bool = false) {
+        self.init(products: products, prefersPromotionalIcon: prefersPromotionalIcon, icon: { _ in EmptyView() }, placeholderIcon: { EmptyView() })
     }
 }
 

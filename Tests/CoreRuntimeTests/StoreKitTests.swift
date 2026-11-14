@@ -163,6 +163,7 @@ private final class ReceiptRefresh: SKRequestDelegate {
     @Test func storesShowMarketingAndAnEmptyStore() {
         let runtime = render(VStack {
             StoreView(ids: ["a", "b"]) { _ in Text("never") }
+            StoreView(ids: ["c"], prefersPromotionalIcon: true)
             SubscriptionStoreView(groupID: "pro", visibleRelationships: .upgrade) { Text("Go Pro") }
                 .containerBackground(for: .subscriptionStoreFullHeight) { Color.blue }
                 .subscriptionStoreControlIcon { _, info in Text("\(info.groupLevel)") }
@@ -171,7 +172,7 @@ private final class ReceiptRefresh: SKRequestDelegate {
                 .subscriptionStorePickerItemBackground(.thinMaterial)
                 .onInAppPurchaseCompletion { _, _ in }
         })
-        #expect(texts(runtime) == ["Unavailable", "Unavailable", "Go Pro", "Subscriptions unavailable"])
+        #expect(texts(runtime) == ["Unavailable", "Unavailable", "Unavailable", "Go Pro", "Subscriptions unavailable"])
     }
 
     @Test func aStoreBuiltFromStoreContentShowsTheNote() {
