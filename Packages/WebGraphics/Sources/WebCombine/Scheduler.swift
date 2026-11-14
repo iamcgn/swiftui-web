@@ -161,9 +161,6 @@ extension DispatchQueue: Scheduler {
             }
             public var timeInterval: DispatchTimeInterval { .nanoseconds(magnitude) }
             public init(_ timeInterval: DispatchTimeInterval) {
-                #if os(WASI)
-                _raw = timeInterval._seconds
-                #else
                 switch timeInterval {
                 case .seconds(let s): _raw = Double(s)
                 case .milliseconds(let ms): _raw = Double(ms) / 1e3
@@ -171,7 +168,6 @@ extension DispatchQueue: Scheduler {
                 case .nanoseconds(let ns): _raw = Double(ns) / 1e9
                 default: _raw = .infinity
                 }
-                #endif
             }
             public static func _raw(seconds: Double) -> Double { seconds }
         }

@@ -1,8 +1,8 @@
 // CryptoKit on wasm and Linux (where Apple's is missing): the hash functions, HMAC and
 // symmetric keys apps use to fingerprint data, sign requests (OAuth's PKCE challenge, a webhook
-// signature) and derive identifiers. Pure Swift; the digests match Apple's byte for byte. Not
-// here: ciphers (AES, ChaChaPoly), key agreement (Curve25519, P256) and P256 signatures,
-// HKDF, the Secure Enclave.
+// signature) and derive identifiers, and ChaChaPoly to seal data. Pure Swift; the digests
+// and sealed boxes match Apple's byte for byte. Not here: AES, key agreement (Curve25519,
+// P256) and P256 signatures, HKDF, the Secure Enclave.
 //
 // Inputs are any sequence of bytes (`Data`, `[UInt8]`, a slice, `Data(string.utf8)`), which
 // covers every `DataProtocol` value Apple's accepts.
@@ -18,6 +18,13 @@ public protocol Digest: Hashable, Sequence, CustomStringConvertible, Sendable wh
 }
 
 extension Digest {
+    /// The digest's bytes, one at a time. Apple's digests iterate as an array does, so generic
+    /// code over a hash function (`H.hash(data:).makeIterator()`) can hand the iterator to a
+    /// function taking `Array<UInt8>.Iterator`, as RevenueCat's hex encoding does.
+    public func makeIterator() -> Array<UInt8>.Iterator {
+        withUnsafeBytes { Array($0) }.makeIterator()
+    }
+
     /// The digest's bytes as lower-case hexadecimal.
     var _hex: String {
         var out = ""

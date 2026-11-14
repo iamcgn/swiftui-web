@@ -39,11 +39,19 @@ extension Decimal {
         /// The decimal as an amount of a currency (12.5 → "$12.50").
         public struct Currency: WebFoundation.FormatStyle, Hashable, Sendable {
             var core: _NumberFormatting
-            public init(code: String, locale: Locale = .current) { core = _NumberFormatting(style: .currency(code)) }
+            /// The ISO 4217 code of the currency the style shows amounts in.
+            public let currencyCode: String
+            /// The locale the style formats for.
+            public var locale: Locale
+            public init(code: String, locale: Locale = .current) {
+                core = _NumberFormatting(style: .currency(code))
+                currencyCode = code
+                self.locale = locale
+            }
             public func format(_ value: Decimal) -> String { core.format(value._double) }
             public func precision(_ precision: NumberFormatStyleConfiguration.Precision) -> Self { var copy = self; copy.core = core.precision(precision); return copy }
             public func grouping(_ grouping: NumberFormatStyleConfiguration.Grouping) -> Self { var copy = self; copy.core = core.grouping(grouping); return copy }
-            public func locale(_ locale: Locale) -> Self { self }
+            public func locale(_ locale: Locale) -> Self { var copy = self; copy.locale = locale; return copy }
         }
     }
 
