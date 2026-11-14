@@ -1732,6 +1732,12 @@
           ]
         },
         {
+          "api": "TextKit 1: NSTextStorage / NSLayoutManager / NSTextContainer, UITextView's UITextInput",
+          "status": "partial",
+          "notes": "A text view's textStorage, layoutManager and textContainer, and a stand-alone storage given a layout manager given a container of a size: glyphs are the UTF-16 units, lines come from the text engine with the text view's wrapping at the container's width less its padding, line fragment and used rectangles (the padding either side), glyph bounding rectangles, line fragment enumeration and the character under a point with its fraction; storage edits (batched by beginEditing/endEditing, heard by the storage's delegate) show in the view and the view's text fills the storage. UITextView is a UITextInput: positions are UTF-16 offsets, the caret (overridable), the first rectangle of a range, the closest position, insertText/deleteBackward/replace (2026-11-14); open: exclusion paths and the extra line fragment in the layout manager's answers, glyph drawing, TextKit 2",
+          "noFixture": "TextKitTests (a text view's glyph and line rectangles, wrapped lines, storage edits shown in the view, a stand-alone layout manager's hit testing, the text input)"
+        },
+        {
           "api": "UIFont",
           "status": "full",
           "notes": "System fonts by size and weight, italic and monospaced faces, bundled fonts through the asset catalog with their tables' metrics, the text styles at every content size category with their own measured metrics, UIFontMetrics scaling, labels following the scene's category; tabular figures; a font's descriptor in another system design (rounded, serif, monospaced) or size, back through UIFont(descriptor:size:) (2026-11-01); open: reading the host's text size, a descriptor's traits and attributes (Docs/elements/UIKit/UIFont.md)",
