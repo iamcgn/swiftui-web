@@ -157,6 +157,19 @@ open class UITextView: UIScrollView, HostTextInput {
     open var isEditing: Bool { isFirstResponder }
     override open var canBecomeFirstResponder: Bool { isEditable }
 
+    // The views shown for editing (Controls/UIInputView.swift): the accessory along the
+    // bottom of the window while editing; a custom input view is kept but not shown.
+    private var storedInputView: UIView?
+    private var storedInputAccessoryView: UIView?
+    override open var inputView: UIView? {
+        get { storedInputView }
+        set { storedInputView = newValue }
+    }
+    override open var inputAccessoryView: UIView? {
+        get { storedInputAccessoryView }
+        set { storedInputAccessoryView = newValue }
+    }
+
     @discardableResult
     override open func becomeFirstResponder() -> Bool {
         guard !isFirstResponder else { return true }
