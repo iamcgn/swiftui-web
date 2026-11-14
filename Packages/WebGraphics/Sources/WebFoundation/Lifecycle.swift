@@ -172,6 +172,48 @@ public final class NotificationCenter: _WebObjectBase, @unchecked Sendable {
     }
 }
 
+extension NotificationCenter {
+    /// The notifications of one name posted after the sequence was made, in order, as an async
+    /// sequence. The observation ends when iteration ends or the task is cancelled.
+    public func notifications(named name: Notification.Name, object: AnyObject? = nil) -> Notifications {
+        let (stream, continuation) = AsyncStream<Notification>.makeStream()
+        let observation = _NotificationObservation(center: self)
+        observation.token = addObserver(forName: name, object: object) { continuation.yield($0) }
+        continuation.onTermination = { _ in observation.end() }
+        return Notifications(stream: stream, observation: observation)
+    }
+
+    /// The notifications of one name, as an async sequence.
+    public struct Notifications: AsyncSequence, Sendable {
+        public typealias Element = Notification
+        public typealias Failure = Never
+        let stream: AsyncStream<Notification>
+        let observation: _NotificationObservation
+
+        public struct AsyncIterator: AsyncIteratorProtocol {
+            public typealias Element = Notification
+            public typealias Failure = Never
+            var base: AsyncStream<Notification>.Iterator
+            public mutating func next() async -> Notification? { await base.next() }
+            public mutating func next(isolation actor: isolated (any Actor)?) async -> Notification? {
+                await base.next(isolation: actor)
+            }
+        }
+        public func makeAsyncIterator() -> AsyncIterator { AsyncIterator(base: stream.makeAsyncIterator()) }
+    }
+}
+
+/// The observer behind a `Notifications` sequence, removed when the sequence ends.
+final class _NotificationObservation: @unchecked Sendable {
+    weak var center: NotificationCenter?
+    var token: (any NSObjectProtocolToken)?
+    init(center: NotificationCenter) { self.center = center }
+    func end() {
+        if let token { center?.removeObserver(token) }
+        token = nil
+    }
+}
+
 /// A selector observer's target, held weakly.
 final class _WeakTarget: @unchecked Sendable {
     weak var object: AnyObject?

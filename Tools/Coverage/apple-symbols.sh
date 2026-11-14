@@ -13,7 +13,7 @@ echo "iOS $VER ($(xcodebuild -version | head -1))" > "$OUT/sdk-version"
 MODULES="SwiftUI SwiftUICore Observation Combine SwiftData Charts MapKit CoreLocation AVKit AVFoundation \
   WebKit UserNotifications Speech SafariServices UIKit Foundation \
   OSLog CoreData StoreKit PhotosUI CryptoKit CoreHaptics CoreImage AuthenticationServices LocalAuthentication \
-  UniformTypeIdentifiers CoreTransferable TipKit WidgetKit AppIntents"
+  UniformTypeIdentifiers CoreTransferable TipKit WidgetKit AppIntents CloudKit"
 for m in $MODULES; do
   mkdir -p "$OUT/$m"
   args=(-module-name "$m" -target "arm64-apple-ios$VER" -sdk "$SDK" -output-dir "$OUT/$m" -minimum-access-level public)
