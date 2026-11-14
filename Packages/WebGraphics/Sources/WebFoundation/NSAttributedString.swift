@@ -87,7 +87,18 @@ open class NSMutableAttributedString: NSAttributedString, @unchecked Sendable {
         let offset = length
         string += attributedString.string
         runs += attributedString.runs.map { (NSRange(location: $0.range.location + offset, length: $0.range.length), $0.attributes) }
+        _didChange(characters: true, range: NSRange(location: offset, length: attributedString.length), changeInLength: attributedString.length)
     }
+
+    /// Called after every change: whether the characters changed, the changed range in the new
+    /// text, and how much longer the text got. A text storage overrides it to tell its layout
+    /// managers (UIKit's `NSTextStorage`).
+    open func _didChange(characters: Bool, range: NSRange, changeInLength: Int) {}
+
+    /// Batching hints: edits here apply at once (a text storage holds its notifications until
+    /// the last `endEditing`).
+    open func beginEditing() {}
+    open func endEditing() {}
 
     public func addAttribute(_ key: Key, value: Any, range: NSRange) { addAttributes([key: value], range: range) }
 
@@ -121,6 +132,7 @@ open class NSMutableAttributedString: NSAttributedString, @unchecked Sendable {
         }
         if !str.isEmpty { updated.append((NSRange(location: range.location, length: str.utf16.count), attributes)) }
         runs = updated.sorted { $0.range.location < $1.range.location }
+        _didChange(characters: true, range: NSRange(location: range.location, length: str.utf16.count), changeInLength: delta)
     }
 
     /// Splits the runs at `range`'s ends and transforms the attributes inside it.
@@ -136,6 +148,7 @@ open class NSMutableAttributedString: NSAttributedString, @unchecked Sendable {
             if end > rangeEnd { updated.append((NSRange(location: rangeEnd, length: end - rangeEnd), run.attributes)) }
         }
         runs = updated
+        _didChange(characters: false, range: range, changeInLength: 0)
     }
 }
 
@@ -220,12 +233,10 @@ extension NSMutableAttributedString {
     public func deleteCharacters(in range: NSRange) { replaceCharacters(in: range, with: "") }
 
     public func setAttributedString(_ attributedString: NSAttributedString) {
+        let previous = length
         string = attributedString.string
         runs = attributedString.runs
+        _didChange(characters: true, range: NSRange(location: 0, length: length), changeInLength: length - previous)
     }
-
-    /// Batching hints: edits here apply at once, so both are no-ops.
-    public func beginEditing() {}
-    public func endEditing() {}
 }
 #endif
