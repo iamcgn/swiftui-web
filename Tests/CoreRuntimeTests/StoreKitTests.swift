@@ -40,6 +40,15 @@ private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsReq
     func requestDidFinish(_ request: SKRequest) { finished = true }
 }
 
+/// Writes down the downloads the queue reports (SwiftyStoreKit's download handler).
+private final class DownloadObserver: SKPaymentTransactionObserver, @unchecked Sendable {
+    var reports: [[SKDownloadState]] = []
+    func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {}
+    func paymentQueue(_ queue: SKPaymentQueue, updatedDownloads downloads: [SKDownload]) {
+        reports.append(downloads.map(\.state))
+    }
+}
+
 private final class ReceiptRefresh: SKRequestDelegate {
     var failure: (any Error)?
     var finished = false
@@ -288,6 +297,57 @@ private final class ReceiptRefresh: SKRequestDelegate {
         #expect(error == SKError(.paymentNotAllowed))
         #expect(SKError.errorDomain == "SKErrorDomain")
         #expect(SKError(.paymentMethodBindingConfigurationRequired).errorCode == 21)
+    }
+
+    @Test func errorCodesAreNamedOnTheError() {
+        // RevenueCat matches every App Store code by name (`case SKError.overlayTimeout`).
+        let codes: [SKError.Code] = [.cloudServiceRevoked, .privacyAcknowledgementRequired, .unauthorizedRequestData,
+                                     .invalidOfferIdentifier, .invalidSignature, .missingOfferParams, .invalidOfferPrice,
+                                     .overlayCancelled, .overlayInvalidConfiguration, .overlayTimeout, .ineligibleForOffer,
+                                     .overlayPresentedInBackgroundScene, .paymentMethodBindingConfigurationRequired]
+        let named: [SKError.Code] = [SKError.cloudServiceRevoked, SKError.privacyAcknowledgementRequired, SKError.unauthorizedRequestData,
+                                     SKError.invalidOfferIdentifier, SKError.invalidSignature, SKError.missingOfferParams,
+                                     SKError.invalidOfferPrice, SKError.overlayCancelled, SKError.overlayInvalidConfiguration,
+                                     SKError.overlayTimeout, SKError.ineligibleForOffer, SKError.overlayPresentedInBackgroundScene,
+                                     SKError.paymentMethodBindingConfigurationRequired]
+        #expect(named == codes)
+        let error: any Error = SKError(.overlayTimeout)
+        var matched = false
+        if case SKError.overlayTimeout = error { matched = true }
+        #expect(matched)
+    }
+
+    @MainActor @Test func downloadsMoveThroughTheQueue() {
+        let product = SKProduct(productIdentifier: "pack", localizedTitle: "Pack", price: NSDecimalNumber(string: "0.99"), priceLocale: Locale(identifier: "en_US"))
+        #expect(!product.isDownloadable && product.downloadContentLengths.isEmpty && product.downloadContentVersion.isEmpty)
+        let transaction = SKPaymentTransaction(payment: SKPayment(product: product), state: .purchased, error: nil)
+        #expect(transaction.downloads.isEmpty)
+
+        let observer = DownloadObserver()
+        let queue = SKPaymentQueue.default()
+        queue.add(observer)
+        defer { queue.remove(observer) }
+        let first = SKDownload(transaction: transaction, contentIdentifier: "levels", expectedContentLength: 2_048)
+        let second = SKDownload(transaction: transaction, contentIdentifier: "music")
+        #expect(first.state == .waiting && first.progress == 0 && first.contentURL == nil)
+        #expect(first.timeRemaining == SKDownload.timeRemainingUnknown && SKDownloadTimeRemainingUnknown == -1)
+        #expect(first.expectedContentLength == 2_048 && first.transaction === transaction)
+
+        queue.pause([first])
+        #expect(first.state == .paused)
+        queue.resume([first])
+        // Nothing is hosted for the web: a download that runs fails.
+        #expect(first.state == .failed)
+        queue.start([second])
+        #expect(second.state == .failed)
+        // Ended downloads don't move again, and nothing is reported for them.
+        queue.cancel([first, second])
+        #expect(observer.reports == [[.paused], [.failed], [.failed]])
+        #expect(first.state == .failed && second.state == .failed)
+
+        let third = SKDownload(transaction: transaction, contentIdentifier: "art")
+        queue.cancel([third])
+        #expect(third.state == .cancelled && observer.reports.last == [.cancelled])
     }
 
     @Test func purchaseOptionsCollectInASet() throws {
