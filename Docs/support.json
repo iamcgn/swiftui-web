@@ -730,6 +730,12 @@
           ]
         },
         {
+          "api": "visualEffect / scrollTransition / VisualEffect / ScrollTransitionPhase / ScrollTransitionConfiguration / CoordinateSpace.scrollView",
+          "status": "partial",
+          "notes": "pf-everyday-apis (2026-11-13): visualEffect hands its closure the view's geometry proxy and scrollTransition the view's phase in the nearest scroll view (topLeading, identity, bottomTrailing); the effects they return (opacity, scale, offset, rotation, the 3D rotation's flat projection, transforms, blur, brightness, contrast, saturation, grayscale, hue rotation, colour multiply and blend modes) apply while the view paints, never to its layout, so a scroll moves them frame by frame without a new layout. An interactive transition follows the view across the threshold along its timing curve, interpolating the identity phase's effects towards the edge's; an animated one switches phase after a layout pass and animates the change; identity never transitions. Thresholds: visible (the default), hidden, centered, visible(amount), inset(by:) and interpolated(towards:amount:), with separate configurations for the two edges. proxy.frame(in: .scrollView) measures from the nearest scroll view's visible area. Not done: the shader effects (colorEffect, distortionEffect, layerEffect), which need Metal shaders, and the 3D rotation's perspective",
+          "noFixture": "Nothing measured yet: CoreRuntimeTests check the painted effects, the phases and the scroll fast path"
+        },
+        {
           "api": "Image(_:bundle:) / Image(decorative:bundle:) / Image(_:bundle:label:) from asset catalogs",
           "status": "full",
           "notes": "scripts/assets.py reads *.xcassets into a manifest (decision 0011): image sets with 1x/2x/3x, mac/universal idiom, light/dark appearance, folder namespaces, template intent; PNG/JPEG/GIF; SVG sets drawn as vectors and PDF sets rasterised with sips at 1x/2x/3x; slicing metadata applied to resizable images (2026-10-11). Rigid at pixels ÷ scale; missing name is 0 × 0. Tier A exact; Tier B exact frames in Chromium, WebKit and Firefox; dark variants in dark/images. Open: Display P3 as sRGB, symbol sets and sprite atlases, bundle: ignored (absent on wasm)",
@@ -2601,6 +2607,12 @@
           "status": "partial",
           "notes": "pf-small-frameworks (2026-11-13): tips show once the app calls Tips.configure and their rules hold: #Rule over a @Parameter value or an event's donations. TipView draws the tip inline (image, title, message, a close button and the tip's actions) and popoverTip presents it from a view; closing invalidates the tip for good. Display counts, display durations and the display frequency (immediate, hourly, daily, weekly, monthly, so a new tip waits its turn) hold tips back as on iOS, statusUpdates and shouldDisplayUpdates follow a tip, and the testing modes override the rules. Parameters, donations and each tip's displays persist in the user defaults, so a reload keeps them. Tip view styles, backgrounds, corner radius and image size apply. Not done: syncing tips through CloudKit, the datastore location option (always the user defaults), and the exact look of Apple's tip and its arrow",
           "noFixture": "Nothing to draw beyond the views CoreRuntimeTests render: they configure TipKit, show tips and check the rules, counts and persistence"
+        },
+        {
+          "api": "TranslationSession / LanguageAvailability / translationTask / translationPresentation (Translation)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-13): sessions translate with Chrome's on-device translator, which, like Apple's, downloads a language pair's model once and then works offline, so a session made with init(installedSource:target:) only uses pairs already on the device (others throw notInstalled) and the session translationTask hands the app may download them in prepareTranslation or its first translation. A missing source language is detected with Chrome's language detector, a missing target is the person's preferred language, and text already in the target language comes back unchanged. LanguageAvailability reads a pair as installed, supported or unsupported, batches answer in order with their client identifiers, and cancel stops a session. translationTask runs again when its configuration changes or is invalidated, and translationPresentation shows the text and its translation in a popover with Copy Translation and, when the app passes a replacement action, Replace with Translation. A browser without a translator (Safari, Firefox) supports no pairs, as a device without the languages would. Not done: the translation download sheet (Chrome downloads without asking) and language lists beyond Chrome's",
+          "noFixture": "Nothing to draw yet: CoreRuntimeTests check the sessions, the availability and both modifiers"
         },
         {
           "api": "AVCaptureSession / AVCaptureDevice / AVCaptureVideoPreviewLayer / AVCapturePhotoOutput / AVCaptureVideoDataOutput / AVCaptureMetadataOutput / AVCaptureMovieFileOutput (AVFoundation)",

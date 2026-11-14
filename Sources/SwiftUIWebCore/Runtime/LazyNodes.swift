@@ -226,11 +226,13 @@ package final class LazyContainerNode<Content: View>: LayoutNode<_LazyContainer<
     override package var nodeDescription: String { "LazyContainer" }
 }
 
-/// A scroll view as the lazy nodes see it: its frame and content insets.
+/// A scroll view as the lazy nodes and scroll transitions see it: its frame, content insets and axes.
 @MainActor
 package protocol _ScrollViewport: AnyObject {
     var frameInRoot: CGRect { get }
     var contentInsets: EdgeInsets { get }
+    /// The axes it scrolls along.
+    var axes: Axis.Set { get }
 }
 
 extension ScrollNode: _ScrollViewport {}
