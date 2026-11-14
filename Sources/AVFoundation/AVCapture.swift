@@ -111,6 +111,8 @@ public struct AVError: Error, CustomStringConvertible, @unchecked Sendable {
         case deviceLockedForConfigurationByAnotherProcess = -11817
         case sessionWasInterrupted = -11818
         case mediaServicesWereReset = -11819
+        case decodeFailed = -11821
+        case fileFormatNotRecognized = -11828
         case operationNotSupportedForAsset = -11838
         case applicationIsNotAuthorizedToUseDevice = -11852
         case operationInterrupted = -11867
@@ -129,6 +131,7 @@ public struct AVError: Error, CustomStringConvertible, @unchecked Sendable {
         case .applicationIsNotAuthorizedToUseDevice: return "The camera was not allowed."
         case .deviceNotConnected: return "There is no camera."
         case .sessionNotRunning: return "The capture session is not running."
+        case .decodeFailed: return "The movie's frame could not be read."
         default: return "The operation could not be completed (\(Self.errorDomain) error \(code.rawValue).)"
         }
     }
@@ -138,6 +141,7 @@ public struct AVError: Error, CustomStringConvertible, @unchecked Sendable {
     public static var mediaServicesWereReset: Code { .mediaServicesWereReset }
     public static var applicationIsNotAuthorizedToUseDevice: Code { .applicationIsNotAuthorizedToUseDevice }
     public static var noDataCaptured: Code { .noDataCaptured }
+    public static var decodeFailed: Code { .decodeFailed }
 }
 
 public let AVErrorDeviceKey = "AVErrorDeviceKey"

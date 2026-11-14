@@ -108,7 +108,8 @@ let package = Package(
         // its host hook is a module of its own so the host links no capture code (decision 0006).
         .target(name: "AVFAudio", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVCaptureHost", swiftSettings: [.treatAllWarnings(as: .error)]),
-        .target(name: "AVFoundation", dependencies: ["AVFAudio", "AVCaptureHost", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "UIKitWebCore", package: "UIKitWeb")],
+        .target(name: "AVFoundation", dependencies: ["AVFAudio", "AVCaptureHost", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "UIKitWebCore", package: "UIKitWeb"),
+                                                .product(name: "WebImageIO", package: "WebGraphics", condition: .when(platforms: [.wasi]))],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVKit", dependencies: ["SwiftUI", "AVFoundation"], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "SwiftData", dependencies: ["SwiftUIWebCore", "SwiftDataMacros", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),

@@ -66,11 +66,12 @@ let package = Package(
             dependencies: ["WebFoundation"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
-        // ImageIO's image sources on wasm (the `ImageIO` shadow re-exports it, Packages/Shadows):
+        // ImageIO's image sources and destinations on wasm (the `ImageIO` shadow re-exports it,
+        // Packages/Shadows, and so does AVFoundation, as Apple's does):
         // a module of its own, so the shadow brings its names and none of WebGraphics's.
         .target(
             name: "WebImageIO",
-            dependencies: ["WebFoundation", "WebGraphics"],
+            dependencies: ["WebFoundation", "WebFoundationFormats", "WebGraphics"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
