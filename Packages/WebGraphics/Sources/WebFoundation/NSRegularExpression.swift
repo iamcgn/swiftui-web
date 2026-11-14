@@ -318,5 +318,24 @@ public final class NSTextCheckingResult: @unchecked Sendable {
     }
 }
 
+// Foundation's are NSObjects, so they compare and hash: an expression equals another with the
+// same pattern and options, as `isEqual(_:)` says on Apple platforms, and a result is equal only
+// to itself. A struct that keeps a compiled expression can then synthesize `Equatable` and
+// `Hashable` (IceCubes' and MastodonKit's `HTMLString`).
+extension NSRegularExpression: Hashable {
+    public static func == (lhs: NSRegularExpression, rhs: NSRegularExpression) -> Bool {
+        lhs === rhs || (lhs.pattern == rhs.pattern && lhs.options == rhs.options)
+    }
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(pattern)
+        hasher.combine(options)
+    }
+}
+
+extension NSTextCheckingResult: Hashable {
+    public static func == (lhs: NSTextCheckingResult, rhs: NSTextCheckingResult) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+}
+
 
 #endif

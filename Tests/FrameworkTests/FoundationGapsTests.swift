@@ -49,6 +49,25 @@ import WebFoundationFormats
         #expect(throws: (any Error).self) { try JSONDecoder().decode(Settings.self, from: Data(text.utf8)) }
     }
 
+    /// Regular expressions compare and hash as Foundation's NSObjects do, so a struct that keeps
+    /// compiled ones synthesizes Equatable and Hashable (IceCubes' `HTMLString`).
+    @Test func regularExpressionsAreHashable() throws {
+        struct Pattern: Hashable { var regex: NSRegularExpression?; var match: NSTextCheckingResult? }
+        #expect(Pattern(regex: nil, match: nil) == Pattern(regex: nil, match: nil))
+        // The wasm build matches on the host's engine, which a test host may lack.
+        guard let digits = try? NSRegularExpression(pattern: "[0-9]+") else { return }
+        let words = try NSRegularExpression(pattern: "[a-z]+")
+        #expect(Pattern(regex: digits) == Pattern(regex: digits))
+        #expect(Pattern(regex: digits) != Pattern(regex: words))
+        #expect(Set([Pattern(regex: digits), Pattern(regex: digits), Pattern(regex: words)]).count == 2)
+        #if os(WASI)
+        #expect(digits == (try NSRegularExpression(pattern: "[0-9]+")))
+        #expect(digits != (try NSRegularExpression(pattern: "[0-9]+", options: .caseInsensitive)))
+        #endif
+        let match = try #require(digits.firstMatch(in: "ab 42", options: [], range: NSRange(location: 0, length: 5)))
+        #expect(match == match)
+    }
+
     #if os(WASI)
     @Test func localizedOrder() {
         #expect("a".localizedCompare("B") == .orderedAscending)
