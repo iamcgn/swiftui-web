@@ -106,10 +106,10 @@ extension Set: _BothSetForms {}
         #expect((UUID(uuidString: text)! as NSUUID).uuidString == text)
         // From and to its 16 bytes (RevenueCat reads a UUID out of `Data` this way).
         let uuidBytes: [UInt8] = Array(0..<16)
-        let fromBytes = uuidBytes.withUnsafeBufferPointer { NSUUID(uuidBytes: $0.baseAddress) }
+        let fromBytes = uuidBytes.withUnsafeBufferPointer { NSUUID(uuidBytes: $0.baseAddress!) }
         #expect(fromBytes.uuidString == "00010203-0405-0607-0809-0A0B0C0D0E0F")
         var copied = [UInt8](repeating: 0, count: 16)
-        copied.withUnsafeMutableBufferPointer { fromBytes.getUUIDBytes($0.baseAddress) }
+        copied.withUnsafeMutableBufferPointer { fromBytes.getUUIDBytes($0.baseAddress!) }
         #expect(copied == uuidBytes)
 
         let bytes = Data([1, 2, 3]) as NSData
