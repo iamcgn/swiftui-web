@@ -61,7 +61,20 @@ public struct SKError: Error, Hashable, @unchecked Sendable {
     public static var storeProductNotAvailable: Code { .storeProductNotAvailable }
     public static var cloudServicePermissionDenied: Code { .cloudServicePermissionDenied }
     public static var cloudServiceNetworkConnectionFailed: Code { .cloudServiceNetworkConnectionFailed }
+    public static var cloudServiceRevoked: Code { .cloudServiceRevoked }
+    public static var privacyAcknowledgementRequired: Code { .privacyAcknowledgementRequired }
+    public static var unauthorizedRequestData: Code { .unauthorizedRequestData }
+    public static var invalidOfferIdentifier: Code { .invalidOfferIdentifier }
+    public static var invalidSignature: Code { .invalidSignature }
+    public static var missingOfferParams: Code { .missingOfferParams }
+    public static var invalidOfferPrice: Code { .invalidOfferPrice }
+    public static var overlayCancelled: Code { .overlayCancelled }
+    public static var overlayInvalidConfiguration: Code { .overlayInvalidConfiguration }
+    public static var overlayTimeout: Code { .overlayTimeout }
+    public static var ineligibleForOffer: Code { .ineligibleForOffer }
     public static var unsupportedPlatform: Code { .unsupportedPlatform }
+    public static var overlayPresentedInBackgroundScene: Code { .overlayPresentedInBackgroundScene }
+    public static var paymentMethodBindingConfigurationRequired: Code { .paymentMethodBindingConfigurationRequired }
 }
 
 /// The domain of App Store errors.
@@ -97,6 +110,14 @@ open class SKProduct: NSObject {
     open private(set) var price: NSDecimalNumber
     open private(set) var priceLocale: Locale
     open private(set) var isDownloadable = false
+    /// The sizes in bytes of the product's hosted content files: none on the web.
+    open private(set) var downloadContentLengths: [NSNumber] = []
+    /// The version of the product's hosted content.
+    open private(set) var downloadContentVersion = ""
+    @available(*, deprecated, renamed: "downloadContentLengths")
+    open var contentLengths: [NSNumber] { downloadContentLengths }
+    @available(*, deprecated, renamed: "downloadContentVersion")
+    open var contentVersion: String { downloadContentVersion }
     open private(set) var isFamilyShareable = false
     open private(set) var subscriptionPeriod: SKProductSubscriptionPeriod?
     open private(set) var subscriptionGroupIdentifier: String?
@@ -274,6 +295,8 @@ open class SKPaymentTransaction: NSObject {
     open private(set) var transactionDate: Date?
     open private(set) var error: (any Error)?
     open private(set) var original: SKPaymentTransaction?
+    /// The hosted content the purchase downloads: none on the web, where nothing is bought.
+    open private(set) var downloads: [SKDownload] = []
 
     package init(payment: SKPayment, state: SKPaymentTransactionState, error: (any Error)?) {
         self.payment = payment
@@ -291,6 +314,8 @@ public protocol SKPaymentTransactionObserver: AnyObject {
     func paymentQueueRestoreCompletedTransactionsFinished(_ queue: SKPaymentQueue)
     func paymentQueue(_ queue: SKPaymentQueue, shouldAddStorePayment payment: SKPayment, for product: SKProduct) -> Bool
     func paymentQueueDidChangeStorefront(_ queue: SKPaymentQueue)
+    func paymentQueue(_ queue: SKPaymentQueue, updatedDownloads downloads: [SKDownload])
+    func paymentQueue(_ queue: SKPaymentQueue, didRevokeEntitlementsForProductIdentifiers productIdentifiers: [String])
 }
 
 extension SKPaymentTransactionObserver {
@@ -299,6 +324,54 @@ extension SKPaymentTransactionObserver {
     public func paymentQueueRestoreCompletedTransactionsFinished(_ queue: SKPaymentQueue) {}
     public func paymentQueue(_ queue: SKPaymentQueue, shouldAddStorePayment payment: SKPayment, for product: SKProduct) -> Bool { true }
     public func paymentQueueDidChangeStorefront(_ queue: SKPaymentQueue) {}
+    public func paymentQueue(_ queue: SKPaymentQueue, updatedDownloads downloads: [SKDownload]) {}
+    public func paymentQueue(_ queue: SKPaymentQueue, didRevokeEntitlementsForProductIdentifiers productIdentifiers: [String]) {}
+}
+
+// MARK: - Hosted content
+
+/// Where a download of hosted content stands.
+public enum SKDownloadState: Int, Sendable {
+    case waiting = 0
+    case active = 1
+    case paused = 2
+    case finished = 3
+    case failed = 4
+    case cancelled = 5
+}
+
+/// The time remaining of a download whose end can't be told.
+public let SKDownloadTimeRemainingUnknown: TimeInterval = -1
+
+/// Hosted content a purchase downloads from the App Store. The web buys nothing, so no
+/// transaction has downloads; the queue's start, pause, resume and cancel still move a download's
+/// state and tell the observers, as on a device.
+open class SKDownload: NSObject {
+    open private(set) var transaction: SKPaymentTransaction
+    open private(set) var contentIdentifier: String
+    open private(set) var contentVersion: String
+    open private(set) var expectedContentLength: Int64
+    open fileprivate(set) var state: SKDownloadState = .waiting
+    open fileprivate(set) var progress: Float = 0
+    open fileprivate(set) var timeRemaining: TimeInterval = SKDownloadTimeRemainingUnknown
+    /// Where the downloaded content is, once it has finished.
+    open private(set) var contentURL: URL?
+    open private(set) var error: (any Error)?
+
+    @available(*, deprecated, renamed: "state")
+    open var downloadState: SKDownloadState { state }
+    @available(*, deprecated, renamed: "expectedContentLength")
+    open var contentLength: Int64 { expectedContentLength }
+    open class var timeRemainingUnknown: TimeInterval { SKDownloadTimeRemainingUnknown }
+
+    package init(transaction: SKPaymentTransaction, contentIdentifier: String, contentVersion: String = "1.0",
+                 expectedContentLength: Int64 = 0) {
+        self.transaction = transaction
+        self.contentIdentifier = contentIdentifier
+        self.contentVersion = contentVersion
+        self.expectedContentLength = expectedContentLength
+        super.init()
+    }
 }
 
 /// The queue of payments the App Store processes. On the web payments are not allowed: a
@@ -364,6 +437,39 @@ open class SKPaymentQueue: NSObject {
 
     open func restoreCompletedTransactions(withApplicationUsername username: String?) {
         restoreCompletedTransactions()
+    }
+
+    /// Starts downloading hosted content. Nothing is hosted for the web, so each download
+    /// that has not ended fails at once.
+    open func start(_ downloads: [SKDownload]) {
+        update(downloads) { $0.state = .failed }
+    }
+
+    /// Pauses downloads that are waiting or under way.
+    open func pause(_ downloads: [SKDownload]) {
+        update(downloads.filter { $0.state == .waiting || $0.state == .active }) { $0.state = .paused }
+    }
+
+    /// Resumes paused downloads: like starting them, they fail on the web.
+    open func resume(_ downloads: [SKDownload]) {
+        update(downloads.filter { $0.state == .paused }) { $0.state = .failed }
+    }
+
+    /// Cancels downloads that have not ended.
+    open func cancel(_ downloads: [SKDownload]) {
+        update(downloads) { $0.state = .cancelled }
+    }
+
+    private func update(_ downloads: [SKDownload], _ change: (SKDownload) -> Void) {
+        let open = downloads.filter { ![.finished, .failed, .cancelled].contains($0.state) }
+        guard !open.isEmpty else { return }
+        for download in open {
+            change(download)
+            download.timeRemaining = 0
+        }
+        for observer in transactionObservers {
+            observer.paymentQueue(self, updatedDownloads: open)
+        }
     }
 
     /// Shows the App Store's offer code redemption (none on the web). An Objective-C method,
