@@ -18,6 +18,36 @@ extension Locale {
         self.init(languageComponents: Language.Components(languageCode: languageCode, script: script, region: languageRegion))
     }
 
+    /// A locale's parts: its language, script and region, and the region it's used in
+    /// ("en" used in "GB"). The keyword preferences Apple's carries (calendar, currency,
+    /// measurement and the like) aren't kept here.
+    public struct Components: Hashable, Sendable, Codable {
+        public var languageComponents: Language.Components
+        /// The region the locale is used in, when it differs from its language's region.
+        public var region: Region?
+
+        public init(languageCode: LanguageCode? = nil, script: Script? = nil, languageRegion: Region? = nil) {
+            languageComponents = Language.Components(languageCode: languageCode, script: script, region: languageRegion)
+            region = nil
+        }
+
+        public init(identifier: String) {
+            languageComponents = Language.Components(identifier: identifier)
+            region = nil
+        }
+
+        public init(locale: Locale) {
+            self.init(identifier: locale.identifier)
+        }
+    }
+
+    /// A locale made of parts ("_US" for a region alone, "zh-Hans_CN").
+    public init(components: Components) {
+        var parts = components.languageComponents
+        if let region = components.region { parts.region = region }
+        self.init(languageComponents: parts)
+    }
+
     private var _bcp47: String { String(identifier.map { $0 == "_" ? "-" : $0 }) }
 
     /// The name of a language in this locale's language ("French" in en_US, "français" in fr).

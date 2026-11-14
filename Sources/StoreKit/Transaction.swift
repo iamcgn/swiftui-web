@@ -91,6 +91,10 @@ public struct Transaction: Identifiable, Equatable, Hashable, Sendable {
     public var offerType: OfferType? { offer?.type }
     /// The identifier of `offer`.
     public var offerID: String? { offer?.id }
+    /// `environment` as its raw string ("Production").
+    public var environmentStringRepresentation: String { environment.rawValue }
+    /// The billing plan a subscription was bought with: nil when it was bought without one.
+    public var billingPlanType: Product.SubscriptionInfo.BillingPlanType? { nil }
     /// The payment mode of `offer`, as its raw string.
     public var offerPaymentModeStringRepresentation: String? { offer?.paymentMode?.rawValue }
 

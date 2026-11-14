@@ -265,6 +265,36 @@ private final class ReceiptRefresh: SKRequestDelegate {
         #expect(error.errorCode == 4)
         #expect(error == SKError(.paymentNotAllowed))
         #expect(SKError.errorDomain == "SKErrorDomain")
+        #expect(SKError(.paymentMethodBindingConfigurationRequired).errorCode == 21)
+    }
+
+    @Test func purchaseOptionsCollectInASet() throws {
+        let offer = Product.SubscriptionOffer(id: "back", type: .winBack, price: 0, displayPrice: "Free",
+                                              period: .monthly, periodCount: 1, paymentMode: .freeTrial)
+        var options: Set<Product.PurchaseOption> = [.winBackOffer(offer), .introductoryOfferEligibility(compactJWS: "jws")]
+        options.formUnion(Product.PurchaseOption.promotionalOffer("spring", compactJWS: "signed"))
+        options.insert(.promotionalOffer(offerID: "spring", keyID: "key", nonce: UUID(), signature: Data([1, 2]), timestamp: 3))
+        options.insert(.billingPlanType(.monthly))
+        options.insert(.billingPlanType(.monthly))
+        #expect(options.count == 6)
+        #expect(Product.PurchaseError.paymentMethodBindingConfigurationRequired != .productUnavailable)
+    }
+
+    @Test func productAndTransactionDescribeThemselves() throws {
+        let annual = Product(id: "pro.annual", type: .autoRenewable, displayName: "Pro \"Plus\"", description: "Every\nfeature",
+                             price: Decimal(string: "29.99")!, displayPrice: "$29.99", currencyCode: "EUR",
+                             subscription: Product.SubscriptionInfo(subscriptionGroupID: "pro", subscriptionPeriod: .yearly))
+        #expect(annual.subscription?.winBackOffers.isEmpty == true)
+        let json = try #require(JSONSerialization.jsonObject(with: annual.jsonRepresentation) as? [String: Any])
+        #expect(json["id"] as? String == "pro.annual")
+        let attributes = try #require(json["attributes"] as? [String: Any])
+        #expect(attributes["name"] as? String == "Pro \"Plus\"")
+        let offers = try #require(attributes["offers"] as? [[String: Any]])
+        #expect(offers.first?["currencyCode"] as? String == "EUR")
+        #expect(offers.first?["price"] as? String == "29.99")
+        let transaction = StoreKit.Transaction(id: 7, productID: "seeds", productType: .consumable, purchaseDate: Date(timeIntervalSince1970: 0))
+        #expect(transaction.environmentStringRepresentation == "Production")
+        #expect(transaction.billingPlanType == nil)
     }
 }
 #endif

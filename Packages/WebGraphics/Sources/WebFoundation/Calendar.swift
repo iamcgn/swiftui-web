@@ -179,12 +179,17 @@ public struct Locale: Hashable, Sendable, Codable, CustomStringConvertible {
     /// "script"); nil for a code it doesn't know.
     nonisolated(unsafe) public static var _hostDisplayName: ((_ locale: String, _ type: String, _ code: String) -> String?)?
     private static func normalized(_ tag: String) -> String { String(tag.map { $0 == "-" ? "_" : $0 }) }
-    public var languageCode: String? { identifier.split { $0 == "_" || $0 == "-" }.first.map(String.init) }
+    // Empty parts are kept so that a locale of a region alone ("_US") has no language.
+    public var languageCode: String? {
+        identifier.split(omittingEmptySubsequences: false) { $0 == "_" || $0 == "-" || $0 == "@" }.first.flatMap { $0.isEmpty ? nil : String($0) }
+    }
     public var regionCode: String? {
-        let parts = identifier.split { $0 == "_" || $0 == "-" || $0 == "@" }
+        let parts = identifier.split(omittingEmptySubsequences: false) { $0 == "_" || $0 == "-" || $0 == "@" }
         return parts.dropFirst().first { $0.count == 2 || ($0.count == 3 && $0.allSatisfy(\.isNumber)) }.map(String.init)
     }
-    public var scriptCode: String? { identifier.split { $0 == "_" || $0 == "-" }.dropFirst().first { $0.count == 4 }.map(String.init) }
+    public var scriptCode: String? {
+        identifier.split(omittingEmptySubsequences: false) { $0 == "_" || $0 == "-" }.dropFirst().first { $0.count == 4 }.map(String.init)
+    }
     public var calendar: Calendar { Calendar(identifier: .gregorian) }
     /// "en-US" for "en_US".
     public func identifier(_ type: IdentifierType) -> String {
