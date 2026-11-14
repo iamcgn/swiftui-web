@@ -14,6 +14,9 @@ enum NetworkHost {
     static func install() {
         guard JSObject.global.fetch.function != nil else { return }
         _WebHTTPHost.send = { request, completion in FetchTask(request: request, completion: completion) }
+        if JSObject.global.WebSocket.function != nil {
+            _WebSocketHost.open = { url, protocols, events in BrowserWebSocket(url: url, protocols: protocols, events: events) }
+        }
         // Reachability (SystemConfiguration) reads the browser's online state and hears its changes.
         _WebNetworkStatus.isOnline = { JSObject.global.navigator.onLine.boolean ?? true }
         let changed = JSClosure { _ in
@@ -132,4 +135,67 @@ final class FetchTask: _WebHTTPTask, @unchecked Sendable {
 }
 
 final class _CancelFlag: @unchecked Sendable { var value = false }
+
+/// One browser WebSocket behind a URLSessionWebSocketTask: binary messages as ArrayBuffers,
+/// the browser's open, message, error and close events reported in order.
+final class BrowserWebSocket: _WebSocketConnection, @unchecked Sendable {
+    private let socket: JSObject
+
+    /// `new WebSocket(url, protocols)`, null where it throws (a SyntaxError for an address it
+    /// does not take).
+    nonisolated(unsafe) private static let opener: JSObject? = {
+        guard let make = JSObject.global.Function.function else { return nil }
+        return try? make.throws.new("url", "protocols", "try { return new WebSocket(url, protocols); } catch (e) { return null; }")
+    }()
+
+    init?(url: String, protocols: [String], events: _WebSocketEvents) {
+        guard let opener = Self.opener, let list = JSObject.global.Array.function?.new() else { return nil }
+        for name in protocols { _ = list.push!(name) }
+        guard let socket = opener(url, list).object else { return nil }
+        self.socket = socket
+        socket.binaryType = .string("arraybuffer")
+        let onOpen = JSClosure { _ in
+            events.opened(socket["protocol"].string ?? "")
+            return .undefined
+        }
+        let onMessage = JSClosure { arguments in
+            let data = arguments.first?.object?.data ?? .undefined
+            if let text = data.string {
+                events.received(.text(text))
+            } else if let buffer = data.object, let array = JSObject.global.Uint8Array.function?.new(buffer) {
+                events.received(.binary(JSTypedArray<UInt8>(unsafelyWrapping: array).withUnsafeBytes { Array($0) }))
+            }
+            return .undefined
+        }
+        let onError = JSClosure { _ in
+            events.failed("the browser reported a WebSocket error")
+            return .undefined
+        }
+        let onClose = JSClosure { arguments in
+            let event = arguments.first?.object
+            events.closed(Int(event?.code.number ?? 1006), event?.reason.string ?? "", event?.wasClean.boolean ?? false)
+            return .undefined
+        }
+        // Kept for the page's life, as a fetch's are: the browser may fire `close` after the task
+        // has let go of this socket.
+        FetchTask.retained.append(contentsOf: [onOpen, onMessage, onError, onClose])
+        socket.onopen = .object(onOpen)
+        socket.onmessage = .object(onMessage)
+        socket.onerror = .object(onError)
+        socket.onclose = .object(onClose)
+    }
+
+    func send(_ frame: _WebSocketFrame) -> Bool {
+        guard socket.readyState.number == 1 else { return false }   // OPEN
+        switch frame {
+        case .text(let text): _ = socket.send!(text)
+        case .binary(let bytes): _ = socket.send!(JSTypedArray<UInt8>(bytes).jsValue)
+        }
+        return true
+    }
+
+    func close(code: Int, reason: String) {
+        _ = socket.close!(code, reason)
+    }
+}
 #endif
