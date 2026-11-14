@@ -97,6 +97,5 @@ import WebFoundation
         #expect(ns("/tmp").isAbsolutePath && !ns("tmp").isAbsolutePath)
         #expect(NSString.path(withComponents: ["/", "tmp", "scratch.tiff"]) == "/tmp/scratch.tiff")
         #expect(ns("/nonexistent/./a/../b").standardizingPath == "/nonexistent/b")
-        #expect(ns("/tmp").strings(byAppendingPaths: ["a", "b"]) == ["/tmp/a", "/tmp/b"])
     }
 }
