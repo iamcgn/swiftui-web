@@ -144,6 +144,10 @@ public final class FileHandle: @unchecked Sendable {
 
         /// The bytes split at newlines, as strings.
         public var lines: AsyncLineSequence<AsyncBytes> { AsyncLineSequence(base: self) }
+        /// The bytes decoded as UTF-8 characters.
+        public var characters: AsyncCharacterSequence<AsyncBytes> { AsyncCharacterSequence(base: self) }
+        /// The bytes decoded as UTF-8 scalars.
+        public var unicodeScalars: AsyncUnicodeScalarSequence<AsyncBytes> { AsyncUnicodeScalarSequence(base: self) }
     }
 }
 
@@ -169,6 +173,62 @@ public struct AsyncLineSequence<Base: AsyncSequence & Sendable>: AsyncSequence, 
         }
     }
     public func makeAsyncIterator() -> AsyncIterator { AsyncIterator(base: base.makeAsyncIterator()) }
+}
+
+/// Unicode scalars from a sequence of UTF-8 bytes; a malformed sequence reads as U+FFFD.
+public struct AsyncUnicodeScalarSequence<Base: AsyncSequence & Sendable>: AsyncSequence, Sendable where Base.Element == UInt8 {
+    public typealias Element = Unicode.Scalar
+    let base: Base
+    public struct AsyncIterator: AsyncIteratorProtocol {
+        var base: Base.AsyncIterator
+        var pending: UInt8?
+        public mutating func next() async throws -> Unicode.Scalar? {
+            let lead: UInt8
+            if let byte = pending { lead = byte; pending = nil } else if let byte = try await base.next() { lead = byte } else { return nil }
+            let count = lead < 0x80 ? 1 : lead >> 5 == 0b110 ? 2 : lead >> 4 == 0b1110 ? 3 : lead >> 3 == 0b11110 ? 4 : 0
+            guard count > 0 else { return "\u{FFFD}" }
+            var bytes = [lead]
+            while bytes.count < count {
+                guard let byte = try await base.next() else { break }
+                // A byte that does not continue the sequence starts the next one.
+                guard byte & 0xC0 == 0x80 else { pending = byte; break }
+                bytes.append(byte)
+            }
+            var decoder = UTF8()
+            var input = bytes.makeIterator()
+            if case .scalarValue(let scalar) = decoder.decode(&input) { return scalar }
+            return "\u{FFFD}"
+        }
+    }
+    public func makeAsyncIterator() -> AsyncIterator { AsyncIterator(base: base.makeAsyncIterator()) }
+}
+
+/// Characters from a sequence of UTF-8 bytes. A character ends where the next scalar can't
+/// extend it, so combining marks stay with their base character.
+public struct AsyncCharacterSequence<Base: AsyncSequence & Sendable>: AsyncSequence, Sendable where Base.Element == UInt8 {
+    public typealias Element = Character
+    let base: Base
+    public struct AsyncIterator: AsyncIteratorProtocol {
+        var scalars: AsyncUnicodeScalarSequence<Base>.AsyncIterator
+        var carried: Unicode.Scalar?
+        var finished = false
+        public mutating func next() async throws -> Character? {
+            var text = String.UnicodeScalarView()
+            if let scalar = carried { text.append(scalar); carried = nil }
+            else if !finished, let scalar = try await scalars.next() { text.append(scalar) }
+            else { return nil }
+            while !finished {
+                guard let scalar = try await scalars.next() else { finished = true; break }
+                var extended = text
+                extended.append(scalar)
+                if String(extended).count == 1 { text = extended } else { carried = scalar; break }
+            }
+            return String(text).first
+        }
+    }
+    public func makeAsyncIterator() -> AsyncIterator {
+        AsyncIterator(scalars: AsyncUnicodeScalarSequence(base: base).makeAsyncIterator())
+    }
 }
 
 /// Logs a message to the console, as Foundation's `NSLog` does to the system log. Each `%…`

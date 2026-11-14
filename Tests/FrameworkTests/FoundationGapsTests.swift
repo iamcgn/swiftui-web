@@ -81,6 +81,15 @@ import WebFoundationFormats
         #expect(Locale.LanguageCode.isoLanguageCodes.contains(Locale.LanguageCode("fr")))
         #expect(Locale.isoRegionCodes.contains("US"))
         #expect(Locale(languageComponents: Locale.Language.Components(languageCode: "zh", script: "Hans", region: "CN")).identifier == "zh-Hans_CN")
+        let storefront = Locale(components: .init(languageCode: nil, script: nil, languageRegion: .init("US")))
+        #expect(storefront.identifier == "_US")
+        #expect(storefront.region?.identifier == "US")
+        #expect(storefront.languageCode == nil)
+        let chinese = Locale(components: Locale.Components(languageCode: "zh", script: "Hans", languageRegion: "CN"))
+        #expect(chinese.identifier == "zh-Hans_CN")
+        #expect(chinese.scriptCode == "Hans")
+        #expect(Locale.Components(locale: chinese).languageComponents.region == "CN")
+        #expect(Locale(identifier: "en_US@currency=EUR").languageCode == "en")
         let saved = Locale._hostDisplayName
         defer { Locale._hostDisplayName = saved }
         Locale._hostDisplayName = { locale, type, code in locale == "fr" && type == "language" && code == "fr" ? "français" : nil }
