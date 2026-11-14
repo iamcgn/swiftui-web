@@ -147,9 +147,10 @@ import Foundation
 
     /// A bitmap context as CoreGraphics makes one (Nuke's decompression): pixels, y up from the
     /// bottom left, an image drawn into it comes out as `makeImage()`, and one asked to draw into
-    /// caller memory, or with no pixels, is not made.
+    /// caller memory, or with no pixels, is not made. (Named by its class: `CGContext` is its name on
+    /// wasm only, and these tests also run on Linux.)
     @Test func bitmapContextsDrawUpwardAndMakeImages() throws {
-        let ctx = try #require(CGContext(data: nil, width: 4, height: 3, bitsPerComponent: 8, bytesPerRow: 0,
+        let ctx = try #require(UIGraphicsRecordingContext(data: nil, width: 4, height: 3, bitsPerComponent: 8, bytesPerRow: 0,
                                          space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
         #expect(ctx.width == 4 && ctx.height == 3 && ctx.data == nil)
         #expect(ctx.ctm == CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 3))
@@ -170,12 +171,12 @@ import Foundation
 
         var bytes = [UInt8](repeating: 0, count: 48)
         let overMemory: Bool = bytes.withUnsafeMutableBytes { buffer -> Bool in
-            let made: CGContext? = CGContext(data: buffer.baseAddress, width: 4, height: 3, bitsPerComponent: 8, bytesPerRow: 16,
+            let made: UIGraphicsRecordingContext? = UIGraphicsRecordingContext(data: buffer.baseAddress, width: 4, height: 3, bitsPerComponent: 8, bytesPerRow: 16,
                                              space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
             return made != nil
         }
         #expect(!overMemory)
-        let empty: CGContext? = CGContext(data: nil, width: 0, height: 3, bitsPerComponent: 8, bytesPerRow: 0,
+        let empty: UIGraphicsRecordingContext? = UIGraphicsRecordingContext(data: nil, width: 0, height: 3, bitsPerComponent: 8, bytesPerRow: 0,
                                           space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: 0)
         let refusedEmpty = empty == nil
         #expect(refusedEmpty)
