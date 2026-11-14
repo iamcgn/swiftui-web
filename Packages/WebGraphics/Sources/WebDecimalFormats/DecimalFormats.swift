@@ -82,19 +82,20 @@ extension NSNumber {
     }
 }
 
-/// `price as NSNumber` (`Double(truncating: price as NSNumber)`): the number holds the decimal's
-/// double, as WebFoundation's `NSDecimalNumber` is an `NSNumber` holding one.
+/// `price as NSNumber` (`Double(truncating: price as NSNumber)`) and, with the runtime,
+/// `product.price as Decimal`: the decimal number holds the decimal's double. The bridge is to
+/// `NSDecimalNumber`, which with the runtime is a subclass of `NSNumber` and else `NSNumber` itself.
 extension Decimal: @retroactive _ObjectiveCBridgeable {
-    public typealias _ObjectiveCType = NSNumber
-    public func _bridgeToObjectiveC() -> NSNumber { NSNumber(value: _double) }
-    public static func _forceBridgeFromObjectiveC(_ source: NSNumber, result: inout Decimal?) {
+    public typealias _ObjectiveCType = NSDecimalNumber
+    public func _bridgeToObjectiveC() -> NSDecimalNumber { NSDecimalNumber(value: _double) }
+    public static func _forceBridgeFromObjectiveC(_ source: NSDecimalNumber, result: inout Decimal?) {
         result = Decimal(source.doubleValue)
     }
-    public static func _conditionallyBridgeFromObjectiveC(_ source: NSNumber, result: inout Decimal?) -> Bool {
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSDecimalNumber, result: inout Decimal?) -> Bool {
         result = Decimal(source.doubleValue)
         return true
     }
-    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSNumber?) -> Decimal {
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSDecimalNumber?) -> Decimal {
         Decimal(source?.doubleValue ?? 0)
     }
 }

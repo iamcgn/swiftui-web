@@ -162,5 +162,11 @@ fbb333cf with a clean tree.
   (and WebFoundationFormats under that trait), as iOS's StoreKit brings UIKit and Foundation.
   `UIFont(name:size:)`, `familyNames` and `fontNames(forFamilyName:)` are callable from any
   context, as UIKit's are.
+- 2026-11-14, prices and dates: under the runtime `NSDecimalNumber` is a subclass of `NSNumber`,
+  as Foundation's is, and `Decimal` bridges to it, so `product.price as Decimal` converts (the
+  compiler reads a bridge to `NSNumber` itself as a checked cast, SE-0170). `NSNumber` is open
+  for it only under the runtime; without it, it stays final and `NSDecimalNumber` its alias. `Date`
+  bridges to an `NSDate` object, so `date as NSDate` fills a `[String: NSObject]` (RevenueCat's
+  subscriber attributes); Core Data's predicates read an `NSDate` argument as its date.
 - `#selector`-based `UIKeyCommand`s do nothing on builds without the runtime; the closure
   form works everywhere.

@@ -112,6 +112,19 @@ private final class ReceiptRefresh: SKRequestDelegate {
     @Test func theRedemptionSheetIsNamedBySelector() {
         #expect(SKPaymentQueue.default().responds(to: #selector(SKPaymentQueue.presentCodeRedemptionSheet)))
     }
+
+    /// RevenueCat reads a product's price as a `Decimal` and keeps a date as an object among its
+    /// subscriber attributes, a `[String: NSObject]`.
+    @Test func pricesAndDatesBridgeAsObjects() {
+        let product = SKProduct(productIdentifier: "pro", localizedTitle: "Pro", price: NSDecimalNumber(string: "4.99"), priceLocale: Locale(identifier: "en_US"))
+        let price = product.price as Decimal
+        #expect(price == Decimal(4.99) && Double(truncating: price as NSNumber) == 4.99)
+        let date = Date(timeIntervalSince1970: 100)
+        let attributes: [String: NSObject] = ["setTime": date as NSDate, "isSynced": NSNumber(value: true)]
+        let stored = attributes["setTime"] as? NSDate
+        #expect(stored?.timeIntervalSince1970 == 100 && stored.map { $0 as Date } == date)
+        #expect(stored?.isEqual(NSDate(timeIntervalSince1970: 100)) == true)
+    }
     #endif
 
     @Test func theOriginalAPIRefusesPayments() {
