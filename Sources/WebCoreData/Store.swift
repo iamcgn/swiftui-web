@@ -574,8 +574,56 @@ open class NSPersistentContainer: @unchecked Sendable {
 }
 
 /// A container whose stores mirror to CloudKit on Apple's platforms; here its data stays on the
-/// device.
+/// device. With no iCloud account in the browser nothing syncs, so the container posts no
+/// events; the event types are here for the apps that watch for them.
 open class NSPersistentCloudKitContainer: NSPersistentContainer, @unchecked Sendable {
+    /// Posted when a sync event starts or ends, with the event under `eventNotificationUserInfoKey`.
+    public static let eventChangedNotification = Notification.Name("NSPersistentCloudKitContainerEventChangedNotification")
+    /// The user info key of an `eventChangedNotification`'s event.
+    public static let eventNotificationUserInfoKey = "event"
+
+    /// What a sync event did.
+    public enum EventType: Int, Sendable, Hashable {
+        case setup = 0
+        case `import` = 1
+        case export = 2
+    }
+
+    /// One setup, import or export: posted when it starts (with no end date) and again when it
+    /// ends.
+    open class Event: CustomStringConvertible, @unchecked Sendable {
+        public let identifier: UUID
+        public let storeIdentifier: String
+        public let type: EventType
+        public let startDate: Date
+        public let endDate: Date?
+        public let succeeded: Bool
+        public let error: (any Error)?
+
+        init(identifier: UUID = UUID(), storeIdentifier: String, type: EventType, startDate: Date, endDate: Date? = nil,
+             succeeded: Bool = false, error: (any Error)? = nil) {
+            self.identifier = identifier
+            self.storeIdentifier = storeIdentifier
+            self.type = type
+            self.startDate = startDate
+            self.endDate = endDate
+            self.succeeded = succeeded
+            self.error = error
+        }
+
+        open var description: String {
+            let kind: String
+            switch type {
+            case .setup: kind = "Setup"
+            case .import: kind = "Import"
+            case .export: kind = "Export"
+            }
+            let ended = endDate.map { "\($0)" } ?? "(in progress)"
+            let failure = error.map { "\($0)" } ?? "(null)"
+            return "<NSPersistentCloudKitContainerEvent: \(identifier) type: \(kind) store: \(storeIdentifier) started: \(startDate) ended: \(ended) succeeded: \(succeeded ? "YES" : "NO") error: \(failure)>"
+        }
+    }
+
     /// Accepted: there is no CloudKit schema to initialize.
     open func initializeCloudKitSchema(options: Int = 0) throws {}
     open func canUpdateRecord(forManagedObjectWith objectID: NSManagedObjectID) -> Bool { true }
