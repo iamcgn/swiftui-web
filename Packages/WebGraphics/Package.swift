@@ -26,6 +26,7 @@ let package = Package(
         .library(name: "WebCombine", targets: ["WebCombine"]),
         .library(name: "WebGraphics", targets: ["WebGraphics"]),
         .library(name: "WebImageIO", targets: ["WebImageIO"]),
+        .library(name: "WebImageDestination", targets: ["WebImageDestination"]),
         .library(name: "WebGraphicsCanvas", targets: ["WebGraphicsCanvas"]),
         .library(name: "WebGraphicsNative", targets: ["WebGraphicsNative"]),
         .library(name: "WebGraphicsHeadless", targets: ["WebGraphicsHeadless"]),
@@ -66,12 +67,20 @@ let package = Package(
             dependencies: ["WebFoundation"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
-        // ImageIO's image sources and destinations on wasm (the `ImageIO` shadow re-exports it,
-        // Packages/Shadows, and so does AVFoundation, as Apple's does):
+        // ImageIO's image sources on wasm (the `ImageIO` shadow re-exports it, Packages/Shadows):
         // a module of its own, so the shadow brings its names and none of WebGraphics's.
         .target(
             name: "WebImageIO",
-            dependencies: ["WebFoundation", "WebFoundationFormats", "WebGraphics"],
+            dependencies: ["WebFoundation", "WebGraphics"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // ImageIO's image destinations on wasm, which the `ImageIO` shadow and AVFoundation
+        // re-export (Apple's AVFoundation re-exports ImageIO). Apart from WebImageIO, which every
+        // app links, because a destination writes into Foundation's NSMutableData
+        // (WebFoundationFormats).
+        .target(
+            name: "WebImageDestination",
+            dependencies: ["WebFoundation", "WebFoundationFormats", "WebGraphics", "WebImageIO"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

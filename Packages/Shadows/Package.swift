@@ -130,7 +130,7 @@ let package = Package(
         ),
         .target(
             name: "ImageIO",
-            dependencies: ["CoreGraphics", .product(name: "WebImageIO", package: "WebGraphics"),
+            dependencies: ["CoreGraphics", .product(name: "WebImageIO", package: "WebGraphics"), .product(name: "WebImageDestination", package: "WebGraphics"),
                            .product(name: "WebFoundationFormats", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),

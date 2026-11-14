@@ -12,6 +12,7 @@ import WebFoundation
 // Apple's AVFoundation re-exports ImageIO, so a file importing only AVKit writes the thumbnail's
 // JPEG with `CGImageDestination` (Kingfisher's `CGImage.jpegData`).
 @_exported import WebImageIO
+@_exported import WebImageDestination
 #else
 import Foundation
 #endif
