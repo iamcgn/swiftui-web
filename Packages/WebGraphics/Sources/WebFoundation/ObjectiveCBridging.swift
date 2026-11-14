@@ -182,6 +182,44 @@ extension Set: @retroactive _ObjectiveCBridgeable {
     }
 }
 
+/// A hashable as an object, as Foundation bridges `AnyHashable` to `NSObject`: so a dictionary
+/// keyed by `AnyHashable` can cross an `@objc` member (RevenueCat's
+/// `setAppsFlyerConversionData(_: [AnyHashable: Any]?)`). An object stays itself; a value that
+/// bridges becomes its object (a string its `NSString`, a number its `NSNumber`); any other value
+/// is held in the value box. Back from an object, the box gives its value and an object is itself.
+extension AnyHashable: @retroactive _ObjectiveCBridgeable {
+    public typealias _ObjectiveCType = NSObject
+    public func _bridgeToObjectiveC() -> NSObject { _webObject(base) }
+    public static func _forceBridgeFromObjectiveC(_ source: NSObject, result: inout AnyHashable?) {
+        result = _webHashable(source)
+    }
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSObject, result: inout AnyHashable?) -> Bool {
+        result = _webHashable(source)
+        return true
+    }
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSObject?) -> AnyHashable {
+        _webHashable(source ?? NSObject())
+    }
+}
+
+/// The object a value stands as in Objective-C: an object itself, a bridged value its object,
+/// anything else in the value box.
+public func _webObject(_ value: Any) -> NSObject {
+    if let object = value as? NSObject { return object }
+    if let bridged = value as? any _ObjectiveCBridgeable, let object = _webBridge(bridged) { return object }
+    return _WebNSValue(value)
+}
+
+private func _webBridge<Value: _ObjectiveCBridgeable>(_ value: Value) -> NSObject? {
+    value._bridgeToObjectiveC() as AnyObject as? NSObject
+}
+
+/// The hashable an object stands for: a boxed value's own, when hashable, else the object.
+private func _webHashable(_ object: NSObject) -> AnyHashable {
+    if type(of: object) == _WebNSValue.self, let value = (object as! _WebNSValue).value as? AnyHashable { return value }
+    return AnyHashable(object)
+}
+
 /// `description` on every object, as Foundation gives `NSObject`: the runtime's header declares
 /// it with Foundation's `NSString`, which this SDK does not define, so the compiler leaves it out
 /// and an app's `override var description` overrode nothing (RevenueCat's model classes). The

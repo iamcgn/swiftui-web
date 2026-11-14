@@ -126,6 +126,24 @@ private final class ReceiptRefresh: SKRequestDelegate {
         #expect(stored?.timeIntervalSince1970 == 100 && stored.map { $0 as Date } == date)
         #expect(stored?.isEqual(NSDate(timeIntervalSince1970: 100)) == true)
     }
+
+    /// RevenueCat takes AppsFlyer's conversion data, an `[AnyHashable: Any]`, in an `@objc`
+    /// method, and makes an error of a generic `NSError` type from its metatype.
+    final class ConversionData: NSObject {
+        var received: [AnyHashable: Any]?
+        @objc func setConversionData(_ data: [AnyHashable: Any]?) { received = data }
+    }
+
+    static func error<Result: NSError>(code: Int) -> Result { Result(domain: "attribution", code: code, userInfo: nil) }
+
+    @Test func hashableKeysAndGenericErrorsCrossAsObjects() {
+        let attribution = ConversionData()
+        attribution.setConversionData(["af_status": "Organic", 1: true])
+        #expect(attribution.received?["af_status"] as? String == "Organic")
+        #expect(attribution.received?[1] as? Bool == true)
+        let error: NSError = Self.error(code: 7)
+        #expect(error.code == 7 && error.domain == "attribution")
+    }
     #endif
 
     @Test func theOriginalAPIRefusesPayments() {

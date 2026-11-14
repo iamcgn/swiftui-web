@@ -168,5 +168,11 @@ fbb333cf with a clean tree.
   for it only under the runtime; without it, it stays final and `NSDecimalNumber` its alias. `Date`
   bridges to an `NSDate` object, so `date as NSDate` fills a `[String: NSObject]` (RevenueCat's
   subscriber attributes); Core Data's predicates read an `NSDate` argument as its date.
+- 2026-11-14, hashables and errors: `AnyHashable` bridges to `NSObject`, as Foundation's does,
+  so an `[AnyHashable: Any]` can be an `@objc` parameter (RevenueCat's AppsFlyer conversion data).
+  An object stays itself, a bridged value becomes its object, anything else is boxed. `NSError`'s
+  `init(domain:code:userInfo:)` is `required` under the runtime, so a generic `Result: NSError`
+  can be made from its metatype, as an imported class's initializer can; a subclass with
+  initializers of its own provides that one too.
 - `#selector`-based `UIKeyCommand`s do nothing on builds without the runtime; the closure
   form works everywhere.
