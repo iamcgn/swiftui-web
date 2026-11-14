@@ -115,11 +115,27 @@ extension Color.Resolved: Codable {
     }
 }
 
+extension Color {
+    /// The colour `style` paints with in `environment`: the colour itself when it is one (or an
+    /// erased one), otherwise the style resolved in the light and the dark appearance.
+    package init<S: ShapeStyle>(_resolving style: S, in environment: EnvironmentValues) {
+        if let color = style._asColor ?? (style as? AnyShapeStyle)?.base._asColor {
+            self = color
+            return
+        }
+        var light = environment, dark = environment
+        light.colorScheme = .light
+        dark.colorScheme = .dark
+        self.init(storage: .dynamic(light: style.resolveColor(in: light), dark: style.resolveColor(in: dark)))
+    }
+}
+
 extension ShapeStyle {
     /// The style as a colour when it is one: a `Color` or a resolved colour.
     package var _asColor: Color? {
         if let color = self as? Color { return color }
         if let resolved = self as? Color.Resolved { return Color(resolved) }
+        if let blended = self as? any _BlendedStyle { return blended._blendBase._asColor }
         return nil
     }
 }
