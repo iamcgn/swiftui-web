@@ -10,6 +10,8 @@ extension Angle: Animatable {
     }
 }
 
+extension Angle: _VectorMath {}
+
 extension RectangleCornerRadii: Animatable {
     public typealias AnimatableData = AnimatablePair<AnimatablePair<CGFloat, CGFloat>, AnimatablePair<CGFloat, CGFloat>>
     public var animatableData: AnimatableData {
