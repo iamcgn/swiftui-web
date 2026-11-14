@@ -69,8 +69,10 @@ import SwiftUIWebHeadless
         #expect(style.resolveColor(in: environment) == Color.blue.resolve(in: environment))
         #expect(style._asColor == .blue)
         #expect(Color(_resolving: style, in: environment) == .blue)
-        let text = commands(runtime(Text("Birds").foregroundStyle(Color(red: 1, green: 0, blue: 0).blendMode(.multiply))))
-        #expect(text.contains { $0.hasPrefix("drawText") && $0.contains("#FF0000") })
+        // Text takes the base colour, not a gradient.
+        let text = Text("Birds").foregroundStyle(Color(red: 1, green: 0, blue: 0).blendMode(.multiply))
+        #expect(text.modifiers.foregroundColor == Color(red: 1, green: 0, blue: 0))
+        #expect(text.modifiers.foregroundGradient == nil)
     }
 
     @Test func aColourViewKeepsTheViewsBlendMode() {
