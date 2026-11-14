@@ -164,7 +164,14 @@ expect(!shown.includes('Continue') && shown.includes('Top') && shown.includes('N
 begin('dark-mode');
 expect(coverDark, 'picking Dark on the appearance step did not darken the onboarding cover');
 await settle(t => rows(t).length >= 3, 100);
-expect(await mostlyDark(195, 560), 'the feed is not dark after Dark was picked in the onboarding');
+// Polled as the cover is: the rows' text can reach the page a frame before their dark paint does
+// on a busy runner. A late paint is written down (so a slow one shows), only a feed that stays
+// light fails.
+let feedDark = false, feedLooks = 0;
+for (; feedLooks < 20 && !feedDark; feedLooks++) { if (feedLooks) await page.waitForTimeout(200); feedDark = await mostlyDark(195, 560); }
+if (feedDark && feedLooks > 1) report.notes.push(`the feed painted dark on look ${feedLooks} (about ${(feedLooks - 1) * 200} ms after its rows appeared)`);
+if (!feedDark) await shot('2-feed-not-dark');
+expect(feedDark, 'the feed is not dark after Dark was picked in the onboarding (4 s after its rows appeared)');
 
 begin('feed');
 shown = await settle(t => rows(t).length >= 5, 100);
