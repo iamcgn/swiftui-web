@@ -213,3 +213,65 @@ private func hex<S: Sequence>(_ bytes: S) -> String where S.Element == UInt8 {
         #expect(throws: CryptoKitError.incorrectKeySize) { try Curve25519.Signing.PublicKey(rawRepresentation: [UInt8](repeating: 0, count: 31)) }
     }
 }
+
+/// ChaCha20-Poly1305 against RFC 8439's AEAD vector (section 2.8.2), and its failures.
+@Suite struct ChaChaPolyTests {
+    private func bytes(_ hex: String) -> [UInt8] {
+        var out: [UInt8] = []
+        var index = hex.startIndex
+        while index < hex.endIndex {
+            let next = hex.index(index, offsetBy: 2)
+            out.append(UInt8(hex[index..<next], radix: 16)!)
+            index = next
+        }
+        return out
+    }
+
+    private let plaintext = Array("Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it.".utf8)
+    private let key = SymmetricKey(data: (0x80...0x9F).map { UInt8($0) })
+
+    @Test func rfc8439Vector() throws {
+        let nonce = try ChaChaPoly.Nonce(data: bytes("070000004041424344454647"))
+        let aad = bytes("50515253c0c1c2c3c4c5c6c7")
+        let box = try ChaChaPoly.seal(plaintext, using: key, nonce: nonce, authenticating: aad)
+        #expect(hex(box.ciphertext) == "d31a8d34648e60db7b86afbc53ef7ec2a4aded51296e08fea9e2b5a736ee62d63dbea45e8ca9671282fafb69da92728b1a71de0a9e060b2905d6a5b67ecd3b3692ddbd7f2d778b8c9803aee328091b58fab324e4fad675945585808b4831d7bc3ff4def08e4b7a9de576d26586cec64b6116")
+        #expect(hex(box.tag) == "1ae10b594f09e26a7e902ecbd0600691")
+        #expect(Array(box.combined) == bytes("070000004041424344454647") + Array(box.ciphertext) + Array(box.tag))
+        #expect(Array(try ChaChaPoly.open(box, using: key, authenticating: aad)) == plaintext)
+        let reopened = try ChaChaPoly.SealedBox(combined: box.combined)
+        #expect(Array(try ChaChaPoly.open(reopened, using: key, authenticating: aad)) == plaintext)
+    }
+
+    @Test func aChangedBoxOrKeyFailsToOpen() throws {
+        let box = try ChaChaPoly.seal(plaintext, using: key)
+        #expect(Array(try ChaChaPoly.open(box, using: key)) == plaintext)
+        #expect(throws: CryptoKitError.authenticationFailure) { try ChaChaPoly.open(box, using: SymmetricKey(size: .bits256)) }
+        #expect(throws: CryptoKitError.authenticationFailure) { try ChaChaPoly.open(box, using: key, authenticating: [1]) }
+        var tampered = Array(box.ciphertext)
+        tampered[0] ^= 1
+        let forged = try ChaChaPoly.SealedBox(nonce: box.nonce, ciphertext: tampered, tag: box.tag)
+        #expect(throws: CryptoKitError.authenticationFailure) { try ChaChaPoly.open(forged, using: key) }
+        #expect(throws: CryptoKitError.incorrectKeySize) { try ChaChaPoly.seal(plaintext, using: SymmetricKey(size: .bits128)) }
+        #expect(throws: CryptoKitError.incorrectParameterSize) { try ChaChaPoly.Nonce(data: [UInt8](repeating: 0, count: 8)) }
+        #expect(throws: CryptoKitError.incorrectParameterSize) { try ChaChaPoly.SealedBox(combined: [UInt8](repeating: 0, count: 20)) }
+        // Random nonces: twelve bytes, a fresh one per box.
+        #expect(Data(ChaChaPoly.Nonce()).count == 12 && ChaChaPoly.Nonce() != ChaChaPoly.Nonce())
+        let empty = try ChaChaPoly.seal([UInt8](), using: key)
+        let opened = try ChaChaPoly.open(empty, using: key)
+        #expect(empty.ciphertext.isEmpty && opened.isEmpty)
+    }
+
+    /// A digest's iterator is an array's, so generic code over a hash function can pass it on.
+    @Test func digestsIterateAsArrays() {
+        func hexString(_ iterator: Array<UInt8>.Iterator) -> String {
+            var iterator = iterator
+            var out = ""
+            while let byte = iterator.next() { out += String(byte, radix: 16).count == 1 ? "0" + String(byte, radix: 16) : String(byte, radix: 16) }
+            return out
+        }
+        func fingerprint<H: HashFunction>(_ function: H.Type, _ text: String) -> String {
+            hexString(H.hash(data: Array(text.utf8)).makeIterator())
+        }
+        #expect(fingerprint(SHA256.self, "abc") == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+    }
+}

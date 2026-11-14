@@ -3,6 +3,7 @@
 // calendars, wrapping addition, the date format styles and DateFormatter.
 #if os(WASI)
 import Testing
+import WASILibc
 import WebFoundation
 import WebCombine
 
@@ -238,6 +239,18 @@ import WebCombine
         #expect(throws: NSError.self) { try other.loadAndReturnError() }
     }
 
+    /// RevenueCat's JSON encoding tells a boolean from the integers 0 and 1 by Core Foundation
+    /// type, and a string object is equal to and hashes as another with the same characters.
+    @Test func coreFoundationTypeIDsTellBooleansFromNumbers() {
+        #expect(CFGetTypeID(NSNumber(value: true)) == CFBooleanGetTypeID())
+        #expect(CFGetTypeID(NSNumber(value: 1)) == CFNumberGetTypeID() && CFGetTypeID(NSNumber(value: 0.5)) == CFNumberGetTypeID())
+        #expect(CFGetTypeID(NSString(string: "a")) == CFStringGetTypeID() && CFGetTypeID(NSError(domain: "d", code: 1)) == CFErrorGetTypeID())
+        #expect(CFBooleanGetTypeID() != CFNumberGetTypeID())
+        let a = NSString(string: "key"), b: NSString = "key"
+        #expect(a == b && a.hashValue == b.hashValue && Set([a, b, NSString(string: "other")]).count == 2)
+        #expect(a.description == "key" && NSString().length == 0)
+    }
+
     /// `Bundle.localizations` is what the app's string catalogs and `.lproj` folders hold, as
     /// the build recorded them (scripts/assets.py → the manifest → the host); the development
     /// language is the catalogs' source; the preferred one follows the current locale
@@ -322,6 +335,46 @@ import WebCombine
         idle.cancel()
         #expect(idle.state == .completed && (idle.error as? URLError)?.code == .cancelled && sent.count == 2)
         #expect((session.dataTask(with: URL(string: "nowhere")!) { seen.append(($0, $1, $2)) }).error as? URLError == URLError(.badURL))
+    }
+
+    /// `bytes(for:)` answers the response with its body as bytes, which read back as lines,
+    /// characters (a combining mark stays with its letter) and scalars (a bad byte is U+FFFD).
+    @Test func urlSessionBytesReadAsLinesCharactersAndScalars() async throws {
+        final class Host: _WebHTTPTask, @unchecked Sendable { func cancel() {} }
+        let body = Array("caf\u{65}\u{301}\nnext\r\nend".utf8)
+        nonisolated(unsafe) var bodies = [body, [0x61, 0xC3, 0x62]]
+        _WebHTTPHost.send = { _, completion in
+            completion(.success(_WebHTTPResponse(url: "https://api.example/feed", status: 200, headers: [:], body: bodies.removeFirst())))
+            return Host()
+        }
+        defer { _WebHTTPHost.send = nil }
+        let session = URLSession(configuration: .default)
+        let (bytes, response) = try await session.bytes(from: URL(string: "https://api.example/feed")!)
+        #expect((response as? HTTPURLResponse)?.statusCode == 200)
+        var all: [UInt8] = []
+        for try await byte in bytes { all.append(byte) }
+        #expect(all == body)
+        var lines: [String] = []
+        for try await line in bytes.lines { lines.append(line) }
+        #expect(lines == ["cafe\u{301}", "next", "end"])
+        var characters: [Character] = []
+        for try await character in bytes.characters { characters.append(character) }
+        #expect(characters.count == 13 && characters[3] == "\u{E9}" && characters[4] == "\n")
+        let (broken, _) = try await session.bytes(for: URLRequest(url: URL(string: "https://api.example/feed")!))
+        var scalars: [Unicode.Scalar] = []
+        for try await scalar in broken.unicodeScalars { scalars.append(scalar) }
+        #expect(scalars == ["a", "\u{FFFD}", "b"])
+    }
+
+    /// The resolver calls: a page has no resolver, so a lookup finds nothing (RevenueCat's
+    /// blocked-host check then carries on), and an address formats as dotted decimal.
+    @Test func hostLookupFindsNothingAndAddressesFormat() {
+        #expect("api.revenuecat.com".withCString { gethostbyname($0) } == nil)
+        var address = in_addr()
+        address.s_addr = UInt32(0xC000_0201).bigEndian
+        #expect(String(cString: inet_ntoa(address)) == "192.0.2.1")
+        address.s_addr = UInt32(0x7F00_0001).bigEndian
+        #expect(String(cString: inet_ntoa(address)) == "127.0.0.1")
     }
 
     /// A data task made without a completion handler reports to the session's delegate in

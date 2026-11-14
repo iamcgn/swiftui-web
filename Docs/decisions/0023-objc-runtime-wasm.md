@@ -153,5 +153,26 @@ fbb333cf with a clean tree.
   the runtime and `String` without it, like `UserInfoKey`. `SKRequest` carries the delegate, as
   StoreKit's does, so `SKReceiptRefreshRequest` (which fails: no App Store receipt on the web)
   takes any `SKRequestDelegate`.
+- 2026-11-14, RevenueCat's bridging: under the runtime `NSString` is an `NSObject`, as Foundation's
+  is, so `key as NSString` fills a `[String: NSObject]`; the number types (`Int`, the sized
+  integers, `Double`, `Float`, `Bool`) bridge to `NSNumber`, so `count as NSNumber` converts and
+  `number as? Int` succeeds when the number holds the value exactly (SE-0170), `as!` truncating.
+  `CFGetTypeID` tells a boolean number from the others (`CFBooleanGetTypeID`), on both SDKs.
+  `SKPaymentQueue.presentCodeRedemptionSheet` is `@objc`, and StoreKit re-exports UIKit on wasm
+  (and WebFoundationFormats under that trait), as iOS's StoreKit brings UIKit and Foundation.
+  `UIFont(name:size:)`, `familyNames` and `fontNames(forFamilyName:)` are callable from any
+  context, as UIKit's are.
+- 2026-11-14, prices and dates: under the runtime `NSDecimalNumber` is a subclass of `NSNumber`,
+  as Foundation's is, and `Decimal` bridges to it, so `product.price as Decimal` converts (the
+  compiler reads a bridge to `NSNumber` itself as a checked cast, SE-0170). `NSNumber` is open
+  for it only under the runtime; without it, it stays final and `NSDecimalNumber` its alias. `Date`
+  bridges to an `NSDate` object, so `date as NSDate` fills a `[String: NSObject]` (RevenueCat's
+  subscriber attributes); Core Data's predicates read an `NSDate` argument as its date.
+- 2026-11-14, hashables and errors: `AnyHashable` bridges to `NSObject`, as Foundation's does,
+  so an `[AnyHashable: Any]` can be an `@objc` parameter (RevenueCat's AppsFlyer conversion data).
+  An object stays itself, a bridged value becomes its object, anything else is boxed. `NSError`'s
+  `init(domain:code:userInfo:)` is `required` under the runtime, so a generic `Result: NSError`
+  can be made from its metatype, as an imported class's initializer can; a subclass with
+  initializers of its own provides that one too.
 - `#selector`-based `UIKeyCommand`s do nothing on builds without the runtime; the closure
   form works everywhere.

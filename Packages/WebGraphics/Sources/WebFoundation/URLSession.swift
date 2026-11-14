@@ -803,6 +803,39 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
         return result
     }
 
+    /// The response's body as a sequence of bytes, with the response. The host reads the body
+    /// whole (fetch hands it over as one buffer), so the bytes arrive once it has.
+    public func bytes(for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (AsyncBytes, URLResponse) {
+        let (data, response) = try await data(for: request, delegate: delegate)
+        return (AsyncBytes(data: data), response)
+    }
+    public func bytes(from url: URL, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (AsyncBytes, URLResponse) {
+        try await bytes(for: URLRequest(url: url), delegate: delegate)
+    }
+
+    /// A response body's bytes, one at a time.
+    public struct AsyncBytes: AsyncSequence, Sendable {
+        public typealias Element = UInt8
+        let data: Data
+        public struct AsyncIterator: AsyncIteratorProtocol {
+            var data: Data
+            var index = 0
+            public mutating func next() async throws -> UInt8? {
+                guard index < data.count else { return nil }
+                defer { index += 1 }
+                return data[data.startIndex + index]
+            }
+        }
+        public func makeAsyncIterator() -> AsyncIterator { AsyncIterator(data: data) }
+
+        /// The bytes split at newlines, as strings.
+        public var lines: AsyncLineSequence<AsyncBytes> { AsyncLineSequence(base: self) }
+        /// The bytes decoded as UTF-8 characters.
+        public var characters: AsyncCharacterSequence<AsyncBytes> { AsyncCharacterSequence(base: self) }
+        /// The bytes decoded as UTF-8 scalars.
+        public var unicodeScalars: AsyncUnicodeScalarSequence<AsyncBytes> { AsyncUnicodeScalarSequence(base: self) }
+    }
+
     /// Cancels the session's tasks, tells the delegate the session is invalid and lets it go.
     public func invalidateAndCancel() {
         core.cancelAll()

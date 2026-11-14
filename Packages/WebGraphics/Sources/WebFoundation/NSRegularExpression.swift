@@ -17,13 +17,21 @@
 /// Foundation's name for the string object (`_WebNSString`, see above).
 public typealias NSString = _WebNSString
 
-/// A static, plain-text Unicode string object, bridged from `String` (`as NSString`).
-public final class _WebNSString: Hashable, CustomStringConvertible, ExpressibleByStringLiteral, @unchecked Sendable {
+/// A static, plain-text Unicode string object, bridged from `String` (`as NSString`). An
+/// `NSObject` with the Objective-C runtime, as Foundation's is, so `key as NSString` goes where
+/// an `NSObject` does (RevenueCat's `[String: NSObject]` attribute dictionaries).
+public final class _WebNSString: _WebObjectBase, ExpressibleByStringLiteral, @unchecked Sendable {
     public let string: String
     private lazy var utf16: [UInt16] = Array(string.utf16)
 
-    public init(string: String) { self.string = string }
-    public init() { string = "" }
+    public init(string: String) {
+        self.string = string
+        super.init()
+    }
+    public override init() {
+        string = ""
+        super.init()
+    }
     /// `let key: NSString = "name"`, as Foundation's bridged string takes a literal.
     public convenience init(stringLiteral value: String) { self.init(string: value) }
 
@@ -50,10 +58,17 @@ public final class _WebNSString: Hashable, CustomStringConvertible, ExpressibleB
     public var pathExtension: String { URL(fileURLWithPath: string).pathExtension }
     public var lowercased: String { string.lowercased() }
     public var uppercased: String { string.uppercased() }
+    #if canImport(ObjectiveC)
+    public override var description: String { string }
+    public override var hash: Int { string.hashValue }
+    /// Equal to another string object with the same characters, as Foundation's `isEqual(_:)`.
+    public override func isEqual(_ object: Any?) -> Bool { (object as? NSString)?.string == string }
+    #else
     public var description: String { string }
     public var hashValue: Int { string.hashValue }
     public func hash(into hasher: inout Hasher) { hasher.combine(string) }
     public static func == (lhs: NSString, rhs: NSString) -> Bool { lhs.string == rhs.string }
+    #endif
     public func isEqual(to aString: String) -> Bool { string == aString }
 
     /// The number at the start of the string, after any whitespace (0 when there is none), as
@@ -108,6 +123,10 @@ public final class _WebNSString: Hashable, CustomStringConvertible, ExpressibleB
         return String(result)
     }
 }
+
+#if !canImport(ObjectiveC)
+extension _WebNSString: Hashable, CustomStringConvertible {}
+#endif
 
 extension String: @retroactive _ObjectiveCBridgeable {
     public typealias _ObjectiveCType = NSString
@@ -316,6 +335,25 @@ public final class NSTextCheckingResult: @unchecked Sendable {
         public init(rawValue: UInt64) { self.rawValue = rawValue }
         public static let regularExpression = CheckingType(rawValue: 1 << 10)
     }
+}
+
+// Foundation's are NSObjects, so they compare and hash: an expression equals another with the
+// same pattern and options, as `isEqual(_:)` says on Apple platforms, and a result is equal only
+// to itself. A struct that keeps a compiled expression can then synthesize `Equatable` and
+// `Hashable` (IceCubes' and MastodonKit's `HTMLString`).
+extension NSRegularExpression: Hashable {
+    public static func == (lhs: NSRegularExpression, rhs: NSRegularExpression) -> Bool {
+        lhs === rhs || (lhs.pattern == rhs.pattern && lhs.options == rhs.options)
+    }
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(pattern)
+        hasher.combine(options)
+    }
+}
+
+extension NSTextCheckingResult: Hashable {
+    public static func == (lhs: NSTextCheckingResult, rhs: NSTextCheckingResult) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 }
 
 

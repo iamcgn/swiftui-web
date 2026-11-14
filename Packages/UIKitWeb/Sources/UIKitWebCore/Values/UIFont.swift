@@ -146,8 +146,9 @@ public final class UIFont: UIObjectBase, @unchecked Sendable {
 
     /// A bundled font by its PostScript, full or family name (the scene's asset catalog;
     /// `scripts/assets.py` lists the font files), or any family name the host can draw.
-    @MainActor public convenience init?(name: String, size: CGFloat) {
-        let resource = UIKitScene.shared.assetCatalog.font(named: name)
+    /// Callable from any context, as UIKit's is (UIFontMetrics.swift's `familyNames` says why).
+    public convenience init?(name: String, size: CGFloat) {
+        let resource = MainActor.assumeIsolated { UIKitScene.shared.assetCatalog.font(named: name) }
         self.init(resolved: ResolvedFont(family: resource?.postScriptName ?? name, size: size, weight: .regular, italic: false, textStyle: nil, profile: "iOS"), weight: .regular)
     }
 

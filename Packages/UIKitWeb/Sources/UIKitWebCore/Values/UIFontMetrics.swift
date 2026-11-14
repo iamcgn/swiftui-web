@@ -79,11 +79,13 @@ extension UIFont {
     }
 
     /// The bundled font families (`UIFont(name:size:)` resolves them) and the system families.
-    @MainActor public static var familyNames: [String] {
-        Array(Set(UIKitScene.shared.assetCatalog.fonts.values.map(\.family))).sorted() + ["System Font"]
+    /// Callable from any context, as UIKit's are (RevenueCat's paywall font manager): the asset
+    /// catalog is the scene's, and a page runs on the main thread.
+    public static var familyNames: [String] {
+        MainActor.assumeIsolated { Array(Set(UIKitScene.shared.assetCatalog.fonts.values.map(\.family))).sorted() } + ["System Font"]
     }
 
-    @MainActor public static func fontNames(forFamilyName familyName: String) -> [String] {
-        UIKitScene.shared.assetCatalog.fonts.values.filter { $0.family == familyName }.map(\.postScriptName).sorted()
+    public static func fontNames(forFamilyName familyName: String) -> [String] {
+        MainActor.assumeIsolated { UIKitScene.shared.assetCatalog.fonts.values.filter { $0.family == familyName }.map(\.postScriptName).sorted() }
     }
 }

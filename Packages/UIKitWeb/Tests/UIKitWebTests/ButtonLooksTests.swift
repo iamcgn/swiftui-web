@@ -29,6 +29,35 @@ import UIKit
         #expect(heart.imageView?.frame.minX == 2 + 0.75 && heart.titleLabel?.frame.minX == 27)
     }
 
+    @Test func preferredSymbolConfigurationsByState() {
+        _ = scene()
+        let delete = UIButton(type: .custom)
+        delete.setImage(UIImage(systemName: "delete.left"), for: .normal)
+        #expect(delete.currentPreferredSymbolConfiguration == nil)
+        delete.sizeToFit()
+        let plain = delete.frame.size
+        // The keyboard's delete key: a 22-point regular glyph.
+        delete.setPreferredSymbolConfiguration(.init(pointSize: 22, weight: .regular), forImageIn: .normal)
+        #expect(delete.preferredSymbolConfigurationForImage(in: .normal)?.pointSize == 22)
+        #expect(delete.preferredSymbolConfigurationForImage(in: .highlighted)?.pointSize == 22)
+        #expect(delete.imageView?.image?.symbolConfiguration?.weight == .regular)
+        delete.sizeToFit()
+        delete.layoutSubviews()
+        #expect(delete.frame.width > plain.width)
+        #expect(delete.imageView!.frame.width == 26.5 && delete.imageView!.frame.height == 24.5)
+        // A state's own configuration wins in that state.
+        delete.setPreferredSymbolConfiguration(.init(weight: .bold), forImageIn: .highlighted)
+        delete.isHighlighted = true
+        #expect(delete.currentPreferredSymbolConfiguration?.weight == .bold)
+        #expect(delete.imageView?.image?.symbolConfiguration?.weight == .bold)
+        delete.isHighlighted = false
+        #expect(delete.imageView?.image?.symbolConfiguration?.weight == .regular)
+        // Clearing it draws the image's own again.
+        delete.setPreferredSymbolConfiguration(nil, forImageIn: .normal)
+        delete.setPreferredSymbolConfiguration(nil, forImageIn: .highlighted)
+        #expect(delete.imageView?.image?.symbolConfiguration == nil)
+    }
+
     @Test func imagePlacementsAndSubtitles() {
         _ = scene()
         var configuration = UIButton.Configuration.gray()

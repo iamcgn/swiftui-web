@@ -398,9 +398,9 @@
           ]
         },
         {
-          "api": "ProgressView (value/total, labels, currentValueLabel) / ProgressViewStyle (automatic, linear, circular) / ControlSize / controlSize(_:) / tint(_:)",
+          "api": "ProgressView (value/total, labels, currentValueLabel) / ProgressViewStyle (automatic, linear, circular) / ControlSize / controlSize(_:) / tint(_:) (a colour or any shape style)",
           "status": "partial",
-          "notes": "Determinate bars and rings measured exactly (inactive-window greys); the indeterminate spinner and bar are the animation's first frame; tint accepted without effect; no Progress objects or timer intervals; iOS profile: a 4 pt accent bar, the circular style always the 20 pt spinner (ios/progress/basic); the spinner's rotation and the indeterminate bar's motion (approximate), animated values under withAnimation, ProgressView(timerInterval:) through the animation timeline, ProgressView(_ progress:) (wasm's Progress is observable, Foundation's polled), tint on iOS and in an active macOS window (2026-10-04) Right-to-left (2026-10-09): the bar fills from the trailing end (RTLTests).",
+          "notes": "Determinate bars and rings measured exactly (inactive-window greys); the indeterminate spinner and bar are the animation's first frame; tint accepted without effect; no Progress objects or timer intervals; iOS profile: a 4 pt accent bar, the circular style always the 20 pt spinner (ios/progress/basic); the spinner's rotation and the indeterminate bar's motion (approximate), animated values under withAnimation, ProgressView(timerInterval:) through the animation timeline, ProgressView(_ progress:) (wasm's Progress is observable, Foundation's polled), tint on iOS and in an active macOS window (2026-10-04) Right-to-left (2026-10-09): the bar fills from the trailing end (RTLTests). tint(_:) with a shape style (2026-11-14): a colour as it is, any other style as the colour it resolves to in each appearance.",
           "fixtures": [
             "progress/basic",
             "progress/indeterminate",
@@ -704,7 +704,7 @@
         {
           "api": "Angle",
           "status": "full",
-          "notes": "radians/degrees, Comparable, Animatable",
+          "notes": "radians/degrees, Comparable, Animatable; adds, subtracts, scales and negates (SwiftUI's _VectorMath, as EdgeInsets does too) (2026-11-14)",
           "fixtures": [
             "shape/path"
           ]
@@ -728,6 +728,12 @@
             "scroll/*",
             "layout/rtl-scroll"
           ]
+        },
+        {
+          "api": "visualEffect / scrollTransition / VisualEffect / ScrollTransitionPhase / ScrollTransitionConfiguration / CoordinateSpace.scrollView",
+          "status": "partial",
+          "notes": "pf-everyday-apis (2026-11-13): visualEffect hands its closure the view's geometry proxy and scrollTransition the view's phase in the nearest scroll view (topLeading, identity, bottomTrailing); the effects they return (opacity, scale, offset, rotation, the 3D rotation's flat projection, transforms, blur, brightness, contrast, saturation, grayscale, hue rotation, colour multiply and blend modes) apply while the view paints, never to its layout, so a scroll moves them frame by frame without a new layout. An interactive transition follows the view across the threshold along its timing curve, interpolating the identity phase's effects towards the edge's; an animated one switches phase after a layout pass and animates the change; identity never transitions. Thresholds: visible (the default), hidden, centered, visible(amount), inset(by:) and interpolated(towards:amount:), with separate configurations for the two edges. proxy.frame(in: .scrollView) measures from the nearest scroll view's visible area. Not done: the shader effects (colorEffect, distortionEffect, layerEffect), which need Metal shaders, and the 3D rotation's perspective",
+          "noFixture": "Nothing measured yet: CoreRuntimeTests check the painted effects, the phases and the scroll fast path"
         },
         {
           "api": "Image(_:bundle:) / Image(decorative:bundle:) / Image(_:bundle:label:) from asset catalogs",
@@ -1194,9 +1200,9 @@
           ]
         },
         {
-          "api": "blendMode(_:) / BlendMode (all 21 modes)",
+          "api": "blendMode(_:) on views and shape styles / BlendMode (all 21 modes)",
           "status": "full",
-          "notes": "Blend groups: canvas globalCompositeOperation (plusDarker computed by hand) and CGBlendMode transparency layers; softLight follows Apple's Pegtop formula natively and W3C's in the browser (within tolerance)",
+          "notes": "Blend groups: canvas globalCompositeOperation (plusDarker computed by hand) and CGBlendMode transparency layers; softLight follows Apple's Pegtop formula natively and W3C's in the browser (within tolerance); a shape style's blendMode(_:) (2026-11-14) draws the shapes it fills or strokes in a blend group and is its base colour as text or a tint",
           "fixtures": [
             "effects/blend"
           ]
@@ -1559,6 +1565,12 @@
           ]
         },
         {
+          "api": "CATransform3DConcat / CATransform3DRotate / CATransform3DTranslate / CATransform3DScale / CATransform3DInvert / CATransform3DIsAffine / CATransform3DEqualToTransform",
+          "status": "partial",
+          "notes": "pf-everyday-apis (2026-11-14): Core Animation's full 4x4 arithmetic with row vectors (Concat(a, b) applies a, then b), rotation about any axis, and the inverse (the transform itself when it has none). Layers paint the affine part, so a turn about the x or y axis shows as the flattened view of the turned plane (SwiftUIExperiments' swipe and text-scroll interactions, OldOS's camera preview). Not done: perspective (m34) and depth ordering",
+          "noFixture": "Matrix arithmetic checked in UIKitWebTests; the flattened turn paints through the existing layer transform path."
+        },
+        {
           "api": "Traits and appearance (traitCollection, traitOverrides, overrideUserInterfaceStyle, UITraitCollection.current, dark appearance)",
           "status": "partial",
           "notes": "The window's style, a hosted tree's overrides (style, size classes, layout direction, content size category), traitCollectionDidChange down the tree; open: overrideUserInterfaceStyle on a view, registerForTraitChanges",
@@ -1603,7 +1615,7 @@
         {
           "api": "UIButton",
           "status": "full",
-          "notes": "System, custom, tinted, gray, filled and configured buttons sized to fit, titles, images beside or above titles, subtitles, the button sizes, the pressed and disabled looks, iOS 26's corners, UIAction / addAction, configuration update handlers, menus; open: attributed titles, activity indicators (accepted)",
+          "notes": "System, custom, tinted, gray, filled and configured buttons sized to fit, titles, images beside or above titles, subtitles, the button sizes, the pressed and disabled looks, iOS 26's corners, UIAction / addAction, configuration update handlers, menus, preferred symbol configurations by state (2026-11-14: the weight drawn, a point size scaling the measured 17-point glyph, an assumption); open: attributed titles, activity indicators (accepted)",
           "fixtures": [
             "uikit/button/basic",
             "uikit/button/looks",
@@ -2041,9 +2053,9 @@
           ]
         },
         {
-          "api": "CGGradient / CGContext.drawLinearGradient / drawRadialGradient, UIGraphicsImageRenderer, UIGraphicsBeginImageContext, UIImage.pngData()",
+          "api": "CGGradient / CGContext.drawLinearGradient / drawRadialGradient, UIGraphicsImageRenderer, UIGraphicsBeginImageContext, UIImage.pngData(), CGContext(data:width:height:bitsPerComponent:bytesPerRow:space:bitmapInfo:)",
           "status": "partial",
-          "notes": "Linear and radial gradients with colour stops, image contexts recording drawings into vector UIImages that UIImageView, draw(at:) and SwiftUI's Image replay, the renderer context's blend-mode fills and strokes; pngData rasterises through the host; open: UIImage from pixel data",
+          "notes": "Linear and radial gradients with colour stops, image contexts recording drawings into vector UIImages that UIImageView, draw(at:) and SwiftUI's Image replay, the renderer context's blend-mode fills and strokes; pngData rasterises through the host; open: UIImage from pixel data. Bitmap contexts (2026-11-14): CGContext(data: nil, width:height:...) records with CoreGraphics's y-up origin and makeImage() gives the drawing (Nuke decompresses through it); a context over caller memory is not made, as no pixels are held",
           "fixtures": [
             "uikit/draw/gradient",
             "ios/representable/renderedimage"
@@ -2140,6 +2152,12 @@
             "uikit/dark/*",
             "ios/representable/traits"
           ]
+        },
+        {
+          "api": "UIResponder / UIView / UIViewController / UIScene / CALayer: Equatable, Hashable, isEqual(_:), hash",
+          "status": "full",
+          "notes": "pf-everyday-apis (2026-11-14): without the Objective-C runtime the responders' and layers' root compares by identity and hashes as NSObject does, and a subclass overrides isEqual(_:) and hash, so a dictionary keyed by view controllers (SwiftUIExperiments' walk charts) or a set of views works as in UIKit. With the runtime NSObject supplies the same",
+          "noFixture": "A conformance, not a screen; UIKitWebTests."
         }
       ]
     },
@@ -2328,6 +2346,12 @@
           "noFixture": "Foundation API with nothing on screen; OperationsAndProgressTests holds it to Foundation on macOS and Linux and checks the wasm forms."
         },
         {
+          "api": "NotificationCenter.notifications(named:object:) / NotificationCenter.Notifications",
+          "status": "full",
+          "notes": "The notifications of a name posted after the sequence is made, in order, as an async sequence; the observer goes when the iteration ends or its task is cancelled (2026-11-14)",
+          "noFixture": "Values, not a screen; FrameworkTests (FoundationGapsTests) post and read them"
+        },
+        {
           "api": "URLSession download and upload tasks / URLSessionTask suspend and Hashable / URLCredentialStorage / Stream.getBoundStreams / SecTrust, SecCertificate, SecPolicy / SCNetworkReachability / UTTypeCreatePreferredIdentifierForTag",
           "status": "partial",
           "notes": "On wasm: download tasks write the body to a temporary file the handler or delegate reads (removed afterwards, as on Apple platforms); upload tasks send data, a file or a delegate's body stream; tasks are NSObjects that key dictionaries; suspend marks a task without pausing a fetch already started. No resume data is produced. A bound stream pair hands writes to its input. Credentials are stored per protection space, though the browser answers authentication itself. Trust built from certificates keeps them and its policies, but a page can't verify a chain, so evaluation answers not trusted and no key is read out. Reachability follows navigator.onLine and its online and offline events. Foundation re-exports Security, as Apple's does (2026-11-06).",
@@ -2372,7 +2396,7 @@
         {
           "api": "CoreData: NSPersistentContainer / NSManagedObjectContext / NSManagedObject / NSFetchRequest / NSPredicate / NSSortDescriptor / NSBatchDeleteRequest / @FetchRequest / @SectionedFetchRequest / .xcdatamodeld codegen",
           "status": "partial",
-          "notes": "WebCoreData and the CoreDataModel build plugin (2026-10-31): the plugin reads an app's .xcdatamodeld and writes the classes Xcode's Class Definition and Category/Extension codegen would (typed properties, to-many and ordered accessors, typed fetchRequest()), and the model description NSPersistentContainer(name:) finds; main, private and child contexts over one coordinator, stores shared by name and kept as one JSON document per store through the host (localStorage in the browser), in-memory stores for NSInMemoryStoreType or /dev/null; NSPredicate(format:) with comparisons, string operators [cd], IN, BETWEEN, ANY/ALL/NONE, AND/OR/NOT, %@ %K %d arguments and @count/@sum/@avg/@min/@max; sort descriptors by key or key path; fetch limits, offsets, subentities, dictionary, ID and count results; inverses, the cascade, nullify and deny delete rules, required-attribute validation, rollback and reset; batch deletes; save notifications; @FetchRequest and @SectionedFetchRequest follow inserts, edits and other contexts' saves; managed objects are Identifiable. With the CoreData package trait (decision 0024, enabled in the app's manifest; Tools/Traits/traits.py finds apps that need it), a file that imports only SwiftUI sees @FetchRequest and one that imports only Foundation sees NSPredicate, as on iOS, and apps without it link nothing of Core Data. Not done: @NSManaged and Manual/None codegen, #keyPath and @objc, NSFetchedResultsController, SUBQUERY/FUNCTION/arithmetic in predicates, faulting, migrations, uniqueness constraints, persistent history, CloudKit mirroring, SortDescriptor-based FetchRequest initializers, transformable values in the stored JSON; perform runs its block at once",
+          "notes": "WebCoreData and the CoreDataModel build plugin (2026-10-31): the plugin reads an app's .xcdatamodeld and writes the classes Xcode's Class Definition and Category/Extension codegen would (typed properties, to-many and ordered accessors, typed fetchRequest()), and the model description NSPersistentContainer(name:) finds; main, private and child contexts over one coordinator, stores shared by name and kept as one JSON document per store through the host (localStorage in the browser), in-memory stores for NSInMemoryStoreType or /dev/null; NSPredicate(format:) with comparisons, string operators [cd], IN, BETWEEN, ANY/ALL/NONE, AND/OR/NOT, %@ %K %d arguments and @count/@sum/@avg/@min/@max; sort descriptors by key or key path; fetch limits, offsets, subentities, dictionary, ID and count results; inverses, the cascade, nullify and deny delete rules, required-attribute validation, rollback and reset; batch deletes; save notifications; @FetchRequest and @SectionedFetchRequest follow inserts, edits and other contexts' saves; managed objects are Identifiable. With the CoreData package trait (decision 0024, enabled in the app's manifest; Tools/Traits/traits.py finds apps that need it), a file that imports only SwiftUI sees @FetchRequest and one that imports only Foundation sees NSPredicate, as on iOS, and apps without it link nothing of Core Data. Not done: @NSManaged and Manual/None codegen, #keyPath and @objc, NSFetchedResultsController, SUBQUERY/FUNCTION/arithmetic in predicates, faulting, migrations, uniqueness constraints, persistent history, CloudKit mirroring, SortDescriptor-based FetchRequest initializers, transformable values in the stored JSON; perform runs its block at once; NSPersistentCloudKitContainer.Event, EventType, eventChangedNotification and eventNotificationUserInfoKey for sync monitors (2026-11-14: nothing syncs, so no event is posted)",
           "noFixture": "No pixels: CoreDataTests (the Library model through the plugin: predicates, fetches, delete rules, contexts, stores, @FetchRequest views) and Examples/CoreDataNotes under Playwright in CI (the trait, saves, a reload)"
         },
         {
@@ -2398,6 +2422,12 @@
           "status": "partial",
           "notes": "`localizedString(byJoining:)`, `string(from:)` and `string(for:)` as English prose with the serial comma (Foundation's en_US form; other locales not carried), an `itemFormatter` for the items (decision 0021, 2026-10-12)",
           "noFixture": "Strings, not a screen; WasmFoundationTests."
+        },
+        {
+          "api": "NSRegularExpression / NSTextCheckingResult (Equatable, Hashable)",
+          "status": "full",
+          "notes": "pf-everyday-apis (2026-11-14): Foundation's are NSObjects, so they compare and hash: an expression equals another with the same pattern and options, as isEqual(_:) says on Apple platforms, and a match result only itself. A struct that keeps a compiled expression synthesizes Equatable and Hashable (IceCubes' and MastodonKit's HTMLString)",
+          "noFixture": "A conformance, not a screen; FoundationGapsTests."
         }
       ]
     },
@@ -2525,10 +2555,10 @@
           "noFixture": "Nothing to draw: CoreLocationTests drive the manager against a fake browser; the browser host is GeolocationHost.swift"
         },
         {
-          "api": "SHA256 / SHA384 / SHA512 / Insecure.SHA1 / Insecure.MD5 / HMAC / SymmetricKey / Curve25519.Signing (CryptoKit)",
+          "api": "SHA256 / SHA384 / SHA512 / Insecure.SHA1 / Insecure.MD5 / HMAC / SymmetricKey / Curve25519.Signing / ChaChaPoly (CryptoKit)",
           "status": "partial",
-          "notes": "pf-small-frameworks (2026-10-31): the hash functions (one-shot and incremental, digests as byte sequences described as Apple's), HMAC over any of them with constant-time validation, and symmetric keys from data or random bytes, in pure Swift. Ed25519 signatures (Curve25519.Signing, 2026-11-13): keys from their raw bytes or random, deterministic signing and verification (S must be below the group order), matching RFC 8032. Not done: AES, ChaChaPoly, Curve25519 key agreement, P256, HKDF, the Secure Enclave",
-          "noFixture": "Nothing to draw: FrameworkTests hold every hash and HMAC to the FIPS 180-4, RFC 1321 and RFC 4231 answers, and Ed25519 to RFC 8032's vectors"
+          "notes": "pf-small-frameworks (2026-10-31): the hash functions (one-shot and incremental, digests as byte sequences described as Apple's), HMAC over any of them with constant-time validation, and symmetric keys from data or random bytes, in pure Swift. Ed25519 signatures (Curve25519.Signing, 2026-11-13): keys from their raw bytes or random, deterministic signing and verification (S must be below the group order), matching RFC 8032. ChaChaPoly (2026-11-14): RFC 8439's ChaCha20-Poly1305 sealing and opening with authenticated data, sealed boxes from their parts or combined bytes, and the tag checked in constant time; digests iterate as byte arrays. Not done: AES, Curve25519 key agreement, P256, HKDF, the Secure Enclave",
+          "noFixture": "Nothing to draw: FrameworkTests hold every hash and HMAC to the FIPS 180-4, RFC 1321 and RFC 4231 answers, Ed25519 to RFC 8032's vectors and ChaChaPoly to RFC 8439's"
         },
         {
           "api": "CHHapticEngine / CHHapticPattern / CHHapticEvent / CHHapticPatternPlayer (CoreHaptics)",
@@ -2597,10 +2627,40 @@
           "noFixture": "Nothing to draw: CoreRuntimeTests check the requests and the authorization"
         },
         {
+          "api": "Tip / TipView / popoverTip / Tips.configure / Tips.Rule / Tips.Parameter / Tips.Event / TipViewStyle (TipKit)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-13): tips show once the app calls Tips.configure and their rules hold: #Rule over a @Parameter value or an event's donations. TipView draws the tip inline (image, title, message, a close button and the tip's actions) and popoverTip presents it from a view; closing invalidates the tip for good. Display counts, display durations and the display frequency (immediate, hourly, daily, weekly, monthly, so a new tip waits its turn) hold tips back as on iOS, statusUpdates and shouldDisplayUpdates follow a tip, and the testing modes override the rules. Parameters, donations and each tip's displays persist in the user defaults, so a reload keeps them. Tip view styles, backgrounds, corner radius and image size apply. Not done: syncing tips through CloudKit, the datastore location option (always the user defaults), and the exact look of Apple's tip and its arrow",
+          "noFixture": "Nothing to draw beyond the views CoreRuntimeTests render: they configure TipKit, show tips and check the rules, counts and persistence"
+        },
+        {
+          "api": "TranslationSession / LanguageAvailability / translationTask / translationPresentation (Translation)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-13): sessions translate with Chrome's on-device translator, which, like Apple's, downloads a language pair's model once and then works offline, so a session made with init(installedSource:target:) only uses pairs already on the device (others throw notInstalled) and the session translationTask hands the app may download them in prepareTranslation or its first translation. A missing source language is detected with Chrome's language detector, a missing target is the person's preferred language, and text already in the target language comes back unchanged. LanguageAvailability reads a pair as installed, supported or unsupported, batches answer in order with their client identifiers, and cancel stops a session. translationTask runs again when its configuration changes or is invalidated, and translationPresentation shows the text and its translation in a popover with Copy Translation and, when the app passes a replacement action, Replace with Translation. A browser without a translator (Safari, Firefox) supports no pairs, as a device without the languages would. Not done: the translation download sheet (Chrome downloads without asking) and language lists beyond Chrome's",
+          "noFixture": "Nothing to draw yet: CoreRuntimeTests check the sessions, the availability and both modifiers"
+        },
+        {
+          "api": "CKContainer / CKDatabase / CKRecord / CKRecordZone / CKQuery / CKShare / CKSubscription / CKOperation and its subclasses / CKError / CKAccountStatus (CloudKit)",
+          "status": "stub",
+          "notes": "pf-small-frameworks (2026-11-14): a browser signs in to no iCloud account, so a page is a device signed out of iCloud: the default container's account status is noAccount, and every request to a database (fetch, save, delete, query, zones, subscriptions, changes) fails with CKError.notAuthenticated, its completion handler or result block called before the call returns and its async form throwing; an operation added to a database or container runs at once and ends the same way, with no per-item callbacks. Records, record IDs, zones, references, assets, shares, queries (over Core Data's NSPredicate on wasm) and subscriptions are values an app builds, with fields set and read by subscript, so the code that would sync compiles and takes the signed-out path. CKNotification(fromRemoteNotificationDictionary:) answers nil: no CloudKit push reaches a page. Not done: any syncing or storage in iCloud, sharing UI, CKSyncEngine, user identity lookups",
+          "noFixture": "Nothing to draw: CloudKitTests check the account status, the failures and the records"
+        },
+        {
           "api": "AVCaptureSession / AVCaptureDevice / AVCaptureVideoPreviewLayer / AVCapturePhotoOutput / AVCaptureVideoDataOutput / AVCaptureMetadataOutput / AVCaptureMovieFileOutput (AVFoundation)",
           "status": "partial",
           "notes": "pf-small-frameworks (2026-11-13): the capture session opens the browser's camera (getUserMedia, asking the person the first time) with the facing its device asks for (the back camera is the browser's environment camera, the front its user camera, so on a computer both are its webcam) at about the preset's width. The preview layer, as a view's layerClass or a sublayer, shows the stream live in a video element where the layer is, fitted by its video gravity and mirrored for the front camera; a video data output gets the stream's frames as BGRA pixel buffers in sample buffers, a photo output stills as JPEG data with their pixels (fileDataRepresentation, cgImageRepresentation), a metadata output the codes the browser's BarcodeDetector reads (QR, EAN, UPC, Code 39, 93 and 128, PDF417, Aztec, Data Matrix, ITF, Codabar, where the browser has it) with their corners, which the preview layer converts to its points, and a movie file output what MediaRecorder records, written to the file. The torch, zoom and point of interest go to the camera where the browser can set them; a refused or missing camera posts the runtime error notification. AVFAudio is its own module, as on Apple's platforms. Not done: flash, RAW, depth, Live Photos, bracketed exposures (each is the same still), exposure and focus locks, multiple cameras at once, and face detection",
           "noFixture": "Nothing to draw: CoreRuntimeTests drive sessions through a stand-in camera and check the preview's host element in a representable"
+        },
+        {
+          "api": "AVAssetImageGenerator (generateCGImagesAsynchronously, image(at:), maximumSize, cancelAllCGImageGeneration) / NSValue(time:) (AVFoundation)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-14), for Kingfisher's video thumbnails: the browser loads the asset's URL in a hidden video element, seeks to each asked time and draws that frame, scaled down to fit maximumSize, one request at a time in order; each answer carries the time asked, the frame as an image, the time the frame is from and the result. A movie the browser cannot play (or one from another site without CORS) fails with AVError.decodeFailed, and cancelling answers what is pending as cancelled. AVFoundation re-exports ImageIO's image sources; writing an image (CGImageDestination) needs import ImageIO, which Apple's AVFoundation brings with it, so Kingfisher's thumbnail JPEG writer still misses those three calls. Not done: copyCGImage(at:actualTime:) throws, as the browser answers only later; the time tolerances and aperture modes are kept but the browser picks the frame it shows.",
+          "noFixture": "Nothing to draw: CoreRuntimeTests drive the generator through a stand-in video and check the order, sizes, times, failures and cancelling"
+        },
+        {
+          "api": "vImage_Buffer / vImageBuffer_Init / vImageBoxConvolve_ARGB8888 / vImageBoxConvolve_Planar8 and the kvImage flags and errors (Accelerate)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-14), for Kingfisher's blur processor: the box filter over 8-bit pixels with each edge style (extend, background colour, truncated kernel, copy in place), regions of interest and kvImageLeaveAlphaUnchanged, rounded as vImage rounds (the macOS tests compare the bytes with Apple's). Not done: the rest of vImage and vDSP, BLAS and LAPACK.",
+          "noFixture": "Nothing to draw: WebFoundationFormatsTests hold the filter to its definition for every edge style, and on macOS to Apple's vImage byte for byte"
         },
         {
           "api": "AudioServicesPlaySystemSound / AudioServicesPlayAlertSound / SystemSoundID (AudioToolbox)",
@@ -2609,9 +2669,9 @@
           "noFixture": "Nothing to draw: FrameworkTests play the sounds and see the completions"
         },
         {
-          "api": "Product / Transaction / AppStore / SKPaymentQueue / ProductView / StoreView / SubscriptionStoreView (StoreKit) / SKProductDiscount / SKPaymentDiscount / SKStorefront / SKPaymentQueueDelegate / Storefront",
+          "api": "Product / Transaction / AppStore / SKPaymentQueue / ProductView / StoreView / SubscriptionStoreView (StoreKit) / SKProductDiscount / SKPaymentDiscount / SKStorefront / SKPaymentQueueDelegate / Storefront / SKDownload",
           "status": "stub",
-          "notes": "pf-small-frameworks (2026-11-01): a web page has no App Store account, so the store is empty. Product.products(for:) loads none, the transaction sequences (updates, all, currentEntitlements, unfinished) end without an element, entitlements and subscription statuses are absent, AppStore.sync succeeds, AppTransaction.shared throws, and a purchase throws productUnavailable. The original API matches: a products request lists every identifier as invalid, a payment added to the queue fails as not allowed, a restore finishes empty, Apple Music capabilities are none. Newer names a purchase library builds against are there too: a subscription's billing plans (pricing terms, up front or monthly over a commitment) are empty, PurchaseIntent.intents never yields, the external purchase custom link is not eligible (no token, the notice throws), and SubscriptionStoreView takes StoreKit content built with StoreContentBuilder. ProductView shows its product as unavailable (a custom ProductViewStyle gets that state), StoreView lists its products that way, SubscriptionStoreView shows its marketing content over a note, the review prompt shows nothing, and the App Store sheets close as soon as they open. Not done: selling anything (a web payment provider would be a different API) Products carry no discounts, the payment queue has no storefront and Storefront.current is nil.",
+          "notes": "pf-small-frameworks (2026-11-01): a web page has no App Store account, so the store is empty. Product.products(for:) loads none, the transaction sequences (updates, all, currentEntitlements, unfinished) end without an element, entitlements and subscription statuses are absent, AppStore.sync succeeds, AppTransaction.shared throws, and a purchase throws productUnavailable. The original API matches: a products request lists every identifier as invalid, a payment added to the queue fails as not allowed, a restore finishes empty, Apple Music capabilities are none. Newer names a purchase library builds against are there too: a subscription's billing plans (pricing terms, up front or monthly over a commitment) are empty, PurchaseIntent.intents never yields, the external purchase custom link is not eligible (no token, the notice throws), and SubscriptionStoreView takes StoreKit content built with StoreContentBuilder. Win-back offers (none), the newer purchase options (win-back, signed introductory eligibility and promotional offers, billing plans), a product's JSON, and a transaction's environment string and billing plan (2026-11-14). Hosted content downloads (SKDownload, the queue's start, pause, resume and cancel, which move a download and tell the observers; a download that runs fails, as nothing is hosted for the web) and every App Store error code by name on SKError (2026-11-14). ProductView shows its product as unavailable (a custom ProductViewStyle gets that state), StoreView lists its products that way, SubscriptionStoreView shows its marketing content over a note, the review prompt shows nothing, and the App Store sheets close as soon as they open. Not done: selling anything (a web payment provider would be a different API) Products carry no discounts, the payment queue has no storefront and Storefront.current is nil.",
           "noFixture": "Nothing to draw beyond text: StoreKitTests check the empty store, the refused payments and the views' unavailable state"
         },
         {

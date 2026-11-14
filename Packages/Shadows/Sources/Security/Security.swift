@@ -174,6 +174,7 @@ public let errSecInteractionNotAllowed: OSStatus = -25308
 public let errSecDecode: OSStatus = -26275
 public let errSecAuthFailed: OSStatus = -25293
 public let errSecMissingEntitlement: OSStatus = -34018
+public let errSecInvalidValue: OSStatus = -67694
 
 /// A human-readable string for the result code.
 public func SecCopyErrorMessageString(_ status: OSStatus, _ reserved: UnsafeMutableRawPointer?) -> CFString? {

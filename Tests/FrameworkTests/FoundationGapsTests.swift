@@ -49,6 +49,25 @@ import WebFoundationFormats
         #expect(throws: (any Error).self) { try JSONDecoder().decode(Settings.self, from: Data(text.utf8)) }
     }
 
+    /// Regular expressions compare and hash as Foundation's NSObjects do, so a struct that keeps
+    /// compiled ones synthesizes Equatable and Hashable (IceCubes' `HTMLString`).
+    @Test func regularExpressionsAreHashable() throws {
+        struct Pattern: Hashable { var regex: NSRegularExpression?; var match: NSTextCheckingResult? }
+        #expect(Pattern(regex: nil, match: nil) == Pattern(regex: nil, match: nil))
+        // The wasm build matches on the host's engine, which a test host may lack.
+        guard let digits = try? NSRegularExpression(pattern: "[0-9]+") else { return }
+        let words = try NSRegularExpression(pattern: "[a-z]+")
+        #expect(Pattern(regex: digits) == Pattern(regex: digits))
+        #expect(Pattern(regex: digits) != Pattern(regex: words))
+        #expect(Set([Pattern(regex: digits), Pattern(regex: digits), Pattern(regex: words)]).count == 2)
+        #if os(WASI)
+        #expect(digits == (try NSRegularExpression(pattern: "[0-9]+")))
+        #expect(digits != (try NSRegularExpression(pattern: "[0-9]+", options: .caseInsensitive)))
+        #endif
+        let match = try #require(digits.firstMatch(in: "ab 42", options: [], range: NSRange(location: 0, length: 5)))
+        #expect(match == match)
+    }
+
     #if os(WASI)
     @Test func localizedOrder() {
         #expect("a".localizedCompare("B") == .orderedAscending)
@@ -81,6 +100,15 @@ import WebFoundationFormats
         #expect(Locale.LanguageCode.isoLanguageCodes.contains(Locale.LanguageCode("fr")))
         #expect(Locale.isoRegionCodes.contains("US"))
         #expect(Locale(languageComponents: Locale.Language.Components(languageCode: "zh", script: "Hans", region: "CN")).identifier == "zh-Hans_CN")
+        let storefront = Locale(components: .init(languageCode: nil, script: nil, languageRegion: .init("US")))
+        #expect(storefront.identifier == "_US")
+        #expect(storefront.region?.identifier == "US")
+        #expect(storefront.languageCode == nil)
+        let chinese = Locale(components: Locale.Components(languageCode: "zh", script: "Hans", languageRegion: "CN"))
+        #expect(chinese.identifier == "zh-Hans_CN")
+        #expect(chinese.scriptCode == "Hans")
+        #expect(Locale.Components(locale: chinese).languageComponents.region == "CN")
+        #expect(Locale(identifier: "en_US@currency=EUR").languageCode == "en")
         let saved = Locale._hostDisplayName
         defer { Locale._hostDisplayName = saved }
         Locale._hostDisplayName = { locale, type, code in locale == "fr" && type == "language" && code == "fr" ? "français" : nil }
@@ -105,4 +133,22 @@ extension FoundationGapsTests {
         #expect("Ab".localizedLowercase == "ab")
         #expect("Ab".localizedUppercase == "AB")
     }
+
+    #if os(WASI) || canImport(Darwin)
+    /// `NotificationCenter.notifications(named:)`: the posts after the sequence is made, in order
+    /// (CloudKitSyncMonitor reads the container's sync events this way).
+    @Test func notificationsAsAnAsyncSequence() async {
+        let center = NotificationCenter()
+        let name = Notification.Name("FoundationGapsTests.ping")
+        let iterator = center.notifications(named: name).makeAsyncIterator()
+        center.post(name: name, object: nil, userInfo: ["n": 1])
+        center.post(name: Notification.Name("FoundationGapsTests.other"), object: nil)
+        center.post(name: name, object: nil, userInfo: ["n": 2])
+        let first = await iterator.next()
+        let second = await iterator.next()
+        #expect(first?.userInfo?["n"] as? Int == 1)
+        #expect(second?.userInfo?["n"] as? Int == 2)
+        #expect(second?.name == name)
+    }
+    #endif
 }

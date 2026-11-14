@@ -15,13 +15,14 @@
 /// Why bytes could not be decompressed.
 struct _CompressionError: Error {}
 
-/// The formats, one for each of `NSData.CompressionAlgorithm`'s cases.
-enum _CompressionFormat: CaseIterable, Sendable {
+/// The formats, one for each of `NSData.CompressionAlgorithm`'s cases (and the `Compression`
+/// shadow's algorithms).
+public enum _CompressionFormat: CaseIterable, Sendable {
     case zlib, lz4, lzfse, lzma
 }
 
 /// `source` compressed in `format`.
-func _compress(_ source: [UInt8], _ format: _CompressionFormat) -> [UInt8] {
+public func _compress(_ source: [UInt8], _ format: _CompressionFormat) -> [UInt8] {
     switch format {
     case .zlib: _deflate(source)
     case .lz4: lz4Frame(source)
@@ -31,7 +32,7 @@ func _compress(_ source: [UInt8], _ format: _CompressionFormat) -> [UInt8] {
 }
 
 /// `source` decompressed from `format`, or throws when it is not a whole stream this reads.
-func _decompress(_ source: [UInt8], _ format: _CompressionFormat) throws -> [UInt8] {
+public func _decompress(_ source: [UInt8], _ format: _CompressionFormat) throws -> [UInt8] {
     switch format {
     case .zlib: try _inflate(source)
     case .lz4: try readLZ4Frame(source)

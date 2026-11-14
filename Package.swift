@@ -43,6 +43,9 @@ let package = Package(
         .library(name: "EventKit", targets: ["EventKit"]),
         .library(name: "ActivityKit", targets: ["ActivityKit"]),
         .library(name: "BackgroundTasks", targets: ["BackgroundTasks"]),
+        .library(name: "Translation", targets: ["Translation", "_Translation_SwiftUI"]),
+        .library(name: "TipKit", targets: ["TipKit"]),
+        .library(name: "CloudKit", targets: ["CloudKit"]),
         .library(name: "Photos", targets: ["Photos"]),
         .library(name: "PhotosUI", targets: ["PhotosUI"]),
         .library(name: "AuthenticationServices", targets: ["AuthenticationServices"]),
@@ -106,7 +109,8 @@ let package = Package(
         // its host hook is a module of its own so the host links no capture code (decision 0006).
         .target(name: "AVFAudio", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVCaptureHost", swiftSettings: [.treatAllWarnings(as: .error)]),
-        .target(name: "AVFoundation", dependencies: ["AVFAudio", "AVCaptureHost", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "UIKitWebCore", package: "UIKitWeb")],
+        .target(name: "AVFoundation", dependencies: ["AVFAudio", "AVCaptureHost", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "UIKitWebCore", package: "UIKitWeb"),
+                                                .product(name: "WebImageIO", package: "WebGraphics", condition: .when(platforms: [.wasi]))],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVKit", dependencies: ["SwiftUI", "AVFoundation"], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "SwiftData", dependencies: ["SwiftUIWebCore", "SwiftDataMacros", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -158,6 +162,30 @@ let package = Package(
         // `backgroundTask` actions) is a module of its own, which the SwiftUI runtime links.
         .target(name: "BackgroundTasksHost", swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "BackgroundTasks", dependencies: ["BackgroundTasksHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "TranslationHost", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "Translation",
+                dependencies: ["SwiftUI", "TranslationHost", .product(name: "WebFoundation", package: "WebGraphics"),
+                               .product(name: "WebFoundationFormats", package: "WebGraphics")],
+                swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "_Translation_SwiftUI", dependencies: ["Translation"], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Tips (TipView, popoverTip) with their rules, parameters and events, kept in the page's
+        // user defaults; `#Rule` and `@Parameter` are host-compiled macros.
+        // iCloud containers, databases, records and operations: the browser has no iCloud account,
+        // so the container says so and requests fail as on a signed-out device. Queries take
+        // Core Data's NSPredicate on wasm (Foundation's elsewhere).
+        .target(name: "CloudKit",
+                dependencies: [.product(name: "WebFoundation", package: "WebGraphics"),
+                               .target(name: "WebCoreData", condition: .when(platforms: [.wasi]))],
+                swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "TipKit", dependencies: ["SwiftUI", "TipKitMacros", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .macro(
+            name: "TipKitMacros",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
+            ],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
         // The photo library (the app's own saves and picks this session) and the photo pickers
         // over the host's file panel.
         .target(
@@ -181,7 +209,9 @@ let package = Package(
         // In-app purchases with an empty store (no products load on the web) and its SwiftUI views.
         .target(
             name: "StoreKit",
-            dependencies: ["SwiftUI", .product(name: "WebFoundation", package: "WebGraphics"),
+            dependencies: ["SwiftUI", .product(name: "UIKit", package: "UIKitWeb"),
+                           .product(name: "WebFoundation", package: "WebGraphics"),
+                           .product(name: "WebFoundationFormats", package: "WebGraphics", condition: .when(platforms: [.wasi], traits: ["FoundationFormats"])),
                            .product(name: "WebDecimalFormats", package: "WebGraphics", condition: .when(platforms: [.wasi]))],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
@@ -233,7 +263,7 @@ let package = Package(
                 // The audio, speech, notification and data stand-ins' host hooks (decisions
                 // 0021, 0022): Web Audio, the microphone, the on-device recogniser fed the app's
                 // buffers, the Notification API, geolocation, localStorage for SwiftData's stores.
-                "AVFAudio", "AVCaptureHost", "Speech", "UserNotifications", "CoreLocationHost", "CoreMotionHost", "SwiftData", "AuthenticationServicesHost",
+                "AVFAudio", "AVCaptureHost", "Speech", "UserNotifications", "CoreLocationHost", "CoreMotionHost", "SwiftData", "AuthenticationServicesHost", "TranslationHost",
                 // The on-screen keyboard's frame from the visual viewport into UIKitScene (KeyboardHost.swift).
                 .product(name: "UIKitWebCore", package: "UIKitWeb"),
                 .product(name: "WebGraphicsCanvas", package: "WebGraphics"),
@@ -259,8 +289,15 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
+        ),
+        // CloudKit on its own: the container, its databases and records (no other framework, so the
+        // module is the only CloudKit the tests see on Apple's platforms).
+        .testTarget(
+            name: "CloudKitTests",
+            dependencies: ["CloudKit", .product(name: "WebFoundation", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         // Core Data against a model the plugin generates (Tests/CoreDataTests/Library.xcdatamodeld).
         .testTarget(

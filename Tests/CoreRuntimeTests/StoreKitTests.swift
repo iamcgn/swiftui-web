@@ -40,6 +40,15 @@ private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsReq
     func requestDidFinish(_ request: SKRequest) { finished = true }
 }
 
+/// Writes down the downloads the queue reports (SwiftyStoreKit's download handler).
+private final class DownloadObserver: SKPaymentTransactionObserver, @unchecked Sendable {
+    var reports: [[SKDownloadState]] = []
+    func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {}
+    func paymentQueue(_ queue: SKPaymentQueue, updatedDownloads downloads: [SKDownload]) {
+        reports.append(downloads.map(\.state))
+    }
+}
+
 private final class ReceiptRefresh: SKRequestDelegate {
     var failure: (any Error)?
     var finished = false
@@ -107,6 +116,44 @@ private final class ReceiptRefresh: SKRequestDelegate {
         if case .success(.verified(let t)) = purchase { #expect(t.purchasedQuantity == 1) } else { Issue.record("purchase result") }
     }
 
+    #if canImport(ObjectiveC)
+    /// RevenueCat names the redemption sheet by selector, as Apple's is an Objective-C method.
+    @Test func theRedemptionSheetIsNamedBySelector() {
+        #expect(SKPaymentQueue.default().responds(to: #selector(SKPaymentQueue.presentCodeRedemptionSheet)))
+    }
+
+    /// RevenueCat reads a product's price as a `Decimal` and keeps a date as an object among its
+    /// subscriber attributes, a `[String: NSObject]`.
+    @Test func pricesAndDatesBridgeAsObjects() {
+        let product = SKProduct(productIdentifier: "pro", localizedTitle: "Pro", price: NSDecimalNumber(string: "4.99"), priceLocale: Locale(identifier: "en_US"))
+        let price = product.price as Decimal
+        #expect(price == Decimal(string: "4.99") && Double(truncating: price as NSNumber) == 4.99)
+        let date = Date(timeIntervalSince1970: 100)
+        let attributes: [String: NSObject] = ["setTime": date as NSDate, "isSynced": NSNumber(value: true)]
+        let stored = attributes["setTime"] as? NSDate
+        #expect(stored?.timeIntervalSince1970 == 100 && stored.map { $0 as Date } == date)
+        #expect(stored?.isEqual(NSDate(timeIntervalSince1970: 100)) == true)
+    }
+
+    /// RevenueCat takes AppsFlyer's conversion data, an `[AnyHashable: Any]`, in an `@objc`
+    /// method, and makes an error of a generic `NSError` type from its metatype.
+    final class ConversionData: NSObject {
+        var received: [AnyHashable: Any]?
+        @objc func setConversionData(_ data: [AnyHashable: Any]?) { received = data }
+    }
+
+    static func error<Result: NSError>(code: Int) -> Result { Result(domain: "attribution", code: code, userInfo: nil) }
+
+    @Test func hashableKeysAndGenericErrorsCrossAsObjects() {
+        let attribution = ConversionData()
+        attribution.setConversionData(["af_status": "Organic", 1: true])
+        #expect(attribution.received?["af_status"] as? String == "Organic")
+        #expect(attribution.received?[1] as? Bool == true)
+        let error: NSError = Self.error(code: 7)
+        #expect(error.code == 7 && error.domain == "attribution")
+    }
+    #endif
+
     @Test func theOriginalAPIRefusesPayments() {
         let observer = PaymentObserver()
         let queue = SKPaymentQueue.default()
@@ -163,6 +210,7 @@ private final class ReceiptRefresh: SKRequestDelegate {
     @Test func storesShowMarketingAndAnEmptyStore() {
         let runtime = render(VStack {
             StoreView(ids: ["a", "b"]) { _ in Text("never") }
+            StoreView(ids: ["c"], prefersPromotionalIcon: true)
             SubscriptionStoreView(groupID: "pro", visibleRelationships: .upgrade) { Text("Go Pro") }
                 .containerBackground(for: .subscriptionStoreFullHeight) { Color.blue }
                 .subscriptionStoreControlIcon { _, info in Text("\(info.groupLevel)") }
@@ -171,7 +219,7 @@ private final class ReceiptRefresh: SKRequestDelegate {
                 .subscriptionStorePickerItemBackground(.thinMaterial)
                 .onInAppPurchaseCompletion { _, _ in }
         })
-        #expect(texts(runtime) == ["Unavailable", "Unavailable", "Go Pro", "Subscriptions unavailable"])
+        #expect(texts(runtime) == ["Unavailable", "Unavailable", "Unavailable", "Go Pro", "Subscriptions unavailable"])
     }
 
     @Test func aStoreBuiltFromStoreContentShowsTheNote() {
@@ -265,6 +313,87 @@ private final class ReceiptRefresh: SKRequestDelegate {
         #expect(error.errorCode == 4)
         #expect(error == SKError(.paymentNotAllowed))
         #expect(SKError.errorDomain == "SKErrorDomain")
+        #expect(SKError(.paymentMethodBindingConfigurationRequired).errorCode == 21)
+    }
+
+    @Test func errorCodesAreNamedOnTheError() {
+        // RevenueCat matches every App Store code by name (`case SKError.overlayTimeout`).
+        let codes: [SKError.Code] = [.cloudServiceRevoked, .privacyAcknowledgementRequired, .unauthorizedRequestData,
+                                     .invalidOfferIdentifier, .invalidSignature, .missingOfferParams, .invalidOfferPrice,
+                                     .overlayCancelled, .overlayInvalidConfiguration, .overlayTimeout, .ineligibleForOffer,
+                                     .overlayPresentedInBackgroundScene, .paymentMethodBindingConfigurationRequired]
+        let named: [SKError.Code] = [SKError.cloudServiceRevoked, SKError.privacyAcknowledgementRequired, SKError.unauthorizedRequestData,
+                                     SKError.invalidOfferIdentifier, SKError.invalidSignature, SKError.missingOfferParams,
+                                     SKError.invalidOfferPrice, SKError.overlayCancelled, SKError.overlayInvalidConfiguration,
+                                     SKError.overlayTimeout, SKError.ineligibleForOffer, SKError.overlayPresentedInBackgroundScene,
+                                     SKError.paymentMethodBindingConfigurationRequired]
+        #expect(named == codes)
+        let error: any Error = SKError(.overlayTimeout)
+        var matched = false
+        if case SKError.overlayTimeout = error { matched = true }
+        #expect(matched)
+    }
+
+    @MainActor @Test func downloadsMoveThroughTheQueue() {
+        let product = SKProduct(productIdentifier: "pack", localizedTitle: "Pack", price: NSDecimalNumber(string: "0.99"), priceLocale: Locale(identifier: "en_US"))
+        #expect(!product.isDownloadable && product.downloadContentLengths.isEmpty && product.downloadContentVersion.isEmpty)
+        let transaction = SKPaymentTransaction(payment: SKPayment(product: product), state: .purchased, error: nil)
+        #expect(transaction.downloads.isEmpty)
+
+        let observer = DownloadObserver()
+        let queue = SKPaymentQueue.default()
+        queue.add(observer)
+        defer { queue.remove(observer) }
+        let first = SKDownload(transaction: transaction, contentIdentifier: "levels", expectedContentLength: 2_048)
+        let second = SKDownload(transaction: transaction, contentIdentifier: "music")
+        #expect(first.state == .waiting && first.progress == 0 && first.contentURL == nil)
+        #expect(first.timeRemaining == SKDownload.timeRemainingUnknown && SKDownloadTimeRemainingUnknown == -1)
+        #expect(first.expectedContentLength == 2_048 && first.transaction === transaction)
+
+        queue.pause([first])
+        #expect(first.state == .paused)
+        queue.resume([first])
+        // Nothing is hosted for the web: a download that runs fails.
+        #expect(first.state == .failed)
+        queue.start([second])
+        #expect(second.state == .failed)
+        // Ended downloads don't move again, and nothing is reported for them.
+        queue.cancel([first, second])
+        #expect(observer.reports == [[.paused], [.failed], [.failed]])
+        #expect(first.state == .failed && second.state == .failed)
+
+        let third = SKDownload(transaction: transaction, contentIdentifier: "art")
+        queue.cancel([third])
+        #expect(third.state == .cancelled && observer.reports.last == [.cancelled])
+    }
+
+    @Test func purchaseOptionsCollectInASet() throws {
+        let offer = Product.SubscriptionOffer(id: "back", type: .winBack, price: 0, displayPrice: "Free",
+                                              period: .monthly, periodCount: 1, paymentMode: .freeTrial)
+        var options: Set<Product.PurchaseOption> = [.winBackOffer(offer), .introductoryOfferEligibility(compactJWS: "jws")]
+        options.formUnion(Product.PurchaseOption.promotionalOffer("spring", compactJWS: "signed"))
+        options.insert(.promotionalOffer(offerID: "spring", keyID: "key", nonce: UUID(), signature: Data([1, 2]), timestamp: 3))
+        options.insert(.billingPlanType(.monthly))
+        options.insert(.billingPlanType(.monthly))
+        #expect(options.count == 6)
+        #expect(Product.PurchaseError.paymentMethodBindingConfigurationRequired != .productUnavailable)
+    }
+
+    @Test func productAndTransactionDescribeThemselves() throws {
+        let annual = Product(id: "pro.annual", type: .autoRenewable, displayName: "Pro \"Plus\"", description: "Every\nfeature",
+                             price: Decimal(string: "29.99")!, displayPrice: "$29.99", currencyCode: "EUR",
+                             subscription: Product.SubscriptionInfo(subscriptionGroupID: "pro", subscriptionPeriod: .yearly))
+        #expect(annual.subscription?.winBackOffers.isEmpty == true)
+        let json = try #require(JSONSerialization.jsonObject(with: annual.jsonRepresentation) as? [String: Any])
+        #expect(json["id"] as? String == "pro.annual")
+        let attributes = try #require(json["attributes"] as? [String: Any])
+        #expect(attributes["name"] as? String == "Pro \"Plus\"")
+        let offers = try #require(attributes["offers"] as? [[String: Any]])
+        #expect(offers.first?["currencyCode"] as? String == "EUR")
+        #expect(offers.first?["price"] as? String == "29.99")
+        let transaction = StoreKit.Transaction(id: 7, productID: "seeds", productType: .consumable, purchaseDate: Date(timeIntervalSince1970: 0))
+        #expect(transaction.environmentStringRepresentation == "Production")
+        #expect(transaction.billingPlanType == nil)
     }
 }
 #endif

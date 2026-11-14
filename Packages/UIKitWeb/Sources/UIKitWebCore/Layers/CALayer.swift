@@ -33,6 +33,99 @@ public func CATransform3DMakeTranslation(_ tx: CGFloat, _ ty: CGFloat, _ tz: CGF
 public func CATransform3DMakeScale(_ sx: CGFloat, _ sy: CGFloat, _ sz: CGFloat) -> CATransform3D { CATransform3D(affine: CGAffineTransform(scaleX: sx, y: sy)) }
 public func CATransform3DMakeRotation(_ angle: CGFloat, _ x: CGFloat, _ y: CGFloat, _ z: CGFloat) -> CATransform3D { CATransform3D(affine: CGAffineTransform(rotationAngle: z >= 0 ? angle : -angle)) }
 
+// Composing transforms, with Core Animation's full 4×4 arithmetic (row vectors, so
+// `CATransform3DConcat(a, b)` applies `a` and then `b`). The painter draws the affine part, so a
+// turn about the x or y axis shows as the flattened view of the turned plane: a card spun about
+// its vertical axis narrows (SwiftUIExperiments' swipe and text-scroll interactions, OldOS's
+// camera preview).
+
+/// `a` followed by `b`.
+public func CATransform3DConcat(_ a: CATransform3D, _ b: CATransform3D) -> CATransform3D {
+    let l = a._rows, r = b._rows
+    var out = [[CGFloat]](repeating: [0, 0, 0, 0], count: 4)
+    for i in 0..<4 {
+        for j in 0..<4 {
+            out[i][j] = l[i][0] * r[0][j] + l[i][1] * r[1][j] + l[i][2] * r[2][j] + l[i][3] * r[3][j]
+        }
+    }
+    return CATransform3D(_rows: out)
+}
+
+/// `t` turned by `angle` radians about the axis (`x`, `y`, `z`), applied before `t`.
+public func CATransform3DRotate(_ t: CATransform3D, _ angle: CGFloat, _ x: CGFloat, _ y: CGFloat, _ z: CGFloat) -> CATransform3D {
+    CATransform3DConcat(CATransform3D._rotation(angle, x, y, z), t)
+}
+
+/// `t` moved by (`tx`, `ty`, `tz`), applied before `t`.
+public func CATransform3DTranslate(_ t: CATransform3D, _ tx: CGFloat, _ ty: CGFloat, _ tz: CGFloat) -> CATransform3D {
+    var m = CATransform3D()
+    m.m41 = tx; m.m42 = ty; m.m43 = tz
+    return CATransform3DConcat(m, t)
+}
+
+/// `t` scaled by (`sx`, `sy`, `sz`), applied before `t`.
+public func CATransform3DScale(_ t: CATransform3D, _ sx: CGFloat, _ sy: CGFloat, _ sz: CGFloat) -> CATransform3D {
+    var m = CATransform3D()
+    m.m11 = sx; m.m22 = sy; m.m33 = sz
+    return CATransform3DConcat(m, t)
+}
+
+/// Whether two transforms are exactly equal.
+public func CATransform3DEqualToTransform(_ a: CATransform3D, _ b: CATransform3D) -> Bool { a == b }
+
+/// Whether the transform is an affine one (no depth or perspective terms).
+public func CATransform3DIsAffine(_ t: CATransform3D) -> Bool {
+    t.m13 == 0 && t.m14 == 0 && t.m23 == 0 && t.m24 == 0 && t.m31 == 0 && t.m32 == 0
+        && t.m33 == 1 && t.m34 == 0 && t.m43 == 0 && t.m44 == 1
+}
+
+/// The inverse, or `t` itself when it has none (as Core Animation answers).
+public func CATransform3DInvert(_ t: CATransform3D) -> CATransform3D {
+    // Gauss–Jordan elimination with partial pivoting on [t | I].
+    var a = t._rows
+    var inv: [[CGFloat]] = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+    for col in 0..<4 {
+        var pivot = col
+        for row in col + 1..<4 where abs(a[row][col]) > abs(a[pivot][col]) { pivot = row }
+        if abs(a[pivot][col]) < 1e-12 { return t }
+        a.swapAt(col, pivot); inv.swapAt(col, pivot)
+        let p = a[col][col]
+        for j in 0..<4 { a[col][j] /= p; inv[col][j] /= p }
+        for row in 0..<4 where row != col {
+            let f = a[row][col]
+            if f == 0 { continue }
+            for j in 0..<4 { a[row][j] -= f * a[col][j]; inv[row][j] -= f * inv[col][j] }
+        }
+    }
+    return CATransform3D(_rows: inv)
+}
+
+extension CATransform3D {
+    var _rows: [[CGFloat]] {
+        [[m11, m12, m13, m14], [m21, m22, m23, m24], [m31, m32, m33, m34], [m41, m42, m43, m44]]
+    }
+
+    init(_rows r: [[CGFloat]]) {
+        m11 = r[0][0]; m12 = r[0][1]; m13 = r[0][2]; m14 = r[0][3]
+        m21 = r[1][0]; m22 = r[1][1]; m23 = r[1][2]; m24 = r[1][3]
+        m31 = r[2][0]; m32 = r[2][1]; m33 = r[2][2]; m34 = r[2][3]
+        m41 = r[3][0]; m42 = r[3][1]; m43 = r[3][2]; m44 = r[3][3]
+    }
+
+    /// Core Animation's rotation about a unit axis (the identity for a zero axis).
+    static func _rotation(_ angle: CGFloat, _ x: CGFloat, _ y: CGFloat, _ z: CGFloat) -> CATransform3D {
+        let length = (x * x + y * y + z * z).squareRoot()
+        guard length > 0 else { return CATransform3D() }
+        let (x, y, z) = (x / length, y / length, z / length)
+        let c = CGFloat(_cos(Double(angle))), s = CGFloat(_sin(Double(angle))), t = 1 - c
+        var m = CATransform3D()
+        m.m11 = t * x * x + c;     m.m12 = t * x * y + z * s; m.m13 = t * x * z - y * s
+        m.m21 = t * x * y - z * s; m.m22 = t * y * y + c;     m.m23 = t * y * z + x * s
+        m.m31 = t * x * z + y * s; m.m32 = t * y * z - x * s; m.m33 = t * z * z + c
+        return m
+    }
+}
+
 /// Which corners a layer's `cornerRadius` rounds.
 public struct CACornerMask: OptionSet, Hashable, Sendable {
     public let rawValue: UInt

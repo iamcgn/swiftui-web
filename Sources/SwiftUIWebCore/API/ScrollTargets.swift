@@ -514,10 +514,6 @@ extension EdgeInsets {
         if edges.contains(.bottom) { bottom = insets.bottom }
         if edges.contains(.trailing) { trailing = insets.trailing }
     }
-
-    package static func + (lhs: EdgeInsets, rhs: EdgeInsets) -> EdgeInsets {
-        EdgeInsets(top: lhs.top + rhs.top, leading: lhs.leading + rhs.leading, bottom: lhs.bottom + rhs.bottom, trailing: lhs.trailing + rhs.trailing)
-    }
 }
 
 package struct ContentMarginsKey: EnvironmentKey {

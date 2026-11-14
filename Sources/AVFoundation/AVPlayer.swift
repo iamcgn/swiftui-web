@@ -23,6 +23,9 @@ public struct CMTime: Hashable, Sendable {
     }
     public static let zero = CMTime(seconds: 0)
     public static let invalid = CMTime(seconds: .nan)
+    public static let positiveInfinity = CMTime(seconds: .infinity)
+    public static let negativeInfinity = CMTime(seconds: -.infinity)
+    public static let indefinite = CMTime(seconds: .nan)
     public var isValid: Bool { !seconds.isNaN }
 }
 

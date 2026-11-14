@@ -10,9 +10,10 @@
 // caller bridges an argument in and whose body bridges it straight back out.
 //
 // The objects are named with an underscore: WebFoundationFormats gives some of them Foundation's
-// names (`NSDictionary`, `NSSet`) as typealiases, `NSDate` is Core Data's spelling of `Date` here
-// (WebCoreData, Values.swift), and the compiler reads some Foundation class names in the module
-// named Foundation as Apple's Foundation being present (`NSString`, NSRegularExpression.swift).
+// names (`NSDictionary`, `NSSet`) as typealiases, and the compiler reads some Foundation class
+// names in the module named Foundation as Apple's Foundation being present (`NSString`,
+// NSRegularExpression.swift). `NSDate` (below) keeps its name: it is Core Data's spelling of
+// `Date` only without the runtime (WebCoreData, Values.swift).
 #if os(WASI) && canImport(ObjectiveC)
 
 /// The object an array becomes in Objective-C: its elements, each as `Any`.
@@ -181,6 +182,44 @@ extension Set: @retroactive _ObjectiveCBridgeable {
     }
 }
 
+/// A hashable as an object, as Foundation bridges `AnyHashable` to `NSObject`: so a dictionary
+/// keyed by `AnyHashable` can cross an `@objc` member (RevenueCat's
+/// `setAppsFlyerConversionData(_: [AnyHashable: Any]?)`). An object stays itself; a value that
+/// bridges becomes its object (a string its `NSString`, a number its `NSNumber`); any other value
+/// is held in the value box. Back from an object, the box gives its value and an object is itself.
+extension AnyHashable: @retroactive _ObjectiveCBridgeable {
+    public typealias _ObjectiveCType = NSObject
+    public func _bridgeToObjectiveC() -> NSObject { _webObject(base) }
+    public static func _forceBridgeFromObjectiveC(_ source: NSObject, result: inout AnyHashable?) {
+        result = _webHashable(source)
+    }
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSObject, result: inout AnyHashable?) -> Bool {
+        result = _webHashable(source)
+        return true
+    }
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSObject?) -> AnyHashable {
+        _webHashable(source ?? NSObject())
+    }
+}
+
+/// The object a value stands as in Objective-C: an object itself, a bridged value its object,
+/// anything else in the value box.
+public func _webObject(_ value: Any) -> NSObject {
+    if let object = value as? NSObject { return object }
+    if let bridged = value as? any _ObjectiveCBridgeable, let object = _webBridge(bridged) { return object }
+    return _WebNSValue(value)
+}
+
+private func _webBridge<Value: _ObjectiveCBridgeable>(_ value: Value) -> NSObject? {
+    value._bridgeToObjectiveC() as AnyObject as? NSObject
+}
+
+/// The hashable an object stands for: a boxed value's own, when hashable, else the object.
+private func _webHashable(_ object: NSObject) -> AnyHashable {
+    if type(of: object) == _WebNSValue.self, let value = (object as! _WebNSValue).value as? AnyHashable { return value }
+    return AnyHashable(object)
+}
+
 /// `description` on every object, as Foundation gives `NSObject`: the runtime's header declares
 /// it with Foundation's `NSString`, which this SDK does not define, so the compiler leaves it out
 /// and an app's `override var description` overrode nothing (RevenueCat's model classes). The
@@ -208,7 +247,51 @@ extension _WebValueBridged {
     public static func _unconditionallyBridgeFromObjectiveC(_ source: _WebNSValue?) -> Self { source!.value as! Self }
 }
 
-extension Date: @retroactive _ObjectiveCBridgeable, _WebValueBridged { public typealias _ObjectiveCType = _WebNSValue }
+/// A date as an object: Foundation's `NSDate`, a kind of the value box, so `date as NSDate` is an
+/// `NSObject` (RevenueCat's subscriber attributes, a `[String: NSObject]` of strings, numbers and
+/// dates) and `nsDate as Date` converts back. Without the runtime `NSDate` is Core Data's
+/// spelling of `Date` (WebCoreData, Values.swift).
+open class NSDate: _WebNSValue, @unchecked Sendable {
+    public init(_webValue: Date) { super.init(_webValue) }
+    /// The date this object holds.
+    public var _webValue: Date { value as! Date }
+    /// The current date and time.
+    public override convenience init() { self.init(_webValue: Date()) }
+    public convenience init(timeIntervalSinceReferenceDate ti: TimeInterval) {
+        self.init(_webValue: Date(timeIntervalSinceReferenceDate: ti))
+    }
+    public convenience init(timeIntervalSince1970 secs: TimeInterval) { self.init(_webValue: Date(timeIntervalSince1970: secs)) }
+    public convenience init(timeIntervalSinceNow secs: TimeInterval) { self.init(_webValue: Date(timeIntervalSinceNow: secs)) }
+    public convenience init(timeInterval secsToBeAdded: TimeInterval, since date: Date) {
+        self.init(_webValue: date.addingTimeInterval(secsToBeAdded))
+    }
+    public var timeIntervalSinceReferenceDate: TimeInterval { _webValue.timeIntervalSinceReferenceDate }
+    public var timeIntervalSince1970: TimeInterval { _webValue.timeIntervalSince1970 }
+    public var timeIntervalSinceNow: TimeInterval { _webValue.timeIntervalSinceNow }
+    public func timeIntervalSince(_ anotherDate: Date) -> TimeInterval { _webValue.timeIntervalSince(anotherDate) }
+    public func addingTimeInterval(_ ti: TimeInterval) -> Date { _webValue.addingTimeInterval(ti) }
+    public func compare(_ other: Date) -> ComparisonResult {
+        _webValue < other ? .orderedAscending : _webValue > other ? .orderedDescending : .orderedSame
+    }
+    public func isEqual(to otherDate: Date) -> Bool { _webValue == otherDate }
+    public func earlierDate(_ anotherDate: Date) -> Date { min(_webValue, anotherDate) }
+    public func laterDate(_ anotherDate: Date) -> Date { max(_webValue, anotherDate) }
+    /// Equal to another date object at the same instant, as Foundation's are.
+    open override func isEqual(_ object: Any?) -> Bool { (object as? NSDate)?._webValue == _webValue }
+    open override var hash: Int { _webValue.hashValue }
+    open override var description: String { _webValue.description }
+}
+
+extension Date: @retroactive _ObjectiveCBridgeable {
+    public typealias _ObjectiveCType = NSDate
+    public func _bridgeToObjectiveC() -> NSDate { NSDate(_webValue: self) }
+    public static func _forceBridgeFromObjectiveC(_ source: NSDate, result: inout Date?) { result = source._webValue }
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSDate, result: inout Date?) -> Bool {
+        result = source._webValue
+        return true
+    }
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSDate?) -> Date { source?._webValue ?? Date() }
+}
 // URL, UUID and Data bridge to their own classes, `NSURL`, `NSUUID` and `NSData`
 // (WebFoundationFormats), so `url as NSURL` converts as it does on Apple platforms.
 

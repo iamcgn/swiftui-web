@@ -1,7 +1,8 @@
-// The browser's camera as AVFoundation's capture session uses it: the hook SwiftUIWebCanvas
-// installs (CaptureHost.swift) and AVFoundation's AVCapture.swift uses. A module of its own,
-// depending on nothing, so installing the hook links only this into an app that never opens a
-// camera (decision 0006).
+// The browser's camera as AVFoundation's capture session uses it, and a movie's frames as its
+// image generator reads them: the hooks SwiftUIWebCanvas installs (CaptureHost.swift) and
+// AVFoundation's AVCapture.swift and AVAssetImageGenerator.swift use. A module of its own,
+// depending on nothing, so installing the hooks links only this into an app that never opens a
+// camera or a movie (decision 0006).
 
 public enum _AVCaptureHost {
     /// Which camera the browser should pick.
@@ -71,4 +72,29 @@ public protocol _AVCaptureStream: AnyObject {
     func startRecording()
     /// The recording's bytes and its MIME type (empty when nothing was recorded).
     func stopRecording(_ completion: @escaping @MainActor (_ data: [UInt8], _ mimeType: String) -> Void)
+}
+
+/// A movie's frames as `AVAssetImageGenerator` asks for them: the hook SwiftUIWebCanvas installs
+/// (CaptureHost.swift), where the browser loads the movie in a hidden `<video>`, seeks and draws
+/// the frame. Without a host no frame can be read.
+public enum _AVFrameHost {
+    /// Reads the frame of the movie at `url` at `seconds`, scaled down to fit `maxWidth` by
+    /// `maxHeight` (0 leaves that side free). `done` comes later, never from within the call: the
+    /// frame, or nil when the movie could not be loaded or the frame could not be read.
+    nonisolated(unsafe) public static var frame: ((_ url: String, _ seconds: Double, _ maxWidth: Int, _ maxHeight: Int,
+                                                   _ done: @escaping @MainActor (_AVFrame?) -> Void) -> Void)?
+}
+
+/// A frame the host read: its size, its pixels as RGBA bytes, and the time it was shown at.
+public struct _AVFrame: Sendable {
+    public var width: Int
+    public var height: Int
+    public var rgba: [UInt8]
+    public var seconds: Double
+    public init(width: Int, height: Int, rgba: [UInt8], seconds: Double) {
+        self.width = width
+        self.height = height
+        self.rgba = rgba
+        self.seconds = seconds
+    }
 }

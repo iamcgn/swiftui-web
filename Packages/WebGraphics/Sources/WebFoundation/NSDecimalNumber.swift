@@ -1,17 +1,19 @@
-// `NSDecimalNumber`'s arithmetic and rounding on wasm. The decimal number is `NSNumber` holding a
-// double (NSNumber.swift), so these work on the double: a price, a share of one, a total rounded
+// `NSDecimalNumber`'s arithmetic and rounding on wasm. The decimal number holds a double: it is
+// `NSNumber`, or with the Objective-C runtime a subclass of it (NSNumber.swift), so these work on
+// the double: a price, a share of one, a total rounded
 // to cents, the amounts apps compute with them (WishKit's monthly price rounded up). A result is
 // first taken to twelve significant digits, so that 0.1 × 3 rounded up to one place is 0.3, as
 // Apple's decimal arithmetic gives, and not the 0.4 the double 0.30000000000000004 would round to.
 // `init(decimal:)` and `decimalValue` are WebDecimalFormats', where `Decimal` is linked.
-// Every member is on the final class or a struct, so a wasm build keeps only those an app calls.
+// Every member is in an extension or on a final class, statically called, so a wasm build keeps
+// only those an app calls.
 #if os(WASI)
 import FoundationEssentials
 
 /// The value of `scale` that rounds nothing.
 public let NSDecimalNoScale = Int16.max
 
-extension NSNumber {
+extension NSDecimalNumber {
     /// How a result is rounded to its scale.
     public enum RoundingMode: UInt, Sendable {
         /// Half away from zero.

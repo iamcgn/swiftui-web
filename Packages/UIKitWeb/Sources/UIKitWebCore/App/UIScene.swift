@@ -173,13 +173,8 @@ extension UIApplication {
     public func requestSceneSessionDestruction(_ session: UISceneSession, options: Any?, errorHandler: ((Error) -> Void)? = nil) {}
 }
 
-#if !canImport(ObjectiveC)
-// With the Objective-C runtime NSObject supplies the identity Equatable/Hashable (decision 0023).
-extension UIScene: Hashable {
-    nonisolated public static func == (lhs: UIScene, rhs: UIScene) -> Bool { lhs === rhs }
-    nonisolated public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
-}
-#endif
+// A scene is Hashable by identity through its root (UIResponderBase, or NSObject with the
+// Objective-C runtime).
 
 extension UISceneSession: Hashable {
     public static func == (lhs: UISceneSession, rhs: UISceneSession) -> Bool { lhs === rhs }

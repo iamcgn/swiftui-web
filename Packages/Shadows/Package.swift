@@ -14,7 +14,9 @@
 // reports no biometry, as on a device without it), `FoundationNetworking` (the URLSession names,
 // where Linux's Foundation keeps them), `FoundationXML` (XMLParser, likewise) and
 // `UniformTypeIdentifiers` (`UTType`), `CommonCrypto` (the C digest and HMAC functions over
-// SwiftUIWeb's CryptoKit) are here for the same reason as the rest, and so is
+// SwiftUIWeb's CryptoKit), `Compression` and `zlib` (the coders over WebFoundationFormats' formats),
+// `CoreText` (the font manager's registration calls), `Accelerate` (vImage's buffers and box filter)
+// are here for the same reason as the rest, and so is
 // `CoreData` (WebCoreData; the app's models go through SwiftUIWeb's CoreDataModel plugin). With
 // `CoreGraphics` importable on wasm, SwiftUIWeb's own sources test for Apple's with
 // `canImport(CoreGraphics) && !os(WASI)`.
@@ -55,6 +57,10 @@ let package = Package(
         .library(name: "Dispatch", targets: ["Dispatch"]),
         .library(name: "CoreFoundation", targets: ["CoreFoundation"]),
         .library(name: "CommonCrypto", targets: ["CommonCrypto"]),
+        .library(name: "Compression", targets: ["Compression"]),
+        .library(name: "zlib", targets: ["zlib"]),
+        .library(name: "Accelerate", targets: ["Accelerate"]),
+        .library(name: "CoreText", targets: ["CoreText"]),
     ],
     // `CoreData` (decision 0024): `import Foundation` re-exports WebCoreData too, as Apple's
     // declares `NSPredicate`, `NSSortDescriptor` and `NSExpression`. Enable it with SwiftUIWeb's.
@@ -124,7 +130,7 @@ let package = Package(
         ),
         .target(
             name: "ImageIO",
-            dependencies: ["CoreGraphics", .product(name: "WebImageIO", package: "WebGraphics"),
+            dependencies: ["CoreGraphics", .product(name: "WebImageIO", package: "WebGraphics"), .product(name: "WebImageDestination", package: "WebGraphics"),
                            .product(name: "WebFoundationFormats", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
@@ -155,6 +161,26 @@ let package = Package(
         .target(
             name: "CommonCrypto",
             dependencies: [.product(name: "CryptoKit", package: "SwiftUIWeb")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "Compression",
+            dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "zlib",
+            dependencies: [.product(name: "WebFoundationFormats", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "Accelerate",
+            dependencies: [.product(name: "WebFoundationFormats", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "CoreText",
+            dependencies: [.product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
