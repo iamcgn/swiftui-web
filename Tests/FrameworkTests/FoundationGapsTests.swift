@@ -112,7 +112,7 @@ extension FoundationGapsTests {
     @Test func notificationsAsAnAsyncSequence() async {
         let center = NotificationCenter()
         let name = Notification.Name("FoundationGapsTests.ping")
-        var iterator = center.notifications(named: name).makeAsyncIterator()
+        let iterator = center.notifications(named: name).makeAsyncIterator()
         center.post(name: name, object: nil, userInfo: ["n": 1])
         center.post(name: Notification.Name("FoundationGapsTests.other"), object: nil)
         center.post(name: name, object: nil, userInfo: ["n": 2])

@@ -190,16 +190,22 @@ extension NotificationCenter {
         let stream: AsyncStream<Notification>
         let observation: _NotificationObservation
 
+        /// Foundation's iterator steps without being mutated (`let iterator` works), so this one
+        /// keeps the stream's iterator in a box.
         public struct AsyncIterator: AsyncIteratorProtocol {
             public typealias Element = Notification
             public typealias Failure = Never
-            var base: AsyncStream<Notification>.Iterator
-            public mutating func next() async -> Notification? { await base.next() }
-            public mutating func next(isolation actor: isolated (any Actor)?) async -> Notification? {
-                await base.next(isolation: actor)
+            final class Box: @unchecked Sendable {
+                var base: AsyncStream<Notification>.Iterator
+                init(_ base: AsyncStream<Notification>.Iterator) { self.base = base }
+            }
+            let box: Box
+            public func next() async -> Notification? { await box.base.next() }
+            public func next(isolation actor: isolated (any Actor)?) async -> Notification? {
+                await box.base.next(isolation: actor)
             }
         }
-        public func makeAsyncIterator() -> AsyncIterator { AsyncIterator(base: stream.makeAsyncIterator()) }
+        public func makeAsyncIterator() -> AsyncIterator { AsyncIterator(box: .init(stream.makeAsyncIterator())) }
     }
 }
 
