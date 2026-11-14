@@ -43,6 +43,7 @@ let package = Package(
         .library(name: "EventKit", targets: ["EventKit"]),
         .library(name: "ActivityKit", targets: ["ActivityKit"]),
         .library(name: "BackgroundTasks", targets: ["BackgroundTasks"]),
+        .library(name: "Translation", targets: ["Translation", "_Translation_SwiftUI"]),
         .library(name: "TipKit", targets: ["TipKit"]),
         .library(name: "CloudKit", targets: ["CloudKit"]),
         .library(name: "Photos", targets: ["Photos"]),
@@ -160,6 +161,12 @@ let package = Package(
         // `backgroundTask` actions) is a module of its own, which the SwiftUI runtime links.
         .target(name: "BackgroundTasksHost", swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "BackgroundTasks", dependencies: ["BackgroundTasksHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "TranslationHost", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "Translation",
+                dependencies: ["SwiftUI", "TranslationHost", .product(name: "WebFoundation", package: "WebGraphics"),
+                               .product(name: "WebFoundationFormats", package: "WebGraphics")],
+                swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "_Translation_SwiftUI", dependencies: ["Translation"], swiftSettings: [.treatAllWarnings(as: .error)]),
         // Tips (TipView, popoverTip) with their rules, parameters and events, kept in the page's
         // user defaults; `#Rule` and `@Parameter` are host-compiled macros.
         // iCloud containers, databases, records and operations: the browser has no iCloud account,
@@ -253,7 +260,7 @@ let package = Package(
                 // The audio, speech, notification and data stand-ins' host hooks (decisions
                 // 0021, 0022): Web Audio, the microphone, the on-device recogniser fed the app's
                 // buffers, the Notification API, geolocation, localStorage for SwiftData's stores.
-                "AVFAudio", "AVCaptureHost", "Speech", "UserNotifications", "CoreLocationHost", "CoreMotionHost", "SwiftData", "AuthenticationServicesHost",
+                "AVFAudio", "AVCaptureHost", "Speech", "UserNotifications", "CoreLocationHost", "CoreMotionHost", "SwiftData", "AuthenticationServicesHost", "TranslationHost",
                 // The on-screen keyboard's frame from the visual viewport into UIKitScene (KeyboardHost.swift).
                 .product(name: "UIKitWebCore", package: "UIKitWeb"),
                 .product(name: "WebGraphicsCanvas", package: "WebGraphics"),
@@ -279,7 +286,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // CloudKit on its own: the container, its databases and records (no other framework, so the
