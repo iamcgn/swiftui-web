@@ -44,4 +44,44 @@ import UIKit
         #expect(presented.popoverPresentationController?.delegate === coordinator)
         #expect(presented.presentationController?.adaptiveDelegate === coordinator)
     }
+
+    /// Responders and layers are Hashable by identity, as UIKit's NSObjects are: a dictionary
+    /// keyed by view controllers, a set of views.
+    @Test func respondersAreHashable() {
+        let first = UIViewController(), second = UIViewController()
+        let titles: [UIViewController: String] = [first: "Walk", second: "Charts"]
+        #expect(titles[first] == "Walk" && titles[second] == "Charts")
+        let view = UIView()
+        #expect(Set([view, view, UIView()]).count == 2)
+        #expect(view == view && view != UIView())
+        #expect(view.isEqual(view) && !view.isEqual(first))
+        let layer = CALayer()
+        #expect(Set([layer, layer]).count == 1)
+    }
+
+    /// Core Animation's transform arithmetic: rotation about any axis, composition in order, and
+    /// the inverse.
+    @Test func transformsCompose() {
+        func near(_ a: CATransform3D, _ b: CATransform3D) -> Bool {
+            let l = a._rows.flatMap { $0 }, r = b._rows.flatMap { $0 }
+            return zip(l, r).allSatisfy { abs($0 - $1) < 1e-9 }
+        }
+        // A quarter turn about z is the 2D rotation.
+        let turned = CATransform3DRotate(CATransform3DIdentity, .pi / 2, 0, 0, 1)
+        #expect(near(turned, CATransform3DMakeAffineTransform(CGAffineTransform(rotationAngle: .pi / 2))))
+        // About y, the plane narrows: x scales by the cosine.
+        let spun = CATransform3DRotate(CATransform3DIdentity, .pi / 3, 0, 1, 0)
+        #expect(abs(spun.m11 - 0.5) < 1e-9 && abs(spun.m22 - 1) < 1e-9)
+        #expect(!CATransform3DIsAffine(spun) && CATransform3DIsAffine(turned))
+        // Translate(Scale(I)) moves first, then scales: (1, 1) -> (6, 1) -> (12, 2).
+        let moved = CATransform3DTranslate(CATransform3DMakeScale(2, 2, 1), 5, 0, 0)
+        #expect(moved.m41 == 10 && moved.m11 == 2)
+        let scaledAfter = CATransform3DConcat(CATransform3DMakeTranslation(5, 0, 0), CATransform3DMakeScale(2, 2, 1))
+        #expect(scaledAfter.m41 == 10)
+        let mixed = CATransform3DConcat(spun, CATransform3DTranslate(CATransform3DMakeScale(3, 2, 1), 4, -1, 2))
+        #expect(near(CATransform3DConcat(mixed, CATransform3DInvert(mixed)), CATransform3DIdentity))
+        var flat = CATransform3DIdentity
+        flat.m11 = 0
+        #expect(CATransform3DEqualToTransform(CATransform3DInvert(flat), flat))
+    }
 }

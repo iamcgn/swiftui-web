@@ -26,6 +26,21 @@ open class UIResponderBase {
     nonisolated open class func perform(_ aSelector: Selector!) -> Unmanaged<AnyObject>! { nil }
     nonisolated open class func perform(_ aSelector: Selector!, with object: Any!) -> Unmanaged<AnyObject>! { nil }
     nonisolated open class func perform(_ aSelector: Selector!, with object1: Any!, with object2: Any!) -> Unmanaged<AnyObject>! { nil }
+
+    // NSObject's equality: identity, unless a class overrides `isEqual(_:)` and `hash` as
+    // UIKit's subclasses may. Every responder, and every layer (CALayerBase), is then Hashable,
+    // as UIKit's are: a dictionary keyed by view controllers (SwiftUIExperiments' walk charts)
+    // or a set of views.
+    nonisolated open func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? UIResponderBase else { return false }
+        return other === self
+    }
+    nonisolated open var hash: Int { ObjectIdentifier(self).hashValue }
+}
+
+extension UIResponderBase: Hashable {
+    nonisolated public static func == (lhs: UIResponderBase, rhs: UIResponderBase) -> Bool { lhs.isEqual(rhs) }
+    nonisolated public func hash(into hasher: inout Hasher) { hasher.combine(hash) }
 }
 #endif
 
