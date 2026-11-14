@@ -53,23 +53,9 @@ public struct UIDataDetectorTypes: OptionSet, Hashable, Sendable {
     public static let all = UIDataDetectorTypes(rawValue: UInt.max)
 }
 
-/// The part of a text container UIKit code touches: the padding either side of each line,
-/// and the paths (in the container's coordinates: the view's inside its insets) lines flow
-/// around, by their bounds: a line whose band a path crosses starts after it when it lies in
-/// the left half, ends before it when in the right.
-@preconcurrency @MainActor
-public final class NSTextContainer {
-    public var lineFragmentPadding: CGFloat = 5 { didSet { owner?.textDidChange() } }
-    public var maximumNumberOfLines = 0 { didSet { owner?.textDidChange() } }
-    public var lineBreakMode: NSLineBreakMode = .byWordWrapping
-    public var exclusionPaths: [UIBezierPath] = [] { didSet { owner?.textDidChange() } }
-    weak var owner: UITextView?
-    init() {}
-}
-
 /// A scrollable, multiline text region.
 @preconcurrency @MainActor
-open class UITextView: UIScrollView, HostTextInput {
+open class UITextView: UIScrollView, HostTextInput, UITextInput {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
 
@@ -102,7 +88,7 @@ open class UITextView: UIScrollView, HostTextInput {
     private var settingAttributedText = false
     /// The font; nil draws UIKit's default, Helvetica 12 (its iOS metrics: 13.8 pt lines).
     open var font: UIFont? { didSet { textDidChange() } }
-    open var textColor: UIColor? = .label { didSet { setNeedsDisplay() } }
+    open var textColor: UIColor? = .label { didSet { textStorageIsStale = true; setNeedsDisplay() } }
     /// The kinds of data a non-editable view shows as links.
     open var dataDetectorTypes: UIDataDetectorTypes = [] { didSet { textDidChange() } }
     /// The attributes links draw with: a `.foregroundColor` replaces the link blue.
@@ -121,11 +107,26 @@ open class UITextView: UIScrollView, HostTextInput {
     /// multiply: 194/210/231 over systemGray6, 204/221/238 over white).
     static let selectionColor = RGBA(r: 204, g: 221, b: 238)
     static let selectionHandleColor = RGBA(r: 20, g: 111, b: 225)
-    open var textAlignment: NSTextAlignment = .natural { didSet { setNeedsDisplay() } }
+    open var textAlignment: NSTextAlignment = .natural { didSet { layoutManager.invalidateLines(); setNeedsDisplay() } }
     open var isEditable = true
     open var isSelectable = true
     open var textContainerInset = UIEdgeInsets(top: 8, left: 0, bottom: 8, right: 0) { didSet { textDidChange() } }
+    /// The container lines are laid out in: the view's width inside its insets.
     public let textContainer = NSTextContainer()
+    /// The layout manager answering where the view's glyphs and lines are.
+    public let layoutManager = NSLayoutManager()
+    /// The text as TextKit sees it: edits to it show in the view, and the view's text is in it.
+    open var textStorage: NSTextStorage {
+        syncTextStorage()
+        return ownTextStorage
+    }
+    private let ownTextStorage = NSTextStorage()
+    /// The storage is filled from the view's text when next asked for, after the text changed.
+    private var textStorageIsStale = true
+    private var updatingTextStorage = false
+    private var applyingTextStorageEdit = false
+    /// Told before and after the text or selection changes (`UITextInput`).
+    open weak var inputDelegate: (any UITextInputDelegate)?
     open var keyboardType: UIKeyboardType = .default
     open var returnKeyType: UIReturnKeyType = .default
     open var autocapitalizationType: UITextAutocapitalizationType = .sentences
@@ -143,10 +144,17 @@ open class UITextView: UIScrollView, HostTextInput {
         super.init(frame: frame)
         isAccessibilityElement = true
         backgroundColor = .systemBackground
+        textContainer.size = CGSize(width: 0, height: 10_000_000)
+        textContainer.widthTracksTextView = true
         textContainer.owner = self
+        ownTextStorage.addLayoutManager(layoutManager)
+        layoutManager.addTextContainer(textContainer)
+        layoutManager.textView = self
     }
 
     func textDidChange() {
+        if !applyingTextStorageEdit { textStorageIsStale = true }
+        layoutManager.invalidateLines()
         invalidateIntrinsicContentSize()
         setNeedsLayout()
         setNeedsDisplay()
@@ -209,8 +217,14 @@ open class UITextView: UIScrollView, HostTextInput {
 
     /// Replaces the selection with `replacement` and puts the caret after it.
     private func replaceSelection(with replacement: String) {
+        replaceCharacters(in: selectedRange, with: replacement)
+    }
+
+    /// Replaces a range of the text (UTF-16 offsets) with `replacement`, puts the caret after it
+    /// and tells the delegate.
+    private func replaceCharacters(in range: NSRange, with replacement: String) {
         let utf16 = Array((text ?? "").utf16)
-        let start = max(0, min(selectedRange.location, utf16.count)), end = max(start, min(selectedRange.location + selectedRange.length, utf16.count))
+        let start = max(0, min(range.location, utf16.count)), end = max(start, min(range.location + range.length, utf16.count))
         let updated = String(decoding: utf16[..<start], as: UTF16.self) + replacement + String(decoding: utf16[end...], as: UTF16.self)
         text = updated
         selectedRange = NSRange(location: start + replacement.utf16.count, length: 0)
@@ -631,6 +645,132 @@ open class UITextView: UIScrollView, HostTextInput {
             list.append(.fillPath(Path(ellipseIn: CGRect(x: startBar.midX - 5, y: startBar.minY - 10, width: 10, height: 10)), handle))
             list.append(.fillPath(Path(ellipseIn: CGRect(x: endBar.midX - 5, y: endBar.maxY, width: 10, height: 10)), handle))
         }
+    }
+
+    // MARK: TextKit
+
+    /// Fills the storage from the view's text if the text changed since.
+    private func syncTextStorage() {
+        guard textStorageIsStale else { return }
+        textStorageIsStale = false
+        updatingTextStorage = true
+        ownTextStorage.setAttributedString(attributedText)
+        updatingTextStorage = false
+    }
+
+    /// The storage was edited (not by the view): the view shows its text and attributes.
+    func storageDidEdit(_ storage: NSTextStorage) {
+        guard storage === ownTextStorage, !updatingTextStorage else { return }
+        let contents = storage.contents
+        applyingTextStorageEdit = true
+        settingAttributedText = true
+        text = contents.string
+        settingAttributedText = false
+        storedAttributedText = contents
+        textDidChange()
+        applyingTextStorageEdit = false
+    }
+
+    /// What the layout manager lays out: the text as the view draws it.
+    func textKitSource() -> LaidOutText.Source {
+        let width = containerWidth(for: bounds.width)
+        let limit = textContainer.maximumNumberOfLines > 0 ? textContainer.maximumNumberOfLines : nil
+        return LaidOutText.Source(runs: runs.map { StyledRun($0.text, font: $0.font.resolved) }, wrapWidth: width > 0 ? width : nil,
+                                  containerWidth: width > 0 ? width + 2 * padding : nil, lineLimit: limit, padding: padding,
+                                  pitch: linePitch, baselineOffset: firstBaseline - textContainerInset.top, alignment: textAlignment)
+    }
+
+    // MARK: Text input (UITextInput: positions are UTF-16 offsets, as `selectedRange`'s)
+
+    open var hasText: Bool { !(text ?? "").isEmpty }
+
+    /// Types `text` over the selection.
+    open func insertText(_ text: String) { replaceSelection(with: text) }
+
+    /// Deletes the selection, else the character before the caret.
+    open func deleteBackward() {
+        guard selectedRange.length == 0 else { replaceSelection(with: ""); return }
+        let utf16 = Array((text ?? "").utf16)
+        let caret = max(0, min(selectedRange.location, utf16.count))
+        guard caret > 0 else { return }
+        let removed = String(decoding: utf16[..<caret], as: UTF16.self).last?.utf16.count ?? 1
+        replaceCharacters(in: NSRange(location: caret - removed, length: removed), with: "")
+    }
+
+    open var beginningOfDocument: UITextPosition { UITextPosition(offset: 0) }
+    open var endOfDocument: UITextPosition { UITextPosition(offset: (text ?? "").utf16.count) }
+
+    /// The selection as positions; setting it sets `selectedRange`.
+    open var selectedTextRange: UITextRange? {
+        get {
+            UITextRange(start: UITextPosition(offset: selectedRange.location),
+                        end: UITextPosition(offset: selectedRange.location + selectedRange.length))
+        }
+        set {
+            guard let newValue else { return }
+            let length = (text ?? "").utf16.count
+            let start = max(0, min(min(newValue.start.offset, newValue.end.offset), length))
+            let end = max(start, min(max(newValue.start.offset, newValue.end.offset), length))
+            selectedRange = NSRange(location: start, length: end - start)
+        }
+    }
+
+    private func characterRange(_ range: UITextRange) -> NSRange {
+        let length = (text ?? "").utf16.count
+        let start = max(0, min(min(range.start.offset, range.end.offset), length))
+        let end = max(start, min(max(range.start.offset, range.end.offset), length))
+        return NSRange(location: start, length: end - start)
+    }
+
+    open func text(in range: UITextRange) -> String? {
+        let utf16 = Array((text ?? "").utf16)
+        let characters = characterRange(range)
+        return String(decoding: utf16[characters.location..<(characters.location + characters.length)], as: UTF16.self)
+    }
+
+    /// Replaces the range with `text`; the caret follows it and the delegate hears.
+    open func replace(_ range: UITextRange, withText text: String) {
+        replaceCharacters(in: characterRange(range), with: text)
+    }
+
+    /// The caret before a position: 2 points wide at the glyph's left edge, its line's height
+    /// (view coordinates).
+    open func caretRect(for position: UITextPosition) -> CGRect {
+        let layout = layoutManager.laidOut()
+        let offset = max(0, min(position.offset, layout.length))
+        guard let index = layout.lineIndex(forGlyph: offset) else {
+            let width = containerWidth(for: bounds.width)
+            let inset: CGFloat = textAlignment == .center ? width / 2 : textAlignment == .right ? width : 0
+            return CGRect(x: textContainerInset.left + padding + inset, y: textContainerInset.top, width: 2, height: linePitch)
+        }
+        let line = layout.lines[index]
+        return CGRect(x: textContainerInset.left + layout.x(of: offset, inLine: index), y: textContainerInset.top + line.fragmentRect.minY,
+                      width: 2, height: line.fragmentRect.height)
+    }
+
+    /// The rectangle the range takes on its first line (view coordinates).
+    open func firstRect(for range: UITextRange) -> CGRect {
+        let characters = characterRange(range)
+        let layout = layoutManager.laidOut()
+        guard characters.length > 0, let index = layout.lineIndices(touching: characters).first else { return caretRect(for: range.start) }
+        let line = layout.lines[index].characters
+        let end = min(characters.location + characters.length, line.location + line.length)
+        var rect = layoutManager.boundingRect(forGlyphRange: NSRange(location: characters.location, length: end - characters.location), in: textContainer)
+        rect.origin.x += textContainerInset.left
+        rect.origin.y += textContainerInset.top
+        return rect
+    }
+
+    /// The insertion point nearest a point in the view: before the character under it, or after
+    /// when the point is past its middle.
+    open func closestPosition(to point: CGPoint) -> UITextPosition? {
+        let inContainer = CGPoint(x: point.x - textContainerInset.left, y: point.y - textContainerInset.top)
+        var fraction: CGFloat = 0
+        let index = layoutManager.characterIndex(for: inContainer, in: textContainer, fractionOfDistanceBetweenInsertionPoints: &fraction)
+        guard fraction > 0.5 else { return UITextPosition(offset: index) }
+        let utf16 = Array((text ?? "").utf16)
+        let next = String(decoding: utf16[min(index, utf16.count)...], as: UTF16.self).first?.utf16.count ?? 0
+        return UITextPosition(offset: min(utf16.count, index + next))
     }
 
     // MARK: Semantics

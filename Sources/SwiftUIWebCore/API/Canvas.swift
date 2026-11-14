@@ -155,7 +155,7 @@ public struct GraphicsContext {
             case .style(let style):
                 // An erased flat style stays a colour: a one-stop gradient paints nothing in Canvas2D.
                 let base = (style as? AnyShapeStyle)?.base ?? style
-                guard !(base is Color), !(base is HierarchicalShapeStyle), let gradient = base as? any _GradientStyle else { return nil }
+                guard base._asColor == nil, !(base is HierarchicalShapeStyle), let gradient = base as? any _GradientStyle else { return nil }
                 return gradient._resolveGradient(in: bounds, environment: environment)
             case .color, .foreground, .background, .tiled:
                 return nil

@@ -20,6 +20,7 @@ open class UIButton: UIControl {
     private var titles: [State: String] = [:]
     private var titleColors: [State: UIColor] = [:]
     private var images: [State: UIImage] = [:]
+    private var symbolConfigurations: [State: UIImage.SymbolConfiguration] = [:]
     private var backgroundImages: [State: UIImage] = [:]
     open var contentEdgeInsets = UIEdgeInsets.zero { didSet { invalidateIntrinsicContentSize() } }
     open var titleEdgeInsets = UIEdgeInsets.zero
@@ -142,6 +143,22 @@ open class UIButton: UIControl {
 
     open func image(for state: State) -> UIImage? { images[state] ?? images[.normal] }
 
+    /// The symbol configuration a symbol image is drawn with in `state` (its weight, and its point
+    /// size, which scales the glyph from the 17-point one); nil draws the image's own.
+    open func setPreferredSymbolConfiguration(_ configuration: UIImage.SymbolConfiguration?, forImageIn state: State) {
+        symbolConfigurations[state] = configuration
+        updateContent()
+        invalidateIntrinsicContentSize()
+    }
+
+    /// The symbol configuration set for `state` (the normal state's otherwise).
+    open func preferredSymbolConfigurationForImage(in state: State) -> UIImage.SymbolConfiguration? {
+        symbolConfigurations[state] ?? symbolConfigurations[.normal]
+    }
+
+    /// The symbol configuration for the current state.
+    open var currentPreferredSymbolConfiguration: UIImage.SymbolConfiguration? { preferredSymbolConfigurationForImage(in: state) }
+
     /// An image stretched behind the button's content for `state` (the normal one otherwise).
     open func setBackgroundImage(_ image: UIImage?, for state: State) {
         backgroundImages[state] = image
@@ -210,7 +227,11 @@ open class UIButton: UIControl {
         titleLabel?.text = currentTitle
         titleLabel?.textColor = currentTitleColor
         subtitleLabel.textColor = currentTitleColor
-        imageView?.image = currentImage
+        if let image = currentImage, image.isSystemSymbol, let symbol = currentPreferredSymbolConfiguration {
+            imageView?.image = image.withConfiguration(symbol)
+        } else {
+            imageView?.image = currentImage
+        }
         if let imageView, currentImage != nil {
             imageView.tintColor = currentTitleColor
         }
@@ -266,10 +287,20 @@ open class UIButton: UIControl {
     private var imageSlot: CGSize {
         guard let image = currentImage else { return .zero }
         guard image.isSystemSymbol else { return image.size }
-        return configuration != nil ? CGSize(width: 28, height: 20) : CGSize(width: 22, height: 23.5)
+        let slot = configuration != nil ? CGSize(width: 28, height: 20) : CGSize(width: 22, height: 23.5)
+        guard currentPreferredSymbolConfiguration?.pointSize != nil else { return slot }
+        // A larger configured glyph widens its slot; its height still overflows as the measured one does.
+        let glyph = symbolGlyphSize
+        return CGSize(width: max(slot.width, glyph.width + slot.width - (configuration != nil ? 23.5 : 20.5)), height: slot.height)
     }
 
-    private var symbolGlyphSize: CGSize { configuration != nil ? CGSize(width: 23.5, height: 22) : CGSize(width: 20.5, height: 19) }
+    /// The glyph's size: measured for the 17-point symbol, scaled for a configured point size.
+    private var symbolGlyphSize: CGSize {
+        let measured = configuration != nil ? CGSize(width: 23.5, height: 22) : CGSize(width: 20.5, height: 19)
+        guard let pointSize = currentPreferredSymbolConfiguration?.pointSize, pointSize > 0 else { return measured }
+        let scale = pointSize / 17
+        return CGSize(width: (measured.width * scale * 2).rounded() / 2, height: (measured.height * scale * 2).rounded() / 2)
+    }
 
     /// Whether the image sits above or below the title.
     private var imageIsVertical: Bool {

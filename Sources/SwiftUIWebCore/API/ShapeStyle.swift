@@ -267,3 +267,52 @@ extension ShapeStyle {
         _ShadowShapeStyle(base: self, shadow: style)
     }
 }
+
+/// A style composited with a blend mode (`.blue.blendMode(.plusDarker)`): a shape it fills or
+/// strokes is blended onto what is behind it; as a colour (text, a resolved tint) it is its base.
+public struct _BlendModeShapeStyle<Base: ShapeStyle>: ShapeStyle, _ModifiedStyle {
+    package let base: Base
+    package let blendMode: BlendMode
+    package var _alpha: Double { 1 }
+    package func _resolveBaseColor(in environment: EnvironmentValues) -> RGBA { base.resolveColor(in: environment) }
+}
+
+/// A style that is another drawn with a blend mode; seen through where a colour is wanted.
+package protocol _BlendedStyle {
+    var _blendBase: any ShapeStyle { get }
+}
+
+extension _BlendModeShapeStyle: _BlendedStyle {
+    package var _blendBase: any ShapeStyle { base }
+}
+
+extension _BlendModeShapeStyle: _GradientStyle {
+    package func _resolveGradient(in bounds: CGRect, environment: EnvironmentValues) -> DisplayGradient {
+        AnyShapeStyle(base)._resolveGradient(in: bounds, environment: environment)
+    }
+    package func _fill(_ path: Path, in bounds: CGRect, eoFill: Bool, environment: EnvironmentValues, scale: CGFloat, into list: inout DisplayList) {
+        list.append(.beginBlend(blendMode, bounds: path.boundingRect.union(bounds)))
+        AnyShapeStyle(base)._fill(path, in: bounds, eoFill: eoFill, environment: environment, scale: scale, into: &list)
+        list.append(.endGroup)
+    }
+    package func _stroke(_ path: Path, style: StrokeStyle, in bounds: CGRect, environment: EnvironmentValues, scale: CGFloat, into list: inout DisplayList) {
+        let reach = -max(style.lineWidth, 1)
+        list.append(.beginBlend(blendMode, bounds: path.boundingRect.union(bounds).insetBy(dx: reach, dy: reach)))
+        AnyShapeStyle(base)._stroke(path, style: style, in: bounds, environment: environment, scale: scale, into: &list)
+        list.append(.endGroup)
+    }
+}
+
+extension ShapeStyle {
+    /// The style composited onto what is behind it with `mode` (nil draws it normally).
+    ///
+    /// A colour or gradient is a view too, and `overlay` and `background` take a view or a style,
+    /// so `.overlay(Color.black.blendMode(.multiply))` could mean either. The view's
+    /// `blendMode(_:)` is what such code has always meant: this one is disfavoured, and its
+    /// optional parameter costs the mode a conversion, so it loses to the view's even where the
+    /// view-taking `overlay` is disfavoured too.
+    @_disfavoredOverload
+    nonisolated public func blendMode(_ mode: BlendMode?) -> _BlendModeShapeStyle<Self> {
+        _BlendModeShapeStyle(base: self, blendMode: mode ?? .normal)
+    }
+}
