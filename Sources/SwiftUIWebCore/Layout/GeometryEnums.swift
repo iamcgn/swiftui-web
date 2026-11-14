@@ -67,6 +67,8 @@ extension EdgeInsets: Animatable {
     }
 }
 
+extension EdgeInsets: _VectorMath {}
+
 /// A normalized 2D point in a view's coordinate space.
 @frozen
 public struct UnitPoint: Hashable, Sendable {

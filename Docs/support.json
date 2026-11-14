@@ -704,7 +704,7 @@
         {
           "api": "Angle",
           "status": "full",
-          "notes": "radians/degrees, Comparable, Animatable",
+          "notes": "radians/degrees, Comparable, Animatable; adds, subtracts, scales and negates (SwiftUI's _VectorMath, as EdgeInsets does too) (2026-11-14)",
           "fixtures": [
             "shape/path"
           ]
@@ -1565,6 +1565,12 @@
           ]
         },
         {
+          "api": "CATransform3DConcat / CATransform3DRotate / CATransform3DTranslate / CATransform3DScale / CATransform3DInvert / CATransform3DIsAffine / CATransform3DEqualToTransform",
+          "status": "partial",
+          "notes": "pf-everyday-apis (2026-11-14): Core Animation's full 4x4 arithmetic with row vectors (Concat(a, b) applies a, then b), rotation about any axis, and the inverse (the transform itself when it has none). Layers paint the affine part, so a turn about the x or y axis shows as the flattened view of the turned plane (SwiftUIExperiments' swipe and text-scroll interactions, OldOS's camera preview). Not done: perspective (m34) and depth ordering",
+          "noFixture": "Matrix arithmetic checked in UIKitWebTests; the flattened turn paints through the existing layer transform path."
+        },
+        {
           "api": "Traits and appearance (traitCollection, traitOverrides, overrideUserInterfaceStyle, UITraitCollection.current, dark appearance)",
           "status": "partial",
           "notes": "The window's style, a hosted tree's overrides (style, size classes, layout direction, content size category), traitCollectionDidChange down the tree; open: overrideUserInterfaceStyle on a view, registerForTraitChanges",
@@ -2146,6 +2152,12 @@
             "uikit/dark/*",
             "ios/representable/traits"
           ]
+        },
+        {
+          "api": "UIResponder / UIView / UIViewController / UIScene / CALayer: Equatable, Hashable, isEqual(_:), hash",
+          "status": "full",
+          "notes": "pf-everyday-apis (2026-11-14): without the Objective-C runtime the responders' and layers' root compares by identity and hashes as NSObject does, and a subclass overrides isEqual(_:) and hash, so a dictionary keyed by view controllers (SwiftUIExperiments' walk charts) or a set of views works as in UIKit. With the runtime NSObject supplies the same",
+          "noFixture": "A conformance, not a screen; UIKitWebTests."
         }
       ]
     },
@@ -2410,6 +2422,12 @@
           "status": "partial",
           "notes": "`localizedString(byJoining:)`, `string(from:)` and `string(for:)` as English prose with the serial comma (Foundation's en_US form; other locales not carried), an `itemFormatter` for the items (decision 0021, 2026-10-12)",
           "noFixture": "Strings, not a screen; WasmFoundationTests."
+        },
+        {
+          "api": "NSRegularExpression / NSTextCheckingResult (Equatable, Hashable)",
+          "status": "full",
+          "notes": "pf-everyday-apis (2026-11-14): Foundation's are NSObjects, so they compare and hash: an expression equals another with the same pattern and options, as isEqual(_:) says on Apple platforms, and a match result only itself. A struct that keeps a compiled expression synthesizes Equatable and Hashable (IceCubes' and MastodonKit's HTMLString)",
+          "noFixture": "A conformance, not a screen; FoundationGapsTests."
         }
       ]
     },

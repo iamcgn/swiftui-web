@@ -92,6 +92,55 @@ public protocol Animatable {
     var animatableData: AnimatableData { get set }
 }
 
+/// Arithmetic on an animatable value through its animatable data: `Angle` and `EdgeInsets` add,
+/// subtract, scale and negate this way (`end - start`, `angle * 0.5`), as in SwiftUI.
+public protocol _VectorMath: Animatable {}
+
+extension _VectorMath {
+    /// The length of the value's animatable data.
+    @inlinable public var magnitude: Double { animatableData.magnitudeSquared.squareRoot() }
+
+    @inlinable public mutating func negate() { animatableData = .zero - animatableData }
+
+    @inlinable public static prefix func - (operand: Self) -> Self {
+        var result = operand
+        result.negate()
+        return result
+    }
+
+    @inlinable public static func += (lhs: inout Self, rhs: Self) { lhs.animatableData += rhs.animatableData }
+
+    @inlinable public static func + (lhs: Self, rhs: Self) -> Self {
+        var result = lhs
+        result += rhs
+        return result
+    }
+
+    @inlinable public static func -= (lhs: inout Self, rhs: Self) { lhs.animatableData -= rhs.animatableData }
+
+    @inlinable public static func - (lhs: Self, rhs: Self) -> Self {
+        var result = lhs
+        result -= rhs
+        return result
+    }
+
+    @inlinable public static func *= (lhs: inout Self, rhs: Double) { lhs.animatableData.scale(by: rhs) }
+
+    @inlinable public static func * (lhs: Self, rhs: Double) -> Self {
+        var result = lhs
+        result *= rhs
+        return result
+    }
+
+    @inlinable public static func /= (lhs: inout Self, rhs: Double) { lhs *= 1 / rhs }
+
+    @inlinable public static func / (lhs: Self, rhs: Double) -> Self {
+        var result = lhs
+        result /= rhs
+        return result
+    }
+}
+
 extension Animatable where AnimatableData == EmptyAnimatableData {
     public var animatableData: EmptyAnimatableData {
         get { EmptyAnimatableData() }
