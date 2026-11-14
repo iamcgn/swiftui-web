@@ -12,8 +12,11 @@ private let distanceBase: [Int] = [1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 
                                    2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577]
 private let distanceExtra: [Int] = [0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13]
 
-/// Why bytes could not be inflated.
-struct _DeflateError: Error {}
+/// Why bytes could not be inflated: `truncated` when they stopped before the stream's end (more
+/// may follow), otherwise they are not DEFLATE.
+struct _DeflateError: Error {
+    var truncated = false
+}
 
 /// Compresses `source` as raw DEFLATE.
 func _deflate(_ source: [UInt8]) -> [UInt8] {
@@ -114,7 +117,14 @@ private struct BitWriter {
 
 /// Decompresses raw DEFLATE, or throws when the bytes are not a whole, valid stream.
 func _inflate(_ source: [UInt8]) throws -> [UInt8] {
-    var reader = BitReader(source: source)
+    var consumed = 0
+    return try _inflate(source, from: 0, consumed: &consumed)
+}
+
+/// Decompresses the raw DEFLATE stream that starts at `start`; `consumed` is where it ended (the
+/// byte after its last block), for a container's trailer.
+func _inflate(_ source: [UInt8], from start: Int, consumed: inout Int) throws -> [UInt8] {
+    var reader = BitReader(source: source, position: start)
     var out: [UInt8] = []
     out.reserveCapacity(source.count * 3)
     var fixed: (Huffman, Huffman)?
@@ -158,7 +168,10 @@ func _inflate(_ source: [UInt8]) throws -> [UInt8] {
         default:
             throw _DeflateError()
         }
-        if last == 1 { return out }
+        if last == 1 {
+            consumed = reader.position - reader.count / 8
+            return out
+        }
     }
 }
 
@@ -219,9 +232,14 @@ private struct BitReader {
     var buffer = 0
     var count = 0
 
+    init(source: [UInt8], position: Int = 0) {
+        self.source = source
+        self.position = position
+    }
+
     mutating func bits(_ n: Int) throws -> Int {
         while count < n {
-            guard position < source.count else { throw _DeflateError() }
+            guard position < source.count else { throw _DeflateError(truncated: true) }
             buffer |= Int(source[position]) << count
             position += 1
             count += 8
@@ -238,7 +256,7 @@ private struct BitReader {
     }
 
     mutating func byte() throws -> Int {
-        guard position < source.count else { throw _DeflateError() }
+        guard position < source.count else { throw _DeflateError(truncated: true) }
         position += 1
         return Int(source[position - 1])
     }
