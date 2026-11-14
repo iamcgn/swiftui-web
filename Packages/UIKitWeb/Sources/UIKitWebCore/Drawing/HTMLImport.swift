@@ -434,7 +434,7 @@ struct HTMLImport {
     /// A selector as compound selectors, the subject last; nil for what is not supported
     /// (pseudo-classes, attribute selectors, sibling combinators).
     static func parseSelector(_ text: String) -> (compounds: [Compound], specificity: Int)? {
-        guard !text.isEmpty, !text.contains(":"), !text.contains("["), !text.contains("+"), !text.contains("~") else { return nil }
+        guard !text.isEmpty, !text.contains(Character(":")), !text.contains(Character("[")), !text.contains(Character("+")), !text.contains(Character("~")) else { return nil }
         var compounds: [Compound] = []
         var specificity = 0
         for part in text.replacingOccurrences(of: ">", with: " ").split(separator: " ") where !part.isEmpty {
@@ -523,9 +523,9 @@ struct HTMLImport {
                     if !style.monospace { style.family = first.lowercased() == "serif" ? "Times New Roman" : first.lowercased() == "sans-serif" ? "Helvetica" : first }
                 }
             case "text-decoration", "text-decoration-line":
-                if lowered.contains("none") { style.underline = false; style.strikethrough = false }
-                if lowered.contains("underline") { style.underline = true }
-                if lowered.contains("line-through") { style.strikethrough = true }
+                if Self.has(lowered, "none") { style.underline = false; style.strikethrough = false }
+                if Self.has(lowered, "underline") { style.underline = true }
+                if Self.has(lowered, "line-through") { style.strikethrough = true }
             case "display":
                 if lowered == "none" { style.hidden = true }
             case "white-space":
@@ -680,6 +680,10 @@ struct HTMLImport {
         return (0..<scalars.count).allSatisfy { characters[index + $0] == scalars[$0] }
     }
 
+    /// Whether `needle` occurs in `text`, by scalars: `String.contains` with a string argument
+    /// would link the Regex engine into every app (decision 0006, 2026-11-10).
+    static func has(_ text: String, _ needle: String) -> Bool { find(Array(text.unicodeScalars), 0, needle) != nil }
+
     static func find(_ characters: [Unicode.Scalar], _ from: Int, _ needle: String, caseInsensitive: Bool = false) -> Int? {
         let target = Array((caseInsensitive ? needle.lowercased() : needle).unicodeScalars)
         guard !target.isEmpty, from <= characters.count - target.count else { return nil }
@@ -708,7 +712,7 @@ struct HTMLImport {
 
     /// `text` with its character references replaced.
     static func decodeEntities(_ text: String) -> String {
-        guard text.contains("&") else { return text }
+        guard text.contains(Character("&")) else { return text }
         var result = ""
         var index = text.startIndex
         while index < text.endIndex {
@@ -743,8 +747,8 @@ struct HTMLImport {
     static func guessType(_ text: String) -> NSAttributedString.DocumentType {
         let start = text.prefix(512).lowercased()
         if start.hasPrefix("{\\rtf") { return .rtf }
-        return start.contains("<html") || start.contains("<!doctype html") || start.contains("<body") || start.contains("<p")
-            || start.contains("<div") || start.contains("<span") || start.contains("<pre") || start.contains("<style") ? .html : .plain
+        let markers = ["<html", "<!doctype html", "<body", "<p", "<div", "<span", "<pre", "<style"]
+        return markers.contains { has(start, $0) } ? .html : .plain
     }
 
     /// The encoding a document names in its `<meta charset>`.
