@@ -153,5 +153,14 @@ fbb333cf with a clean tree.
   the runtime and `String` without it, like `UserInfoKey`. `SKRequest` carries the delegate, as
   StoreKit's does, so `SKReceiptRefreshRequest` (which fails: no App Store receipt on the web)
   takes any `SKRequestDelegate`.
+- 2026-11-14, RevenueCat's bridging: under the runtime `NSString` is an `NSObject`, as Foundation's
+  is, so `key as NSString` fills a `[String: NSObject]`; the number types (`Int`, the sized
+  integers, `Double`, `Float`, `Bool`) bridge to `NSNumber`, so `count as NSNumber` converts and
+  `number as? Int` succeeds when the number holds the value exactly (SE-0170), `as!` truncating.
+  `CFGetTypeID` tells a boolean number from the others (`CFBooleanGetTypeID`), on both SDKs.
+  `SKPaymentQueue.presentCodeRedemptionSheet` is `@objc`, and StoreKit re-exports UIKit on wasm
+  (and WebFoundationFormats under that trait), as iOS's StoreKit brings UIKit and Foundation.
+  `UIFont(name:size:)`, `familyNames` and `fontNames(forFamilyName:)` are callable from any
+  context, as UIKit's are.
 - `#selector`-based `UIKeyCommand`s do nothing on builds without the runtime; the closure
   form works everywhere.
