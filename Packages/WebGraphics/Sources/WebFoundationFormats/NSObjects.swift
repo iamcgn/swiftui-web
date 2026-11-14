@@ -250,7 +250,19 @@ public final class NSUUID: _WebNSValue, _WebValueObject, @unchecked Sendable {
         guard let uuid = UUID(uuidString: string) else { return nil }
         self.init(_webValue: uuid)
     }
+    /// A UUID from its 16 bytes (RevenueCat reads one out of `Data` this way).
+    public convenience init(uuidBytes bytes: UnsafePointer<UInt8>!) {
+        let b = UnsafeBufferPointer(start: bytes, count: 16)
+        self.init(_webValue: UUID(uuid: (b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7],
+                                         b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15])))
+    }
     public var uuidString: String { _webValue.uuidString }
+    /// Copies the UUID's 16 bytes into `uuid`.
+    public func getUUIDBytes(_ uuid: UnsafeMutablePointer<UInt8>!) {
+        withUnsafeBytes(of: _webValue.uuid) { raw in
+            for i in 0..<16 { uuid[i] = raw[i] }
+        }
+    }
     public override func isEqual(_ object: Any?) -> Bool { (object as? NSUUID)?._webValue == _webValue }
     public override var hash: Int { _webValue.hashValue }
 }

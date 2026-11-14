@@ -104,6 +104,13 @@ extension Set: _BothSetForms {}
         let text = "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
         #expect((NSUUID(uuidString: text)! as UUID).uuidString == text)
         #expect((UUID(uuidString: text)! as NSUUID).uuidString == text)
+        // From and to its 16 bytes (RevenueCat reads a UUID out of `Data` this way).
+        let uuidBytes: [UInt8] = Array(0..<16)
+        let fromBytes = uuidBytes.withUnsafeBufferPointer { NSUUID(uuidBytes: $0.baseAddress) }
+        #expect(fromBytes.uuidString == "00010203-0405-0607-0809-0A0B0C0D0E0F")
+        var copied = [UInt8](repeating: 0, count: 16)
+        copied.withUnsafeMutableBufferPointer { fromBytes.getUUIDBytes($0.baseAddress) }
+        #expect(copied == uuidBytes)
 
         let bytes = Data([1, 2, 3]) as NSData
         #expect(bytes.length == 3)
