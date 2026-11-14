@@ -29,10 +29,17 @@ open class NSAttributedString: @unchecked Sendable {
         string = attributedString.string
         runs = attributedString.runs
     }
-    /// The characters of a Swift attributed string (its attributes, keyed by scope there, have
-    /// no `Key` counterparts here).
+    /// A Swift attributed string's characters and attributes: each attribute under its key's
+    /// name (`.link` is "NSLink", UIKit's foreground colour "NSColor"), as Foundation's
+    /// conversion keys them.
     public convenience init(_ attrStr: AttributedString) {
-        self.init(string: String(attrStr.characters))
+        let built = NSMutableAttributedString(string: "")
+        for run in attrStr._runs where !run.string.isEmpty {
+            var attributes: [Key: Any] = [:]
+            for (name, value) in run.attributes.storage { attributes[Key(name)] = value.base.base }
+            built.append(NSAttributedString(string: run.string, attributes: attributes))
+        }
+        self.init(attributedString: built)
     }
     public var length: Int { string.utf16.count }
 

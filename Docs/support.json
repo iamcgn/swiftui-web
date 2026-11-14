@@ -1749,6 +1749,13 @@
             "uikit/draw/text",
             "uikit/draw/rest"
           ]
+        },
+        {
+          "api": "NSAttributedString(data:options:documentAttributes:) (HTML, plain text) and AttributedString(_:including: \\.uiKit)",
+          "status": "partial",
+          "notes": "HTML (2026-11-14): tag styles (bold, italic, underline, strikethrough, headings, links, monospaced code and pre in Courier), <style> rules by tag, class, id, compound and descendant selectors in specificity order, inline style (color, background, font weight, style, size and family, text-decoration, display:none, white-space), entities, lists, line breaks, collapsed white space, the Times 12 base; plain text in Helvetica 12; the UIKit attribute scope converts to AttributedString and Text shows its fonts, colours and decorations (HighlightSwift, Highlightr); open: RTF and RTFD (they throw), tables as tables, images, paragraph styles, writing documents",
+          "fixtures": [],
+          "noFixture": "Reading a document makes no view: the HTML import and the conversion are checked by UIKitWeb's HTMLImportTests and the wasm HTMLAttributedTextTests"
         }
       ]
     },

@@ -79,3 +79,32 @@ extension UIColor {
         self.init(light: color.resolve(in: light), dark: color.resolve(in: dark))
     }
 }
+
+// UIKit attributes in an attributed string, as `Text` shows them: a font (its size, weight,
+// slant and monospacing), the foreground colour, and underline and strikethrough styles.
+extension UIFont: _UIKitTextAttribute {
+    package func _applyToText(as name: String, _ modifiers: inout Text.Modifiers) {
+        guard name == "NSFont" else { return }
+        modifiers.font = Font(self)
+        if resolved.italic { modifiers.italic = true }
+        let family = resolved.family.lowercased()
+        if family == "courier" || family == "courier new" || family == "menlo" || family == "monaco" || family == "system-monospaced" {
+            modifiers.monospaced = true
+        }
+    }
+}
+
+extension UIColor: _UIKitTextAttribute {
+    package func _applyToText(as name: String, _ modifiers: inout Text.Modifiers) {
+        if name == "NSColor" { modifiers.foregroundColor = Color(uiColor: self) }
+    }
+}
+
+extension NSUnderlineStyle: _UIKitTextAttribute {
+    package func _applyToText(as name: String, _ modifiers: inout Text.Modifiers) {
+        guard rawValue != 0 else { return }
+        let pattern: Text.LineStyle.Pattern = contains(.patternDot) ? .dot : contains(.patternDash) ? .dash : .solid
+        if name == "NSUnderline" { modifiers.underline = .some(Text.LineStyle(pattern: pattern)) }
+        if name == "NSStrikethrough" { modifiers.strikethrough = .some(Text.LineStyle(pattern: pattern)) }
+    }
+}
