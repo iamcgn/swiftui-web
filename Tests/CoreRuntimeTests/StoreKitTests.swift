@@ -118,7 +118,8 @@ private final class ReceiptRefresh: SKRequestDelegate {
     @Test func pricesAndDatesBridgeAsObjects() {
         let product = SKProduct(productIdentifier: "pro", localizedTitle: "Pro", price: NSDecimalNumber(string: "4.99"), priceLocale: Locale(identifier: "en_US"))
         let price = product.price as Decimal
-        #expect(price == Decimal(4.99) && Double(truncating: price as NSNumber) == 4.99)
+        // Compared as a double: Apple's Decimal keeps "4.99" exactly, and Decimal(4.99) is not that.
+        #expect(Double(truncating: price as NSNumber) == 4.99)
         let date = Date(timeIntervalSince1970: 100)
         let attributes: [String: NSObject] = ["setTime": date as NSDate, "isSynced": NSNumber(value: true)]
         let stored = attributes["setTime"] as? NSDate
