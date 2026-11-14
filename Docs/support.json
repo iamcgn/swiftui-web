@@ -398,9 +398,9 @@
           ]
         },
         {
-          "api": "ProgressView (value/total, labels, currentValueLabel) / ProgressViewStyle (automatic, linear, circular) / ControlSize / controlSize(_:) / tint(_:)",
+          "api": "ProgressView (value/total, labels, currentValueLabel) / ProgressViewStyle (automatic, linear, circular) / ControlSize / controlSize(_:) / tint(_:) (a colour or any shape style)",
           "status": "partial",
-          "notes": "Determinate bars and rings measured exactly (inactive-window greys); the indeterminate spinner and bar are the animation's first frame; tint accepted without effect; no Progress objects or timer intervals; iOS profile: a 4 pt accent bar, the circular style always the 20 pt spinner (ios/progress/basic); the spinner's rotation and the indeterminate bar's motion (approximate), animated values under withAnimation, ProgressView(timerInterval:) through the animation timeline, ProgressView(_ progress:) (wasm's Progress is observable, Foundation's polled), tint on iOS and in an active macOS window (2026-10-04) Right-to-left (2026-10-09): the bar fills from the trailing end (RTLTests).",
+          "notes": "Determinate bars and rings measured exactly (inactive-window greys); the indeterminate spinner and bar are the animation's first frame; tint accepted without effect; no Progress objects or timer intervals; iOS profile: a 4 pt accent bar, the circular style always the 20 pt spinner (ios/progress/basic); the spinner's rotation and the indeterminate bar's motion (approximate), animated values under withAnimation, ProgressView(timerInterval:) through the animation timeline, ProgressView(_ progress:) (wasm's Progress is observable, Foundation's polled), tint on iOS and in an active macOS window (2026-10-04) Right-to-left (2026-10-09): the bar fills from the trailing end (RTLTests). tint(_:) with a shape style (2026-11-14): a colour as it is, any other style as the colour it resolves to in each appearance.",
           "fixtures": [
             "progress/basic",
             "progress/indeterminate",
@@ -1200,9 +1200,9 @@
           ]
         },
         {
-          "api": "blendMode(_:) / BlendMode (all 21 modes)",
+          "api": "blendMode(_:) on views and shape styles / BlendMode (all 21 modes)",
           "status": "full",
-          "notes": "Blend groups: canvas globalCompositeOperation (plusDarker computed by hand) and CGBlendMode transparency layers; softLight follows Apple's Pegtop formula natively and W3C's in the browser (within tolerance)",
+          "notes": "Blend groups: canvas globalCompositeOperation (plusDarker computed by hand) and CGBlendMode transparency layers; softLight follows Apple's Pegtop formula natively and W3C's in the browser (within tolerance); a shape style's blendMode(_:) (2026-11-14) draws the shapes it fills or strokes in a blend group and is its base colour as text or a tint",
           "fixtures": [
             "effects/blend"
           ]
@@ -1615,7 +1615,7 @@
         {
           "api": "UIButton",
           "status": "full",
-          "notes": "System, custom, tinted, gray, filled and configured buttons sized to fit, titles, images beside or above titles, subtitles, the button sizes, the pressed and disabled looks, iOS 26's corners, UIAction / addAction, configuration update handlers, menus; open: attributed titles, activity indicators (accepted)",
+          "notes": "System, custom, tinted, gray, filled and configured buttons sized to fit, titles, images beside or above titles, subtitles, the button sizes, the pressed and disabled looks, iOS 26's corners, UIAction / addAction, configuration update handlers, menus, preferred symbol configurations by state (2026-11-14: the weight drawn, a point size scaling the measured 17-point glyph, an assumption); open: attributed titles, activity indicators (accepted)",
           "fixtures": [
             "uikit/button/basic",
             "uikit/button/looks",

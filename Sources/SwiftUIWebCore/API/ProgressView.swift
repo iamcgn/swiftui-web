@@ -471,6 +471,14 @@ extension View {
         environment(\._tint, tint)
     }
 
+    /// Sets the tint of controls in this view to a style: a colour as it is, any other style
+    /// (a gradient, `.tint`, an erased style) as the colour it resolves to here, in each appearance.
+    nonisolated public func tint<S: ShapeStyle>(_ tint: S?) -> some View {
+        transformEnvironment(\.self) { environment in
+            environment._tint = tint.map { Color(_resolving: $0, in: environment) }
+        }
+    }
+
     /// Sets the accent color for this view and the views it contains: `Color.accentColor`
     /// draws it, and so do the controls that use the accent (Apple's deprecated form of
     /// `tint(_:)`). nil keeps the app's accent.
