@@ -53,6 +53,32 @@ public struct Product: Identifiable, Equatable, Hashable, Sendable {
     /// The format style that shows `price`, and amounts like it, in the product's currency.
     public var priceFormatStyle: Decimal.FormatStyle.Currency { .currency(code: currencyCode) }
 
+    /// The product's JSON, in the App Store's shape: its identifier and type, and under
+    /// `attributes` its name, description and one offer with the price and its currency.
+    public var jsonRepresentation: Data {
+        func quoted(_ text: String) -> String {
+            var out = "\""
+            for scalar in text.unicodeScalars {
+                switch scalar {
+                case "\"": out += "\\\""
+                case "\\": out += "\\\\"
+                case "\n": out += "\\n"
+                case "\r": out += "\\r"
+                case "\t": out += "\\t"
+                case _ where scalar.value < 0x20:
+                    let hex = String(scalar.value, radix: 16)
+                    out += "\\u" + String(repeating: "0", count: 4 - hex.count) + hex
+                default: out.unicodeScalars.append(scalar)
+                }
+            }
+            return out + "\""
+        }
+        let offer = "{\"currencyCode\":\(quoted(currencyCode)),\"price\":\(quoted("\(price)")),\"priceFormatted\":\(quoted(displayPrice))}"
+        let attributes = "{\"name\":\(quoted(displayName)),\"description\":{\"standard\":\(quoted(description))},\"isFamilyShareable\":\(isFamilyShareable ? 1 : 0),\"offers\":[\(offer)]}"
+        let json = "{\"id\":\(quoted(id)),\"type\":\(quoted(type.rawValue)),\"attributes\":\(attributes)}"
+        return Data(json.utf8)
+    }
+
     /// The format style for a subscription period unit ("month").
     public var subscriptionPeriodUnitFormatStyle: Product.SubscriptionPeriod.Unit.FormatStyle { .init() }
 
@@ -114,6 +140,29 @@ public struct Product: Identifiable, Equatable, Hashable, Sendable {
         public static func quantity(_ quantity: Int) -> PurchaseOption { PurchaseOption(name: "quantity", value: String(quantity)) }
         public static let simulatesAskToBuyInSandbox = PurchaseOption(name: "simulatesAskToBuyInSandbox", value: "true")
         public static func custom(key: String, value: String) -> PurchaseOption { PurchaseOption(name: key, value: value) }
+        /// Applies a win-back offer to the purchase.
+        public static func winBackOffer(_ offer: Product.SubscriptionOffer) -> PurchaseOption {
+            PurchaseOption(name: "winBackOffer", value: offer.id ?? "")
+        }
+        /// Says, with a signature from the app's server, whether the customer may take the
+        /// introductory offer.
+        public static func introductoryOfferEligibility(compactJWS: String) -> PurchaseOption {
+            PurchaseOption(name: "introductoryOfferEligibility", value: compactJWS)
+        }
+        /// Applies a promotional offer signed by the app's server as a compact JWS. The App Store
+        /// takes it as more than one option, so this answers a list.
+        public static func promotionalOffer(_ offerID: String, compactJWS: String) -> [PurchaseOption] {
+            [PurchaseOption(name: "promotionalOfferID", value: offerID),
+             PurchaseOption(name: "promotionalOfferJWS", value: compactJWS)]
+        }
+        /// Applies a promotional offer with the signature the app's server made for it.
+        public static func promotionalOffer(offerID: String, keyID: String, nonce: UUID, signature: Data, timestamp: Int) -> PurchaseOption {
+            PurchaseOption(name: "promotionalOffer", value: [offerID, keyID, nonce.uuidString, signature.base64EncodedString(), String(timestamp)].joined(separator: ":"))
+        }
+        /// Buys the subscription with one of its billing plans.
+        public static func billingPlanType(_ type: Product.SubscriptionInfo.BillingPlanType) -> PurchaseOption {
+            PurchaseOption(name: "billingPlanType", value: type.rawValue)
+        }
     }
 
     /// The errors a purchase throws.
@@ -126,6 +175,8 @@ public struct Product: Identifiable, Equatable, Hashable, Sendable {
         case invalidOfferPrice
         case invalidOfferSignature
         case missingOfferParameters
+        /// The purchase needs a payment method set up for its billing plan.
+        case paymentMethodBindingConfigurationRequired
     }
 
     /// The loading state of a product a store view shows.
@@ -207,6 +258,19 @@ public struct Product: Identifiable, Equatable, Hashable, Sendable {
         public let periodCount: Int
         public let paymentMode: PaymentMode
 
+        /// An offer with these details. The App Store makes offers; on the web none load, so
+        /// only tests and previews make one.
+        package init(id: String?, type: OfferType, price: Decimal, displayPrice: String, period: SubscriptionPeriod,
+                     periodCount: Int, paymentMode: PaymentMode) {
+            self.id = id
+            self.type = type
+            self.price = price
+            self.displayPrice = displayPrice
+            self.period = period
+            self.periodCount = periodCount
+            self.paymentMode = paymentMode
+        }
+
         public struct OfferType: RawRepresentable, Equatable, Hashable, Sendable {
             public let rawValue: String
             public init(rawValue: String) { self.rawValue = rawValue }
@@ -235,12 +299,16 @@ public struct Product: Identifiable, Equatable, Hashable, Sendable {
         /// The billing plans the subscription is sold with (paying up front, or monthly over a
         /// commitment), each with its price and offers.
         public let pricingTerms: [Product.SubscriptionInfo.PricingTerms]
+        /// The win-back offers for customers whose subscription lapsed.
+        public let winBackOffers: [Product.SubscriptionOffer]
 
         package init(subscriptionGroupID: String, subscriptionPeriod: Product.SubscriptionPeriod, groupLevel: Int = 1,
                      groupDisplayName: String = "", introductoryOffer: Product.SubscriptionOffer? = nil,
                      promotionalOffers: [Product.SubscriptionOffer] = [],
-                     pricingTerms: [Product.SubscriptionInfo.PricingTerms] = []) {
+                     pricingTerms: [Product.SubscriptionInfo.PricingTerms] = [],
+                     winBackOffers: [Product.SubscriptionOffer] = []) {
             self.pricingTerms = pricingTerms
+            self.winBackOffers = winBackOffers
             self.subscriptionGroupID = subscriptionGroupID
             self.subscriptionPeriod = subscriptionPeriod
             self.groupLevel = groupLevel
@@ -296,6 +364,8 @@ public struct Product: Identifiable, Equatable, Hashable, Sendable {
             public let renewalDate: Date?
             public let isInBillingRetry: Bool
             public let gracePeriodExpirationDate: Date?
+            /// The win-back offers the customer may take: the App Store names them, so none here.
+            public var eligibleWinBackOfferIDs: [String] { [] }
         }
 
         /// The renewal state, transaction and renewal details of a subscription.
