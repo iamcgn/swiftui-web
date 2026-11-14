@@ -616,8 +616,15 @@ open class JSValue: NSObject, @unchecked Sendable {
 
     // MARK: Comparing
 
-    /// Whether the value is `object`, converted, by `===`.
-    open func isEqual(to object: Any!) -> Bool {
+    /// Whether the value is `object`, converted, by `===` (NSObject's comparison method on
+    /// Apple platforms, which JavaScriptCore's value overrides).
+    #if canImport(ObjectiveC)
+    open override func isEqual(to object: Any?) -> Bool { strictlyEquals(object) }
+    #else
+    open func isEqual(to object: Any!) -> Bool { strictlyEquals(object) }
+    #endif
+
+    private func strictlyEquals(_ object: Any?) -> Bool {
         #if os(WASI)
         guard let context else { return false }
         return _JSEngine.same(handle, context.handle(for: object))
