@@ -1,5 +1,6 @@
 // TabView (Docs/elements/TabView.md): the macOS tab view, a segmented tab bar over a bordered
 // content box; `tabItem`, `TabViewStyle`.
+import WebFoundation   // LocalizedStringResource
 
 /// A view that switches between multiple child views using interactive user interface elements.
 public struct TabView<SelectionValue: Hashable, Content: View>: View {
