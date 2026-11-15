@@ -6,6 +6,9 @@
 import Testing
 import WebFoundation
 import WebFoundationFormats
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 #if os(WASI)
 import WebGraphics
 #endif
@@ -77,6 +80,85 @@ extension Set: _BothSetForms {}
         #expect(dictionary.object(forKey: "field") as? String == "maths")
         dictionary.removeAllObjects()
         #expect(dictionary.count == 0)
+    }
+
+    /// CVCalendar's weekday symbols (`symbols as NSArray`, then a Monday-first copy) and
+    /// SwiftyFORM's counts of any array it is handed.
+    @Test func arrays() {
+        let symbols = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+        var weekdays = symbols as NSArray
+        #expect(weekdays.count == 7 && weekdays.object(at: 1) as? String == "Mon")
+        #expect(weekdays.firstObject as? String == "Sun" && weekdays.lastObject as? String == "Sat")
+        #expect(weekdays.contains("Wed") && !weekdays.contains("Caturday"))
+        #expect(weekdays.index(of: "Tue") == 2 && weekdays.index(of: "Caturday") == NSNotFound)
+        let copy = weekdays
+        weekdays = weekdays.subarray(with: NSRange(location: 1, length: 6)) as NSArray
+        weekdays = weekdays.addingObjects(from: copy.subarray(with: NSRange(location: 0, length: 1))) as NSArray
+        #expect(weekdays as! [String] == ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"])
+        #expect(weekdays as? [Int] == nil)
+        #expect(weekdays.componentsJoined(by: ",") == "Mon,Tue,Wed,Thu,Fri,Sat,Sun")
+        var startingWithT = 0
+        for case let symbol as String in weekdays where symbol.hasPrefix("T") { startingWithT += 1 }
+        #expect(startingWithT == 2)
+        #expect(NSArray(array: [1, 2]).adding(3).count == 3)
+        let handed: Any = NSArray(objects: "a", "b")
+        #expect((handed as? NSArray)?.count == 2)
+    }
+
+    /// `(calendar as NSCalendar)` date math as CVCalendar reads its months and weeks.
+    @Test func calendarMath() throws {
+        var gregorian = Calendar(identifier: .gregorian)
+        gregorian.timeZone = try #require(TimeZone(secondsFromGMT: 0))
+        gregorian.firstWeekday = 1
+        let calendar = gregorian as NSCalendar
+        // Sunday 15 November 2026, midnight UTC: the month starts on a Sunday and has five weeks.
+        let date = Date(timeIntervalSince1970: 1_794_700_800)
+        let parts = calendar.components([.year, .month, .day, .weekday], from: date)
+        #expect(parts.year == 2026 && parts.month == 11 && parts.day == 15 && parts.weekday == 1)
+        #expect(calendar.component(.weekday, from: date) == 1 && calendar.firstWeekday == 1)
+        let weeks = calendar.range(of: .weekOfMonth, in: .month, for: date)
+        #expect(weeks.location == 1 && weeks.length == 5)
+        let days = calendar.range(of: .day, in: .month, for: date)
+        #expect(days.location == 1 && days.length == 30)
+        let later = try #require(calendar.date(byAdding: .day, value: 20, to: date, options: []))
+        #expect(calendar.components(.day, from: later).day == 5)
+        #expect(calendar.components(.day, from: date, to: later, options: []).day == 20)
+        let nextMonth = try #require(calendar.date(byAdding: DateComponents(month: 1), to: date, options: []))
+        #expect(calendar.component(.month, from: nextMonth) == 12)
+        #expect(calendar.date(from: DateComponents(year: 2026, month: 11, day: 15)) == date)
+        #expect(calendar.isDate(date, inSameDayAs: date.addingTimeInterval(3600)))
+        #expect(calendar.startOfDay(for: date.addingTimeInterval(3600)) == date)
+        #expect(calendar.ordinality(of: .day, in: .year, for: date) == 319)
+        #expect(calendar.isDateInWeekend(date))
+    }
+
+    /// SwiftyStoreKit's receipt request: a mutable request with a JSON body from a mutable
+    /// dictionary, handed to URLSession `as URLRequest`.
+    @Test func mutableRequestsAndJSONBodies() throws {
+        let request = NSMutableURLRequest(url: try #require(URL(string: "https://buy.itunes.apple.com/verifyReceipt")))
+        #expect(request.httpMethod == "GET")
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 30
+        #if os(WASI) || canImport(Darwin)
+        // Linux's Foundation has neither the literal nor key-value coding for dictionaries.
+        let contents: NSMutableDictionary = ["receipt-data": "MIIT"]
+        contents.setValue("secret", forKey: "password")
+        contents.setValue(nil, forKey: "missing")
+        #expect(contents.count == 2 && contents.value(forKey: "password") as? String == "secret")
+        request.httpBody = try JSONSerialization.data(withJSONObject: contents, options: [.sortedKeys])
+        #expect(request.httpBody.map { String(decoding: $0, as: UTF8.self) } == #"{"password":"secret","receipt-data":"MIIT"}"#)
+        #endif
+        let plain = request as URLRequest
+        #expect(plain.httpMethod == "POST" && plain.value(forHTTPHeaderField: "content-type") == "application/json")
+        #expect(plain.timeoutInterval == 30 && plain.httpBody == request.httpBody)
+        #expect((plain as NSURLRequest).url?.host == "buy.itunes.apple.com")
+        // The value is a copy: changing the object afterwards leaves it as it was.
+        request.httpMethod = "PUT"
+        #expect(plain.httpMethod == "POST")
+
+        let list = try JSONSerialization.data(withJSONObject: NSArray(array: ["a", 1]))
+        #expect(String(decoding: list, as: UTF8.self) == #"["a",1]"#)
     }
 
     @Test func valuesBridgeToTheirObjects() {

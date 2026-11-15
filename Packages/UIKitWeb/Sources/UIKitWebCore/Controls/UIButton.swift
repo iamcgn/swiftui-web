@@ -27,6 +27,9 @@ open class UIButton: UIControl {
     open var imageEdgeInsets = UIEdgeInsets.zero
     open var configuration: Configuration? { didSet { configurationDidChange() } }
     open var isPointerInteractionEnabled = false
+    /// Whether a touch glows while the button is highlighted (deprecated in iOS 15; SwiftyFORM's
+    /// precision slider sets it). Kept as set; the web draws no glow.
+    open var showsTouchWhenHighlighted = false
     open var role: Role = .normal
     /// The menu a long press opens, or a tap with `showsMenuAsPrimaryAction`; with
     /// `changesSelectionAsPrimaryAction` the chosen action becomes the button's title and state.

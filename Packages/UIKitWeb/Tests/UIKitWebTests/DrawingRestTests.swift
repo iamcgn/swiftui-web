@@ -138,6 +138,13 @@ import WebGraphicsHeadless
         let bezier = UIBezierPath(cgPath: path)
         #expect(bezier.bounds.minX == 0 && bezier.bounds.maxX == 110 && abs(bezier.bounds.maxY - 40) < 0.01)
         #expect(bezier.cgPath.contains(CGPoint(x: 50, y: 20)) && bezier.cgPath.contains(CGPoint(x: 105, y: 5)) && !bezier.cgPath.contains(CGPoint(x: 80, y: 5)))
+        // A UIBezierPath's cgPath (the substrate's Path) joins a mutable path, as CVCalendar's markers do.
+        let joined = CGMutablePath()
+        joined.addPath(UIBezierPath(ovalIn: CGRect(x: 0, y: 0, width: 20, height: 20)).cgPath)
+        joined.addPath(UIBezierPath(rect: CGRect(x: 10, y: 5, width: 20, height: 10)).cgPath, transform: CGAffineTransform(translationX: 5, y: 0))
+        let joinedBounds = UIBezierPath(cgPath: joined).bounds
+        #expect(abs(joinedBounds.minX) < 0.01 && abs(joinedBounds.maxX - 35) < 0.01 && abs(joinedBounds.maxY - 20) < 0.01)
+        #expect(joined.contains(CGPoint(x: 32, y: 10)) && !joined.contains(CGPoint(x: 32, y: 2)))
         let (scene, root) = scene()
         final class PathView: UIView {
             /// No archive to decode on the web: nil, as for an archive this class cannot read.

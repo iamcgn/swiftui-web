@@ -314,6 +314,10 @@ private final class ReceiptRefresh: SKRequestDelegate {
         #expect(error == SKError(.paymentNotAllowed))
         #expect(SKError.errorDomain == "SKErrorDomain")
         #expect(SKError(.paymentMethodBindingConfigurationRequired).errorCode == 21)
+        // SwiftyStoreKit makes the error from a failed transaction's NSError.
+        let bridged = SKError(_nsError: NSError(domain: SKErrorDomain, code: 2, userInfo: [NSLocalizedDescriptionKey: "Cancelled"]))
+        #expect(bridged.code == .paymentCancelled && bridged.userInfo[NSLocalizedDescriptionKey] as? String == "Cancelled")
+        #expect(SKError(_nsError: NSError(domain: SKErrorDomain, code: 999, userInfo: nil)).code == .unknown)
     }
 
     @Test func errorCodesAreNamedOnTheError() {
