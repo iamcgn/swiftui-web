@@ -3,7 +3,9 @@
 // `NSTimeZone`, `NSIndexPath`, `NSIndexSet`, `NSURLComponents`, `NSURLQueryItem`,
 // `NSMeasurement` and `NSCalendar` with the bridges that make `nsLocale as Locale` and
 // `locale as NSLocale` convert, as on Apple platforms (swift-custom-dump names each one, and
-// every TCA app builds it). Also `NSExceptionName`.
+// every TCA app builds it). Also `NSExceptionName`, and for Clendar's packages `NSArray`
+// (CVCalendar's weekday symbols, SwiftyFORM) and `NSURLRequest`/`NSMutableURLRequest`
+// (SwiftyStoreKit's receipt request).
 //
 // With the Objective-C runtime, `URL`, `UUID` and `Data` already bridge to the runtime's value
 // box (ObjectiveCBridging.swift), so `NSURL`, `NSUUID` and `NSData` are kinds of that box and
@@ -136,12 +138,94 @@ extension _WebNSSet: Sequence {
     public func makeIterator() -> IndexingIterator<[Any]> { allObjects.makeIterator() }
 }
 
+// MARK: - NSArray
+
+#if !canImport(ObjectiveC)
+/// The object an array is as Foundation's `NSArray` (ObjectiveCBridging.swift declares it with
+/// the runtime): its elements, each as `Any`.
+public final class _WebNSArray: NSObject, @unchecked Sendable {
+    public let elements: [Any]
+    public init(elements: [Any]) {
+        self.elements = elements
+        super.init()
+    }
+    public var count: Int { elements.count }
+}
+
+/// `array as NSArray` and `nsArray as? [String]`, as with the runtime (ObjectiveCBridging.swift).
+extension Array: @retroactive _ObjectiveCBridgeable {
+    public typealias _ObjectiveCType = _WebNSArray
+    public func _bridgeToObjectiveC() -> _WebNSArray { _WebNSArray(elements: map { $0 as Any }) }
+    public static func _forceBridgeFromObjectiveC(_ source: _WebNSArray, result: inout [Element]?) {
+        guard _conditionallyBridgeFromObjectiveC(source, result: &result) else {
+            fatalError("an array's elements are not \(Element.self)")
+        }
+    }
+    public static func _conditionallyBridgeFromObjectiveC(_ source: _WebNSArray, result: inout [Element]?) -> Bool {
+        var converted: [Element] = []
+        converted.reserveCapacity(source.elements.count)
+        for element in source.elements {
+            guard let typed = element as? Element else { result = nil; return false }
+            converted.append(typed)
+        }
+        result = converted
+        return true
+    }
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: _WebNSArray?) -> [Element] {
+        guard let source else { return [] }
+        var result: [Element]?
+        _forceBridgeFromObjectiveC(source, result: &result)
+        return result ?? []
+    }
+}
+#endif
+
+/// A static ordered collection of objects (CVCalendar's weekday symbols, SwiftyFORM's values).
+/// `array as NSArray` and `nsArray as! [String]` convert, as on Apple platforms.
+public typealias NSArray = _WebNSArray
+
+extension _WebNSArray: Sequence, _WebJSONCollection {
+    public convenience init(array: [Any]) { self.init(elements: array) }
+    public convenience init(object anObject: Any) { self.init(elements: [anObject]) }
+    public convenience init(objects: Any...) { self.init(elements: objects) }
+
+    /// The element at the index; out of range stops, as Foundation raises `NSRangeException`.
+    public func object(at index: Int) -> Any {
+        precondition(elements.indices.contains(index), "*** -[NSArray objectAtIndex:]: index \(index) beyond bounds [0 .. \(count - 1)]")
+        return elements[index]
+    }
+    public subscript(index: Int) -> Any { object(at: index) }
+    public var firstObject: Any? { elements.first }
+    public var lastObject: Any? { elements.last }
+    public func contains(_ anObject: Any) -> Bool { elements.contains { _webValuesEqual($0, anObject) } }
+    /// The lowest index whose element equals the object, or `NSNotFound`.
+    public func index(of anObject: Any) -> Int { elements.firstIndex { _webValuesEqual($0, anObject) } ?? NSNotFound }
+    /// The elements in the range; a range past the end stops, as Foundation raises.
+    public func subarray(with range: NSRange) -> [Any] {
+        precondition(range.location >= 0 && range.length >= 0 && range.location + range.length <= count,
+                     "*** -[NSArray subarrayWithRange:]: range {\(range.location), \(range.length)} extends beyond bounds [0 .. \(count - 1)]")
+        return Array(elements[range.location..<(range.location + range.length)])
+    }
+    /// A new array of these elements followed by the object.
+    public func adding(_ anObject: Any) -> [Any] { elements + [anObject] }
+    /// A new array of these elements followed by the other array's.
+    public func addingObjects(from otherArray: [Any]) -> [Any] { elements + otherArray }
+    /// The elements' descriptions joined by the separator.
+    public func componentsJoined(by separator: String) -> String { elements.map { "\($0)" }.joined(separator: separator) }
+    public func isEqual(to otherArray: [Any]) -> Bool {
+        otherArray.count == elements.count && zip(elements, otherArray).allSatisfy { _webValuesEqual($0, $1) }
+    }
+    public func makeIterator() -> IndexingIterator<[Any]> { elements.makeIterator() }
+    public var _webJSONValue: Any { elements }
+}
+
 // MARK: - NSDictionary
 
 /// A static collection of objects associated with unique keys.
 public typealias NSDictionary = _WebNSDictionary
 
-extension _WebNSDictionary: Sequence {
+extension _WebNSDictionary: Sequence, _WebJSONCollection {
+    public var _webJSONValue: Any { entries }
     public convenience init(dictionary otherDictionary: [AnyHashable: Any]) { self.init(entries: otherDictionary) }
     public convenience init(object: Any, forKey key: AnyHashable) { self.init(entries: [key: object]) }
     public convenience init(objects: [Any], forKeys keys: [AnyHashable]) {
@@ -179,8 +263,26 @@ extension _WebNSDictionary: Sequence {
 }
 
 /// A dynamic collection of objects associated with unique keys.
-open class NSMutableDictionary: _WebNSDictionary, @unchecked Sendable {
+open class NSMutableDictionary: _WebNSDictionary, ExpressibleByDictionaryLiteral, @unchecked Sendable {
     public convenience init(capacity numItems: Int) { self.init(entries: Dictionary(minimumCapacity: numItems)) }
+    /// `let body: NSMutableDictionary = ["receipt-data": receipt]` (SwiftyStoreKit).
+    public required convenience init(dictionaryLiteral elements: (Any, Any)...) {
+        var entries: [AnyHashable: Any] = [:]
+        for (key, value) in elements {
+            guard let key = key as? AnyHashable else { preconditionFailure("an NSDictionary key must be hashable, not \(type(of: key))") }
+            entries[key] = value
+        }
+        self.init(entries: entries)
+    }
+
+    // A dictionary's key-value coding is its entries: a value sets or (nil) removes the key's.
+    #if canImport(ObjectiveC)
+    open override func setValue(_ value: Any?, forKey key: String) { entries[key] = value }
+    open override func value(forKey key: String) -> Any? { entries[key] }
+    #else
+    open func setValue(_ value: Any?, forKey key: String) { entries[key] = value }
+    open func value(forKey key: String) -> Any? { entries[key] }
+    #endif
 
     open func setObject(_ anObject: Any, forKey aKey: AnyHashable) { entries[aKey] = anObject }
     open func removeObject(forKey aKey: Any) {
@@ -239,6 +341,88 @@ public final class NSURL: _WebNSValue, _WebValueObject, @unchecked Sendable {
     public var isFileURL: Bool { _webValue.isFileURL }
     public override func isEqual(_ object: Any?) -> Bool { (object as? NSURL)?._webValue == _webValue }
     public override var hash: Int { _webValue.hashValue }
+}
+
+/// A URL load request as an object, the request `URLRequest` bridges to; `NSMutableURLRequest`
+/// changes it (SwiftyStoreKit's receipt validation builds one and passes it `as URLRequest`).
+open class NSURLRequest: NSObject, @unchecked Sendable {
+    /// The request this object holds.
+    public fileprivate(set) var _webValue: URLRequest
+    public init(_webValue: URLRequest) {
+        self._webValue = _webValue
+        super.init()
+    }
+    public convenience init(url URL: URL) { self.init(_webValue: URLRequest(url: URL)) }
+    public convenience init(url URL: URL, cachePolicy: URLRequest.CachePolicy, timeoutInterval: TimeInterval) {
+        self.init(_webValue: URLRequest(url: URL, cachePolicy: cachePolicy, timeoutInterval: timeoutInterval))
+    }
+    open var url: URL? { _webValue.url }
+    open var cachePolicy: URLRequest.CachePolicy { _webValue.cachePolicy }
+    open var timeoutInterval: TimeInterval { _webValue.timeoutInterval }
+    open var httpMethod: String? { _webValue.httpMethod }
+    open var allHTTPHeaderFields: [String: String]? { _webValue.allHTTPHeaderFields }
+    open var httpBody: Data? { _webValue.httpBody }
+    open var mainDocumentURL: URL? { _webValue.mainDocumentURL }
+    open var httpShouldHandleCookies: Bool { _webValue.httpShouldHandleCookies }
+    open var allowsCellularAccess: Bool { _webValue.allowsCellularAccess }
+    open func value(forHTTPHeaderField field: String) -> String? { _webValue.value(forHTTPHeaderField: field) }
+    open override func isEqual(_ object: Any?) -> Bool { (object as? NSURLRequest)?._webValue == _webValue }
+    open override var hash: Int { _webValue.hashValue }
+}
+
+/// A URL load request whose URL, method, headers and body can change.
+open class NSMutableURLRequest: NSURLRequest, @unchecked Sendable {
+    open override var url: URL? {
+        get { _webValue.url }
+        set { _webValue.url = newValue }
+    }
+    open override var cachePolicy: URLRequest.CachePolicy {
+        get { _webValue.cachePolicy }
+        set { _webValue.cachePolicy = newValue }
+    }
+    open override var timeoutInterval: TimeInterval {
+        get { _webValue.timeoutInterval }
+        set { _webValue.timeoutInterval = newValue }
+    }
+    /// The method, "GET" unless set (not optional here, as in Foundation).
+    open override var httpMethod: String {
+        get { _webValue.httpMethod ?? "GET" }
+        set { _webValue.httpMethod = newValue }
+    }
+    open override var allHTTPHeaderFields: [String: String]? {
+        get { _webValue.allHTTPHeaderFields }
+        set { _webValue.allHTTPHeaderFields = newValue }
+    }
+    open override var httpBody: Data? {
+        get { _webValue.httpBody }
+        set { _webValue.httpBody = newValue }
+    }
+    open override var mainDocumentURL: URL? {
+        get { _webValue.mainDocumentURL }
+        set { _webValue.mainDocumentURL = newValue }
+    }
+    open override var httpShouldHandleCookies: Bool {
+        get { _webValue.httpShouldHandleCookies }
+        set { _webValue.httpShouldHandleCookies = newValue }
+    }
+    open override var allowsCellularAccess: Bool {
+        get { _webValue.allowsCellularAccess }
+        set { _webValue.allowsCellularAccess = newValue }
+    }
+    open func setValue(_ value: String?, forHTTPHeaderField field: String) { _webValue.setValue(value, forHTTPHeaderField: field) }
+    open func addValue(_ value: String, forHTTPHeaderField field: String) { _webValue.addValue(value, forHTTPHeaderField: field) }
+}
+
+/// `request as NSURLRequest` and `mutableRequest as URLRequest`, as on Apple platforms.
+extension URLRequest: _ObjectiveCBridgeable {
+    public typealias _ObjectiveCType = NSURLRequest
+    public func _bridgeToObjectiveC() -> NSURLRequest { NSURLRequest(_webValue: self) }
+    public static func _forceBridgeFromObjectiveC(_ source: NSURLRequest, result: inout URLRequest?) { result = source._webValue }
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSURLRequest, result: inout URLRequest?) -> Bool {
+        result = source._webValue
+        return true
+    }
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSURLRequest?) -> URLRequest { source!._webValue }
 }
 
 /// A universally unique value as an object.
