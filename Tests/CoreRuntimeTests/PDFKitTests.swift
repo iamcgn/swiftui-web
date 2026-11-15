@@ -9,6 +9,20 @@ import SwiftUIWebCore
 import UIKit
 import PDFKit
 
+/// One line per drawn string, so string drawing records its text without a host's engine.
+private final class LineTextEngine: TextEngine {
+    func layout(_ runs: [StyledRun], options: TextLayoutOptions, width: CGFloat?) -> TextLayout {
+        let string = runs.map(\.string).joined()
+        let size = runs.first?.font.size ?? 13
+        let w = CGFloat(string.count) * size * 0.5
+        let line = TextLayout.Line(range: string.startIndex..<string.endIndex, width: w, baseline: size, fragments: [TextLayout.Fragment(text: string, run: 0, x: 0, width: w)])
+        return TextLayout(size: CGSize(width: w, height: size * 1.2), firstBaseline: size, lastBaseline: size, lines: [line])
+    }
+    func metrics(for font: ResolvedFont) -> FontMetrics {
+        FontMetrics(lineHeight: font.size * 1.2, spacingBelow: 0, spacingAbove: 0, textToText: 0)
+    }
+}
+
 @Suite @MainActor struct PDFKitTests {
     private let a4 = CGRect(x: 0, y: 0, width: 595.2, height: 841.8)
 
@@ -22,6 +36,9 @@ import PDFKit
     }
 
     private func draw(_ context: UIGraphicsPDFRendererContext) {
+        let engine = UIKitScene.shared.textEngine
+        UIKitScene.shared.textEngine = LineTextEngine()
+        defer { UIKitScene.shared.textEngine = engine }
         // Drawing before the first page goes nowhere, as in UIKit.
         "lost".draw(at: CGPoint(x: 10, y: 10), withAttributes: [.font: UIFont.systemFont(ofSize: 12)])
         context.beginPage()
