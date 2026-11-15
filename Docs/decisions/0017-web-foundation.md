@@ -55,8 +55,12 @@ worked because CoreGraphics is a C module, which Swift declarations shadow outri
   methods are found through a module's own lookup table, which the scoped re-exports leave
   closed, so WebFoundation declares the few that no standard-library protocol carries
   (`Date ± TimeInterval` and its compound forms, `Decimal /` and `/=`;
-  EssentialsOperators.swift), with FoundationEssentials' behaviour. A name
-  FoundationEssentials adds in a later toolchain needs a line here.
+  EssentialsOperators.swift), with FoundationEssentials' behaviour. `Decimal /` and `/=` are
+  `@_alwaysEmitIntoClient` and reach FoundationEssentials' own operator through
+  WebDecimalDivision (inside WebFoundation, its own `/` shadows that one), so they are compiled
+  into the app that divides: compiled into WebFoundation, they named `Decimal` in an object
+  every app links, and Counter went from 3,059,074 to 4,008,346 bytes brotli (decision 0006).
+  A name FoundationEssentials adds in a later toolchain needs a line here.
 - No file of this project imports `FoundationEssentials` directly; `import WebFoundation`
   replaces it (an explicit `import FoundationEssentials` in a file would make the shadowed
   names ambiguous there). `Date` stays FoundationEssentials', as do the types nobody here

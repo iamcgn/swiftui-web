@@ -90,6 +90,16 @@ on nothing and declares only the hook's closures and value types; CoreLocation r
 Counter's cost for geolocation is the host's own code: +11,499 bytes raw, +3,032 brotli
 (2,958,465 to 2,961,497 against main 8e0457a). A new hook follows the same split.
 
+## 2026-11-15: Decimal named in WebFoundation's object
+A first version of decision 0017's name-by-name re-export declared `Decimal /` in WebFoundation
+as an ordinary function. Every app links WebFoundation's object, and that one function naming
+`Decimal` linked FoundationEssentials' Decimal and much of the library with it: Counter
+3,059,074 to 4,008,346 bytes brotli, Gallery 3,850,891 to 4,806,298. The operator is now
+`@_alwaysEmitIntoClient`, calling FoundationEssentials' `/` through the WebDecimalDivision
+module, so it is compiled into the app that divides and costs Counter nothing. A WebFoundation
+declaration that has to name `Decimal` (or another FoundationEssentials value type but `Date`)
+does the same, or lives in a module only the apps that use it link (WebDecimalFormats).
+
 ## Open items
 - Whether a user's explicit `import Foundation` next to `import SwiftUI` makes `CGRect` ambiguous
   on wasm (two modules declaring it). Test in Phase 1 step 1; if it does, evaluate a

@@ -9,6 +9,7 @@ import PackageDescription
 // Module layout:
 //   WebFoundation        Foundation for the substrate: Foundation itself, or FoundationEssentials
 //                        plus the wasm stand-ins for its heaviest value types (decision 0017)
+//   WebDecimalDivision   FoundationEssentials' `Decimal /` for WebFoundation's operator
 //   WebFoundationFormats list, duration and date-components formatting; `import Foundation` only
 //   WebDecimalFormats    `Decimal`'s formatting; `import Foundation` with the DecimalFormatting trait
 //   WebGraphics          geometry, display list, paths, text engine protocol, HostedScene
@@ -38,6 +39,13 @@ let package = Package(
     targets: [
         .target(
             name: "WebFoundation",
+            dependencies: ["WebDecimalDivision"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // FoundationEssentials' `Decimal /` under a name WebFoundation's own `Decimal /` calls,
+        // emitted into the app that divides (decision 0006, 2026-11-15).
+        .target(
+            name: "WebDecimalDivision",
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         // Foundation's less used formatting, calendar search and XMLParser on wasm, re-exported by

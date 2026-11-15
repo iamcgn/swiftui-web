@@ -6,8 +6,8 @@
 // behaviour. (`==`, `<`, `+` on `Decimal` and the rest come with the conformances to Equatable,
 // Comparable and the numeric protocols.)
 #if os(WASI)
-// `_NSDecimalDivide` is the division FoundationEssentials' own `/` makes (NaN on an error).
-@_spi(SwiftCorelibsFoundation) import FoundationEssentials
+import FoundationEssentials
+import WebDecimalDivision
 
 extension Date {
     public static func + (lhs: Date, rhs: TimeInterval) -> Date { lhs.addingTimeInterval(rhs) }
@@ -16,14 +16,14 @@ extension Date {
     public static func -= (lhs: inout Date, rhs: TimeInterval) { lhs = lhs.addingTimeInterval(-rhs) }
 }
 
+// Emitted into the app that divides, never into WebFoundation's object: a function here that
+// names `Decimal` links FoundationEssentials' Decimal into every app (WebDecimalDivision says
+// why, decision 0006).
 extension Decimal {
-    public static func / (lhs: Decimal, rhs: Decimal) -> Decimal {
-        var result = Decimal()
-        var dividend = lhs, divisor = rhs
-        _ = _NSDecimalDivide(&result, &dividend, &divisor, .plain)
-        return result
-    }
+    @_alwaysEmitIntoClient
+    public static func / (lhs: Decimal, rhs: Decimal) -> Decimal { _essentialsDecimalDivide(lhs, rhs) }
 
-    public static func /= (lhs: inout Decimal, rhs: Decimal) { lhs = lhs / rhs }
+    @_alwaysEmitIntoClient
+    public static func /= (lhs: inout Decimal, rhs: Decimal) { lhs = _essentialsDecimalDivide(lhs, rhs) }
 }
 #endif
