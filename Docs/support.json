@@ -2495,6 +2495,12 @@
           "status": "full",
           "notes": "pf-everyday-apis (2026-11-14): Foundation's are NSObjects, so they compare and hash: an expression equals another with the same pattern and options, as isEqual(_:) says on Apple platforms, and a match result only itself. A struct that keeps a compiled expression synthesizes Equatable and Hashable (IceCubes' and MastodonKit's HTMLString)",
           "noFixture": "A conformance, not a screen; FoundationGapsTests."
+        },
+        {
+          "api": "AttributedStringProtocol / AttributedSubstring / ScopedAttributeContainer / AttributeMergePolicy / replaceAttributes(_:with:) / AttributeContainer(_ dictionary:)",
+          "status": "partial",
+          "notes": "pf-everyday-apis (2026-11-15): on wasm, an attribute read from a whole string or a slice is the value every character shares (nil where runs differ) and neighbouring runs with the same attributes are one, as Foundation keeps them; slices take any range expression, set through it, and append, insert and replace as strings; a type of an app's own conforms to AttributedStringProtocol (EmojiText's partial string in IceCubes); `text.swiftUI.font`, `container.uiKit.foregroundColor` and an app's own scope read and set through a scoped container; merges keep the new or the current value, and replaceAttributes changes only runs that have every attribute given; `AttributeContainer(dictionary)` keeps the UIKit and Foundation keys (Harbour). Open: the localized and Markdown initializers' options, Codable",
+          "noFixture": "Behaviour of a value type, not a screen; AttributedStringProtocolTests holds it to Foundation on macOS and Linux, AttributeScopeTests the SwiftUI and UIKit scopes on wasm."
         }
       ]
     },
