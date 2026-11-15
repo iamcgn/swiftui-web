@@ -209,17 +209,17 @@ open class NSManagedObject: _NSManagedObjectRoot, NSFetchRequestResult, _CDKeyVa
     // these replace: a managed object's values are its `_values`, not stored properties.
     #if os(WASI) && canImport(ObjectiveC)
     /// The value of the property with the name (integers as `Int`, as `NSNumber` bridges them).
-    open override func value(forKey key: String) -> Any? { _cdValue(forKey: key) }
+    open override func value(forKey key: String) -> Any? { _cdOwnValue(forKey: key) }
     /// Sets the property with the name; a relationship's inverse follows.
-    open override func setValue(_ value: Any?, forKey key: String) { _cdSetValue(value, forKey: key) }
+    open override func setValue(_ value: Any?, forKey key: String) { _cdSetOwnValue(value, forKey: key) }
     #else
     /// The value of the property with the name (integers as `Int`, as `NSNumber` bridges them).
-    open func value(forKey key: String) -> Any? { _cdValue(forKey: key) }
+    open func value(forKey key: String) -> Any? { _cdOwnValue(forKey: key) }
     /// Sets the property with the name; a relationship's inverse follows.
-    open func setValue(_ value: Any?, forKey key: String) { _cdSetValue(value, forKey: key) }
+    open func setValue(_ value: Any?, forKey key: String) { _cdSetOwnValue(value, forKey: key) }
     #endif
 
-    func _cdValue(forKey key: String) -> Any? {
+    func _cdOwnValue(forKey key: String) -> Any? {
         guard let value = _values[key] else { return nil }
         if let integer = value as? Int64, let attribute = entity.attributesByName[key], attribute.attributeType._isInteger {
             return Int(exactly: integer) ?? integer
@@ -227,7 +227,7 @@ open class NSManagedObject: _NSManagedObjectRoot, NSFetchRequestResult, _CDKeyVa
         return value
     }
 
-    func _cdSetValue(_ value: Any?, forKey key: String) {
+    func _cdSetOwnValue(_ value: Any?, forKey key: String) {
         if let relationship = entity.relationshipsByName[key] {
             _setRelationship(relationship, value)
             return
