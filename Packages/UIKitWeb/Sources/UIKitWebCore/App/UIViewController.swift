@@ -135,7 +135,26 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
 
     override open var next: UIResponder? { _view?.superview ?? parent ?? window }
 
-    open var traitCollection: UITraitCollection { _view?.traitCollection ?? UIScreen.main.traitCollection }
+    open var traitCollection: UITraitCollection {
+        if let view = _view { return view.traitCollection }
+        var traits = UIScreen.main.traitCollection
+        traitOverrides.apply(to: &traits)
+        return traits
+    }
+
+    /// Traits this controller, its view and the view's subtree see instead of the inherited
+    /// ones (iOS 17), an app's own traits among them: swift-navigation gives a presented
+    /// controller its dismiss action this way, before its view loads.
+    open var traitOverrides = UITraitOverrides() {
+        willSet { traitsBeforeOverrides = _view == nil ? nil : traitCollection }
+        didSet {
+            guard traitOverrides != oldValue, let view = _view else { return }
+            view.propagateTraitChange(from: traitsBeforeOverrides)
+            view.setNeedsLayout()
+            view.setNeedsDisplay()
+        }
+    }
+    private var traitsBeforeOverrides: UITraitCollection?
     /// Called with the view's when the view's traits change (the window's style, an override
     /// above it, the host's scheme or size).
     open func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {}

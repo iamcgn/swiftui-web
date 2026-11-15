@@ -812,4 +812,4 @@ protocol HostTextInput: UIView {
     func hostDidSubmit()
 }
 
-extension UITextField: HostTextInput {}
+extension UITextField: HostTextInput, UITextInput {}
