@@ -231,3 +231,25 @@ gives the `kUTType` constants. Tested in `CGImageTests`.
 Open: decoding pixels of a file or a recording (`dataProvider` is nil for them),
 `CGImageDestination`, Core Image, vImage.
 
+
+## PDF renderers and PDFKit (2026-11-15)
+
+`UIGraphicsPDFRenderer` runs its drawing block with a fresh recording context for each
+`beginPage()` (drawing made before the first page goes nowhere, as in UIKit) and writes the pages
+as a PDF 1.4 file: a page tree, one content stream per page and the document information. Each
+page is flipped to UIKit's top-left origin with `1 0 0 -1 0 h cm`, so the recording's commands go
+out as they are: `q`/`Q` for saves, `cm` for transforms, `re`/`m`/`l`/`c`/`h` for geometry
+(quadratic curves raised to cubics), `W n` for clips, `f`/`f*`/`S` for fills and strokes with
+their line style, colours as `rg`/`RG` and alpha through an ExtGState. Text is drawn in the
+standard face nearest its font (Helvetica, Times for serif families, Courier for monospaced ones,
+bold from semibold up) in WinAnsi, with a text matrix that turns the glyphs back upright.
+Images, shadows, filters and backdrop blurs have no operators here and are left out; a gradient
+fills with its middle colour.
+
+The process also keeps each page's recording, under a marker it writes in the file's
+information. `PDFDocument(url:)` and `PDFDocument(data:)` look the marker up, so a file of ours
+opens with its pages, text and thumbnails exactly as drawn (Basic-Car-Maintenance's maintenance
+report and its share thumbnail). Another PDF is read from its bytes for its version, its
+information strings (WinAnsi or UTF-16) and each page object's media box, an inherited one
+included; its pages draw blank, and a file whose pages sit in compressed object streams shows
+none. `PDFPage.thumbnail(of:for:)` fits the page's proportions inside the size asked for, on white.
