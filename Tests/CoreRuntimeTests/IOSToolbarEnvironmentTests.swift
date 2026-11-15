@@ -94,6 +94,8 @@ import SwiftUIWebHeadless
         #expect(!disabled.isEnabled)
     }
 
+    // Deprecated API in a deprecated context: no warnings (the package treats them as errors).
+    @available(*, deprecated)
     @Test func navigationBarItemsSitAtTheEndsOfTheBar() throws {
         let r = runtime(NavigationStack {
             Text("Body")
