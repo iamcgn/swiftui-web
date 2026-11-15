@@ -54,8 +54,8 @@ worked because CoreGraphics is a C module, which Swift declarations shadow outri
   macros, nor the `Expression` struct, whose name the `#Expression` macro shares. Operator
   methods are found through a module's own lookup table, which the scoped re-exports leave
   closed, so WebFoundation declares the few that no standard-library protocol carries
-  (`Date ± TimeInterval` and its compound forms, `Decimal /` and `/=`, an error code's `~=` in a
-  `catch`; EssentialsOperators.swift), with FoundationEssentials' behaviour. A name
+  (`Date ± TimeInterval` and its compound forms, `Decimal /` and `/=`;
+  EssentialsOperators.swift), with FoundationEssentials' behaviour. A name
   FoundationEssentials adds in a later toolchain needs a line here.
 - No file of this project imports `FoundationEssentials` directly; `import WebFoundation`
   replaces it (an explicit `import FoundationEssentials` in a file would make the shadowed

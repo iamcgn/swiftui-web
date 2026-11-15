@@ -28,11 +28,9 @@ enum SugarImports {
         let earlier = later - 10
         var half = Decimal(1) / Decimal(2)
         half /= 1
-        var missing = false
-        do { throw CocoaError(.fileNoSuchFile) } catch CocoaError.fileNoSuchFile { missing = true } catch {}
         let counts = [urls.count, byName.count, blobs.count, pending.count, encoders.count, decoders.count,
                       parts.count, items.count, dates.count, ids.count, spans.count, failures.count,
                       calendars.count, zones.count, locales.count, paths.count]
-        return "\(none == nil) \(order == nil) \(counts.reduce(0, +)) \(squared) \(half) \(earlier < later) \(missing) \(ProcessInfo.processInfo.processIdentifier > 0)"
+        return "\(none == nil) \(order == nil) \(counts.reduce(0, +)) \(squared) \(half) \(earlier < later) \(ProcessInfo.processInfo.processIdentifier > 0)"
     }
 }
