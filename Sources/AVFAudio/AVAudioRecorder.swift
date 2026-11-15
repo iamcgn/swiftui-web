@@ -3,6 +3,7 @@
 // the latest samples, which is what apps that draw a sound level use it for (Swift Charts
 // Examples' sound bars). Nothing is written to the URL: there is no AVAudioFile yet.
 import WebFoundation
+import AVFAudioHost
 #if os(WASI)
 import WASILibc
 #endif

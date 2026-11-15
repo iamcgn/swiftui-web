@@ -19,6 +19,7 @@
 // Apple's frameworks re-export Foundation: a file importing only this module names Data and URL.
 @_exported import WebFoundation
 @_exported import Observation
+@_exported import SwiftDataHost
 import SwiftUIWebCore
 import WebCombine
 
