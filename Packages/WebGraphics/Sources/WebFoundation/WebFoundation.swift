@@ -14,7 +14,10 @@
 // and the typealiases the Foundation shadow declared for it were a second `URL` beside this one
 // in every file importing Foundation and SwiftUI, where `[URL]()` and `URL?.none` failed
 // (IceCubes' Models). Here every module that reaches FoundationEssentials through this one sees
-// one declaration of each name.
+// one declaration of each name. `Expression` is left out: the name is both a struct and the
+// `#Expression` macro, so a scoped import of it is ambiguous. No scoped import names a macro, so
+// FoundationEssentials' `#Expression` and `#Predicate` are not re-exported either (SwiftData
+// declares its own `#Predicate`).
 #if os(WASI)
 @_exported import typealias FoundationEssentials.AttributeScopeCodableConfiguration
 @_exported import typealias FoundationEssentials.CocoaError
@@ -33,7 +36,6 @@
 @_exported import protocol FoundationEssentials.EncodableAttributedStringKey
 @_exported import protocol FoundationEssentials.EncodableWithConfiguration
 @_exported import protocol FoundationEssentials.EncodingConfigurationProviding
-@_exported import typealias FoundationEssentials.Expression
 @_exported import protocol FoundationEssentials.FileManagerDelegate
 @_exported import typealias FoundationEssentials.FileProtectionType
 @_exported import protocol FoundationEssentials.MarkdownDecodableAttributedStringKey

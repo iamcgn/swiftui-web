@@ -50,7 +50,8 @@ worked because CoreGraphics is a C module, which Swift declarations shadow outri
   both declarations and was ambiguous, and the Foundation shadow's typealiases that fixed it
   were themselves a second `URL` in every file importing Foundation and SwiftUI, where `[URL]()`
   and `URL?.none` did not compile. Extension members, conformances and nested types come with
-  any one name; operator declarations would not (FoundationEssentials declares none). A name
+  any one name. Operator declarations would not come (FoundationEssentials declares none), nor
+  macros, nor the `Expression` struct, whose name the `#Expression` macro shares. A name
   FoundationEssentials adds in a later toolchain needs a line here.
 - No file of this project imports `FoundationEssentials` directly; `import WebFoundation`
   replaces it (an explicit `import FoundationEssentials` in a file would make the shadowed
