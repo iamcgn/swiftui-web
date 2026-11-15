@@ -95,6 +95,32 @@ import UIKit
         #expect(presentedOpacity(layer) == 1 && presentedX(layer) == 100)   // removed on completion
     }
 
+    @Test func springsByDurationAndBounce() {
+        let (scene, root) = scene()
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))
+        root.addSubview(view)
+        // No bounce: it closes in without passing the end.
+        var completed = false
+        UIView.animate(springDuration: 1, bounce: 0, animations: { view.center.x = 120 }, completion: { _ in completed = true })
+        _ = scene.advanceFrame(elapsed: 0.2)
+        let still = presentedX(view.layer)
+        #expect(still > 20 && still < 120)
+        _ = scene.advanceFrame(elapsed: 0.85)
+        #expect(completed && abs(presentedX(view.layer) - 120) < 0.5)
+        view.layer.removeAllAnimations()
+        scene.animationGroups.removeAll()
+
+        // A bounce of 0.6 overshoots the end before it settles; the delay holds the start.
+        view.center.x = 20
+        UIView.animate(springDuration: 1, bounce: 0.6, initialSpringVelocity: 0, delay: 0.5, options: [], animations: { view.center.x = 120 })
+        _ = scene.advanceFrame(elapsed: 0.5)
+        #expect(abs(presentedX(view.layer) - 20) < 0.01)
+        _ = scene.advanceFrame(elapsed: 0.2)
+        #expect(presentedX(view.layer) > 125)
+        view.layer.removeAllAnimations()
+        scene.animationGroups.removeAll()
+    }
+
     @Test func animateOptionsRepeatAutoreverseAndCurrentState() {
         let (scene, root) = scene()
         let view = UIView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))

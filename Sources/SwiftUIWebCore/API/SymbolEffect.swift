@@ -1,7 +1,8 @@
 // symbolEffect: animated effects on system symbols. Indefinite effects run while active
-// (pulse, scale, variableColor, breathe, rotate, wiggle, bounce), discrete ones play when a
-// value changes (bounce, pulse, variableColor, wiggle, rotate, breathe). The stand-in glyphs
-// are drawn as one layer, so by-layer variants behave like whole-symbol ones.
+// (pulse, scale, variableColor, breathe, rotate, wiggle, bounce; appear fades the symbol in and
+// disappear fades it out and keeps it hidden, as ButtonKit's loading styles use them), discrete
+// ones play when a value changes (bounce, pulse, variableColor, wiggle, rotate, breathe). The
+// stand-in glyphs are drawn as one layer, so by-layer variants behave like whole-symbol ones.
 
 /// An effect that can be applied to a symbol image.
 public protocol SymbolEffect {
@@ -94,7 +95,7 @@ public struct BreatheSymbolEffect: IndefiniteSymbolEffect, DiscreteSymbolEffect 
     public var wholeSymbol: BreatheSymbolEffect { self }
 }
 
-public struct AppearSymbolEffect: TransitionSymbolEffect {
+public struct AppearSymbolEffect: TransitionSymbolEffect, IndefiniteSymbolEffect {
     public var _kind: _SymbolEffectKind { .appear }
     public var up: AppearSymbolEffect { self }
     public var down: AppearSymbolEffect { self }
@@ -102,7 +103,7 @@ public struct AppearSymbolEffect: TransitionSymbolEffect {
     public var wholeSymbol: AppearSymbolEffect { self }
 }
 
-public struct DisappearSymbolEffect: TransitionSymbolEffect {
+public struct DisappearSymbolEffect: TransitionSymbolEffect, IndefiniteSymbolEffect {
     public var _kind: _SymbolEffectKind { .disappear }
     public var up: DisappearSymbolEffect { self }
     public var down: DisappearSymbolEffect { self }

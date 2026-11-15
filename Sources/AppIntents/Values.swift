@@ -136,9 +136,10 @@ public struct DisplayRepresentation: ExpressibleByStringLiteral, Equatable, @unc
             case circular
         }
 
-        public init(systemName: String, isTemplate: Bool = true) {
+        /// A system symbol; `isTemplate` nil (the default) draws it as a template, as symbols are.
+        public init(systemName: String, isTemplate: Bool? = nil) {
             source = .systemName(systemName)
-            self.isTemplate = isTemplate
+            self.isTemplate = isTemplate ?? true
             displayStyle = .default
         }
 

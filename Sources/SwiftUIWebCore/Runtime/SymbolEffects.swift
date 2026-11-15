@@ -104,7 +104,11 @@ extension ImageNode {
                 let scale = 1 + 0.1 * wave
                 transform = transform.concatenating(CGAffineTransform(scaleX: scale, y: scale))
                 opacity *= 1 - 0.2 * wave
-            case .appear, .disappear, .replace:
+            case .appear, .disappear:
+                // While active: fades in (appear) or out and stays hidden (disappear) over one play.
+                let shown = min(1, elapsed / cycle)
+                opacity *= effect.request.kind == .appear ? shown : 1 - shown
+            case .replace:
                 break
             }
         }
