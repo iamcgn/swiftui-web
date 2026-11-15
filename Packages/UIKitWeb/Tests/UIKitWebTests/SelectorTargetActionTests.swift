@@ -13,6 +13,26 @@ import UIKit
     @objc func refresh() { calls.append("refresh") }
     @objc func pressed(_ recognizer: UILongPressGestureRecognizer) { calls.append("pressed \(recognizer.state.rawValue)") }
     @objc func tappedView(_ recognizer: UITapGestureRecognizer) { calls.append("tap \(recognizer.state == .ended)") }
+    /// Takes the item itself, as SwiftyFORM's toolbar's actions do: the item is an NSObject.
+    @objc func nextField(_ sender: UIBarButtonItem) { calls.append("next \(sender.title ?? "")") }
+}
+
+/// A controller whose `viewDidLoad()` override is in an extension, as Dime's
+/// `extension UINavigationController { override open func viewDidLoad() }` is: it compiles only
+/// where the method is `@objc dynamic`, as UIKit's is.
+@MainActor final class ExtensionLoadedController: UIViewController {
+    var events: [String] = []
+}
+
+extension ExtensionLoadedController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        events.append("load")
+    }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        events.append("willAppear")
+    }
 }
 
 @Suite @MainActor struct SelectorTargetActionTests {
@@ -98,6 +118,24 @@ import UIKit
         platter.sendActions(for: .primaryActionTriggered)
         #expect(target.calls == ["tapped item"])
         #expect(platter.longPressMenu == nil)
+    }
+
+    @Test func aBarButtonItemSendsItselfToAMethodThatTakesAnItem() {
+        let target = ActionTarget()
+        let item = UIBarButtonItem(title: "Next", style: .plain, target: target, action: #selector(ActionTarget.nextField(_:)))
+        let object: NSObject = item
+        #expect(object.isEqual(item) && !object.isEqual(UIBarButtonItem()))
+        BarPlatterButton(item: item).sendActions(for: .primaryActionTriggered)
+        target.perform(#selector(ActionTarget.nextField(_:)), with: item)
+        #expect(target.calls == ["next Next", "next Next"])
+    }
+
+    @Test func aLifecycleOverrideInAnExtensionRuns() {
+        let controller = ExtensionLoadedController(nibName: nil, bundle: nil)
+        controller.loadViewIfNeeded()
+        controller.viewWillAppear(false)
+        #expect(controller.events == ["load", "willAppear"])
+        #expect(controller.responds(to: #selector(UIViewController.viewDidLoad)))
     }
 
     /// The selector and target are read on the tap: an item changed after its bar was built (an

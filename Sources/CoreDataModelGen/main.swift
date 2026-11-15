@@ -311,6 +311,44 @@ func property(_ attribute: Attribute) -> (type: String, get: String)? {
     }
 }
 
+/// The attribute types that Objective-C represents with the runtime for WebAssembly: numbers and
+/// the Foundation values that bridge to objects (WebFoundation, ObjectiveCBridging.swift).
+/// `Decimal` bridges only where its formatting is linked, an object ID is a plain class, and a
+/// transformable attribute's type is the app's, so those properties stay Swift-only.
+let representableAttributeTypes: Set<String> = [
+    "Int16", "Int32", "Int64", "Double", "Float", "Bool", "NSNumber?",
+    "String?", "Date?", "Data?", "UUID?", "URL?",
+]
+
+/// Names whose Objective-C selectors NSObject or NSManagedObject already take: a property of such
+/// a name stays Swift-only rather than clash with them.
+let reservedSelectorNames: Set<String> = [
+    "class", "hash", "description", "debugDescription", "superclass", "self", "copy", "mutableCopy",
+    "zone", "retain", "release", "autorelease", "retainCount", "isProxy", "init", "new", "alloc", "dealloc",
+]
+
+/// A generated property: its accessors over the object's values. With the Objective-C runtime for
+/// WebAssembly a property of a type Objective-C represents is `@objc`, as Xcode's `@NSManaged`
+/// ones are, so `#keyPath(Item.date)` and `#selector` name it (Dime's sort descriptors and
+/// predicates, `NSSortDescriptor(key: #keyPath(Transaction.date), ascending: false)`).
+func accessor(_ name: String, type: String, get: String, objc: Bool) -> String {
+    let body = """
+        public var \(identifier(name)): \(type) {
+            get { \(get) }
+            set { _genSetValue(newValue, \(literal(name))) }
+        }
+
+    """
+    guard objc, !reservedSelectorNames.contains(name) else { return body }
+    return """
+    #if os(WASI) && canImport(ObjectiveC)
+        @objc
+    \(body)#else
+    \(body)#endif
+
+    """
+}
+
 func deleteRule(_ rule: String) -> String {
     switch rule {
     case "Cascade": return ".cascadeDeleteRule"
@@ -368,25 +406,17 @@ func generate(models: [Model], module: String) -> String {
             """
             for attribute in entity.attributes {
                 guard let (type, get) = property(attribute) else { continue }
-                out += """
-                    public var \(identifier(attribute.name)): \(type) {
-                        get { \(get) }
-                        set { _genSetValue(newValue, \(literal(attribute.name))) }
-                    }
-
-                """
+                out += accessor(attribute.name, type: type, get: get,
+                                objc: representableAttributeTypes.contains(type))
             }
             for relationship in entity.relationships {
                 let destination = className(of: relationship.destination)
                 let type = relationship.toMany ? (relationship.ordered ? "NSOrderedSet?" : "NSSet?") : "\(destination)?"
                 let get = relationship.toMany ? (relationship.ordered ? "_genOrdered" : "_genSet") : "_genObject"
-                out += """
-                    public var \(identifier(relationship.name)): \(type) {
-                        get { \(get)(\(literal(relationship.name))) }
-                        set { _genSetValue(newValue, \(literal(relationship.name))) }
-                    }
-
-                """
+                // An ordered to-many relationship's `NSOrderedSet` is a value type here, which
+                // Objective-C cannot represent; the other relationships' types are objects.
+                out += accessor(relationship.name, type: type, get: "\(get)(\(literal(relationship.name)))",
+                                objc: !(relationship.toMany && relationship.ordered))
             }
             out += "}\n"
             for relationship in entity.relationships where relationship.toMany {
