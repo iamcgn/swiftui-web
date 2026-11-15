@@ -158,7 +158,8 @@ func plainCharacters<S: AttributedStringProtocol>(_ text: S) -> String { String(
     @Test func slicesEqualByContent() {
         let one = coloured("ab", "red") + coloured("ab", "red", language: "fr")
         let first = one[..<one.index(one.startIndex, offsetByCharacters: 2)]
-        let again = coloured("ab", "red")[...]
+        let red = coloured("ab", "red")
+        let again = red[red.startIndex...]
         #expect(first == again && first.hashValue == again.hashValue)
         #expect(first != one[one.index(one.startIndex, offsetByCharacters: 2)...])
     }
@@ -222,8 +223,8 @@ private extension AttributedString {
         red.noteColor = "red"
         let emoji = AttributedString(":wave:")
         var partial = PartialAttributedString()
-        partial.append(red[...])
-        partial.append(emoji[...])
+        partial.append(red[red.startIndex...])
+        partial.append(emoji[emoji.startIndex...])
         #expect(plainCharacters(partial) == "Hi :wave:" && partial.runs.count == 2)
         #expect(partial.noteColor == nil)
         partial.noteColor = "blue"
