@@ -11,7 +11,7 @@
 // store on a device; nothing traps and nothing stands in for the storage.
 #if os(WASI)
 import JavaScriptKit
-import SwiftData
+import SwiftDataHost
 
 @MainActor
 enum DataHost {
@@ -46,7 +46,7 @@ enum DataHost {
     }
 
     static func install() {
-        _ModelStore.Host.store = (
+        _SwiftDataHost.store = (
             load: { name in try run("get", prefix + name) },
             save: { name, json in
                 if let json { _ = try run("set", prefix + name, json) } else { _ = try run("remove", prefix + name) }

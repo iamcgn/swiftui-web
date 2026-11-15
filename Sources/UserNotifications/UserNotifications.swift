@@ -7,27 +7,15 @@
 // `UserPermissionsInteractor` and `PushNotificationsHandler`.
 // Apple's frameworks re-export Foundation: a file importing only this module names NSObject and Data.
 @_exported import WebFoundation
+@_exported import UserNotificationsHost
 
 // MARK: - The host
 
-public enum _UserNotificationsHost {
-    /// The browser's current permission, when the host is in place.
-    nonisolated(unsafe) public static var permission: (() -> UNAuthorizationStatus)?
-    /// Asks the browser (a prompt the first time); the answer on the main actor.
-    nonisolated(unsafe) public static var requestPermission: ((@escaping @MainActor (UNAuthorizationStatus) -> Void) -> Void)?
-    /// Shows a notification; `onClick` is the user opening it.
-    nonisolated(unsafe) public static var show: ((_ title: String, _ body: String, _ identifier: String, _ onClick: @escaping @MainActor () -> Void) -> Void)?
-}
+// The hook (`_UserNotificationsHost`) and `UNAuthorizationStatus`, which it answers with, are in
+// UserNotificationsHost, a module of its own, so the browser host installs it without linking
+// this module into an app that posts no notifications (decision 0006).
 
 // MARK: - Authorization
-
-public enum UNAuthorizationStatus: Int, Sendable {
-    case notDetermined = 0
-    case denied = 1
-    case authorized = 2
-    case provisional = 3
-    case ephemeral = 4
-}
 
 public struct UNAuthorizationOptions: OptionSet, Hashable, Sendable {
     public let rawValue: UInt

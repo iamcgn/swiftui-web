@@ -100,6 +100,17 @@ module, so it is compiled into the app that divides and costs Counter nothing. A
 declaration that has to name `Decimal` (or another FoundationEssentials value type but `Date`)
 does the same, or lives in a module only the apps that use it link (WebDecimalFormats).
 
+## 2026-11-15: every framework hook in a module of its own
+The 2026-11-10 split covered CoreLocation only. The canvas still depended on AVFAudio, Speech,
+UserNotifications and SwiftData to install their hooks, so every app linked all four: in Counter
+at 2791056, 193 KB of code and data before wasm-opt (SwiftData 101 KB, AVFAudio 40 KB,
+UserNotifications 28 KB, Speech 24 KB), about 1.2% of the link. Their hooks now live in
+AVFAudioHost, SpeechRecognitionHost, UserNotificationsHost and SwiftDataHost, each declaring
+only the closures the host sets and the types those closures name (`UNAuthorizationStatus`
+moved with its hook); the frameworks re-export them, and the state a framework keeps beside
+its hook (`recordPermission`, `authorization`) is a static it adds in an extension. The canvas
+depends on the host modules only. Counter: RESULT.
+
 ## Open items
 - Whether a user's explicit `import Foundation` next to `import SwiftUI` makes `CGRect` ambiguous
   on wasm (two modules declaring it). Test in Phase 1 step 1; if it does, evaluate a

@@ -760,10 +760,9 @@ extension PersistentModel {
 
 /// The rows, as stored values, and their persistence through the host.
 public final class _ModelStore: @unchecked Sendable {
-    public enum Host {
-        /// Loads and saves one store's JSON by name (the browser host: localStorage).
-        nonisolated(unsafe) public static var store: (load: (String) throws -> String?, save: (String, String?) throws -> Void)?
-    }
+    /// The host's storage (SwiftDataHost, a module of its own so the browser host links no
+    /// SwiftData into an app without models, decision 0006).
+    public typealias Host = _SwiftDataHost
 
     let name: String
     let schema: Schema
