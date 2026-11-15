@@ -43,6 +43,24 @@ worked because CoreGraphics is a C module, which Swift declarations shadow outri
   `SortComparator`, `ComparableComparator` and `sorted(using:)`; because it re-exports
   FoundationEssentials, its declarations shadow FoundationEssentials' for every importer,
   including app code that imports `SwiftUI` or `UIKit` (both thin modules re-export it).
+  Amended 2026-11-15: the re-export is name by name (`@_exported import typealias
+  FoundationEssentials.Date` and so on, each top-level name WebFoundation does not declare), so
+  no importer sees FoundationEssentials' copy of a redeclared name at all. Shadowing by import
+  path covers only unqualified lookup; a scoped import (`import struct Foundation.URL`) saw
+  both declarations and was ambiguous, and the Foundation shadow's typealiases that fixed it
+  were themselves a second `URL` in every file importing Foundation and SwiftUI, where `[URL]()`
+  and `URL?.none` did not compile. Extension members, conformances and nested types come with
+  any one name. Operator declarations would not come (FoundationEssentials declares none), nor
+  macros, nor the `Expression` struct, whose name the `#Expression` macro shares. Operator
+  methods are found through a module's own lookup table, which the scoped re-exports leave
+  closed, so WebFoundation declares the few that no standard-library protocol carries
+  (`Date ± TimeInterval` and its compound forms, `Decimal /` and `/=`;
+  EssentialsOperators.swift), with FoundationEssentials' behaviour. `Decimal /` and `/=` are
+  `@_alwaysEmitIntoClient` and reach FoundationEssentials' own operator through
+  WebDecimalDivision (inside WebFoundation, its own `/` shadows that one), so they are compiled
+  into the app that divides: compiled into WebFoundation, they named `Decimal` in an object
+  every app links, and Counter went from 3,059,074 to 4,008,346 bytes brotli (decision 0006).
+  A name FoundationEssentials adds in a later toolchain needs a line here.
 - No file of this project imports `FoundationEssentials` directly; `import WebFoundation`
   replaces it (an explicit `import FoundationEssentials` in a file would make the shadowed
   names ambiguous there). `Date` stays FoundationEssentials', as do the types nobody here
