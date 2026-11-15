@@ -43,6 +43,15 @@ worked because CoreGraphics is a C module, which Swift declarations shadow outri
   `SortComparator`, `ComparableComparator` and `sorted(using:)`; because it re-exports
   FoundationEssentials, its declarations shadow FoundationEssentials' for every importer,
   including app code that imports `SwiftUI` or `UIKit` (both thin modules re-export it).
+  Amended 2026-11-15: the re-export is name by name (`@_exported import typealias
+  FoundationEssentials.Date` and so on, each top-level name WebFoundation does not declare), so
+  no importer sees FoundationEssentials' copy of a redeclared name at all. Shadowing by import
+  path covers only unqualified lookup; a scoped import (`import struct Foundation.URL`) saw
+  both declarations and was ambiguous, and the Foundation shadow's typealiases that fixed it
+  were themselves a second `URL` in every file importing Foundation and SwiftUI, where `[URL]()`
+  and `URL?.none` did not compile. Extension members, conformances and nested types come with
+  any one name; operator declarations would not (FoundationEssentials declares none). A name
+  FoundationEssentials adds in a later toolchain needs a line here.
 - No file of this project imports `FoundationEssentials` directly; `import WebFoundation`
   replaces it (an explicit `import FoundationEssentials` in a file would make the shadowed
   names ambiguous there). `Date` stays FoundationEssentials', as do the types nobody here
