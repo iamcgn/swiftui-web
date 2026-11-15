@@ -51,7 +51,11 @@ worked because CoreGraphics is a C module, which Swift declarations shadow outri
   were themselves a second `URL` in every file importing Foundation and SwiftUI, where `[URL]()`
   and `URL?.none` did not compile. Extension members, conformances and nested types come with
   any one name. Operator declarations would not come (FoundationEssentials declares none), nor
-  macros, nor the `Expression` struct, whose name the `#Expression` macro shares. A name
+  macros, nor the `Expression` struct, whose name the `#Expression` macro shares. Operator
+  methods are found through a module's own lookup table, which the scoped re-exports leave
+  closed, so WebFoundation declares the few that no standard-library protocol carries
+  (`Date ± TimeInterval` and its compound forms, `Decimal /` and `/=`, an error code's `~=` in a
+  `catch`; EssentialsOperators.swift), with FoundationEssentials' behaviour. A name
   FoundationEssentials adds in a later toolchain needs a line here.
 - No file of this project imports `FoundationEssentials` directly; `import WebFoundation`
   replaces it (an explicit `import FoundationEssentials` in a file would make the shadowed

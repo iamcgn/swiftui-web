@@ -17,7 +17,9 @@
 // one declaration of each name. `Expression` is left out: the name is both a struct and the
 // `#Expression` macro, so a scoped import of it is ambiguous. No scoped import names a macro, so
 // FoundationEssentials' `#Expression` and `#Predicate` are not re-exported either (SwiftData
-// declares its own `#Predicate`).
+// declares its own `#Predicate`). Operator methods are found through a module's own lookup
+// table, which a name-by-name re-export leaves closed: EssentialsOperators.swift declares the
+// ones FoundationEssentials gives its types beyond the standard library's protocols.
 #if os(WASI)
 @_exported import typealias FoundationEssentials.AttributeScopeCodableConfiguration
 @_exported import typealias FoundationEssentials.CocoaError
