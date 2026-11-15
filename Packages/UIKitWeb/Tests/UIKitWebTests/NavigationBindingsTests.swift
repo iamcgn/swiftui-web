@@ -14,10 +14,13 @@ import WebFoundation
 import Foundation
 #endif
 
-/// swift-navigation's dismiss action: a closure, so not Equatable.
-struct DismissAction {
-    let run: (() -> Void)?
+/// swift-navigation's dismiss action: a Sendable closure, so not Equatable.
+struct DismissAction: Sendable {
+    let run: (@MainActor @Sendable () -> Void)?
 }
+
+/// A count a Sendable closure can bump.
+private final class Count: @unchecked Sendable { var value = 0 }
 
 private enum DismissActionTrait: UITraitDefinition {
     static let defaultValue = DismissAction(run: nil)
@@ -69,8 +72,8 @@ extension UIMutableTraits {
 
         // Set before the view loads, as swift-navigation does when it presents.
         let child = UIViewController()
-        var dismissed = 0
-        child.traitOverrides.dismiss = DismissAction { dismissed += 1 }
+        let dismissed = Count()
+        child.traitOverrides.dismiss = DismissAction { dismissed.value += 1 }
         child.traitOverrides.score = 3
         #expect(child.traitOverrides.contains(ScoreTrait.self) && !child.traitOverrides.contains(UITraitHorizontalSizeClass.self))
         #expect(child.traitCollection.score == 3)
@@ -80,7 +83,7 @@ extension UIMutableTraits {
         let label = UILabel()
         child.view.addSubview(label)
         label.traitCollection.dismiss.run?()
-        #expect(dismissed == 1 && label.traitCollection.score == 3)
+        #expect(dismissed.value == 1 && label.traitCollection.score == 3)
         // The parent and the window don't see the child's traits.
         #expect(root.traitCollection.dismiss.run == nil && window.traitCollection.score == 0)
 
