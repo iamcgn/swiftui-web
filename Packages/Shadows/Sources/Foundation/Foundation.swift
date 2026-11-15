@@ -28,19 +28,11 @@
 #endif
 #endif
 
-#if os(WASI)
-// A scoped import (`import struct Foundation.URL`, as swift-openapi-runtime writes) looks the
-// name up in this module and its re-exports, where WebFoundation's declaration and the
-// FoundationEssentials one it stands in for (decision 0017) are both visible and neither shadows
-// the other. A declaration here is found first, so each name WebFoundation redeclares and a
-// package imports this way gets one, the same type every other file sees.
-public typealias URL = WebFoundation.URL
-public typealias URLComponents = WebFoundation.URLComponents
-public typealias Data = WebFoundation.Data
-public typealias LocalizedError = WebFoundation.LocalizedError
-public typealias JSONEncoder = WebFoundation.JSONEncoder
-public typealias JSONDecoder = WebFoundation.JSONDecoder
-#endif
+// A scoped import (`import struct Foundation.URL`, as swift-openapi-runtime writes) finds the one
+// declaration WebFoundation's re-exports hold for each name: WebFoundation re-exports
+// FoundationEssentials name by name, leaving out the names it declares itself (decision 0017).
+// A declaration here as well would be a second one beside WebFoundation's in every file that
+// imports Foundation and SwiftUI, where `[URL]()` fails.
 
 #if os(WASI)
 // The bridging casts `error as NSError` and `nsError as Error` compile to calls of these two
