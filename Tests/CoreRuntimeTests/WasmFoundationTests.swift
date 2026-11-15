@@ -375,6 +375,42 @@ import WebCombine
         #expect(String(cString: inet_ntoa(address)) == "192.0.2.1")
         address.s_addr = UInt32(0x7F00_0001).bigEndian
         #expect(String(cString: inet_ntoa(address)) == "127.0.0.1")
+
+        // An entry of `h_addr_list` is an optional pointer, which `memcpy` takes as on Darwin.
+        var bytes: [CChar] = [10, 0, 0, 7]
+        bytes.withUnsafeMutableBufferPointer { buffer in
+            var list: [UnsafeMutablePointer<CChar>?] = [buffer.baseAddress, nil]
+            list.withUnsafeMutableBufferPointer { entries in
+                var entry = hostent()
+                entry.h_length = 4
+                entry.h_addr_list = entries.baseAddress
+                memcpy(&address.s_addr, entry.h_addr_list[0], Int(entry.h_length))
+            }
+        }
+        #expect(String(cString: inet_ntoa(address)) == "10.0.0.7")
+    }
+
+    /// A notification's sender can be any value, as Foundation's is: RevenueCat posts a tuple
+    /// of a purchase's results. A class sender still filters observers by identity.
+    @Test func notificationsCarryAnySender() {
+        let center = NotificationCenter()
+        let name = Notification.Name("purchaseCompleted")
+        nonisolated(unsafe) var received: [(String, Bool)] = []
+        let sender = NSObject()
+        nonisolated(unsafe) var fromSender = 0
+        let everyone = center.addObserver(forName: name, object: nil) { note in
+            if let data = note.object as? (product: String, cancelled: Bool) { received.append(data) }
+        }
+        let filtered = center.addObserver(forName: name, object: sender) { _ in fromSender += 1 }
+        center.post(name: name, object: (product: "pro", cancelled: false))
+        center.post(name: name, object: sender)
+        center.post(name: name, object: NSObject())
+        #expect(received.count == 1 && received[0].0 == "pro" && !received[0].1)
+        #expect(fromSender == 1)
+        #expect(Notification(name: name, object: sender) == Notification(name: name, object: sender))
+        #expect(Notification(name: name, object: sender) != Notification(name: name, object: NSObject()))
+        center.removeObserver(everyone)
+        center.removeObserver(filtered)
     }
 
     /// A data task made without a completion handler reports to the session's delegate in
