@@ -109,7 +109,8 @@ AVFAudioHost, SpeechRecognitionHost, UserNotificationsHost and SwiftDataHost, ea
 only the closures the host sets and the types those closures name (`UNAuthorizationStatus`
 moved with its hook); the frameworks re-export them, and the state a framework keeps beside
 its hook (`recordPermission`, `authorization`) is a static it adds in an extension. The canvas
-depends on the host modules only. Counter: RESULT.
+depends on the host modules only. Counter 3,060,385 to 3,023,035 bytes brotli, Gallery 3,851,676
+to 3,827,025, Progress 3,172,762 to 3,149,771 (CI at fcda409 against 2791056).
 
 ## Open items
 - Whether a user's explicit `import Foundation` next to `import SwiftUI` makes `CGRect` ambiguous
