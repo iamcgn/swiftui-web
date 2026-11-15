@@ -1,0 +1,2 @@
+import struct F7.URL
+func probe() { let a = [URL](); let f = URL(string: "x"); _ = (a, f) }
