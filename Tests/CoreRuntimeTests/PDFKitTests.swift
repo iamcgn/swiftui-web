@@ -2,7 +2,11 @@
 // drawn as Basic-Car-Maintenance draws its report come out as a PDF file any viewer opens, and
 // PDFKit opens that file again with its pages, text and a thumbnail drawn as recorded, and
 // reads another PDF's pages and sizes from its bytes.
+#if os(WASI)
+import WebFoundation   // the SDK's Foundation would make a second CGFloat and Data
+#else
 import Foundation
+#endif
 import Testing
 import SwiftUI
 import SwiftUIWebCore
