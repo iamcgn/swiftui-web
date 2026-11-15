@@ -231,3 +231,26 @@ gives the `kUTType` constants. Tested in `CGImageTests`.
 Open: decoding pixels of a file or a recording (`dataProvider` is nil for them),
 `CGImageDestination`, Core Image, vImage.
 
+## Documents (2026-11-14)
+
+`NSAttributedString(data:options:documentAttributes:)` and `init(url:options:documentAttributes:)`
+read plain text and HTML (`DocumentType.plain`, `.html`; without a type, markup is read as HTML).
+The encoding is the `characterEncoding` option, else the document's `<meta charset>`, else UTF-8.
+HTML text takes its style from its tags (bold for `b`, `strong`, `th` and headings at 2, 1.5,
+1.17, 1, 0.83 and 0.67 times the base; italic for `i`, `em`, `cite`; underline for `u` and links;
+strikethrough for `s` and `del`; Courier at 9.75 pt for `code`, `pre`, `kbd`, `samp`, `tt`), then
+the document's `<style>` rules (tag, class and id selectors, compound and descendant, applied by
+specificity; pseudo-classes, attribute selectors and at-rules are skipped), then its own `style`
+attribute. Sizes are CSS pixels at three quarters of a point, so the base is Times 12, as UIKit's
+importer gives. Blocks end their line, `br` breaks one, list items take a tab, a bullet or their
+number and a tab, white space collapses outside `pre`, and `head`, `script` and `display:none`
+are not text. `documentAttributes` receives the type, the encoding and the title. RTF and RTFD
+throw.
+
+`AttributeScopes.UIKitAttributes` (`\.uiKit`) names UIKit's keys for `AttributedString`: font,
+foreground and background colour, underline and strikethrough styles and colours, kern and
+baseline offset, each under its `NSAttributedString.Key` name, so `AttributedString(text,
+including: \.uiKit)` keeps them and `NSAttributedString(attributedString)` gives them back.
+`Text(AttributedString)` shows a UIKit font (its size, weight, slant and monospacing), foreground
+colour, underline and strikethrough. This is how HighlightSwift and Highlightr colour code.
+
