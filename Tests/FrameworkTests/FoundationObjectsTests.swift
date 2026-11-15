@@ -101,8 +101,11 @@ extension Set: _BothSetForms {}
         for case let symbol as String in weekdays where symbol.hasPrefix("T") { startingWithT += 1 }
         #expect(startingWithT == 2)
         #expect(NSArray(array: [1, 2]).adding(3).count == 3)
+        // Linux's corelibs takes only class instances here, so this is the browser's and Apple's form.
+        #if os(WASI) || canImport(Darwin)
         let handed: Any = NSArray(objects: "a", "b")
         #expect((handed as? NSArray)?.count == 2)
+        #endif
     }
 
     /// `(calendar as NSCalendar)` date math as CVCalendar reads its months and weeks.
