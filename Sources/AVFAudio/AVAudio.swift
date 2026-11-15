@@ -6,40 +6,17 @@
 // and `getUserMedia`; without a host, players play nothing, the engine fails to start and no
 // permission is granted). Written against Scrumdinger's AudioService and SpeechService.
 import WebFoundation
+@_exported import AVFAudioHost
 
 // MARK: - The host
 
-/// What a host provides: playback of a URL, the microphone permission and its sample stream.
-public enum _AVAudioHost {
-    /// A player for the URL, or nil when the host cannot play it.
-    nonisolated(unsafe) public static var makePlayer: ((URL) -> (any _AVAudioPlayback)?)?
-    /// Asks for the microphone; the answer arrives on the main actor.
-    nonisolated(unsafe) public static var requestRecordPermission: ((@escaping @MainActor (Bool) -> Void) -> Void)?
-    /// Opens the microphone: samples arrive as mono float frames with their sample rate
-    /// (chunks of `bufferSize` frames or whatever the host delivers), until stopped.
-    nonisolated(unsafe) public static var openMicrophone: ((_ bufferSize: Int, _ deliver: @escaping @MainActor ([Float], Double) -> Void, _ failed: @escaping @MainActor (String) -> Void) -> (any _AVAudioCapture)?)?
+// The hook itself (`_AVAudioHost`, `_AVAudioPlayback`, `_AVAudioCapture`) is in AVFAudioHost, a
+// module of its own, so the browser host installs it without linking this module into an app
+// that plays no sound (decision 0006).
+
+extension _AVAudioHost {
     /// The permission already answered (a host remembers the browser's grant).
     nonisolated(unsafe) public static var recordPermission: AVAudioSession.RecordPermission = .undetermined
-}
-
-/// A playing sound in the host.
-public protocol _AVAudioPlayback: AnyObject {
-    func play()
-    func pause()
-    func stop()
-    var currentTime: Double { get set }
-    var duration: Double { get }
-    var volume: Double { get set }
-    var rate: Double { get set }
-    var loops: Int { get set }
-    var isPlaying: Bool { get }
-    var onFinished: (@MainActor () -> Void)? { get set }
-}
-
-/// An open microphone in the host.
-public protocol _AVAudioCapture: AnyObject {
-    var sampleRate: Double { get }
-    func stop()
 }
 
 // MARK: - AVAudioPlayer

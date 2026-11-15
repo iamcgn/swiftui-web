@@ -88,3 +88,7 @@ jobs:
           PY
       - name: What changed
         run: . ~/.swiftly/env.sh && python3 head/Tools/Size/map-diff.py size/base.map size/head.map --top 80
+      - name: Where the head's bytes are
+        # The whole of the head's link by module, file and symbol (scripts/wasm-size-map.py), so a
+        # trim can start from what an app carries, not only from what one change added.
+        run: . ~/.swiftly/env.sh && python3 head/scripts/wasm-size-map.py size/head.map --top 60

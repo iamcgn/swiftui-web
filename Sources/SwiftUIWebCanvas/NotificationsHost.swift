@@ -6,7 +6,7 @@
 // app's delegate (UIKitWeb).
 #if os(WASI)
 import JavaScriptKit
-import UserNotifications
+import UserNotificationsHost
 
 @MainActor
 enum NotificationsHost {
