@@ -1,0 +1,18 @@
+name: Lookup probe
+# A probe (never merged): builds each client module of Probe/Lookup and prints its diagnostics.
+on:
+  push:
+    branches: [claude/lookup-probe]
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    container: swift:6.3.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build each client
+        run: |
+          cd Probe/Lookup
+          for t in C1 C1b C1s C2 C2b C2s C3 C3b C3s C4; do
+            echo "=== $t"
+            if swift build --target $t > out.txt 2>&1; then echo "RESULT $t ok"; else echo "RESULT $t FAIL"; grep -E "error:" out.txt | sed "s/^/$t /" | sort -u; fi
+          done
