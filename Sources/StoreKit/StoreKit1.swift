@@ -46,6 +46,12 @@ public struct SKError: Error, Hashable, @unchecked Sendable {
         self.code = code
         self.userInfo = userInfo
     }
+    /// The App Store error an `NSError` of `SKErrorDomain` stands for, as Foundation's bridged
+    /// errors are made (SwiftyStoreKit's `SKError(_nsError: error)`); an unknown code reads as
+    /// `.unknown`.
+    public init(_nsError error: NSError) {
+        self.init(Code(rawValue: error.code) ?? .unknown, userInfo: error.userInfo)
+    }
     /// The error's code, as Foundation's `errorCode`.
     public var errorCode: Int { code.rawValue }
     public static var errorDomain: String { SKErrorDomain }

@@ -20,6 +20,11 @@ extension UIBezierPath {
     public func append(_ cgPath: CGPath) { self.cgPath.addPath(Path(cgPath: cgPath)) }
 }
 
+extension CGMutablePath {
+    /// Adds a `UIBezierPath`'s `cgPath`, which is the substrate's `Path` on both platforms.
+    public func addPath(_ path: Path, transform: CGAffineTransform = .identity) { addPath(path.cgPath, transform: transform) }
+}
+
 extension UIGraphicsRecordingContext {
     /// Adds a CoreGraphics path to the current path.
     public func addPath(_ cgPath: CGPath) { addPath(Path(cgPath: cgPath)) }
@@ -89,6 +94,9 @@ public final class CGMutablePath: CGPath, @unchecked Sendable {
         path.addArc(tangent1End: tangent1End.applying(transform), tangent2End: tangent2End.applying(transform), radius: radius)
     }
     public func addPath(_ other: CGPath, transform: CGAffineTransform = .identity) { path.addPath(other.path.applying(transform)) }
+    /// Adds a `UIBezierPath`'s `cgPath`, which is the substrate's `Path` here (CVCalendar joins a
+    /// circle and a flag this way: `path.addPath(circle.cgPath)`).
+    public func addPath(_ other: Path, transform: CGAffineTransform = .identity) { path.addPath(other.applying(transform)) }
     public func closeSubpath() { path.closeSubpath() }
 }
 

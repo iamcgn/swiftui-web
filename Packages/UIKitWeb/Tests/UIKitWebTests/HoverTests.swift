@@ -29,6 +29,8 @@ import UIKit
         let button = UIButton(type: .system)
         button.frame = CGRect(x: 50, y: 200, width: 100, height: 40)
         button.isPointerInteractionEnabled = true
+        button.showsTouchWhenHighlighted = true
+        #expect(button.showsTouchWhenHighlighted)
         window.addSubview(view)
         window.addSubview(button)
         window.makeKeyAndVisible()

@@ -350,6 +350,84 @@ open class NSCalendar {
     open class var autoupdatingCurrent: Calendar { Calendar.autoupdatingCurrent }
 }
 
+// `(calendar as NSCalendar).components(units, from: date)` and the rest of NSCalendar's date
+// math, over the `Calendar` the object holds (CVCalendar reads its months and weeks this way).
+extension NSCalendar {
+    /// Options for adding components and matching dates.
+    public struct Options: OptionSet, Hashable, Sendable {
+        public let rawValue: UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        public static let wrapComponents = Options(rawValue: 1 << 0)
+        public static let matchStrictly = Options(rawValue: 1 << 1)
+        public static let searchBackwards = Options(rawValue: 1 << 2)
+        public static let matchPreviousTimePreservingSmallerUnits = Options(rawValue: 1 << 8)
+        public static let matchNextTimePreservingSmallerUnits = Options(rawValue: 1 << 9)
+        public static let matchNextTime = Options(rawValue: 1 << 10)
+        public static let matchFirst = Options(rawValue: 1 << 12)
+        public static let matchLast = Options(rawValue: 1 << 13)
+    }
+
+    /// The `Calendar.Component` each unit stands for, in the order Calendar lists them.
+    private static let componentUnits: [(Unit, Calendar.Component)] = [
+        (.era, .era), (.year, .year), (.month, .month), (.day, .day), (.hour, .hour), (.minute, .minute),
+        (.second, .second), (.weekday, .weekday), (.weekdayOrdinal, .weekdayOrdinal), (.quarter, .quarter),
+        (.weekOfMonth, .weekOfMonth), (.weekOfYear, .weekOfYear), (.yearForWeekOfYear, .yearForWeekOfYear),
+        (.nanosecond, .nanosecond), (.calendar, .calendar), (.timeZone, .timeZone),
+    ]
+    static func components(of units: Unit) -> Set<Calendar.Component> {
+        Set(componentUnits.filter { units.contains($0.0) }.map(\.1))
+    }
+    /// The one component a single unit stands for (`.day` for `.day`); a set of several stops.
+    static func component(of unit: Unit) -> Calendar.Component {
+        guard let match = componentUnits.first(where: { $0.0 == unit }) else {
+            preconditionFailure("NSCalendar.Unit \(unit.rawValue) is not one calendar unit")
+        }
+        return match.1
+    }
+
+    public var firstWeekday: Int { _webValue.firstWeekday }
+    public var minimumDaysInFirstWeek: Int { _webValue.minimumDaysInFirstWeek }
+    public var locale: Locale? { _webValue.locale }
+    public var timeZone: TimeZone { _webValue.timeZone }
+
+    /// The date's values for the units.
+    public func components(_ unitFlags: Unit, from date: Date) -> DateComponents {
+        _webValue.dateComponents(Self.components(of: unitFlags), from: date)
+    }
+    /// The difference between two dates in the units.
+    public func components(_ unitFlags: Unit, from startingDate: Date, to resultDate: Date, options opts: Options = []) -> DateComponents {
+        _webValue.dateComponents(Self.components(of: unitFlags), from: startingDate, to: resultDate)
+    }
+    /// The date's value for one unit.
+    public func component(_ unit: Unit, from date: Date) -> Int { _webValue.component(Self.component(of: unit), from: date) }
+    public func date(from comps: DateComponents) -> Date? { _webValue.date(from: comps) }
+    public func date(byAdding comps: DateComponents, to date: Date, options opts: Options = []) -> Date? {
+        _webValue.date(byAdding: comps, to: date, wrappingComponents: opts.contains(.wrapComponents))
+    }
+    public func date(byAdding unit: Unit, value: Int, to date: Date, options: Options = []) -> Date? {
+        _webValue.date(byAdding: Self.component(of: unit), value: value, to: date, wrappingComponents: options.contains(.wrapComponents))
+    }
+    /// The range of the smaller unit's values in the larger unit around the date, as a location
+    /// and a length (a month's weeks: location 1, length 5); `NSNotFound` when there is none.
+    public func range(of smaller: Unit, in larger: Unit, for date: Date) -> NSRange {
+        guard let range = _webValue.range(of: Self.component(of: smaller), in: Self.component(of: larger), for: date) else {
+            return NSRange(location: NSNotFound, length: 0)
+        }
+        return NSRange(location: range.lowerBound, length: range.count)
+    }
+    /// The ordinal of the smaller unit in the larger around the date, or `NSNotFound`.
+    public func ordinality(of smaller: Unit, in larger: Unit, for date: Date) -> Int {
+        _webValue.ordinality(of: Self.component(of: smaller), in: Self.component(of: larger), for: date) ?? NSNotFound
+    }
+    public func startOfDay(for date: Date) -> Date { _webValue.startOfDay(for: date) }
+    public func isDate(_ date1: Date, inSameDayAs date2: Date) -> Bool { _webValue.isDate(date1, inSameDayAs: date2) }
+    public func isDateInToday(_ date: Date) -> Bool { _webValue.isDateInToday(date) }
+    public func isDateInWeekend(_ date: Date) -> Bool { _webValue.isDateInWeekend(date) }
+    public func isDate(_ date1: Date, equalTo date2: Date, toUnitGranularity unit: Unit) -> Bool {
+        _webValue.isDate(date1, equalTo: date2, toGranularity: Self.component(of: unit))
+    }
+}
+
 /// Formats an amount of time ("1h 5m", "1:05:03", "1 hour, 5 minutes").
 open class DateComponentsFormatter: Formatter {
     public enum UnitsStyle: Int, Sendable { case positional = 0, abbreviated, short, full, spellOut, brief }

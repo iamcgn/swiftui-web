@@ -1774,6 +1774,12 @@
           "notes": "HTML (2026-11-14): tag styles (bold, italic, underline, strikethrough, headings, links, monospaced code and pre in Courier), <style> rules by tag, class, id, compound and descendant selectors in specificity order, inline style (color, background, font weight, style, size and family, text-decoration, display:none, white-space), entities, lists, line breaks, collapsed white space, the Times 12 base; plain text in Helvetica 12; the UIKit attribute scope converts to AttributedString and Text shows its fonts, colours and decorations (HighlightSwift, Highlightr); open: RTF and RTFD (they throw), tables as tables, images, paragraph styles, writing documents",
           "fixtures": [],
           "noFixture": "Reading a document makes no view: the HTML import and the conversion are checked by UIKitWeb's HTMLImportTests and the wasm HTMLAttributedTextTests"
+        },
+        {
+          "api": "UIInputView / UIInputViewAudioFeedback / inputView / inputAccessoryView (UITextField, UITextView, UISearchBar) / reloadInputViews()",
+          "status": "partial",
+          "notes": "The first responder's input accessory docks along the bottom of the window while it edits, on top of the keyboard when the browser reports one, moves with the keyboard frame and goes when editing ends; a press on the accessory keeps editing (GistHub's KeyboardToolbar, 2026-11-14). An inputView is kept but not shown in place of the browser's keyboard; playInputClick() makes no sound.",
+          "noFixture": "Nothing new to measure: InputViewTests mount a KeyboardToolbar-style toolbar on a text view, a text field and a search bar and check where it docks."
         }
       ]
     },
@@ -2084,6 +2090,12 @@
           ]
         },
         {
+          "api": "UIGraphicsPDFRenderer / UIGraphicsPDFRendererContext / UIGraphicsPDFRendererFormat (pdfData, writePDF, beginPage)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-15): pages drawn a page at a time come out as a PDF 1.4 file any viewer opens, with paths, fills, strokes, clips, transforms, opacity and text in the standard Helvetica, Times and Courier faces, and the document information; the process keeps each page's recording, so PDFKit opens a file of ours as drawn (Basic-Car-Maintenance's report). Not done: images, shadows, filters and blurs in the file (left out), gradients (their middle colour), text outside WinAnsi (question marks), links and destinations",
+          "noFixture": "A file, not a screen: PDFKitTests read the operators, the cross-reference table and the reopened pages"
+        },
+        {
           "api": "CGGradient / CGContext.drawLinearGradient / drawRadialGradient, UIGraphicsImageRenderer, UIGraphicsBeginImageContext, UIImage.pngData(), CGContext(data:width:height:bitsPerComponent:bytesPerRow:space:bitmapInfo:)",
           "status": "partial",
           "notes": "Linear and radial gradients with colour stops, image contexts recording drawings into vector UIImages that UIImageView, draw(at:) and SwiftUI's Image replay, the renderer context's blend-mode fills and strokes; pngData rasterises through the host; open: UIImage from pixel data. Bitmap contexts (2026-11-14): CGContext(data: nil, width:height:...) records with CoreGraphics's y-up origin and makeImage() gives the drawing (Nuke decompresses through it); a context over caller memory is not made, as no pixels are held",
@@ -2323,6 +2335,12 @@
           "noFixture": "Foundation API with nothing on screen; FoundationGapsTests holds it to Foundation on macOS and Linux and checks the wasm forms."
         },
         {
+          "api": "NSString rangeOfCharacter(from:options:range:) / range(of:options:range:) / lineRange(for:) / paragraphRange(for:) / appendingPathComponent and the other path members / padding(toLength:withPad:startingAt:)",
+          "status": "partial",
+          "notes": "Answered in UTF-16 ranges over the String forms, as Apple's Foundation does (StyledTextKit's trimming, 2026-11-14).",
+          "noFixture": "NSStringMethodsTests checks Apple's documented answers and runs against Foundation on macOS and Linux as well as on wasm."
+        },
+        {
           "api": "NSData / NSMutableData / NSCopying / NSMutableCopying / Data.count setter / Data(count:)",
           "status": "full",
           "notes": "On wasm: byte buffers over Data, bridged both ways (`body as Data`), equal by bytes; setting `count` truncates or pads with zeros.",
@@ -2405,6 +2423,12 @@
           "status": "full",
           "notes": "On wasm: FoundationNetworking names WebFoundation's URLSession, URLRequest, URLResponse and the rest, so a package's canImport(FoundationNetworking) path and its one-by-one class imports both find the same types Foundation gives. A replacement with a range changes only what lies inside it (2026-11-07).",
           "noFixture": "Imports and Foundation API with nothing on screen; the Launches app compiles both import forms in CI, and OpenAPIRuntimeGapsTests holds the API to Foundation on macOS and Linux."
+        },
+        {
+          "api": "NSArray / NSCalendar date math / NSURLRequest / NSMutableURLRequest / NSMutableDictionary literals and setValue(_:forKey:) / SKError(_nsError:)",
+          "status": "partial",
+          "notes": "Clendar's packages (2026-11-15): `array as NSArray` and `nsArray as! [String]` bridge, with count, object(at:), subarray(with:), adding and addingObjects(from:), contains, index(of:), componentsJoined(by:) and iteration; `(calendar as NSCalendar)` gives components(_:from:) and (_:from:to:options:), component(_:from:), range(of:in:for:) as an NSRange, ordinality, date(byAdding:) and the day tests over the Calendar it holds; NSMutableURLRequest changes a URLRequest and bridges back `as URLRequest`; NSMutableDictionary takes a dictionary literal and key-value coding, and JSONSerialization writes NSDictionary and NSArray objects; SKError is made from an NSError; UIButton.showsTouchWhenHighlighted is kept (no glow drawn) and CGMutablePath.addPath takes a UIBezierPath's cgPath. NSMutableArray, NSCalendar.Options matching and enumeration are not here.",
+          "noFixture": true
         },
         {
           "api": "XMLParser / XMLParserDelegate / FoundationXML module",
@@ -2716,6 +2740,12 @@
           "status": "stub",
           "notes": "pf-small-frameworks (2026-11-09): a page has no system sound set and no vibration, so system sounds (and kSystemSoundID_Vibrate) play silently; the completion forms call their block at once. Not done: any sound (an app's own audio plays through AVAudioPlayer)",
           "noFixture": "Nothing to draw: FrameworkTests play the sounds and see the completions"
+        },
+        {
+          "api": "PDFDocument / PDFPage / PDFDisplayBox / PDFDocumentAttribute (PDFKit)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-15): a document from a file or data, its pages, version and information, pages inserted, removed and exchanged, the data written back, page bounds, labels, text and thumbnails fitted on white. A file UIGraphicsPDFRenderer wrote here draws as recorded; another PDF is read for its page count and sizes (inherited media boxes included) and its pages draw blank. Not done: PDFView, rasterising another PDF's pages, compressed object streams (no pages found), passwords (every file opens unlocked), annotations, outlines and search",
+          "noFixture": "Nothing to draw beyond a thumbnail: PDFKitTests open written and hand-made files"
         },
         {
           "api": "Product / Transaction / AppStore / SKPaymentQueue / ProductView / StoreView / SubscriptionStoreView (StoreKit) / SKProductDiscount / SKPaymentDiscount / SKStorefront / SKPaymentQueueDelegate / Storefront / SKDownload",

@@ -17,6 +17,11 @@ public enum _SecurityHost {
 
 // MARK: - JSONSerialization
 
+/// A Foundation collection object `JSONSerialization` writes as the Swift collection it holds
+/// (`NSDictionary`, `NSMutableDictionary` and `NSArray`, WebFoundationFormats' NSObjects.swift:
+/// SwiftyStoreKit's receipt request body is an `NSMutableDictionary`).
+public protocol _WebJSONCollection { var _webJSONValue: Any { get } }
+
 /// An object that converts between JSON and the equivalent Foundation objects: arrays,
 /// dictionaries keyed by strings, strings, numbers, booleans and `NSNull`.
 public final class JSONSerialization {
@@ -81,6 +86,7 @@ public final class JSONSerialization {
     }
 
     private static func node(from object: Any, top: Bool) throws -> _JSONNode {
+        if let collection = object as? _WebJSONCollection { return try node(from: collection._webJSONValue, top: top) }
         switch object {
         case let array as [Any]: return .array(_JSONArrayBox(try array.map { try node(from: $0, top: false) }))
         case let dictionary as [String: Any]:
