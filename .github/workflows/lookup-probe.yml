@@ -12,7 +12,24 @@ jobs:
       - name: Build each client
         run: |
           cd Probe/Lookup
-          for t in C1 C2 C2s C7 C7s C9 C9s C5s C11s; do
+          for t in C12 C12s C12m C1; do
             echo "=== $t"
             if swift build --target $t > out.txt 2>&1; then echo "RESULT $t ok"; else echo "RESULT $t FAIL"; grep -E "error:" out.txt | sed "s/^/$t /" | sort -u; fi
           done
+      - name: FoundationEssentials top-level names
+        run: |
+          find / \( -name "FoundationEssentials.swiftinterface" -o -name "FoundationEssentials.swiftmodule" \) -not -path "/proc/*" 2>/dev/null | head
+          mkdir -p sg
+          swift-symbolgraph-extract -module-name FoundationEssentials -target $(uname -m)-unknown-linux-gnu -output-dir sg -minimum-access-level public > sgout.txt 2>&1 || tail -5 sgout.txt
+          ls sg | head
+          python3 - <<'PY' || true
+          import json,glob,collections
+          names=collections.Counter()
+          for f in glob.glob('sg/FoundationEssentials.symbols.json'):
+              g=json.load(open(f))
+              for s in g['symbols']:
+                  if len(s['pathComponents'])==1:
+                      names[(s['kind']['identifier'],s['pathComponents'][0])]+=1
+          print('TOPLEVEL', len(names))
+          for (k,n),c in sorted(names.items()): print('TL', k, n)
+          PY
