@@ -29,6 +29,17 @@ public func gethostbyname(_ name: UnsafePointer<CChar>!) -> UnsafeMutablePointer
 /// Looks a host name up for an address family: nothing is found, as for `gethostbyname`.
 public func gethostbyname2(_ name: UnsafePointer<CChar>!, _ family: Int32) -> UnsafeMutablePointer<hostent>! { nil }
 
+/// Copies `count` bytes, taking the pointers as Darwin declares them (either may be optional), so
+/// a call that passes an entry of `hostent.h_addr_list` straight through compiles as on iOS. The
+/// wasm libc's `memcpy` takes only non-optional pointers; with both pointers present it is the
+/// one called.
+@discardableResult
+public func memcpy(_ destination: UnsafeMutableRawPointer!, _ source: UnsafeRawPointer!, _ count: Int) -> UnsafeMutableRawPointer! {
+    guard let destination, let source else { return destination }
+    destination.copyMemory(from: source, byteCount: count)
+    return destination
+}
+
 /// The text `inet_ntoa` answers: one buffer, overwritten by each call, as C's is.
 nonisolated(unsafe) private let _inetNtoaBuffer = UnsafeMutablePointer<CChar>.allocate(capacity: 16)
 
