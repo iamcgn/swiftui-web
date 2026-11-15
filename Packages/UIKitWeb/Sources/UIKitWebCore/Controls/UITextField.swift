@@ -41,7 +41,21 @@ open class UITextField: UIControl {
     public enum BorderStyle: Int, Sendable { case none = 0, line, bezel, roundedRect }
     public enum ViewMode: Int, Sendable { case never = 0, whileEditing, unlessEditing, always }
 
-    open var text: String? { didSet { if text != oldValue { setNeedsDisplay() } } }
+    open var text: String? {
+        didSet {
+            guard text != oldValue else { return }
+            // A text the app sets puts the caret at its end, as the host's element does; the
+            // host's own edits keep the selection it reports next.
+            let length = (text ?? "").utf16.count
+            if keepsSelection {
+                let start = min(selection.location, length)
+                selection = NSRange(location: start, length: min(selection.length, length - start))
+            } else {
+                selection = NSRange(location: length, length: 0)
+            }
+            setNeedsDisplay()
+        }
+    }
     open var placeholder: String? { didSet { setNeedsDisplay() } }
     /// A placeholder with its own font and colour (its first run's; the string is the placeholder).
     open var attributedPlaceholder: NSAttributedString? {
@@ -154,7 +168,9 @@ open class UITextField: UIControl {
 
     /// The host's input element changed the text.
     func hostDidChange(_ newText: String) {
+        keepsSelection = true
         text = newText
+        keepsSelection = false
         sendActions(for: .editingChanged)
         delegate?.textFieldDidChangeSelection(self)
     }
@@ -179,6 +195,130 @@ open class UITextField: UIControl {
         guard isEnabled, let string = UIPasteboard.general.string else { return }
         text = (text ?? "") + string
         sendActions(for: .editingChanged)
+    }
+
+    /// The host's element moved its caret or selection (UTF-16 offsets).
+    func hostDidSelect(start: Int, end: Int) {
+        pendingSelection = nil
+        let length = (text ?? "").utf16.count
+        let lower = max(0, min(min(start, end), length)), upper = max(lower, min(max(start, end), length))
+        let range = NSRange(location: lower, length: upper - lower)
+        guard range != selection else { return }
+        inputDelegate?.selectionWillChange(self)
+        selection = range
+        inputDelegate?.selectionDidChange(self)
+        delegate?.textFieldDidChangeSelection(self)
+    }
+
+    // MARK: Text input (UITextInput: positions are UTF-16 offsets of the text)
+
+    /// The selection the host's element keeps (UTF-16 offsets), as it last reported it.
+    private(set) var selection = NSRange(location: 0, length: 0)
+    /// A selection the app set, for the host's element to take.
+    private(set) var pendingSelection: NSRange?
+    private var keepsSelection = false
+    /// Told before and after the text or selection changes (`UITextInput`).
+    open weak var inputDelegate: (any UITextInputDelegate)?
+
+    open var hasText: Bool { !(text ?? "").isEmpty }
+
+    /// Types `text` over the selection, as a key press does.
+    open func insertText(_ text: String) { replace(selectedTextRange ?? UITextRange(start: endOfDocument, end: endOfDocument), withText: text) }
+
+    /// Deletes the selection, else the character before the caret.
+    open func deleteBackward() {
+        guard selection.length == 0 else { replace(selectedTextRange!, withText: ""); return }
+        let utf16 = Array((text ?? "").utf16)
+        let caret = min(selection.location, utf16.count)
+        guard caret > 0 else { return }
+        let removed = String(decoding: utf16[..<caret], as: UTF16.self).last?.utf16.count ?? 1
+        replace(UITextRange(start: UITextPosition(offset: caret - removed), end: UITextPosition(offset: caret)), withText: "")
+    }
+
+    open var beginningOfDocument: UITextPosition { UITextPosition(offset: 0) }
+    open var endOfDocument: UITextPosition { UITextPosition(offset: (text ?? "").utf16.count) }
+
+    /// The selection as positions; setting it moves the host's caret or selection there.
+    open var selectedTextRange: UITextRange? {
+        get { UITextRange(start: UITextPosition(offset: selection.location), end: UITextPosition(offset: selection.location + selection.length)) }
+        set {
+            guard let newValue else { return }
+            let range = characterRange(newValue)
+            guard range != selection else { return }
+            inputDelegate?.selectionWillChange(self)
+            selection = range
+            pendingSelection = range
+            inputDelegate?.selectionDidChange(self)
+            setNeedsDisplay()
+        }
+    }
+
+    private func characterRange(_ range: UITextRange) -> NSRange {
+        let length = (text ?? "").utf16.count
+        let start = max(0, min(min(range.start.offset, range.end.offset), length))
+        let end = max(start, min(max(range.start.offset, range.end.offset), length))
+        return NSRange(location: start, length: end - start)
+    }
+
+    open func text(in range: UITextRange) -> String? {
+        let utf16 = Array((text ?? "").utf16)
+        let characters = characterRange(range)
+        return String(decoding: utf16[characters.location..<(characters.location + characters.length)], as: UTF16.self)
+    }
+
+    /// Replaces the range with `text`, puts the caret after it and reports the edit as typing
+    /// does (`.editingChanged`).
+    open func replace(_ range: UITextRange, withText replacement: String) {
+        let characters = characterRange(range)
+        var utf16 = Array((text ?? "").utf16)
+        utf16.replaceSubrange(characters.location..<(characters.location + characters.length), with: Array(replacement.utf16))
+        inputDelegate?.textWillChange(self)
+        keepsSelection = true
+        text = String(decoding: utf16, as: UTF16.self)
+        keepsSelection = false
+        let caret = characters.location + replacement.utf16.count
+        selection = NSRange(location: caret, length: 0)
+        pendingSelection = selection
+        inputDelegate?.textDidChange(self)
+        sendActions(for: .editingChanged)
+        delegate?.textFieldDidChangeSelection(self)
+    }
+
+    /// The caret before a position: 2 points wide at the character's left edge, the text
+    /// line's height (view coordinates).
+    open func caretRect(for position: UITextPosition) -> CGRect {
+        let rect = textRect(forBounds: bounds)
+        let x = rect.minX + caretOffset(upTo: max(0, min(position.offset, (text ?? "").utf16.count)), in: rect)
+        return CGRect(x: x, y: rect.minY, width: 2, height: min(rect.height, resolvedFont.lineHeight))
+    }
+
+    /// The rectangle a range takes on the line (view coordinates).
+    open func firstRect(for range: UITextRange) -> CGRect {
+        let characters = characterRange(range)
+        let start = caretRect(for: UITextPosition(offset: characters.location))
+        guard characters.length > 0 else { return start }
+        let end = caretRect(for: UITextPosition(offset: characters.location + characters.length))
+        return CGRect(x: start.minX, y: start.minY, width: end.minX - start.minX, height: start.height)
+    }
+
+    /// How far into the text rect the first `offset` UTF-16 units reach, with the alignment's inset.
+    private func caretOffset(upTo offset: Int, in rect: CGRect) -> CGFloat {
+        let whole = isSecureTextEntry ? String(repeating: "•", count: (text ?? "").count) : (text ?? "")
+        let prefixText = String(decoding: Array((text ?? "").utf16).prefix(offset), as: UTF16.self)
+        let prefix = isSecureTextEntry ? String(repeating: "•", count: prefixText.count) : prefixText
+        func width(_ string: String) -> CGFloat {
+            guard !string.isEmpty else { return 0 }
+            let layout = UIKitScene.shared.textEngine.layout([StyledRun(string, font: resolvedFont.resolved)], options: TextLayoutOptions(lineLimit: 1), width: nil)
+            return layout.size.width
+        }
+        let total = width(whole)
+        let inset: CGFloat
+        switch textAlignment {
+        case .center: inset = (rect.width - total) / 2
+        case .right: inset = rect.width - total
+        default: inset = 0
+        }
+        return inset + width(prefix)
     }
 
     /// Return was pressed in the host's input element.
@@ -380,6 +520,8 @@ open class UITextField: UIControl {
         info.autocapitalize = autocapitalizationType.token
         info.enterKeyHint = returnKeyType.enterKeyHint
         info.autocorrect = autocorrectionType != .no
+        // A selection the app set moves the element's (`selectedTextRange`, `insertText`).
+        info.selection = pendingSelection.map { TextRange(start: $0.location, end: $0.location + $0.length) }
         node.textInput = info
         if node.label.isEmpty { node.label = placeholder ?? "" }
     }

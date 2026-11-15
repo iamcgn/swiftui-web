@@ -654,7 +654,9 @@ public final class UIKitScene: HostedScene {
     }
 
     public func textField(_ semanticsIdentifier: Int, selectionStart start: Int, end: Int) {
-        // A text view keeps its own selection (its host input is a text field's, not a key-input view's).
+        // A text field keeps the element's; a text view keeps its own selection (its host
+        // input is a text field's, not a key-input view's).
+        if let field = view(withSemanticsIdentifier: semanticsIdentifier) as? UITextField { field.hostDidSelect(start: start, end: end); return }
         guard let view = view(withSemanticsIdentifier: semanticsIdentifier), !(view is any HostTextInput), view is any UITextInput else { return }
         relayHostSelection(start: start, end: end, to: view)
     }

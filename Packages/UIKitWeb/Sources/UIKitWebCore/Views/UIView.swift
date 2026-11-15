@@ -307,6 +307,8 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
 
     open var traitCollection: UITraitCollection {
         var traits = superview?.traitCollection ?? UIScreen.main.traitCollection
+        // A view controller's overrides reach its view and the subtree, under the view's own.
+        owningViewController?.traitOverrides.apply(to: &traits)
         traitOverrides.apply(to: &traits)
         if overrideUserInterfaceStyle != .unspecified { traits.userInterfaceStyle = overrideUserInterfaceStyle }
         return traits
@@ -823,6 +825,13 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
         UIViewAnimationContext.disabled = true
         actions()
         UIViewAnimationContext.disabled = previous
+    }
+
+    /// Runs `animations` as an animation with a property animator's timing curve (SwiftUI's
+    /// `UIView.animate(_:changes:completion:)` comes through here with a SwiftUI animation's).
+    public class func _animate(duration: Double, delay: Double, timing: any UITimingCurveProvider, options: AnimationOptions = [],
+                               animations: () -> Void, completion: ((Bool) -> Void)?) {
+        run(duration: duration, delay: delay, curve: timing.animationCurve.curve, options: options, animations: animations, completion: completion)
     }
 
     private class func run(duration: Double, delay: Double, curve: UIKitWebCore.AnimationCurve, options: AnimationOptions = [], animations: () -> Void, completion: ((Bool) -> Void)?) {

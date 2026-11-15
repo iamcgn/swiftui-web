@@ -1531,6 +1531,12 @@
           ]
         },
         {
+          "api": "Custom traits: UITraitDefinition, UIMutableTraits, UITraitCollection[trait], UITraitOverrides contains/remove, UIViewController.traitOverrides",
+          "status": "partial",
+          "notes": "An app's own trait (a type with its defaultValue) is set on a view's or view controller's traitOverrides by type, a controller's before its view loads, and read from any trait collection in the subtree by type, the nearest override winning; UIKit's own traits read and set by type too; registerForTraitChanges observers hear an app's trait change (by == for an Equatable value, on every set for any other, as swift-navigation's dismiss and push actions are); open: modifyingTraits / UITraitCollection(mutations:), traits bridged to SwiftUI's environment",
+          "noFixture": "Traits carry values, not pixels: NavigationBindingsTests holds the overrides, the subtree's reads and the observers."
+        },
+        {
           "api": "UIVisualEffectView / UIBlurEffect / UIVibrancyEffect",
           "status": "approximate",
           "notes": "Every blur style as a blur of what lies beneath under a fitted tint (the system materials and the plain light/dark styles measured over four grounds in both appearances), the content view over it, the layer's corners; a vibrancy view is a transparent container; the glass platters of bars share the blur; open: vibrancy blending, iOS 26's refraction and highlight rim",
@@ -1738,6 +1744,12 @@
           "noFixture": "TextKitTests (a text view's glyph and line rectangles, wrapped lines, storage edits shown in the view, a stand-alone layout manager's hit testing, the text input)"
         },
         {
+          "api": "UITextField's UITextInput: selectedTextRange, positions and ranges, insertText / deleteBackward, caretRect / firstRect",
+          "status": "partial",
+          "notes": "A text field's selection is the one the browser's input element keeps, as the element reports it (UTF-16 offsets as positions, textFieldDidChangeSelection and the input delegate told); setting selectedTextRange moves the element's caret or selection; a text the app sets puts the caret at its end; insertText and deleteBackward edit at the selection and report .editingChanged; the caret and a range's rectangle follow the text's layout on its line; open: marked text, closestPosition(to:)",
+          "noFixture": "The selection is the browser's own: NavigationBindingsTests holds the positions, the host's reports and the app's edits."
+        },
+        {
           "api": "UIFont",
           "status": "full",
           "notes": "System fonts by size and weight, italic and monospaced faces, bundled fonts through the asset catalog with their tables' metrics, the text styles at every content size category with their own measured metrics, UIFontMetrics scaling, labels following the scene's category; tabular figures; a font's descriptor in another system design (rounded, serif, monospaced) or size, back through UIFont(descriptor:size:) (2026-11-01); open: reading the host's text size, a descriptor's traits and attributes (Docs/elements/UIKit/UIFont.md)",
@@ -1903,6 +1915,12 @@
             "uikit/tabs/more",
             "ios/representable/hostingsafearea-tabs"
           ]
+        },
+        {
+          "api": "UITab / UITabBarController(tabs:), tabs, selectedTab, tab(forIdentifier:)",
+          "status": "partial",
+          "notes": "iOS 18 tabs: each tab's provider makes its controller once, the bar shows the tabs that are not hidden with their titles, images and badges, and selectedTab reads and sets the selection by tab (swift-navigation's bind(selectedTab:) in EhPanda); open: UITabGroup, UISearchTab, the sidebar and tab customization",
+          "noFixture": "The bar draws as UITabBarController's does (uikit/tabs/basic): NavigationBindingsTests holds the tabs, the provider and the selection."
         },
         {
           "api": "UISplitViewController (column styles, display modes, split behaviours, column widths, show / hide, displayModeButtonItem, the compact collapse, UISplitViewControllerDelegate)",
@@ -2110,6 +2128,12 @@
           "status": "partial",
           "notes": "Start, pause, scrub by fractionComplete (linearly when scrubsLinearly asks), reverse, continue with a timing (springs carry their initial velocity) and completion, blocks added with a delayFactor; open: pausesOnCompletion, isManualHitTestingEnabled",
           "noFixture": "Motion is not a still: AnimationTests and LayerAnimationRestTests hold the animator's states on the headless clock."
+        },
+        {
+          "api": "UIView.animate(_:changes:completion:) with a SwiftUI Animation",
+          "status": "partial",
+          "notes": "iOS 18's form, declared with SwiftUI: the changes apply at once and play with the animation's curve (linear, a timing curve, a spring with its damping and velocity) over its duration after its delay, at its speed, repeating for ever and reversing when it asks; open: a counted repeat plays once",
+          "noFixture": "Motion is not a still: UIViewSwiftUIAnimationTests holds the duration, delay and completion on the headless clock."
         }
       ]
     },
