@@ -22,14 +22,5 @@ jobs:
           mkdir -p sg
           swift-symbolgraph-extract -module-name FoundationEssentials -target $(uname -m)-unknown-linux-gnu -output-dir sg -minimum-access-level public > sgout.txt 2>&1 || tail -5 sgout.txt
           ls sg | head
-          python3 - <<'PY' || true
-          import json,glob,collections
-          names=collections.Counter()
-          for f in glob.glob('sg/FoundationEssentials.symbols.json'):
-              g=json.load(open(f))
-              for s in g['symbols']:
-                  if len(s['pathComponents'])==1:
-                      names[(s['kind']['identifier'],s['pathComponents'][0])]+=1
-          print('TOPLEVEL', len(names))
-          for (k,n),c in sorted(names.items()): print('TL', k, n)
-          PY
+          tr -d '\n ' < sg/FoundationEssentials.symbols.json | grep -o '"pathComponents":\["[^"]*"\]' | sort -u | sed 's/^/TL /'
+          tr -d '\n ' < sg/FoundationEssentials.symbols.json | grep -o '"pathComponents":\["[^"]*"\]' | sort -u | wc -l | sed 's/^/TOPLEVEL /'
