@@ -296,6 +296,8 @@ public struct URLResourceValues: Sendable {
     public var isDirectory: Bool?
     public var isRegularFile: Bool?
     public var name: String?
+    /// Kept for the URL it is set on; nothing is backed up from a page.
+    public var isExcludedFromBackup: Bool?
     public var allValues: [URLResourceKey: Any] {
         var values: [URLResourceKey: Any] = [:]
         if let fileSize { values[.fileSizeKey] = fileSize }
@@ -308,6 +310,13 @@ public struct URLResourceValues: Sendable {
 }
 
 extension URL {
+    /// Sets the file's dates from the values (a modification or creation date; the others
+    /// describe the file and are kept by it). A missing file throws.
+    public mutating func setResourceValues(_ values: URLResourceValues) throws {
+        guard _MemoryFiles.exists(self) || _MemoryFiles.isDirectory(self) else { throw FileManager._FileError.noSuchFile(self) }
+        _MemoryFiles.setDates(self, creation: values.creationDate, modification: values.contentModificationDate)
+    }
+
     /// The resource values of a file URL from the in-memory file system; a missing file throws.
     public func resourceValues(forKeys keys: Set<URLResourceKey>) throws -> URLResourceValues {
         var values = URLResourceValues()

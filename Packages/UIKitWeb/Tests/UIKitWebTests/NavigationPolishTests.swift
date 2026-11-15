@@ -211,16 +211,20 @@ import UIKit
         root.present(modal, animated: true) { presented = true }
         scene.layout(in: CGSize(width: 320, height: 500))
         #expect(scene.isAnimating && !presented)
+        #expect(modal.isBeingPresented && !modal.isBeingDismissed)
         #expect(fade.seen == ["Root>Modal"])
         #expect(modal.view.frame == window.bounds)
         _ = scene.advanceFrame(elapsed: 0.3)
         #expect(presented && fade.ended == [true] && modal.view.alpha == 1)
+        #expect(!modal.isBeingPresented)
         var dismissed = false
         modal.dismiss(animated: true) { dismissed = true }
+        #expect(modal.isBeingDismissed)
         #expect(fade.seen == ["Root>Modal", "Modal>Root"])
         #expect(window.subviews.count == 2)
         _ = scene.advanceFrame(elapsed: 0.3)
         #expect(dismissed && fade.ended == [true, true] && window.subviews.count == 1)
+        #expect(!modal.isBeingDismissed)
     }
 
     @Test func customPushTransitions() {

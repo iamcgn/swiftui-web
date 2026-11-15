@@ -190,7 +190,12 @@ public final class UIKitScene: HostedScene {
     /// Rasterises a recorded drawing for `UIImage.pngData()` (installed by hosts that can).
     public var imageRasterizer: ImageRasterizer?
     /// Recorded (UIKit's `UIAccessibility.isReduceMotionEnabled` reads it).
-    public var hostReducesMotion = false
+    public var hostReducesMotion = false {
+        didSet {
+            guard hostReducesMotion != oldValue else { return }
+            NotificationCenter.default.post(name: UIAccessibility.reduceMotionStatusDidChangeNotification, object: nil)
+        }
+    }
     public var hostIncreasesContrast = false
     /// The user's text size from the host (a category short name): the screen's preferred
     /// content size category follows it (sw-dynamic-type).

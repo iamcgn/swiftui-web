@@ -37,6 +37,27 @@ extension View {
     @available(*, deprecated, message: "replace styled NavigationView with NavigationStack or NavigationSplitView instead")
     nonisolated public func navigationViewStyle<S: NavigationViewStyle>(_ style: S) -> some View { self }
 
+    // MARK: navigationBarItems
+
+    /// Puts the views at the leading and trailing ends of the navigation bar.
+    @available(*, deprecated, message: "Use toolbar(content:) with navigationBarLeading or navigationBarTrailing placement")
+    public func navigationBarItems<L: View, T: View>(leading: L, trailing: T) -> some View {
+        modifier(_ToolbarModifier(items: [
+            _ToolbarItemData(id: nil, placement: .navigationBarLeading, view: AnyView(leading), isGroup: true),
+            _ToolbarItemData(id: nil, placement: .navigationBarTrailing, view: AnyView(trailing), isGroup: true),
+        ]))
+    }
+    /// Puts the view at the leading end of the navigation bar.
+    @available(*, deprecated, message: "Use toolbar(content:) with navigationBarLeading placement")
+    public func navigationBarItems<L: View>(leading: L) -> some View {
+        modifier(_ToolbarModifier(items: [_ToolbarItemData(id: nil, placement: .navigationBarLeading, view: AnyView(leading), isGroup: true)]))
+    }
+    /// Puts the view at the trailing end of the navigation bar.
+    @available(*, deprecated, message: "Use toolbar(content:) with navigationBarTrailing placement")
+    public func navigationBarItems<T: View>(trailing: T) -> some View {
+        modifier(_ToolbarModifier(items: [_ToolbarItemData(id: nil, placement: .navigationBarTrailing, view: AnyView(trailing), isGroup: true)]))
+    }
+
     // MARK: navigationBarTitle
 
     /// Sets the title in the navigation bar for this view.

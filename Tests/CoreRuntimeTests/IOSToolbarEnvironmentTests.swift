@@ -94,6 +94,19 @@ import SwiftUIWebHeadless
         #expect(!disabled.isEnabled)
     }
 
+    @Test func navigationBarItemsSitAtTheEndsOfTheBar() throws {
+        let r = runtime(NavigationStack {
+            Text("Body")
+                .navigationTitle("Rides")
+                .navigationBarItems(leading: Button("Close") {}, trailing: Button("Add") {})
+        })
+        let close = try #require(element(r, "Close"))
+        let add = try #require(element(r, "Add"))
+        #expect(close.frame.minY < 100 && add.frame.minY < 100)
+        #expect(close.frame.maxX < size.width / 2)
+        #expect(add.frame.minX > size.width / 2)
+    }
+
     @Test func aDisabledButtonIsNotEnabledInTheSemantics() throws {
         let r = runtime(VStack {
             Button("On") {}

@@ -77,6 +77,16 @@ open class UIBarButtonItem: UIBarItem {
         self.menu = menu
     }
 
+    /// A space of the width between items (UIKit's default with no width: 8 points).
+    public static func fixedSpace(_ width: CGFloat) -> UIBarButtonItem {
+        let item = UIBarButtonItem(barButtonSystemItem: .fixedSpace)
+        item.width = width
+        return item
+    }
+    public static func fixedSpace() -> UIBarButtonItem { fixedSpace(8) }
+    /// A space that takes what the bar has left over.
+    public static func flexibleSpace() -> UIBarButtonItem { UIBarButtonItem(barButtonSystemItem: .flexibleSpace) }
+
     public convenience init(systemItem: SystemItem, primaryAction: UIAction?, menu: UIMenu? = nil) {
         self.init()
         self.systemItem = systemItem

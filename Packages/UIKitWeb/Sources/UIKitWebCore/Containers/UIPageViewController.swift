@@ -38,6 +38,19 @@ extension UIPageViewControllerDelegate {
 /// The orientation of the interface (the browser's window is a portrait phone).
 public enum UIInterfaceOrientation: Int, Sendable { case unknown = 0, portrait, portraitUpsideDown, landscapeLeft, landscapeRight }
 
+/// The orientations a view controller supports.
+public struct UIInterfaceOrientationMask: OptionSet, Sendable {
+    public let rawValue: UInt
+    public init(rawValue: UInt) { self.rawValue = rawValue }
+    public static let portrait = UIInterfaceOrientationMask(rawValue: 1 << 1)
+    public static let portraitUpsideDown = UIInterfaceOrientationMask(rawValue: 1 << 2)
+    public static let landscapeRight = UIInterfaceOrientationMask(rawValue: 1 << 3)
+    public static let landscapeLeft = UIInterfaceOrientationMask(rawValue: 1 << 4)
+    public static let landscape: UIInterfaceOrientationMask = [.landscapeLeft, .landscapeRight]
+    public static let all: UIInterfaceOrientationMask = [.portrait, .portraitUpsideDown, .landscape]
+    public static let allButUpsideDown: UIInterfaceOrientationMask = [.portrait, .landscape]
+}
+
 /// A container view controller that manages navigation between pages of content.
 @preconcurrency @MainActor
 open class UIPageViewController: UIViewController, UIScrollViewDelegate {

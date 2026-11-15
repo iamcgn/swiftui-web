@@ -451,7 +451,11 @@ func generate(models: [Model], module: String) -> String {
                 }
                 out += "}\n"
             }
-            // `Identifiable` is NSManagedObject's own (WebCoreData), as on Apple platforms.
+            // As Xcode's codegen does: the root entities' classes are `Identifiable` (by an `id`
+            // attribute, or by identity), and subentities' classes inherit it.
+            if entity.parent == nil {
+                out += "\nextension \(swiftClass): Identifiable {}\n"
+            }
         }
 
         // The model's description.

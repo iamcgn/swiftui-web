@@ -643,10 +643,10 @@ public let NSMigrationMissingSourceModelError = 134130
 public let NSDetailedErrorsKey = "NSDetailedErrors"
 public let NSAffectedObjectsErrorKey = "NSAffectedObjectsErrorKey"
 
-// Apple's Core Data makes every managed object `Identifiable` by its identity (iOS 13), so
-// `ForEach(items)` and `List(items)` take fetched results as they are. An entity's own `id`
-// attribute does not change that: the conformance is the class's, as on Apple platforms.
-extension NSManagedObject: Identifiable {}
+// `Identifiable` is not NSManagedObject's: as Xcode's codegen does, the CoreDataModel plugin
+// declares it on each generated root entity's class (`extension Item: Identifiable {}`, by its
+// `id` attribute if it has one, by identity otherwise), and an app that writes its classes
+// declares it itself, as its committed `+CoreDataProperties.swift` files do.
 
 // Equality and the description: NSObject's with the runtime, the class's own without it.
 #if !(os(WASI) && canImport(ObjectiveC))

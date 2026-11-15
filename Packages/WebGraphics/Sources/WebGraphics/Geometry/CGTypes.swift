@@ -156,6 +156,11 @@ extension CGRect {
 
 // Linux Foundation has its own edges and division; wasm gets these.
 #if os(WASI)
+// CoreGraphics' equality functions, as Swift spells them.
+extension CGPoint { public func equalTo(_ point2: CGPoint) -> Bool { self == point2 } }
+extension CGSize { public func equalTo(_ size2: CGSize) -> Bool { self == size2 } }
+extension CGRect { public func equalTo(_ rect2: CGRect) -> Bool { self == rect2 } }
+
 /// A side of a rectangle, as `CGRect.divided(atDistance:from:)` names it.
 public enum CGRectEdge: UInt32, Sendable {
     case minXEdge, minYEdge, maxXEdge, maxYEdge

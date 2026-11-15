@@ -141,6 +141,14 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
     var storedNavigationItem: UINavigationItem?
     var storedTabBarItem: UITabBarItem?
     open var hidesBottomBarWhenPushed = false
+    /// The orientations the controller supports: a page turns with its window, so every one
+    /// but upside down, UIKit's phone default.
+    open var supportedInterfaceOrientations: UIInterfaceOrientationMask { .allButUpsideDown }
+    open var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation { .portrait }
+    open var shouldAutorotate: Bool { true }
+    /// Whether the controller is being presented, or dismissed, until that transition ends.
+    public internal(set) var isBeingPresented = false
+    public internal(set) var isBeingDismissed = false
     /// The items a navigation controller's toolbar shows for this controller.
     open var toolbarItems: [UIBarButtonItem]? { didSet { (parent as? UINavigationController)?.toolbarItemsDidChange(for: self) } }
     open func setToolbarItems(_ items: [UIBarButtonItem]?, animated: Bool) { toolbarItems = items }
@@ -265,7 +273,11 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
         }
         presentedViewController = viewControllerToPresent
         viewControllerToPresent.presentingViewController = self
-        UIKitScene.shared.present(viewControllerToPresent, from: self, animated: flag, completion: completion)
+        viewControllerToPresent.isBeingPresented = true
+        UIKitScene.shared.present(viewControllerToPresent, from: self, animated: flag) {
+            viewControllerToPresent.isBeingPresented = false
+            completion?()
+        }
     }
 
     /// `presentedViewController` clears at once; `completion` (and an alert action's handler)
@@ -274,7 +286,11 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
         if let presented = presentedViewController {
             presented.presentingViewController = nil
             presentedViewController = nil
-            UIKitScene.shared.dismiss(presented, animated: flag, completion: completion)
+            presented.isBeingDismissed = true
+            UIKitScene.shared.dismiss(presented, animated: flag) {
+                presented.isBeingDismissed = false
+                completion?()
+            }
             return
         } else if let presenter = presentingViewController {
             presenter.dismiss(animated: flag, completion: completion)
