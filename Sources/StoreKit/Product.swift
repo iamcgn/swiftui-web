@@ -138,7 +138,9 @@ public struct Product: Identifiable, Equatable, Hashable, Sendable {
 
         public static func appAccountToken(_ token: UUID) -> PurchaseOption { PurchaseOption(name: "appAccountToken", value: token.uuidString) }
         public static func quantity(_ quantity: Int) -> PurchaseOption { PurchaseOption(name: "quantity", value: String(quantity)) }
-        public static let simulatesAskToBuyInSandbox = PurchaseOption(name: "simulatesAskToBuyInSandbox", value: "true")
+        public static func simulatesAskToBuyInSandbox(_ simulatesAskToBuy: Bool) -> PurchaseOption {
+            PurchaseOption(name: "simulatesAskToBuyInSandbox", value: String(simulatesAskToBuy))
+        }
         public static func custom(key: String, value: String) -> PurchaseOption { PurchaseOption(name: key, value: value) }
         /// Applies a win-back offer to the purchase.
         public static func winBackOffer(_ offer: Product.SubscriptionOffer) -> PurchaseOption {
@@ -387,6 +389,21 @@ public struct Product: Identifiable, Equatable, Hashable, Sendable {
         }
     }
 }
+
+#if os(WASI)
+// The purchases that name where the confirmation shows (a scene on iOS 17, a view controller on
+// iOS 18.2): RevenueCat's `PurchasableSK2Product` requires the scene form wherever UIKit exists.
+// There is still no store, so they throw as `purchase(options:)` does.
+extension Product {
+    public func purchase(confirmIn scene: some UIScene, options: Set<Product.PurchaseOption> = []) async throws -> Product.PurchaseResult {
+        try await purchase(options: options)
+    }
+
+    public func purchase(confirmIn viewController: UIViewController, options: Set<Product.PurchaseOption> = []) async throws -> Product.PurchaseResult {
+        try await purchase(options: options)
+    }
+}
+#endif
 
 // The format styles conform to Foundation's `FormatStyle` (WebFoundation's on wasm); inside
 // the types above, `FormatStyle` names the nested struct, so the conformances are spelled here.

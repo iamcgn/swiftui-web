@@ -82,16 +82,19 @@ public struct Notification: Hashable, @unchecked Sendable {
         public init(_ rawValue: String) { self.rawValue = rawValue }
     }
     public let name: Name
-    public let object: AnyObject?
+    /// The sender: any value, as Foundation's is (RevenueCat posts a tuple of purchase results).
+    public let object: Any?
     public let userInfo: [AnyHashable: Any]?
 
-    public init(name: Name, object: AnyObject? = nil, userInfo: [AnyHashable: Any]? = nil) {
+    public init(name: Name, object: Any? = nil, userInfo: [AnyHashable: Any]? = nil) {
         self.name = name
         self.object = object
         self.userInfo = userInfo
     }
 
-    public static func == (lhs: Notification, rhs: Notification) -> Bool { lhs.name == rhs.name && lhs.object === rhs.object }
+    public static func == (lhs: Notification, rhs: Notification) -> Bool { lhs.name == rhs.name && lhs._sender === rhs._sender }
+    /// The sender as an object, to compare by identity as Foundation's centre does.
+    var _sender: AnyObject? { object.map { $0 as AnyObject } }
     public func hash(into hasher: inout Hasher) { hasher.combine(name) }
 }
 
@@ -124,10 +127,10 @@ public final class NotificationCenter: _WebObjectBase, @unchecked Sendable {
     /// Adds an observer (the queue is accepted; blocks run where `post` runs, which is the main
     /// thread, the only one here). Returns a token for `removeObserver`.
     @discardableResult
-    public func addObserver(forName name: Notification.Name?, object: AnyObject? = nil, queue: OperationQueue? = nil, using block: @escaping @Sendable (Notification) -> Void) -> any NSObjectProtocolToken {
+    public func addObserver(forName name: Notification.Name?, object: Any? = nil, queue: OperationQueue? = nil, using block: @escaping @Sendable (Notification) -> Void) -> any NSObjectProtocolToken {
         nextID += 1
         let id = nextID
-        observers[id] = Observer(name: name, object: object, filtersObject: object != nil, block: block)
+        observers[id] = Observer(name: name, object: object.map { $0 as AnyObject }, filtersObject: object != nil, block: block)
         return NotificationToken(id: id)
     }
 
@@ -162,12 +165,12 @@ public final class NotificationCenter: _WebObjectBase, @unchecked Sendable {
     public func post(_ notification: Notification) {
         for observer in observers.values {
             if let name = observer.name, name != notification.name { continue }
-            if observer.filtersObject, observer.object !== notification.object { continue }
+            if observer.filtersObject, observer.object !== notification._sender { continue }
             observer.block(notification)
         }
     }
 
-    public func post(name: Notification.Name, object: AnyObject? = nil, userInfo: [AnyHashable: Any]? = nil) {
+    public func post(name: Notification.Name, object: Any? = nil, userInfo: [AnyHashable: Any]? = nil) {
         post(Notification(name: name, object: object, userInfo: userInfo))
     }
 }

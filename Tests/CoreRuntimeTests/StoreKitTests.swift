@@ -375,7 +375,9 @@ private final class ReceiptRefresh: SKRequestDelegate {
         options.insert(.promotionalOffer(offerID: "spring", keyID: "key", nonce: UUID(), signature: Data([1, 2]), timestamp: 3))
         options.insert(.billingPlanType(.monthly))
         options.insert(.billingPlanType(.monthly))
-        #expect(options.count == 6)
+        options.insert(.simulatesAskToBuyInSandbox(true))
+        options.insert(.simulatesAskToBuyInSandbox(false))
+        #expect(options.count == 8)
         #expect(Product.PurchaseError.paymentMethodBindingConfigurationRequired != .productUnavailable)
     }
 
