@@ -14,7 +14,7 @@
 // the one final result.
 #if os(WASI)
 import JavaScriptKit
-import Speech
+import SpeechRecognitionHost
 
 @MainActor
 enum SpeechHost {

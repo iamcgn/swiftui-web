@@ -109,13 +109,18 @@ let package = Package(
         // Audio (AVFAudio, which the browser host links), and the player and the camera (AVFoundation,
         // which re-exports AVFAudio as Apple's does). The camera's preview is a CALayer (UIKitWebCore's);
         // its host hook is a module of its own so the host links no capture code (decision 0006).
-        .target(name: "AVFAudio", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // AVFAudio's, Speech's, UserNotifications' and SwiftData's host hooks are modules of their own
+        // too (AVFAudioHost and the like), so the browser host installs them without linking the
+        // frameworks into every app (decision 0006).
+        .target(name: "AVFAudioHost", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "AVFAudio", dependencies: ["AVFAudioHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVCaptureHost", swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVFoundation", dependencies: ["AVFAudio", "AVCaptureHost", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "UIKitWebCore", package: "UIKitWeb"),
                                                 .product(name: "WebImageIO", package: "WebGraphics", condition: .when(platforms: [.wasi]))],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "AVKit", dependencies: ["SwiftUI", "AVFoundation"], swiftSettings: [.treatAllWarnings(as: .error)]),
-        .target(name: "SwiftData", dependencies: ["SwiftUIWebCore", "SwiftDataMacros", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "SwiftDataHost", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "SwiftData", dependencies: ["SwiftDataHost", "SwiftUIWebCore", "SwiftDataMacros", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // The `@Model`, `#Predicate` and `@ModelActor` macros (host-compiled, as `#Preview`'s plugin).
         .macro(
             name: "SwiftDataMacros",
@@ -140,7 +145,8 @@ let package = Package(
         // The AssetSymbols plugin's tool: `.xcassets` to `ImageResource` and `ColorResource` symbols (host only).
         .executableTarget(name: "AssetSymbolsGen", swiftSettings: [.treatAllWarnings(as: .error)]),
         .plugin(name: "AssetSymbols", capability: .buildTool(), dependencies: ["AssetSymbolsGen"]),
-        .target(name: "UserNotifications", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "UserNotificationsHost", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "UserNotifications", dependencies: ["UserNotificationsHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // Hashes, HMAC and symmetric keys; haptics on hardware without an engine; the app's calls
         // to its widgets (none on the web). Pure Swift values over WebFoundation.
         .target(name: "CryptoKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -215,7 +221,8 @@ let package = Package(
         // PDF documents and pages over a PDF's data; the files UIGraphicsPDFRenderer wrote draw as recorded.
         .target(name: "PDFKit", dependencies: [.product(name: "UIKit", package: "UIKitWeb"), .product(name: "WebFoundation", package: "WebGraphics")],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
-        .target(name: "Speech", dependencies: ["AVFAudio", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "SpeechRecognitionHost", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "Speech", dependencies: ["SpeechRecognitionHost", "AVFAudio", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
         // In-app purchases with an empty store (no products load on the web) and its SwiftUI views.
         .target(
@@ -274,7 +281,8 @@ let package = Package(
                 // The audio, speech, notification and data stand-ins' host hooks (decisions
                 // 0021, 0022): Web Audio, the microphone, the on-device recogniser fed the app's
                 // buffers, the Notification API, geolocation, localStorage for SwiftData's stores.
-                "AVFAudio", "AVCaptureHost", "Speech", "UserNotifications", "CoreLocationHost", "CoreMotionHost", "SwiftData", "AuthenticationServicesHost", "TranslationHost",
+                // Each is a module of its own, so no framework is linked into every app (0006).
+                "AVFAudioHost", "AVCaptureHost", "SpeechRecognitionHost", "UserNotificationsHost", "CoreLocationHost", "CoreMotionHost", "SwiftDataHost", "AuthenticationServicesHost", "TranslationHost",
                 // The on-screen keyboard's frame from the visual viewport into UIKitScene (KeyboardHost.swift).
                 .product(name: "UIKitWebCore", package: "UIKitWeb"),
                 .product(name: "WebGraphicsCanvas", package: "WebGraphics"),
