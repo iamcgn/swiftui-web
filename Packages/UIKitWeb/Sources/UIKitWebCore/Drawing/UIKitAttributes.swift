@@ -107,6 +107,14 @@ extension AttributeScopes {
     public var uiKit: UIKitAttributes.Type { UIKitAttributes.self }
 }
 
+extension AttributeContainer {
+    /// A dictionary's UIKit and Foundation attributes (`.font`, `.foregroundColor`, `.link`), as
+    /// Foundation's initializer reads them on iOS; others are left out.
+    public init(_ attributes: [NSAttributedString.Key: Any]) {
+        self.init(_attributes: attributes, keys: AttributeScopes.UIKitAttributes._webKeys)
+    }
+}
+
 extension AttributeDynamicLookup {
     // SwiftUI's keys of the same names (`font`, `foregroundColor`) win where both are imported.
     @_disfavoredOverload

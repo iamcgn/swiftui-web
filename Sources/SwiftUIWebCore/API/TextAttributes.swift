@@ -70,6 +70,16 @@ extension AttributeDynamicLookup {
     public subscript<T: AttributedStringKey>(dynamicMember keyPath: KeyPath<AttributeScopes.SwiftUIAttributes, T>) -> T { self[T.self] }
 }
 
+#if os(WASI)
+// A scope, so `text.swiftUI.foregroundColor` and `container.swiftUI.font` read and set its keys.
+extension AttributeScopes.SwiftUIAttributes: AttributeScope {
+    public static var _webKeys: [any AttributedStringKey.Type] {
+        [FontAttribute.self, ForegroundColorAttribute.self, BackgroundColorAttribute.self, UnderlineStyleAttribute.self,
+         StrikethroughStyleAttribute.self, BaselineOffsetAttribute.self, KernAttribute.self, TrackingAttribute.self]
+    }
+}
+#endif
+
 /// A UIKit attribute value that `Text(AttributedString)` shows (UIKitWeb's fonts, colours and
 /// line styles, under their `NSAttributedString.Key` names, as `AttributedString(text,
 /// including: \.uiKit)` keeps them).
