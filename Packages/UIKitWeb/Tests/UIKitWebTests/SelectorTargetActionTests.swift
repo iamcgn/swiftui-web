@@ -216,7 +216,10 @@ extension ExtensionLoadedController {
         let a = CGRect(x: 1, y: 2, width: 3, height: 4)
         let b = CGRect(origin: CGPoint(x: 1.0, y: 2.0), size: CGSize(width: 3.0, height: 4.0))
         #expect(a == b && a != .zero && CGRect.null.isNull && CGPoint() == .zero && CGSize() == .zero)
-        #expect(Set([a, b, .zero]).count == 2 && Set([CGPoint(x: 1, y: 1), CGPoint(x: 1, y: 1)]).count == 1)
+        // On the Mac host these are Apple's structs, whose Hashable needs macOS 15.
+        if #available(macOS 15, *) {
+            #expect(Set([a, b, .zero]).count == 2 && Set([CGPoint(x: 1, y: 1), CGPoint(x: 1, y: 1)]).count == 1)
+        }
         #expect(a.maxX == 4 && a.midY == 4 && a.contains(CGPoint(x: 2, y: 3)))
     }
 }
