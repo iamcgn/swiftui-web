@@ -152,27 +152,27 @@ extension Tab where Label == DefaultTabLabel {
 extension Tab where Label == DefaultTabLabel {
     @_disfavoredOverload
     nonisolated public init(_ titleResource: LocalizedStringResource, systemImage: String, value: Value, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
-        self.init(value: value, role: role, content: content) { Self.label(titleResource, Image(systemName: systemImage)) }
+        self.init(value: value, role: role, content: content) { Self.resourceLabel(titleResource, Image(systemName: systemImage)) }
     }
 
     @_disfavoredOverload
     nonisolated public init(_ titleResource: LocalizedStringResource, image: String, value: Value, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
-        self.init(value: value, role: role, content: content) { Self.label(titleResource, Image(image)) }
+        self.init(value: value, role: role, content: content) { Self.resourceLabel(titleResource, Image(image)) }
     }
 
     @_disfavoredOverload
     nonisolated public init<T: Hashable>(_ titleResource: LocalizedStringResource, systemImage: String, value: T, role: TabRole? = nil,
                                          @ViewBuilder content: () -> Content) where Value == T? {
-        self.init(value: .some(value), role: role, content: content) { Self.label(titleResource, Image(systemName: systemImage)) }
+        self.init(value: .some(value), role: role, content: content) { Self.resourceLabel(titleResource, Image(systemName: systemImage)) }
     }
 
     @_disfavoredOverload
     nonisolated public init<T: Hashable>(_ titleResource: LocalizedStringResource, image: String, value: T, role: TabRole? = nil,
                                          @ViewBuilder content: () -> Content) where Value == T? {
-        self.init(value: .some(value), role: role, content: content) { Self.label(titleResource, Image(image)) }
+        self.init(value: .some(value), role: role, content: content) { Self.resourceLabel(titleResource, Image(image)) }
     }
 
-    nonisolated static func label(_ title: LocalizedStringResource, _ icon: Image) -> DefaultTabLabel {
+    nonisolated static func resourceLabel(_ title: LocalizedStringResource, _ icon: Image) -> DefaultTabLabel {
         SwiftUIWebCore.Label { Text(title) } icon: { icon }
     }
 }
@@ -208,12 +208,12 @@ extension Tab where Value == Never, Label == DefaultTabLabel {
 
     @_disfavoredOverload
     nonisolated public init(_ titleResource: LocalizedStringResource, systemImage: String, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
-        self.init(role: role, content: content) { Self.label(titleResource, Image(systemName: systemImage)) }
+        self.init(role: role, content: content) { Self.resourceLabel(titleResource, Image(systemName: systemImage)) }
     }
 
     @_disfavoredOverload
     nonisolated public init(_ titleResource: LocalizedStringResource, image: String, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
-        self.init(role: role, content: content) { Self.label(titleResource, Image(image)) }
+        self.init(role: role, content: content) { Self.resourceLabel(titleResource, Image(image)) }
     }
 }
 
