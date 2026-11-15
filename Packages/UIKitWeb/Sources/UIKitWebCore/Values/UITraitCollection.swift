@@ -71,6 +71,8 @@ public struct UITraitCollection: Hashable, Sendable {
     public var displayScale: CGFloat = 2
     public var layoutDirection: UITraitEnvironmentLayoutDirection = .leftToRight
     public var preferredContentSizeCategory: UIContentSizeCategory = .large
+    /// The values of an app's own traits (`UITraitDefinition` types), set through overrides.
+    var customTraits = _UICustomTraitValues()
 
     public init() {}
 
@@ -106,9 +108,14 @@ public struct UITraitCollection: Hashable, Sendable {
             if t.verticalSizeClass != .unspecified { result.verticalSizeClass = t.verticalSizeClass }
             if t.layoutDirection != .unspecified { result.layoutDirection = t.layoutDirection }
             if t.preferredContentSizeCategory != .unspecified { result.preferredContentSizeCategory = t.preferredContentSizeCategory }
+            result.customTraits.merge(t.customTraits)
         }
         self = result
     }
+
+    /// The value of a trait: one of UIKit's, or an app's own (its default unless an override
+    /// above set it).
+    public subscript<T: UITraitDefinition>(trait: T.Type) -> T.Value { T.value(in: self) }
 
     /// The current traits, as UIKit exposes them while resolving dynamic values.
     public static var current: UITraitCollection {
@@ -147,6 +154,8 @@ public struct UITraitOverrides: Hashable, Sendable {
     public var layoutDirection: UITraitEnvironmentLayoutDirection?
     public var preferredContentSizeCategory: UIContentSizeCategory?
     public var displayScale: CGFloat?
+    /// An app's own traits set here.
+    var customTraits = _UICustomTraitValues()
 
     public init() {}
 
@@ -158,25 +167,141 @@ public struct UITraitOverrides: Hashable, Sendable {
         if let layoutDirection { traits.layoutDirection = layoutDirection }
         if let preferredContentSizeCategory { traits.preferredContentSizeCategory = preferredContentSizeCategory }
         if let displayScale { traits.displayScale = displayScale }
+        traits.customTraits.merge(customTraits)
     }
+
+    /// Whether `trait` is overridden here.
+    public func contains<T: UITraitDefinition>(_ trait: T.Type) -> Bool {
+        if let storage = T._storage { return storage.overrides.map { self[keyPath: $0] != nil } ?? false }
+        return customTraits.values[ObjectIdentifier(T.self)] != nil
+    }
+
+    /// Takes the override of `trait` away, so the inherited value shows again.
+    public mutating func remove<T: UITraitDefinition>(_ trait: T.Type) {
+        if let storage = T._storage { if let key = storage.overrides { self[keyPath: key] = nil }; return }
+        customTraits.values[ObjectIdentifier(T.self)] = nil
+    }
+}
+
+/// Traits that can be set: a view's or view controller's `traitOverrides`, where an app's own
+/// traits are set with their type (`traitOverrides[MyTrait.self] = value`), as swift-navigation
+/// sets its dismiss and push actions.
+public protocol UIMutableTraits {
+    subscript<T: UITraitDefinition>(trait: T.Type) -> T.Value { get set }
+}
+
+extension UITraitOverrides: UIMutableTraits {
+    /// The overridden value, else the trait's default; setting overrides it (UIKit's
+    /// device idiom can't be overridden and keeps its value).
+    public subscript<T: UITraitDefinition>(trait: T.Type) -> T.Value {
+        get {
+            if let storage = T._storage {
+                return storage.overrides.flatMap { self[keyPath: $0] } ?? T.defaultValue
+            }
+            return customTraits.values[ObjectIdentifier(T.self)] as? T.Value ?? T.defaultValue
+        }
+        set {
+            if let storage = T._storage { if let key = storage.overrides { self[keyPath: key] = newValue }; return }
+            customTraits.values[ObjectIdentifier(T.self)] = newValue
+        }
+    }
+}
+
+/// The values of an app's own traits, by trait type. Values compare with `==` when their type
+/// is Equatable; any other value (an action holding a closure, as swift-navigation's are)
+/// counts as changed whenever it is set.
+public struct _UICustomTraitValues: Hashable, @unchecked Sendable {
+    var values: [ObjectIdentifier: Any] = [:]
+
+    mutating func merge(_ other: _UICustomTraitValues) {
+        for (key, value) in other.values { values[key] = value }
+    }
+
+    public static func == (lhs: _UICustomTraitValues, rhs: _UICustomTraitValues) -> Bool {
+        guard lhs.values.count == rhs.values.count else { return false }
+        for (key, value) in lhs.values {
+            guard let other = rhs.values[key], _traitValuesEqual(value, other) else { return false }
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) { hasher.combine(values.count) }
+}
+
+/// Whether two values of a trait are equal: by `==` for an Equatable type, else never.
+func _traitValuesEqual(_ lhs: Any, _ rhs: Any) -> Bool {
+    guard let lhs = lhs as? any Equatable else { return false }
+    return lhs._isEqual(toTraitValue: rhs)
+}
+
+extension Equatable {
+    fileprivate func _isEqual(toTraitValue other: Any) -> Bool { (other as? Self) == self }
 }
 
 // MARK: - Trait change observation (iOS 17: `registerForTraitChanges`)
 
-/// A trait an observer registers for: the value of a trait collection's property.
+/// A trait: one of UIKit's (the appearance, the size classes and the rest) or an app's own,
+/// which declares its default and is set through `traitOverrides` (iOS 17's custom traits).
 public protocol UITraitDefinition {
-    associatedtype Value: Equatable
-    static func value(in traits: UITraitCollection) -> Value
+    associatedtype Value = Self
+    /// The value when nothing above overrides it.
+    static var defaultValue: Value { get }
+    static var identifier: String { get }
+    static var name: String { get }
+    static var affectsColorAppearance: Bool { get }
+    /// Where a collection and overrides keep one of UIKit's traits; nil for an app's own.
+    static var _storage: _UITraitStorage<Value>? { get }
+}
+
+/// Where one of UIKit's traits lives in a collection and in overrides.
+public struct _UITraitStorage<Value> {
+    let collection: KeyPath<UITraitCollection, Value>
+    let overrides: WritableKeyPath<UITraitOverrides, Value?>?
+}
+
+extension UITraitDefinition {
+    public static var identifier: String { String(reflecting: Self.self) }
+    public static var name: String { String(describing: Self.self) }
+    public static var affectsColorAppearance: Bool { false }
+    public static var _storage: _UITraitStorage<Value>? { nil }
+
+    /// The trait's value in `traits`.
+    public static func value(in traits: UITraitCollection) -> Value {
+        if let storage = _storage { return traits[keyPath: storage.collection] }
+        return traits.customTraits.values[ObjectIdentifier(Self.self)] as? Value ?? defaultValue
+    }
 }
 public typealias UITrait = any UITraitDefinition.Type
 
-public enum UITraitUserInterfaceStyle: UITraitDefinition { public static func value(in traits: UITraitCollection) -> UIUserInterfaceStyle { traits.userInterfaceStyle } }
-public enum UITraitHorizontalSizeClass: UITraitDefinition { public static func value(in traits: UITraitCollection) -> UIUserInterfaceSizeClass { traits.horizontalSizeClass } }
-public enum UITraitVerticalSizeClass: UITraitDefinition { public static func value(in traits: UITraitCollection) -> UIUserInterfaceSizeClass { traits.verticalSizeClass } }
-public enum UITraitUserInterfaceIdiom: UITraitDefinition { public static func value(in traits: UITraitCollection) -> UIUserInterfaceIdiom { traits.userInterfaceIdiom } }
-public enum UITraitDisplayScale: UITraitDefinition { public static func value(in traits: UITraitCollection) -> CGFloat { traits.displayScale } }
-public enum UITraitLayoutDirection: UITraitDefinition { public static func value(in traits: UITraitCollection) -> UITraitEnvironmentLayoutDirection { traits.layoutDirection } }
-public enum UITraitPreferredContentSizeCategory: UITraitDefinition { public static func value(in traits: UITraitCollection) -> UIContentSizeCategory { traits.preferredContentSizeCategory } }
+public enum UITraitUserInterfaceStyle: UITraitDefinition {
+    public static var defaultValue: UIUserInterfaceStyle { .unspecified }
+    public static var affectsColorAppearance: Bool { true }
+    public static var _storage: _UITraitStorage<UIUserInterfaceStyle>? { _UITraitStorage(collection: \.userInterfaceStyle, overrides: \.userInterfaceStyle) }
+}
+public enum UITraitHorizontalSizeClass: UITraitDefinition {
+    public static var defaultValue: UIUserInterfaceSizeClass { .unspecified }
+    public static var _storage: _UITraitStorage<UIUserInterfaceSizeClass>? { _UITraitStorage(collection: \.horizontalSizeClass, overrides: \.horizontalSizeClass) }
+}
+public enum UITraitVerticalSizeClass: UITraitDefinition {
+    public static var defaultValue: UIUserInterfaceSizeClass { .unspecified }
+    public static var _storage: _UITraitStorage<UIUserInterfaceSizeClass>? { _UITraitStorage(collection: \.verticalSizeClass, overrides: \.verticalSizeClass) }
+}
+public enum UITraitUserInterfaceIdiom: UITraitDefinition {
+    public static var defaultValue: UIUserInterfaceIdiom { .unspecified }
+    public static var _storage: _UITraitStorage<UIUserInterfaceIdiom>? { _UITraitStorage(collection: \.userInterfaceIdiom, overrides: nil) }
+}
+public enum UITraitDisplayScale: UITraitDefinition {
+    public static var defaultValue: CGFloat { 0 }
+    public static var _storage: _UITraitStorage<CGFloat>? { _UITraitStorage(collection: \.displayScale, overrides: \.displayScale) }
+}
+public enum UITraitLayoutDirection: UITraitDefinition {
+    public static var defaultValue: UITraitEnvironmentLayoutDirection { .unspecified }
+    public static var _storage: _UITraitStorage<UITraitEnvironmentLayoutDirection>? { _UITraitStorage(collection: \.layoutDirection, overrides: \.layoutDirection) }
+}
+public enum UITraitPreferredContentSizeCategory: UITraitDefinition {
+    public static var defaultValue: UIContentSizeCategory { .unspecified }
+    public static var _storage: _UITraitStorage<UIContentSizeCategory>? { _UITraitStorage(collection: \.preferredContentSizeCategory, overrides: \.preferredContentSizeCategory) }
+}
 
 extension UITraitCollection {
     /// Whether any of `traits` differs between this collection and `other`.
@@ -186,7 +311,15 @@ extension UITraitCollection {
     }
 
     private static func changed(_ trait: UITrait, from a: UITraitCollection, to b: UITraitCollection) -> Bool {
-        func check<T: UITraitDefinition>(_ type: T.Type) -> Bool { T.value(in: a) != T.value(in: b) }
+        func check<T: UITraitDefinition>(_ type: T.Type) -> Bool {
+            guard T._storage == nil else { return !_traitValuesEqual(T.value(in: a), T.value(in: b)) }
+            // An app's trait changed when it was set or cleared, or set to another value.
+            switch (a.customTraits.values[ObjectIdentifier(T.self)], b.customTraits.values[ObjectIdentifier(T.self)]) {
+            case (nil, nil): return false
+            case let (old?, new?): return !_traitValuesEqual(old, new)
+            default: return true
+            }
+        }
         return check(trait)
     }
 }

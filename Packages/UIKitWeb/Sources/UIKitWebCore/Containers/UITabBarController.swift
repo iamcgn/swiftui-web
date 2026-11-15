@@ -44,6 +44,8 @@ open class UITabBarController: UIViewController {
     }
     /// The controllers the user may reorder in More's Edit screen (accepted: no edit screen).
     open var customizableViewControllers: [UIViewController]?
+    /// The tabs set with `tabs` (Containers/UITab.swift).
+    var storedTabs: [UITab] = []
 
     open var selectedIndex: Int = 0 {
         didSet { if selectedIndex != oldValue { showSelected(previous: oldValue) } }
