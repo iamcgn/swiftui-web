@@ -3,9 +3,12 @@
 // or a system item, with an action), tab bar items.
 
 /// An abstract superclass for items that can be added to a bar that appears at the bottom or
-/// top of the screen.
+/// top of the screen. Rooted as the responders are (`UIResponderBase`, `NSObject` with the
+/// runtime), as UIKit's is an `NSObject`: an `@objc` action method can take the item that sent
+/// it (SwiftyFORM's toolbar, `@objc func nextButtonAction(_ sender: UIBarButtonItem)`, which its
+/// `#selector` names).
 @preconcurrency @MainActor
-open class UIBarItem {
+open class UIBarItem: UIResponderBase {
     open var title: String? { didSet { itemDidChange() } }
     open var image: UIImage? { didSet { itemDidChange() } }
     open var isEnabled = true { didSet { itemDidChange() } }
@@ -14,7 +17,7 @@ open class UIBarItem {
     open var accessibilityLabel: String?
     open var accessibilityIdentifier: String?
 
-    public init() {}
+    public override init() { super.init() }
 
     /// The bar showing the item, told when it changes.
     var onChange: (@MainActor () -> Void)?

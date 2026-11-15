@@ -73,8 +73,21 @@ public final class NSManagedObjectID: NSFetchRequestResult, Hashable, CustomStri
 
 // MARK: - NSManagedObject
 
+/// The root of `NSManagedObject`. With the Objective-C runtime for WebAssembly (decision 0023)
+/// it is `NSObject`, as Core Data's is, so an entity class's generated properties are `@objc`
+/// and `#keyPath(Item.date)` names them (Dime's sort descriptors and predicates); an object's
+/// equality and hash are then NSObject's, its identity, as the class's own are without it.
+/// Elsewhere it is an empty class.
+#if os(WASI) && canImport(ObjectiveC)
+public typealias _NSManagedObjectRoot = NSObject
+#else
+open class _NSManagedObjectRoot {
+    public init() {}
+}
+#endif
+
 /// A base class that implements the behavior for a Core Data model object.
-open class NSManagedObject: NSFetchRequestResult, _CDKeyValueCoding, WebCombine.ObservableObject, Hashable, CustomStringConvertible, @unchecked Sendable {
+open class NSManagedObject: _NSManagedObjectRoot, NSFetchRequestResult, _CDKeyValueCoding, WebCombine.ObservableObject, @unchecked Sendable {
     /// The object's entity.
     public let entity: NSEntityDescription
     /// The object's ID: temporary until the object's context saves it.
@@ -113,6 +126,7 @@ open class NSManagedObject: NSFetchRequestResult, _CDKeyValueCoding, WebCombine.
         for case let attribute as NSAttributeDescription in entity.properties {
             if let value = attribute.defaultValue { _values[attribute.name] = _cdNormalize(value, for: attribute) }
         }
+        super.init()
         if let context { context.insert(self) }
     }
 
@@ -191,8 +205,21 @@ open class NSManagedObject: NSFetchRequestResult, _CDKeyValueCoding, WebCombine.
 
     // MARK: Key-value coding
 
+    // NSObject's key-value coding with the runtime (WebFoundation, KeyValueCoding.swift), which
+    // these replace: a managed object's values are its `_values`, not stored properties.
+    #if os(WASI) && canImport(ObjectiveC)
     /// The value of the property with the name (integers as `Int`, as `NSNumber` bridges them).
-    open func value(forKey key: String) -> Any? {
+    open override func value(forKey key: String) -> Any? { _cdOwnValue(forKey: key) }
+    /// Sets the property with the name; a relationship's inverse follows.
+    open override func setValue(_ value: Any?, forKey key: String) { _cdSetOwnValue(value, forKey: key) }
+    #else
+    /// The value of the property with the name (integers as `Int`, as `NSNumber` bridges them).
+    open func value(forKey key: String) -> Any? { _cdOwnValue(forKey: key) }
+    /// Sets the property with the name; a relationship's inverse follows.
+    open func setValue(_ value: Any?, forKey key: String) { _cdSetOwnValue(value, forKey: key) }
+    #endif
+
+    func _cdOwnValue(forKey key: String) -> Any? {
         guard let value = _values[key] else { return nil }
         if let integer = value as? Int64, let attribute = entity.attributesByName[key], attribute.attributeType._isInteger {
             return Int(exactly: integer) ?? integer
@@ -200,8 +227,7 @@ open class NSManagedObject: NSFetchRequestResult, _CDKeyValueCoding, WebCombine.
         return value
     }
 
-    /// Sets the property with the name; a relationship's inverse follows.
-    open func setValue(_ value: Any?, forKey key: String) {
+    func _cdSetOwnValue(_ value: Any?, forKey key: String) {
         if let relationship = entity.relationshipsByName[key] {
             _setRelationship(relationship, value)
             return
@@ -456,10 +482,16 @@ open class NSManagedObject: NSFetchRequestResult, _CDKeyValueCoding, WebCombine.
 
     // MARK: Identity
 
+    #if os(WASI) && canImport(ObjectiveC)
+    open override var description: String { _cdDescription }
+    #else
     public static func == (lhs: NSManagedObject, rhs: NSManagedObject) -> Bool { lhs === rhs }
     public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 
-    open var description: String {
+    open var description: String { _cdDescription }
+    #endif
+
+    var _cdDescription: String {
         let values = entity.attributesByName.keys.sorted().map { "\($0) = \(_values[$0].map { "\($0)" } ?? "nil")" }
         return "<\(type(of: self)): \(objectID.description); data: {\(values.joined(separator: "; "))}>"
     }
@@ -615,3 +647,8 @@ public let NSAffectedObjectsErrorKey = "NSAffectedObjectsErrorKey"
 // `ForEach(items)` and `List(items)` take fetched results as they are. An entity's own `id`
 // attribute does not change that: the conformance is the class's, as on Apple platforms.
 extension NSManagedObject: Identifiable {}
+
+// Equality and the description: NSObject's with the runtime, the class's own without it.
+#if !(os(WASI) && canImport(ObjectiveC))
+extension NSManagedObject: Hashable, CustomStringConvertible {}
+#endif

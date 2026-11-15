@@ -57,12 +57,24 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
         self.view = view
     }
 
+    // `@objc dynamic` with the runtime, as `viewWillLayoutSubviews()` below: apps override them in
+    // an extension (Dime's `extension UINavigationController { override open func viewDidLoad() }`,
+    // which sets the pop gesture's delegate), as UIKit's Objective-C methods allow.
+    #if canImport(ObjectiveC)
+    @objc dynamic open func viewDidLoad() {}
+    @objc dynamic open func viewWillAppear(_ animated: Bool) {}
+    @objc dynamic open func viewIsAppearing(_ animated: Bool) {}
+    @objc dynamic open func viewDidAppear(_ animated: Bool) {}
+    @objc dynamic open func viewWillDisappear(_ animated: Bool) {}
+    @objc dynamic open func viewDidDisappear(_ animated: Bool) {}
+    #else
     open func viewDidLoad() {}
     open func viewWillAppear(_ animated: Bool) {}
     open func viewIsAppearing(_ animated: Bool) {}
     open func viewDidAppear(_ animated: Bool) {}
     open func viewWillDisappear(_ animated: Bool) {}
     open func viewDidDisappear(_ animated: Bool) {}
+    #endif
     // `@objc dynamic` with the runtime: apps override it in an extension
     // (`extension UINavigationController { open override func viewWillLayoutSubviews() }`), as
     // UIKit's Objective-C methods allow; containers do their own layout in
