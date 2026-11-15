@@ -2388,6 +2388,12 @@
           "noFixture": "Foundation API with nothing on screen; WasmNetworkingTests checks the wasm forms against a host that answers at once."
         },
         {
+          "api": "URLSessionWebSocketTask / URLSession.webSocketTask(with:) / URLSessionWebSocketDelegate",
+          "status": "partial",
+          "notes": "On wasm, over the browser's WebSocket: sends made before the socket opens go out in order once it does, received text and binary messages answer receive (handler or async) oldest first, a message over maximumMessageSize closes with messageTooBig, cancel(with:reason:) and a server close set closeCode and closeReason, and the delegate hears didOpenWithProtocol, didCloseWith and didCompleteWithError; after the close, send and receive fail with POSIX error 57. The browser sends no headers but the subprotocols (a request's Sec-WebSocket-Protocol field), closes only with 1000 or 3000 to 4999 (another code goes to the server as 1000, the task keeps the app's), and answers pings itself, so sendPing reports a pong while open (2026-11-14).",
+          "noFixture": "Foundation API with nothing on screen; WasmWebSocketTests checks the wasm forms against a host that opens, sends and closes when told."
+        },
+        {
           "api": "FoundationNetworking module / replacingOccurrences(of:with:options:range:) / CharacterSet array literal and scalar ranges",
           "status": "full",
           "notes": "On wasm: FoundationNetworking names WebFoundation's URLSession, URLRequest, URLResponse and the rest, so a package's canImport(FoundationNetworking) path and its one-by-one class imports both find the same types Foundation gives. A replacement with a range changes only what lies inside it (2026-11-07).",
@@ -2414,7 +2420,7 @@
         {
           "api": "URLSession / URLRequest / HTTPURLResponse / URLError / URLSessionConfiguration",
           "status": "partial",
-          "notes": "decision 0021, pf-urlsession (2026-10-13): data(for:), data(from:), upload, download(from:) and the dataTask forms over the browser's fetch (AbortController for cancel and the timeout, the browser's redirects and cache); an HTTP error status is a response with its status, headers, mime type and bytes, a transport failure, CORS refusal, timeout or cancellation a URLError with Foundation's code — never confused. Core tested against a fake host (URLSessionCoreTests), the browser host against local fixtures in CI (Examples/Launches: 200, 404, a CORS-refused second server, a cancel). Not done: streaming, delegates, background sessions, WebSocket tasks, cookies beyond the browser's",
+          "notes": "decision 0021, pf-urlsession (2026-10-13): data(for:), data(from:), upload, download(from:) and the dataTask forms over the browser's fetch (AbortController for cancel and the timeout, the browser's redirects and cache); an HTTP error status is a response with its status, headers, mime type and bytes, a transport failure, CORS refusal, timeout or cancellation a URLError with Foundation's code — never confused. Core tested against a fake host (URLSessionCoreTests), the browser host against local fixtures in CI (Examples/Launches: 200, 404, a CORS-refused second server, a cancel). Not done: streaming, delegates, background sessions, cookies beyond the browser's (WebSocket tasks: their own row)",
           "noFixture": "No pixels: URLSessionCoreTests, WasmFoundationTests and the Launches probe against local fixtures"
         },
         {

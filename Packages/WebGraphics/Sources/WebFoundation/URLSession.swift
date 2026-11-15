@@ -588,7 +588,7 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
     }
     private var _delegateQueue: AnyObject?
     let core: _WebURLSession
-    private var nextTaskIdentifier = 1
+    var nextTaskIdentifier = 1
 
     public init(configuration: URLSessionConfiguration) {
         self.configuration = configuration

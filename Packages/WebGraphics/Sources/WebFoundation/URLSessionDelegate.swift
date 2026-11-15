@@ -329,6 +329,19 @@ extension URLSessionDownloadDelegate {
                            expectedTotalBytes: Int64) {}
 }
 
+/// What a session tells its delegate about a WebSocket task (URLSessionWebSocketTask.swift).
+public protocol URLSessionWebSocketDelegate: URLSessionTaskDelegate {
+    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?)
+    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
+                    reason: Data?)
+}
+
+extension URLSessionWebSocketDelegate {
+    public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {}
+    public func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode,
+                           reason: Data?) {}
+}
+
 // MARK: - Delivery
 
 extension URLSession {
