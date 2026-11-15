@@ -9,6 +9,9 @@ import FoundationEssentials
 public protocol AttributedStringKey {
     associatedtype Value: Hashable & Sendable
     static var name: String { get }
+    /// `object`, an `NSAttributedString` attribute's value, as this key's value (an underline
+    /// style's raw number as the style); nil when it is not one.
+    static func _webValue(of object: Any) -> _AttributeValue?
 }
 
 /// A hashable box for an attribute value.
@@ -292,6 +295,76 @@ public struct AttributedSubstring: Hashable, Sendable {
 }
 
 extension AttributedString: ExpressibleByStringLiteral {}
+
+// MARK: - Scopes and Foundation's attributed strings
+
+/// A namespace of attribute keys (`AttributeScopes.FoundationAttributes`, SwiftUI's, UIKit's):
+/// the keys an attributed string keeps when it is made from an `NSAttributedString`.
+public protocol AttributeScope {
+    /// The scope's keys, each named as its `NSAttributedString.Key` is.
+    static var _webKeys: [any AttributedStringKey.Type] { get }
+}
+
+extension AttributeScopes.FoundationAttributes: AttributeScope {
+    public static var _webKeys: [any AttributedStringKey.Type] {
+        [LinkAttribute.self, InlinePresentationIntentAttribute.self, LanguageIdentifierAttribute.self]
+    }
+}
+
+extension AttributedStringKey {
+    /// `object` as this key's value, when it is one.
+    public static func _webValue(of object: Any) -> _AttributeValue? {
+        (object as? Value).map { _AttributeValue($0) }
+    }
+}
+
+extension AttributedString {
+    /// The attributed string's characters and its Foundation attributes (links, inline
+    /// presentation intents, languages); attributes of other scopes are left out.
+    public init(_ nsStr: NSAttributedString) {
+        self.init(nsStr, keys: AttributeScopes.FoundationAttributes._webKeys)
+    }
+
+    /// The attributed string's characters and the attributes of `scope` (as
+    /// `AttributedString(text, including: \.uiKit)`): each attribute whose key the scope names
+    /// and whose value is of the key's type; others are left out.
+    public init<S: AttributeScope>(_ nsStr: NSAttributedString, including scope: KeyPath<AttributeScopes, S.Type>) throws {
+        self.init(nsStr, keys: S._webKeys)
+    }
+
+    public init<S: AttributeScope>(_ nsStr: NSAttributedString, including scope: S.Type) throws {
+        self.init(nsStr, keys: S._webKeys)
+    }
+
+    private init(_ nsStr: NSAttributedString, keys: [any AttributedStringKey.Type]) {
+        self.init()
+        let units = Array(nsStr.string.utf16)
+        var covered = 0
+        func add(_ range: NSRange, _ attributes: [NSAttributedString.Key: Any]) {
+            let start = max(0, min(range.location, units.count)), end = max(start, min(range.location + range.length, units.count))
+            guard end > start else { return }
+            var container = AttributeContainer()
+            for key in keys {
+                if let object = attributes[NSAttributedString.Key(key.name)], let value = key._webValue(of: object) {
+                    container.storage[key.name] = value
+                }
+            }
+            let text = String(decoding: units[start..<end], as: UTF16.self)
+            if let last = _runs.last, last.attributes == container {
+                _runs[_runs.count - 1].string += text
+            } else {
+                _runs.append(_Run(text, attributes: container))
+            }
+            covered = end
+        }
+        for run in nsStr.runs {
+            if run.range.location > covered { add(NSRange(location: covered, length: run.range.location - covered), [:]) }
+            add(run.range, run.attributes)
+        }
+        if covered < units.count { add(NSRange(location: covered, length: units.count - covered), [:]) }
+    }
+}
+
 #endif
 
 // corelibs Foundation has AttributedString, but not the Darwin inline presentation attribute.

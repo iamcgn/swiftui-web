@@ -70,6 +70,13 @@ extension AttributeDynamicLookup {
     public subscript<T: AttributedStringKey>(dynamicMember keyPath: KeyPath<AttributeScopes.SwiftUIAttributes, T>) -> T { self[T.self] }
 }
 
+/// A UIKit attribute value that `Text(AttributedString)` shows (UIKitWeb's fonts, colours and
+/// line styles, under their `NSAttributedString.Key` names, as `AttributedString(text,
+/// including: \.uiKit)` keeps them).
+package protocol _UIKitTextAttribute {
+    func _applyToText(as name: String, _ modifiers: inout Text.Modifiers)
+}
+
 // MARK: - Text from attributed strings, images, dates and formats
 
 extension Text {
@@ -83,6 +90,18 @@ extension Text {
         var parts: [Text] = []
         for run in attributedContent.runs {
             var text = Text(verbatim: String(characters[run.range]))
+            #if os(WASI)
+            // UIKit's attributes first (a font, colours, decorations), so SwiftUI's own win.
+            for (name, value) in run.attributes.storage {
+                if let attribute = value.base.base as? _UIKitTextAttribute {
+                    attribute._applyToText(as: name, &text.modifiers)
+                } else if let length = value.base.base as? CGFloat, name == "NSKern" {
+                    text.modifiers.kerning = length
+                } else if let length = value.base.base as? CGFloat, name == "NSBaselineOffset" {
+                    text.modifiers.baselineOffset = length
+                }
+            }
+            #endif
             if let font = run[_SwiftUIFontAttribute.self] { text.modifiers.font = font }
             if let color = run[_SwiftUIForegroundColorAttribute.self] { text.modifiers.foregroundColor = color }
             if let underline = run[_SwiftUIUnderlineStyleAttribute.self] { text.modifiers.underline = .some(underline) }

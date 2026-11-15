@@ -13,9 +13,9 @@ Generated from `Docs/support.json` (last edited 2026-11-06) by `scripts/gen-prog
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
 | SwiftUI | 185 | 43 | 128 | 3 | 10 | 1 |
-| UIKit | 67 | 22 | 41 | 4 | 0 | 0 |
+| UIKit | 68 | 22 | 42 | 4 | 0 | 0 |
 | Interop | 54 | 8 | 46 | 0 | 0 | 0 |
-| **All** | **306** | 73 | 215 | 7 | 10 | 1 |
+| **All** | **307** | 73 | 216 | 7 | 10 | 1 |
 
 ## App lifecycle
 
@@ -278,6 +278,7 @@ Generated from `Docs/support.json` (last edited 2026-11-06) by `scripts/gen-prog
 | `UITextField's UITextInput: selectedTextRange, positions and ranges, insertText / deleteBackward, caretRect / firstRect` | 🟢 partial | A text field's selection is the one the browser's input element keeps, as the element reports it (UTF-16 offsets as positions, textFieldDidChangeSelection and the input delegate told); setting selectedTextRange moves the element's caret or selection; a text the app sets puts the caret at its end; insertText and deleteBackward edit at the selection and report .editingChanged; the caret and a range's rectangle follow the text's layout on its line; open: marked text, closestPosition(to:) | — The selection is the browser's own: NavigationBindingsTests holds the positions, the host's reports and the app's edits. |
 | `UIFont` | ✅ full | System fonts by size and weight, italic and monospaced faces, bundled fonts through the asset catalog with their tables' metrics, the text styles at every content size category with their own measured metrics, UIFontMetrics scaling, labels following the scene's category; tabular figures; a font's descriptor in another system design (rounded, serif, monospaced) or size, back through UIFont(descriptor:size:) (2026-11-01); open: reading the host's text size, a descriptor's traits and attributes (Docs/elements/UIKit/UIFont.md) | uikit/label/basic, uikit/label/fonts, uikit/textview/basic |
 | `NSAttributedString / NSString drawing (draw(at:), draw(in:), size(withAttributes:), boundingRect)` | ✅ full | Per-range fonts and colours, underlines and strikethroughs in their own colours drawn as UIKit's string drawing does (unsnapped lines, a 1 pt minimum), the paragraph alignment, NSMutableAttributedString edits; measured through the text engine; open: the bold faces' line metrics (a half-point at 24 pt bold) | uikit/draw/text, uikit/draw/rest |
+| `NSAttributedString(data:options:documentAttributes:) (HTML, plain text) and AttributedString(_:including: \.uiKit)` | 🟢 partial | HTML (2026-11-14): tag styles (bold, italic, underline, strikethrough, headings, links, monospaced code and pre in Courier), <style> rules by tag, class, id, compound and descendant selectors in specificity order, inline style (color, background, font weight, style, size and family, text-decoration, display:none, white-space), entities, lists, line breaks, collapsed white space, the Times 12 base; plain text in Helvetica 12; the UIKit attribute scope converts to AttributedString and Text shows its fonts, colours and decorations (HighlightSwift, Highlightr); open: RTF and RTFD (they throw), tables as tables, images, paragraph styles, writing documents | — Reading a document makes no view: the HTML import and the conversion are checked by UIKitWeb's HTMLImportTests and the wasm HTMLAttributedTextTests |
 
 ## UIKit: containers
 
