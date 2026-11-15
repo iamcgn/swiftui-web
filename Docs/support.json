@@ -2090,6 +2090,12 @@
           ]
         },
         {
+          "api": "UIGraphicsPDFRenderer / UIGraphicsPDFRendererContext / UIGraphicsPDFRendererFormat (pdfData, writePDF, beginPage)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-15): pages drawn a page at a time come out as a PDF 1.4 file any viewer opens, with paths, fills, strokes, clips, transforms, opacity and text in the standard Helvetica, Times and Courier faces, and the document information; the process keeps each page's recording, so PDFKit opens a file of ours as drawn (Basic-Car-Maintenance's report). Not done: images, shadows, filters and blurs in the file (left out), gradients (their middle colour), text outside WinAnsi (question marks), links and destinations",
+          "noFixture": "A file, not a screen: PDFKitTests read the operators, the cross-reference table and the reopened pages"
+        },
+        {
           "api": "CGGradient / CGContext.drawLinearGradient / drawRadialGradient, UIGraphicsImageRenderer, UIGraphicsBeginImageContext, UIImage.pngData(), CGContext(data:width:height:bitsPerComponent:bytesPerRow:space:bitmapInfo:)",
           "status": "partial",
           "notes": "Linear and radial gradients with colour stops, image contexts recording drawings into vector UIImages that UIImageView, draw(at:) and SwiftUI's Image replay, the renderer context's blend-mode fills and strokes; pngData rasterises through the host; open: UIImage from pixel data. Bitmap contexts (2026-11-14): CGContext(data: nil, width:height:...) records with CoreGraphics's y-up origin and makeImage() gives the drawing (Nuke decompresses through it); a context over caller memory is not made, as no pixels are held",
@@ -2734,6 +2740,12 @@
           "status": "stub",
           "notes": "pf-small-frameworks (2026-11-09): a page has no system sound set and no vibration, so system sounds (and kSystemSoundID_Vibrate) play silently; the completion forms call their block at once. Not done: any sound (an app's own audio plays through AVAudioPlayer)",
           "noFixture": "Nothing to draw: FrameworkTests play the sounds and see the completions"
+        },
+        {
+          "api": "PDFDocument / PDFPage / PDFDisplayBox / PDFDocumentAttribute (PDFKit)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-15): a document from a file or data, its pages, version and information, pages inserted, removed and exchanged, the data written back, page bounds, labels, text and thumbnails fitted on white. A file UIGraphicsPDFRenderer wrote here draws as recorded; another PDF is read for its page count and sizes (inherited media boxes included) and its pages draw blank. Not done: PDFView, rasterising another PDF's pages, compressed object streams (no pages found), passwords (every file opens unlocked), annotations, outlines and search",
+          "noFixture": "Nothing to draw beyond a thumbnail: PDFKitTests open written and hand-made files"
         },
         {
           "api": "Product / Transaction / AppStore / SKPaymentQueue / ProductView / StoreView / SubscriptionStoreView (StoreKit) / SKProductDiscount / SKPaymentDiscount / SKStorefront / SKPaymentQueueDelegate / Storefront / SKDownload",
