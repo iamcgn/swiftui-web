@@ -617,9 +617,12 @@ open class JSValue: NSObject, @unchecked Sendable {
     // MARK: Comparing
 
     /// Whether the value is `object`, converted, by `===` (NSObject's comparison method on
-    /// Apple platforms, which JavaScriptCore's value overrides).
-    #if canImport(ObjectiveC)
+    /// Apple platforms, which JavaScriptCore's value overrides). The Objective-C runtime for
+    /// WebAssembly has no scripting comparison methods on NSObject, so there it's the value's own.
+    #if canImport(ObjectiveC) && !os(WASI)
     open override func isEqual(to object: Any?) -> Bool { strictlyEquals(object) }
+    #elseif canImport(ObjectiveC)
+    open func isEqual(to object: Any?) -> Bool { strictlyEquals(object) }
     #else
     open func isEqual(to object: Any!) -> Bool { strictlyEquals(object) }
     #endif
