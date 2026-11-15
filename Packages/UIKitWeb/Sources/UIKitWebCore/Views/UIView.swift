@@ -810,6 +810,16 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
         run(duration: duration, delay: delay, curve: .spring(damping: Double(damping), velocity: Double(velocity)), options: options, animations: animations, completion: completion)
     }
 
+    /// A spring described by its duration and bounce, as SwiftUI's `Spring(duration:bounce:)`
+    /// (iOS 17; swift-navigation's `UIKitAnimation` springs come this way): a bounce of 0 settles
+    /// without overshoot, larger ones overshoot more (the damping ratio is 1 − bounce), and a
+    /// negative bounce settles as 0 does (this spring is at most critically damped).
+    open class func animate(springDuration duration: Double = 0.5, bounce: CGFloat = 0, initialSpringVelocity velocity: CGFloat = 0, delay: Double = 0,
+                            options: AnimationOptions = [], animations: () -> Void, completion: ((Bool) -> Void)? = nil) {
+        let damping = bounce >= 0 ? 1 - Double(bounce) : 1 / (1 + Double(bounce))
+        run(duration: duration, delay: delay, curve: .spring(damping: damping, velocity: Double(velocity)), options: options, animations: animations, completion: completion)
+    }
+
     /// A transition (cross dissolve, flips): the changes apply at once; `completion` runs when
     /// the duration has passed.
     open class func transition(with view: UIView, duration: Double, options: AnimationOptions = [], animations: (() -> Void)?, completion: ((Bool) -> Void)? = nil) {

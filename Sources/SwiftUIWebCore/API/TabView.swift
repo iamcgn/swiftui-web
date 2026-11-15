@@ -1,5 +1,6 @@
 // TabView (Docs/elements/TabView.md): the macOS tab view, a segmented tab bar over a bordered
 // content box; `tabItem`, `TabViewStyle`.
+import WebFoundation   // LocalizedStringResource
 
 /// A view that switches between multiple child views using interactive user interface elements.
 public struct TabView<SelectionValue: Hashable, Content: View>: View {
@@ -146,6 +147,36 @@ extension Tab where Label == DefaultTabLabel {
     }
 }
 
+// A title given as a localized string resource (as SFSafeSymbols' `Tab(_:systemSymbol:…)` passes
+// one on): the label's text is the resource's string, as `Text(_:)` gives it.
+extension Tab where Label == DefaultTabLabel {
+    @_disfavoredOverload
+    nonisolated public init(_ titleResource: LocalizedStringResource, systemImage: String, value: Value, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
+        self.init(value: value, role: role, content: content) { Self.resourceLabel(titleResource, Image(systemName: systemImage)) }
+    }
+
+    @_disfavoredOverload
+    nonisolated public init(_ titleResource: LocalizedStringResource, image: String, value: Value, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
+        self.init(value: value, role: role, content: content) { Self.resourceLabel(titleResource, Image(image)) }
+    }
+
+    @_disfavoredOverload
+    nonisolated public init<T: Hashable>(_ titleResource: LocalizedStringResource, systemImage: String, value: T, role: TabRole? = nil,
+                                         @ViewBuilder content: () -> Content) where Value == T? {
+        self.init(value: .some(value), role: role, content: content) { Self.resourceLabel(titleResource, Image(systemName: systemImage)) }
+    }
+
+    @_disfavoredOverload
+    nonisolated public init<T: Hashable>(_ titleResource: LocalizedStringResource, image: String, value: T, role: TabRole? = nil,
+                                         @ViewBuilder content: () -> Content) where Value == T? {
+        self.init(value: .some(value), role: role, content: content) { Self.resourceLabel(titleResource, Image(image)) }
+    }
+
+    nonisolated static func resourceLabel(_ title: LocalizedStringResource, _ icon: Image) -> DefaultTabLabel {
+        SwiftUIWebCore.Label { Text(title) } icon: { icon }
+    }
+}
+
 extension Tab where Value == Never {
     /// Creates a tab with a custom label, selected by its position.
     nonisolated public init(role: TabRole? = nil, @ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
@@ -173,6 +204,16 @@ extension Tab where Value == Never, Label == DefaultTabLabel {
     @_disfavoredOverload
     nonisolated public init<S: StringProtocol>(_ title: S, image: String, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
         self.init(role: role, content: content) { SwiftUIWebCore.Label(title, image: image) }
+    }
+
+    @_disfavoredOverload
+    nonisolated public init(_ titleResource: LocalizedStringResource, systemImage: String, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
+        self.init(role: role, content: content) { Self.resourceLabel(titleResource, Image(systemName: systemImage)) }
+    }
+
+    @_disfavoredOverload
+    nonisolated public init(_ titleResource: LocalizedStringResource, image: String, role: TabRole? = nil, @ViewBuilder content: () -> Content) {
+        self.init(role: role, content: content) { Self.resourceLabel(titleResource, Image(image)) }
     }
 }
 

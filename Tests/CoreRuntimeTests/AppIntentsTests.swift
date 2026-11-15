@@ -150,6 +150,10 @@ private struct Shortcuts: AppShortcutsProvider {
         #expect(Mood.calm.localizedStringResource.key == "Calm")
         #expect(Mood.busy.localizedStringResource.key == "Busy")
         #expect(Mood.caseDisplayRepresentations[.calm]?.image == DisplayRepresentation.Image(systemName: "leaf"))
+        // SFSafeSymbols passes an optional on: nil is a template, as a symbol is.
+        let unsaid: Bool? = nil
+        #expect(DisplayRepresentation.Image(systemName: "leaf", isTemplate: unsaid).isTemplate)
+        #expect(!DisplayRepresentation.Image(systemName: "leaf", isTemplate: false).isTemplate)
         #expect(Mood.typeDisplayRepresentation.name.key == "Mood")
 
         let note = Note.all[0]

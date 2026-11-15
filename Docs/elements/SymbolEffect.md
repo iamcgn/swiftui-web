@@ -14,6 +14,7 @@ Apple docs: [symbolEffect(_:options:isActive:)](https://developer.apple.com/docu
 | `symbolEffectsRemoved(_:)` | implemented: drops the inherited effects |
 | Effect variants (`.up`/`.down`, `.byLayer`/`.wholeSymbol`, `.iterative`/`.cumulative`, `.reversing`, `.clockwise`/`.counterClockwise`, `.left`/`.right`, `.plain`/`.pulse`, `.hideInactiveLayers`/`.dimInactiveLayers`) | accepted; the stand-in glyphs have one layer, so by-layer variants act on the whole symbol |
 | `.appear`, `.disappear` (`transition(.symbolEffect(...))`), `.replace` (`contentTransition(.symbolEffect(...))`) | accepted; appear/disappear are the plain transition, replace a crossfade |
+| `symbolEffect(.appear, isActive:)`, `symbolEffect(.disappear, isActive:)` | implemented (2026-11-15): while active, appear fades the symbol in and disappear fades it out over 0.35 s and keeps it hidden; inactive, the symbol shows as it is (modelled, not measured) |
 
 ## Behaviour
 
@@ -38,5 +39,5 @@ covered by `SymbolEffectTests` on the headless clock.
 
 ## Open
 
-- Layer-aware effects, spring timing matched to SwiftUI, `.appear`/`.disappear` motion,
+- Layer-aware effects, spring timing matched to SwiftUI, `.appear`/`.disappear` transition motion,
   `.replace` variants beyond a crossfade.

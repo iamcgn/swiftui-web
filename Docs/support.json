@@ -528,7 +528,7 @@
         {
           "api": "TabView (selection, own state) / tabItem / TabViewStyle (automatic)",
           "status": "partial",
-          "notes": "The macOS tab view: a segmented bar of the tab item titles (title + 24, dividers) over a bordered box, the selected content centred beneath; press and arrow keys select; no images/badges in the bar, no iOS Tab API or page style; the Tab API (Tab with titles, images and values), badges (a red capsule on the iOS symbol), disabled tabs, tabViewStyle(.page) with the measured dots and a swipe to turn pages, the other styles accepted (2026-10-04: tabview/tab-api, ios/tabs/badges, ios/tabs/page)",
+          "notes": "The macOS tab view: a segmented bar of the tab item titles (title + 24, dividers) over a bordered box, the selected content centred beneath; press and arrow keys select; no images/badges in the bar, no iOS Tab API or page style; the Tab API (Tab with titles, images and values), badges (a red capsule on the iOS symbol), disabled tabs, tabViewStyle(.page) with the measured dots and a swipe to turn pages, the other styles accepted (2026-10-04: tabview/tab-api, ios/tabs/badges, ios/tabs/page); titles given as a LocalizedStringResource (SFSafeSymbols’ Tab(_:systemSymbol:…), 2026-11-15)",
           "fixtures": [
             "tabview/tab-api",
             "ios/tabs/badges",
@@ -1376,9 +1376,9 @@
           ]
         },
         {
-          "api": "symbolEffect (pulse, scale, variableColor, bounce, wiggle, rotate, breathe; isActive and value forms) / SymbolEffectOptions / symbolEffectsRemoved",
+          "api": "symbolEffect (pulse, scale, variableColor, bounce, wiggle, rotate, breathe, appear, disappear; isActive and value forms) / SymbolEffectOptions / symbolEffectsRemoved",
           "status": "partial",
-          "notes": "Whole-symbol motion on the animation clock: indefinite effects while active, discrete ones per value change with repeat and speed options; the stand-in glyphs have one layer, so by-layer and variable-colour layers are approximated; appear/disappear/replace accepted as plain transitions (Docs/elements/SymbolEffect.md)",
+          "notes": "Whole-symbol motion on the animation clock: indefinite effects while active, discrete ones per value change with repeat and speed options; the stand-in glyphs have one layer, so by-layer and variable-colour layers are approximated; appear and disappear as indefinite effects fade the symbol in, or out until inactive (ButtonKit’s loading styles, 2026-11-15; modelled, not measured); replace accepted as a plain transition (Docs/elements/SymbolEffect.md)",
           "fixtures": [
             "symboleffect/basic"
           ]
@@ -2125,7 +2125,7 @@
         {
           "api": "UIView.animate (durations, delays, curves, springs, options, transition(with:), performWithoutAnimation)",
           "status": "partial",
-          "notes": "Frame, alpha, background and transform changes tween on the scene's clock with completions after the duration; a hosted tree's animations run on its host's clock; repeat, autoreverse and beginFromCurrentState honoured; open: the transition options' flips and cross-dissolves",
+          "notes": "Frame, alpha, background and transform changes tween on the scene's clock with completions after the duration; a hosted tree's animations run on its host's clock; repeat, autoreverse and beginFromCurrentState honoured; animate(springDuration:bounce:initialSpringVelocity:delay:options:animations:completion:) springs with a damping ratio of 1 − bounce (swift-navigation, 2026-11-15); open: the transition options' flips and cross-dissolves",
           "noFixture": "Motion is not a still: AnimationTests and RepresentableTests hold the curves on the headless clock; the table batch-update goldens hold the end states."
         },
         {
@@ -2756,7 +2756,7 @@
         {
           "api": "AppIntent / @Parameter / AppEntity / AppEnum / EntityQuery / AppShortcutsProvider / Button(intent:) (AppIntents)",
           "status": "partial",
-          "notes": "pf-small-frameworks (2026-11-01): intents run when the app runs them. A parameter holds what the app set, else its default, else nil when optional; perform() and calling the intent return its result; entities, their @Property values, their queries and app enums show themselves as declared. A button or toggle made with an intent runs perform() when pressed. Parameter summaries (When, Switch, Case) and shortcut phrases keep their text. Asking the user for a value, a choice or a confirmation throws, since a web page has no Siri or Shortcuts to ask; donations and shortcuts are kept but nothing reads them, and SiriTipView and ShortcutsLink show nothing",
+          "notes": "pf-small-frameworks (2026-11-01): intents run when the app runs them. A parameter holds what the app set, else its default, else nil when optional; perform() and calling the intent return its result; entities, their @Property values, their queries and app enums show themselves as declared. A button or toggle made with an intent runs perform() when pressed. Parameter summaries (When, Switch, Case) and shortcut phrases keep their text. Asking the user for a value, a choice or a confirmation throws, since a web page has no Siri or Shortcuts to ask; donations and shortcuts are kept but nothing reads them, and SiriTipView and ShortcutsLink show nothing. DisplayRepresentation.Image(systemName:isTemplate:) takes an optional, nil drawing a template (SFSafeSymbols, 2026-11-15)",
           "noFixture": "Nothing to draw: AppIntentsTests run intents, read parameters, entities and summaries, and press intent buttons and toggles"
         },
         {

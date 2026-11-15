@@ -65,6 +65,33 @@ import SwiftUIWebHeadless
         #expect(!r.advanceAnimations(elapsed: 0.1))
     }
 
+    /// ButtonKit's loading styles: `.disappear` hides the icon while loading, `.appear` brings it in.
+    struct Hiding: View {
+        let model: Model
+        var body: some View {
+            HStack {
+                Image(systemName: "star").symbolEffect(.disappear, isActive: model.active)
+                Image(systemName: "heart").symbolEffect(.appear.byLayer, isActive: model.active)
+            }
+        }
+    }
+
+    @Test func appearAndDisappearRunWhileActive() {
+        let model = Model()
+        let r = runtime(Hiding(model: model))
+        #expect(opacityGroups(r).isEmpty)
+        model.active = true
+        relayout(r)
+        r.advanceAnimations(elapsed: 0.175)                  // half of the 0.35 s fade
+        let halfway = opacityGroups(r).compactMap { Double($0.dropFirst("beginGroup(opacity: ".count).dropLast()) }
+        #expect(halfway.count == 2 && halfway.allSatisfy { abs($0 - 0.5) < 0.001 })
+        #expect(r.advanceAnimations(elapsed: 1))
+        #expect(opacityGroups(r) == ["beginGroup(opacity: 0.0)"])   // the star stays hidden, the heart is in
+        model.active = false
+        relayout(r)
+        #expect(!r.advanceAnimations(elapsed: 0.1) && opacityGroups(r).isEmpty)
+    }
+
     struct Removed: View {
         let model: Model
         var body: some View {

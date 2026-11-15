@@ -239,6 +239,15 @@ nonisolated private func defaultLabelTab() -> Tab<Int, Text, DefaultTabLabel> {
     Tab("One", systemImage: "1.circle", value: 1) { Text("one") }
 }
 
+/// Titles given as string resources, as SFSafeSymbols' `Tab(_: LocalizedStringResource, systemSymbol:…)`
+/// passes them on, built off the main actor too.
+nonisolated private func resourceTabs() -> (Tab<Int, Text, DefaultTabLabel>, Tab<TabAPISection?, Text, DefaultTabLabel>, Tab<Never, Text, DefaultTabLabel>) {
+    let title = LocalizedStringResource("Inbox")
+    return (Tab(title, systemImage: "tray", value: 1) { Text("one") },
+            Tab(title, image: "Mascot", value: TabAPISection.inbox, role: .search) { Text("two") },
+            Tab(title, systemImage: "tray", role: nil) { Text("three") })
+}
+
 private struct PagedView: View {
     let model: TabAPIModel
     var body: some View {
@@ -304,6 +313,20 @@ private struct PagedView: View {
         #expect(node.tabs.map(\.symbol) == ["checkmark.square", "timer", "magnifyingglass"])
         #expect(runtime.probeFrames["focus"] != nil && runtime.probeFrames["tasks"] == nil)
         #expect(defaultLabelTab().value == 1)
+    }
+
+    @Test func titlesFromStringResources() {
+        let (first, second, third) = resourceTabs()
+        #expect(first.value == 1 && second.value == .some(.inbox) && third.value == nil)
+        let runtime = Runtime()
+        runtime.mount(TabView {
+            Tab(LocalizedStringResource("Inbox"), systemImage: "tray", value: 0) { Text("Inbox content") }
+            Tab(LocalizedStringResource("Sent"), systemImage: "paperplane", value: 1) { Text("Sent content") }
+        })
+        runtime.layout(in: size)
+        let node = runtime.root.descendants(where: { $0 is TabViewNode }).first as! TabViewNode
+        #expect(node.tabs.map(\.title) == ["Inbox", "Sent"])
+        #expect(node.tabs.map(\.symbol) == ["tray", "paperplane"])
     }
 
     @Test func badgeModifiersResolveTheirText() {
