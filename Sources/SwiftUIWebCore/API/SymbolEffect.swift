@@ -5,7 +5,7 @@
 // stand-in glyphs are drawn as one layer, so by-layer variants behave like whole-symbol ones.
 
 /// An effect that can be applied to a symbol image.
-public protocol SymbolEffect {
+public protocol SymbolEffect: Hashable, Sendable {
     var _kind: _SymbolEffectKind { get }
 }
 
@@ -117,8 +117,35 @@ public struct ReplaceSymbolEffect: ContentTransitionSymbolEffect {
     public var upUp: ReplaceSymbolEffect { self }
     public var offUp: ReplaceSymbolEffect { self }
     public var magic: ReplaceSymbolEffect { self }
+    /// The magic replace, which moves the symbols' shared parts (here: the replace).
+    public func magic(fallback: ReplaceSymbolEffect) -> MagicReplaceSymbolEffect { MagicReplaceSymbolEffect() }
     public var byLayer: ReplaceSymbolEffect { self }
     public var wholeSymbol: ReplaceSymbolEffect { self }
+}
+
+/// The magic replace effect (`ReplaceSymbolEffect.magic(fallback:)`), played as the replace.
+public struct MagicReplaceSymbolEffect: ContentTransitionSymbolEffect {
+    public var _kind: _SymbolEffectKind { .replace }
+    public var byLayer: MagicReplaceSymbolEffect { self }
+    public var wholeSymbol: MagicReplaceSymbolEffect { self }
+}
+
+/// Draws the symbol on along its strokes (here: fades it in, as the appear effect).
+public struct DrawOnSymbolEffect: TransitionSymbolEffect, IndefiniteSymbolEffect {
+    public var _kind: _SymbolEffectKind { .appear }
+    public var byLayer: DrawOnSymbolEffect { self }
+    public var wholeSymbol: DrawOnSymbolEffect { self }
+    public var individually: DrawOnSymbolEffect { self }
+}
+
+/// Draws the symbol off along its strokes (here: fades it out, as the disappear effect).
+public struct DrawOffSymbolEffect: TransitionSymbolEffect, IndefiniteSymbolEffect {
+    public var _kind: _SymbolEffectKind { .disappear }
+    public var byLayer: DrawOffSymbolEffect { self }
+    public var wholeSymbol: DrawOffSymbolEffect { self }
+    public var individually: DrawOffSymbolEffect { self }
+    public var reversed: DrawOffSymbolEffect { self }
+    public var nonReversed: DrawOffSymbolEffect { self }
 }
 
 extension SymbolEffect where Self == BounceSymbolEffect { public static var bounce: BounceSymbolEffect { BounceSymbolEffect() } }
@@ -131,6 +158,8 @@ extension SymbolEffect where Self == BreatheSymbolEffect { public static var bre
 extension SymbolEffect where Self == AppearSymbolEffect { public static var appear: AppearSymbolEffect { AppearSymbolEffect() } }
 extension SymbolEffect where Self == DisappearSymbolEffect { public static var disappear: DisappearSymbolEffect { DisappearSymbolEffect() } }
 extension SymbolEffect where Self == ReplaceSymbolEffect { public static var replace: ReplaceSymbolEffect { ReplaceSymbolEffect() } }
+extension SymbolEffect where Self == DrawOnSymbolEffect { public static var drawOn: DrawOnSymbolEffect { DrawOnSymbolEffect() } }
+extension SymbolEffect where Self == DrawOffSymbolEffect { public static var drawOff: DrawOffSymbolEffect { DrawOffSymbolEffect() } }
 
 /// Options for a symbol effect: how often and how fast it plays.
 public struct SymbolEffectOptions: Hashable, Sendable {

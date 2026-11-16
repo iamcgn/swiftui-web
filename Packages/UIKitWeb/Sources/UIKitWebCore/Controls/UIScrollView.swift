@@ -245,6 +245,9 @@ open class UIScrollView: UIView {
         set { verticalScrollIndicatorInsets = newValue; horizontalScrollIndicatorInsets = newValue }
     }
     public private(set) var isDragging = false
+    /// Whether a finger is down on the scroll view (from the touch, before a drag starts, to its end).
+    public var isTracking: Bool { _touchDown || isDragging }
+    private var _touchDown = false
     open var isDecelerating: Bool { momentum != nil }
     /// The velocity's factor per millisecond while decelerating.
     open var decelerationRate: DecelerationRate = .normal
@@ -483,6 +486,7 @@ open class UIScrollView: UIView {
             showIndicators()
         case .ended, .cancelled, .failed:
             isDragging = false
+            _touchDown = false
             let velocity = pan.velocity(in: self)
             let resting = clamped(contentOffset)
             if let refreshControl, !refreshControl.isRefreshing, pullDistance > 0 {
@@ -570,7 +574,18 @@ open class UIScrollView: UIView {
 
     override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         stopMomentum()
+        _touchDown = true
         super.touchesBegan(touches, with: event)
+    }
+
+    override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        _touchDown = false
+        super.touchesEnded(touches, with: event)
+    }
+
+    override open func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        _touchDown = false
+        super.touchesCancelled(touches, with: event)
     }
 }
 

@@ -286,6 +286,16 @@ import Foundation
         var percent = _NumberFormatting(style: .percent); percent.maximumFractionDigits = 0
         #expect(percent.format(0.256) == "26%")
     }
+
+    @Test func roundsToAnIncrement() {
+        // `.percent.rounded(increment: 1)` (ButtonKit's progress) and `.number.rounded(increment:)`.
+        var percent = _NumberFormatting(style: .percent); percent.roundingIncrement = 1
+        #expect(percent.format(0.256) == "26%" && percent.format(0.125) == "12%" && percent.format(1) == "100%")
+        var halves = _NumberFormatting(); halves.roundingIncrement = 0.5
+        #expect(halves.format(1.3) == "1.5" && halves.format(1.2) == "1" && halves.format(1234.76) == "1,235")
+        var down = _NumberFormatting(); down.roundingIncrement = 10; down.roundingRule = .down
+        #expect(down.format(57.0) == "50" && down.format(57 as Int) == "50")
+    }
 }
 
 @Suite struct InlineMarkdownTests {
