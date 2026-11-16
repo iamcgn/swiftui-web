@@ -1,9 +1,13 @@
+import WebFoundation   // Foundation everywhere: NSObject's Hashable for the sets of touches and presses
 // Touches and events. The scene turns the host's pointer events into one touch (a mouse or a
 // finger) and delivers it through gesture recognizers, then the responder chain.
 
-/// An object that describes a single user interaction with your app.
+/// An object that describes a single user interaction with your app. Rooted as the responders
+/// are (`UIResponderBase`, `NSObject` with the runtime), as UIKit's is an `NSObject`: an `@objc`
+/// action method can take the event (KeyboardToolbar's `touchDown(_ sender: UIButton, event:
+/// UIEvent?)`), and a control sends it one.
 @preconcurrency @MainActor
-open class UIEvent {
+open class UIEvent: UIResponderBase {
     public enum EventType: Int, Sendable {
         case touches = 0, motion, remoteControl, presses, scroll = 10, hover, transform
     }
@@ -15,6 +19,7 @@ open class UIEvent {
     init(type: EventType, timestamp: Double) {
         self.type = type
         self.timestamp = timestamp
+        super.init()
     }
 
     open var allTouches: Set<UITouch>? { touches }
@@ -35,9 +40,10 @@ open class UIEvent {
     }
 }
 
-/// An object representing the location, size, movement, and force of a touch.
+/// An object representing the location, size, movement, and force of a touch. An `NSObject`
+/// with the runtime, as UIKit's is, and Hashable by identity through its root.
 @preconcurrency @MainActor
-public final class UITouch: Hashable {
+public final class UITouch: UIResponderBase {
     public enum Phase: Int, Sendable {
         case began = 0, moved, stationary, ended, cancelled, regionEntered, regionMoved, regionExited
     }
@@ -68,6 +74,7 @@ public final class UITouch: Hashable {
         self.view = view
         self.type = type
         self.timestamp = timestamp
+        super.init()
     }
 
     /// The touch's location in a view's coordinates (nil: the window).
@@ -80,20 +87,16 @@ public final class UITouch: Hashable {
         guard let view, let window else { return previousWindowLocation }
         return window.convert(previousWindowLocation, to: view)
     }
-
-    nonisolated public static func == (lhs: UITouch, rhs: UITouch) -> Bool { lhs === rhs }
-    nonisolated public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 }
 
 /// A key press from the host's keyboard (Events/Keyboard.swift sends them down the responder chain).
+/// An `NSObject` with the runtime, as UIKit's is, and Hashable by identity through its root.
 @preconcurrency @MainActor
-public final class UIPress: Hashable {
+public final class UIPress: UIResponderBase {
     public enum Phase: Int, Sendable { case began = 0, changed, stationary, ended, cancelled }
     public let phase: Phase
     public let key: UIKey?
-    init(phase: Phase, key: UIKey?) { self.phase = phase; self.key = key }
-    nonisolated public static func == (lhs: UIPress, rhs: UIPress) -> Bool { lhs === rhs }
-    nonisolated public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+    init(phase: Phase, key: UIKey?) { self.phase = phase; self.key = key; super.init() }
 }
 
 public struct UIKey: Sendable {
