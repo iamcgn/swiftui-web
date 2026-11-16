@@ -2792,6 +2792,13 @@
           "fixtures": [
             "frameworks/map"
           ]
+        },
+        {
+          "api": "MKLocalSearch / MKLocalSearch.Request / MKLocalSearch.Response / MKLocalSearchCompleter / MKLocalSearchCompletion / MKLocalPointsOfInterestRequest / MKPointOfInterestCategory / MKPointOfInterestFilter / MKMapItem / MKPlacemark / MKError (MapKit)",
+          "status": "approximate",
+          "notes": "A page has no place search, so every search fails after the call returns with MKError.serverFailure, as Apple's does when its service can't be reached, and a completer's delegate hears the same with no completions; requests, responses, completions, categories, filters, map items and placemarks (a CLPlacemark with a coordinate and a one-line title) are complete values.",
+          "fixtures": [],
+          "noFixture": "No fixture can show a search: with no search service every search fails, which leaves the page as it was; CoreRuntimeTests MapSearchTests holds the failures and the values."
         }
       ]
     }
