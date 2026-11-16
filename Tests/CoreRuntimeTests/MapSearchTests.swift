@@ -36,6 +36,12 @@ private final class Listener: MKLocalSearchCompleterDelegate {
         #expect(search.isSearching && answers.isEmpty)
         await settle()
         #expect(answers == [.serverFailure] && !search.isSearching)
+        // A second start while the first runs leaves the first running and fails at once.
+        var order: [String] = []
+        search.start { _, error in order.append("A \((error as? MKError)?.code ?? .decodingFailed)") }
+        search.start { _, error in order.append("B \((error as? MKError)?.code ?? .decodingFailed)") }
+        await settle()
+        #expect(order.sorted() == ["A serverFailure", "B unknown"] && !search.isSearching)
         search.start { _, _ in answers.append(.unknown) }
         search.cancel()
         await settle()

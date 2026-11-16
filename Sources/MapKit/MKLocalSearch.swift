@@ -222,8 +222,14 @@ open class MKLocalSearch: NSObject, @unchecked Sendable {
     }
 
     /// Searches, and calls the handler on the main actor after this returns: with
-    /// `MKError.serverFailure`, since a page has no place search.
+    /// `MKError.serverFailure`, since a page has no place search. Starting again while a search
+    /// runs leaves it running, as Apple's does, and the later handler hears `MKError.unknown`.
     open func start(completionHandler: @escaping CompletionHandler) {
+        if isSearching {
+            let handler = _Carried(completionHandler)
+            Task { @MainActor in handler.value(nil, MKError(.unknown)) }
+            return
+        }
         generation += 1
         pending = completionHandler
         isSearching = true
