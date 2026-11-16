@@ -1,13 +1,13 @@
-// The Symbols module and the iOS 18 and 26 effects (ButtonKit, CriticalMaps): effects are
+// The iOS 18 and 26 symbol effects (ButtonKit, CriticalMaps; Packages/Shadows' Symbols module
+// re-exports them on wasm): effects are
 // Sendable and Hashable values a Sendable style can hold, draw on and draw off fade the symbol
 // in and out as appear and disappear do, and the magic replace is a content transition.
 import Testing
-import Symbols
 import SwiftUI
 import SwiftUIWebHeadless
 
 #if !os(WASI)
-@Suite @MainActor struct SymbolsModuleTests {
+@Suite @MainActor struct SymbolEffectTypesTests {
     /// ButtonKit's `SymbolEffectAsyncButtonStyle`: a Sendable style that holds its effect.
     struct Style<Effect: SymbolEffect & IndefiniteSymbolEffect>: Sendable {
         let effect: Effect

@@ -811,7 +811,7 @@ WEB_PRODUCTS = [
     ("ActivityKit", "SwiftUIWeb"),
     ("BackgroundTasks", "SwiftUIWeb"),
     ("TipKit", "SwiftUIWeb"),
-    ("Symbols", "SwiftUIWeb"),
+    ("Symbols", "Shadows"),
     ("Translation", "SwiftUIWeb"),
     ("JavaScriptCore", "SwiftUIWeb"),
     ("CloudKit", "SwiftUIWeb"),

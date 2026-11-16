@@ -45,7 +45,6 @@ let package = Package(
         .library(name: "BackgroundTasks", targets: ["BackgroundTasks"]),
         .library(name: "Translation", targets: ["Translation", "_Translation_SwiftUI"]),
         .library(name: "TipKit", targets: ["TipKit"]),
-        .library(name: "Symbols", targets: ["Symbols"]),
         .library(name: "JavaScriptCore", targets: ["JavaScriptCore"]),
         .library(name: "CloudKit", targets: ["CloudKit"]),
         .library(name: "Photos", targets: ["Photos"]),
@@ -193,8 +192,6 @@ let package = Package(
                                .target(name: "WebCoreData", condition: .when(platforms: [.wasi]))],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "TipKit", dependencies: ["SwiftUI", "TipKitMacros", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
-        // The symbol effects (SwiftUI's runtime plays them), for files that import Symbols.
-        .target(name: "Symbols", dependencies: ["SwiftUIWebCore"], swiftSettings: [.treatAllWarnings(as: .error)]),
         .macro(
             name: "TipKitMacros",
             dependencies: [
@@ -311,7 +308,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Symbols", "Translation", "TranslationHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // JavaScriptCore on its own: under Node (the wasm tests) against its real engine; natively,
