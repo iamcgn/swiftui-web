@@ -624,6 +624,131 @@ struct CoreDataTests {
         #expect(read?.error == nil)
         #expect(event.description.contains("type: Export"))
     }
+
+    // MARK: Fetched results controllers
+
+    /// A controller's results, in sections by author, with the index paths UIKit reads.
+    @Test func fetchedResultsControllerSplitsResultsIntoSections() throws {
+        let context = try container().viewContext
+        let austen = author("Jane Austen", in: context), herbert = author("Frank Herbert", in: context)
+        let emma = book("Emma", author: austen, in: context)
+        let dune = book("Dune", author: herbert, in: context)
+        let persuasion = book("Persuasion", author: austen, in: context)
+        try context.save()
+
+        let request = NSFetchRequest<Book>(entityName: "Book")
+        request.sortDescriptors = [NSSortDescriptor(key: "author.name", ascending: true), NSSortDescriptor(key: "title", ascending: true)]
+        let controller = NSFetchedResultsController(fetchRequest: request, managedObjectContext: context, sectionNameKeyPath: "author.name", cacheName: nil)
+        #expect(controller.fetchedObjects == nil)
+        try controller.performFetch()
+        #expect(controller.fetchedObjects == [dune, emma, persuasion])
+        #expect(controller.sections?.map(\.name) == ["Frank Herbert", "Jane Austen"])
+        #expect(controller.sections?.map(\.numberOfObjects) == [1, 2])
+        #expect(controller.sectionIndexTitles == ["F", "J"])
+        #expect(controller.object(at: IndexPath(indexes: [1, 1])) === persuasion)
+        #expect(controller.indexPath(forObject: emma) == IndexPath(indexes: [1, 0]))
+        #expect(controller.section(forSectionIndexTitle: "J", at: 0) == 1)
+    }
+
+    /// The delegate hears of an insert, a change that moves a book, an update in place and a
+    /// delete, each between `controllerWillChangeContent` and `controllerDidChangeContent`,
+    /// with the controller's results already current (as an app's
+    /// `controller.fetchedObjects as? [Book]` reads them).
+    @Test func fetchedResultsControllerTellsItsDelegateWhatChanged() async throws {
+        let context = try container().viewContext
+        book("Dune", in: context)
+        let emma = book("Emma", in: context)
+        try context.save()
+
+        let request = NSFetchRequest<Book>(entityName: "Book")
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        let controller = NSFetchedResultsController(fetchRequest: request, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+        let log = ChangeLog()
+        controller.delegate = log
+        try controller.performFetch()
+        #expect(controller.sections?.map(\.name) == [""])
+
+        // Saved: the delegate hears at the save.
+        book("Anathem", in: context)
+        try context.save()
+        #expect(log.events == ["will", "insert nil [0, 0] Anathem", "did Anathem Dune Emma"])
+
+        // A changed title that sorts elsewhere is a move; heard once the context processes its
+        // pending changes.
+        log.events = []
+        emma.title = "Brave New World"
+        context.processPendingChanges()
+        #expect(log.events == ["will", "move [0, 2] [0, 1] Brave New World", "did Anathem Brave New World Dune"])
+
+        // A change in place is an update; unsaved, it is heard on the next turn.
+        log.events = []
+        emma.pages = 300
+        await settled { !log.events.isEmpty }
+        #expect(log.events == ["will", "update [0, 1] nil Brave New World", "did Anathem Brave New World Dune"])
+
+        log.events = []
+        context.delete(emma)
+        try context.save()
+        #expect(log.events == ["will", "delete [0, 1] nil Brave New World", "did Anathem Dune"])
+        #expect(controller.fetchedObjects?.map(\.title) == ["Anathem", "Dune"])
+    }
+
+    /// A section that appears or empties is a section change.
+    @Test func fetchedResultsControllerReportsSectionChanges() throws {
+        let context = try container().viewContext
+        let herbert = author("Frank Herbert", in: context)
+        let dune = book("Dune", author: herbert, in: context)
+        try context.save()
+        let request = NSFetchRequest<Book>(entityName: "Book")
+        request.sortDescriptors = [NSSortDescriptor(key: "author.name", ascending: true)]
+        let controller = NSFetchedResultsController(fetchRequest: request, managedObjectContext: context, sectionNameKeyPath: "author.name", cacheName: nil)
+        let log = ChangeLog()
+        controller.delegate = log
+        try controller.performFetch()
+
+        book("Emma", author: author("Jane Austen", in: context), in: context)
+        try context.save()
+        #expect(log.sections == ["insert 1 Jane Austen"])
+        log.sections = []
+        context.delete(dune)
+        try context.save()
+        #expect(log.sections == ["delete 0 Frank Herbert"])
+        #expect(controller.sections?.map(\.name) == ["Jane Austen"])
+    }
+
+    /// Generated root entities' classes are `Identifiable` (Xcode's codegen declares it), and a
+    /// subentity's class inherits the conformance.
+    @Test func generatedClassesAreIdentifiable() throws {
+        let context = try container().viewContext
+        let ebook = Ebook(context: context)
+        let identified: any Identifiable = ebook
+        #expect(identified.id as? ObjectIdentifier == ObjectIdentifier(ebook))
+    }
+}
+
+/// Records what a fetched results controller tells its delegate.
+private final class ChangeLog: NSFetchedResultsControllerDelegate {
+    var events: [String] = []
+    var sections: [String] = []
+
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        events.append("will")
+    }
+
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        let name = [.insert: "insert", .delete: "delete", .move: "move", .update: "update"][type] ?? "?"
+        let title = (anObject as? Book)?.title ?? "?"
+        events.append("\(name) \(indexPath.map { "\(Array($0))" } ?? "nil") \(newIndexPath.map { "\(Array($0))" } ?? "nil") \(title)")
+    }
+
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange sectionInfo: NSFetchedResultsSectionInfo, atSectionIndex sectionIndex: Int, for type: NSFetchedResultsChangeType) {
+        sections.append("\(type == .insert ? "insert" : "delete") \(sectionIndex) \(sectionInfo.name)")
+    }
+
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        let titles = (controller.fetchedObjects as? [Book])?.compactMap(\.title) ?? []
+        events.append((["did"] + titles).joined(separator: " "))
+    }
 }
 
 /// Adds a book named for the count shown, inserting before reading the count (as an app's

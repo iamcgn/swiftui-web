@@ -120,6 +120,23 @@ public final class UIColor: UIObjectBase, @unchecked Sendable {
         return true
     }
 
+    /// The colour's hue, saturation and brightness in 0…1 (and its opacity).
+    public func getHue(_ hue: UnsafeMutablePointer<CGFloat>?, saturation: UnsafeMutablePointer<CGFloat>?, brightness: UnsafeMutablePointer<CGFloat>?, alpha: UnsafeMutablePointer<CGFloat>?) -> Bool {
+        let r = light.red, g = light.green, b = light.blue
+        let high = max(r, g, b), low = min(r, g, b), range = high - low
+        var h: CGFloat = 0
+        if range > 0 {
+            if high == r { h = (g - b) / range } else if high == g { h = 2 + (b - r) / range } else { h = 4 + (r - g) / range }
+            h /= 6
+            if h < 0 { h += 1 }
+        }
+        hue?.pointee = h
+        saturation?.pointee = high > 0 ? range / high : 0
+        brightness?.pointee = high
+        alpha?.pointee = light.alpha
+        return true
+    }
+
     // MARK: Fixed colours
 
     public static let clear = UIColor(.clear)

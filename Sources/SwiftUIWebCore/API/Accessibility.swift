@@ -226,6 +226,18 @@ extension View {
     /// Accepted: the browser has no Smart Invert to exempt the view from.
     nonisolated public func accessibilityIgnoresInvertColors(_ active: Bool = true) -> some View { self }
 
+    /// Accepted: the browser has no Large Content Viewer to show the view in.
+    nonisolated public func accessibilityShowsLargeContentViewer() -> some View { self }
+    /// Accepted: the browser has no Large Content Viewer to show the content in.
+    nonisolated public func accessibilityShowsLargeContentViewer<V: View>(_ largeContentView: () -> V) -> some View { self }
+    /// Accepted: whether the element responds to interaction is read from its controls.
+    nonisolated public func accessibilityRespondsToUserInteraction(_ respondsToUserInteraction: Bool = true) -> some View { self }
+    /// Accepted: the browser has no Voice Control to take the alternative labels.
+    nonisolated public func accessibilityInputLabels(_ inputLabels: [Text]) -> some View { self }
+    nonisolated public func accessibilityInputLabels(_ inputLabelKeys: [LocalizedStringKey]) -> some View { self }
+    @_disfavoredOverload
+    nonisolated public func accessibilityInputLabels<S: StringProtocol>(_ inputLabels: [S]) -> some View { self }
+
     /// Adds the given traits to the view.
     nonisolated public func accessibilityAddTraits(_ traits: AccessibilityTraits) -> some View { _accessibilityChange { $0.addedTraits = traits } }
 

@@ -103,6 +103,8 @@ open class NSManagedObjectContext: CustomStringConvertible, @unchecked Sendable 
     /// The source version (the coordinator's generation, or the parent's version) last synced.
     private var _syncedVersion = -1
     private var _observers: [Int: (Bool) -> Void] = [:]
+    private var _objectObservers: [Int: (NSManagedObject) -> Void] = [:]
+    private var _pendingObservers: [Int: () -> Void] = [:]
     private var _nextObserver = 0
 
     public init(concurrencyType ct: NSManagedObjectContextConcurrencyType) {
@@ -135,9 +137,28 @@ open class NSManagedObjectContext: CustomStringConvertible, @unchecked Sendable 
         for observer in Array(_observers.values) { observer(onMain) }
     }
 
+    /// Tells `run` which object changed, after every change to one (the fetched results
+    /// controllers, which tell their delegates of updates).
+    func _observeObjects(_ run: @escaping (NSManagedObject) -> Void) -> () -> Void {
+        _nextObserver += 1
+        let id = _nextObserver
+        _objectObservers[id] = run
+        return { [weak self] in self?._objectObservers[id] = nil }
+    }
+
+    /// Runs `run` when the context processes its pending changes (`processPendingChanges()`,
+    /// and after a save): the fetched results controllers catch up then.
+    func _observePendingChanges(_ run: @escaping () -> Void) -> () -> Void {
+        _nextObserver += 1
+        let id = _nextObserver
+        _pendingObservers[id] = run
+        return { [weak self] in self?._pendingObservers[id] = nil }
+    }
+
     /// An object changed (a property set, an object inserted or deleted).
     func _objectDidChange(_ object: NSManagedObject) {
         _version += 1
+        for observer in Array(_objectObservers.values) { observer(object) }
         _tellObservers(onMain: concurrencyType == .mainQueueConcurrencyType)
     }
 
@@ -514,6 +535,7 @@ open class NSManagedObjectContext: CustomStringConvertible, @unchecked Sendable 
             NSInsertedObjectsKey: Set(inserted), NSUpdatedObjectsKey: Set(updated), NSDeletedObjectsKey: Set(deleted),
         ])
         _tellObservers(onMain: concurrencyType == .mainQueueConcurrencyType)
+        processPendingChanges()
     }
 
     /// A child's save: the parent holds the inserted objects (with the same IDs), takes the
@@ -593,7 +615,11 @@ open class NSManagedObjectContext: CustomStringConvertible, @unchecked Sendable 
     /// Every object without unsaved changes takes its stored values again.
     open func refreshAllObjects() { _sync(force: true) }
 
-    open func processPendingChanges() {}
+    /// Brings what follows the context's changes up to date now (its fetched results
+    /// controllers), rather than at the end of the event.
+    open func processPendingChanges() {
+        for observer in Array(_pendingObservers.values) { observer() }
+    }
 
     /// Gives the objects their permanent IDs now (here: the IDs they get when saved, assigned
     /// at the save).

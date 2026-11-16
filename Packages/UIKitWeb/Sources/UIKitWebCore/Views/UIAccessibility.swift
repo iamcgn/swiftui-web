@@ -47,8 +47,10 @@ public enum UIAccessibility {
     /// The host cannot tell whether a screen reader runs: false, as UIKit answers without one.
     public static var isVoiceOverRunning: Bool { false }
     public static var isSwitchControlRunning: Bool { false }
-    /// The host's reduce-motion setting (`prefers-reduced-motion`).
+    /// The host's reduce-motion setting (`prefers-reduced-motion`), and the notification
+    /// posted when it changes.
     public static var isReduceMotionEnabled: Bool { UIKitScene.shared.hostReducesMotion }
+    nonisolated public static let reduceMotionStatusDidChangeNotification = NSNotification.Name("UIAccessibilityReduceMotionStatusDidChangeNotification")
     public static var prefersCrossFadeTransitions: Bool { UIKitScene.shared.hostReducesMotion }
     public static var isReduceTransparencyEnabled: Bool { false }
     public static var isBoldTextEnabled: Bool { false }

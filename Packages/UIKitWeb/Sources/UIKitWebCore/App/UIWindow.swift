@@ -137,6 +137,12 @@ public final class UIApplication: UIResponder {
     public var keyWindow: UIWindow? { UIKitScene.shared.windows.first { $0.isKeyWindow } }
     public var isIdleTimerDisabled = false
     public var applicationState: State = .active
+    /// The content size category (Dynamic Type) the app's text follows.
+    public var preferredContentSizeCategory: UIContentSizeCategory { UIKitScene.shared.preferredContentSizeCategory }
+    /// The direction the app lays out in: the screen's trait collection's.
+    public var userInterfaceLayoutDirection: UIUserInterfaceLayoutDirection {
+        UIScreen.main.traitCollection.layoutDirection == .rightToLeft ? .rightToLeft : .leftToRight
+    }
 
     /// The responder chain's end: a press nobody took is unhandled (Events/Keyboard.swift).
     override public func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?) { UIKitScene.shared.pressUnhandled = true }
