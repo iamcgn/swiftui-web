@@ -214,8 +214,12 @@ private func _webBridge<Value: _ObjectiveCBridgeable>(_ value: Value) -> NSObjec
     value._bridgeToObjectiveC() as AnyObject as? NSObject
 }
 
-/// The hashable an object stands for: a boxed value's own, when hashable, else the object.
+/// The hashable an object stands for: a string's or a number's Swift value (so a key that went
+/// out as `"id"` or `42` comes back equal to the key it was, as Foundation's `NSString` and
+/// `NSNumber` hash as their values), a boxed value's own when hashable, else the object.
 private func _webHashable(_ object: NSObject) -> AnyHashable {
+    if let string = object as? NSString { return AnyHashable(string.string) }
+    if let number = object as? NSNumber { return number._webHashableValue }
     if type(of: object) == _WebNSValue.self, let value = (object as! _WebNSValue).value as? AnyHashable { return value }
     return AnyHashable(object)
 }
