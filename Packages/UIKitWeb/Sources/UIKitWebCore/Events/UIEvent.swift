@@ -1,3 +1,4 @@
+import WebFoundation   // Foundation everywhere: NSObject's Hashable for the sets of touches and presses
 // Touches and events. The scene turns the host's pointer events into one touch (a mouse or a
 // finger) and delivers it through gesture recognizers, then the responder chain.
 
