@@ -90,24 +90,81 @@ extension MKMapItem: Hashable {
     public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 }
 
-/// A place on the map.
+/// A place on the map: a placemark and what is known about the place there.
 public final class MKMapItem: @unchecked Sendable {
-    public let coordinate: CLLocationCoordinate2D
+    public let placemark: MKPlacemark
     public var name: String?
+    public var phoneNumber: String?
+    public var url: URL?
+    public var timeZone: TimeZone?
+    public var pointOfInterestCategory: MKPointOfInterestCategory?
+    /// True only for the item `forCurrentLocation()` makes.
+    public let isCurrentLocation: Bool
+    public var coordinate: CLLocationCoordinate2D { placemark.coordinate }
+
     public init(coordinate: CLLocationCoordinate2D, name: String? = nil) {
-        self.coordinate = coordinate
+        placemark = MKPlacemark(coordinate: coordinate)
         self.name = name
+        isCurrentLocation = false
     }
     public init(placemark: MKPlacemark) {
-        coordinate = placemark.coordinate
+        self.placemark = placemark
         name = placemark.name
+        isCurrentLocation = false
+    }
+    private init(currentLocation placemark: MKPlacemark) {
+        self.placemark = placemark
+        name = "My Location"
+        isCurrentLocation = true
+    }
+    /// The device's location, as a map item that the Maps app would resolve when opened. A page has
+    /// no Maps app to resolve it, so its placemark has no location.
+    public static func forCurrentLocation() -> MKMapItem {
+        MKMapItem(currentLocation: MKPlacemark(placemark: CLPlacemark(location: nil)))
     }
 }
 
-public struct MKPlacemark: Hashable, Sendable {
-    public var coordinate: CLLocationCoordinate2D
-    public var name: String?
-    public init(coordinate: CLLocationCoordinate2D) { self.coordinate = coordinate }
+/// A placemark that a map shows: a `CLPlacemark` with a coordinate and a title, as Apple's is.
+open class MKPlacemark: CLPlacemark, @unchecked Sendable {
+    public init(coordinate: CLLocationCoordinate2D) {
+        super.init(location: CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude))
+    }
+    /// A placemark at a coordinate with the address parts an address dictionary holds (the keys of
+    /// Contacts' postal address: Name, Street, City, State, ZIP, Country, CountryCode, SubLocality
+    /// and SubAdministrativeArea).
+    public init(coordinate: CLLocationCoordinate2D, addressDictionary: [String: Any]?) {
+        let address = addressDictionary ?? [:]
+        func part(_ key: String) -> String? { address[key] as? String }
+        super.init(location: CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude), name: part("Name"),
+                   thoroughfare: part("Street"), locality: part("City"), subLocality: part("SubLocality"),
+                   administrativeArea: part("State"), subAdministrativeArea: part("SubAdministrativeArea"),
+                   postalCode: part("ZIP"), isoCountryCode: part("CountryCode"), country: part("Country"))
+    }
+    public init(placemark: CLPlacemark) {
+        super.init(location: placemark.location, region: placemark.region, timeZone: placemark.timeZone, name: placemark.name,
+                   thoroughfare: placemark.thoroughfare, subThoroughfare: placemark.subThoroughfare, locality: placemark.locality,
+                   subLocality: placemark.subLocality, administrativeArea: placemark.administrativeArea,
+                   subAdministrativeArea: placemark.subAdministrativeArea, postalCode: placemark.postalCode,
+                   isoCountryCode: placemark.isoCountryCode, country: placemark.country, inlandWater: placemark.inlandWater,
+                   ocean: placemark.ocean, areasOfInterest: placemark.areasOfInterest)
+    }
+
+    open var coordinate: CLLocationCoordinate2D { location?.coordinate ?? kCLLocationCoordinate2DInvalid }
+    open var countryCode: String? { isoCountryCode }
+    /// The address on one line, as a map's callout shows it: the street with its number, then the
+    /// town, the state with the postal code, and the country. Nil when the placemark has no address.
+    open var title: String? {
+        var street = subThoroughfare ?? ""
+        if let thoroughfare { street += street.isEmpty ? thoroughfare : " " + thoroughfare }
+        var state = administrativeArea ?? ""
+        if let postalCode { state += state.isEmpty ? postalCode : " " + postalCode }
+        let parts = [street, locality ?? "", state, country ?? ""].filter { !$0.isEmpty }
+        guard !parts.isEmpty else { return name }
+        var text = ""
+        for part in parts { text += text.isEmpty ? part : ", " + part }
+        return text
+    }
+    open var subtitle: String? { nil }
 }
 
 /// The map's style (accepted: the tiles are OpenStreetMap's standard ones).
