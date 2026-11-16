@@ -2,7 +2,7 @@
 // `Measurement<UnitLength>` and `UnitTemperature` in 4 corpus apps, and `.init(value:unit:)`
 // behind many "cannot infer contextual base" errors). Units, their converters, conversion,
 // arithmetic, comparison and coding follow Foundation; the factors are Foundation's. Formatting
-// a measurement for a locale is not here.
+// a measurement is in WebFoundationFormats (MeasurementFormats.swift).
 #if os(WASI)
 
 /// Converts a unit's values to and from its dimension's base unit.

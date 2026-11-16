@@ -115,3 +115,53 @@ extension Locale: CurrencyNaming {}
         #expect(NSTemporaryDirectory().hasSuffix("/"))
     }
 }
+
+// Measurement formatting (WebFoundationFormats/MeasurementFormats.swift): CriticalMaps' road
+// distances, OscarWeather's unit symbols and Mlem's response times. Linux's Foundation has no
+// measurement format style or working MeasurementFormatter, so these hold on macOS and wasm.
+#if !os(Linux)
+@Suite struct MeasurementFormatTests {
+    @Test func providedUnitsInEachWidth() {
+        let distance = Measurement(value: 5, unit: UnitLength.kilometers)
+        #expect(distance.formatted(.measurement(width: .abbreviated, usage: .asProvided).locale(english)) == "5 km")
+        #expect(distance.formatted(.measurement(width: .wide, usage: .asProvided).locale(english)) == "5 kilometers")
+        #expect(distance.formatted(.measurement(width: .narrow, usage: .asProvided).locale(english)) == "5km")
+        #expect(Measurement(value: 1, unit: UnitLength.kilometers).formatted(.measurement(width: .wide, usage: .asProvided).locale(english)) == "1 kilometer")
+        let warm = Measurement(value: 20, unit: UnitTemperature.celsius)
+        #expect(warm.formatted(.measurement(width: .abbreviated, usage: .asProvided).locale(english)) == "20°C")
+        #expect(warm.formatted(.measurement(width: .wide, usage: .asProvided).locale(english)) == "20 degrees Celsius")
+        let scrolled = Measurement(value: 1234.4, unit: UnitLength.meters)
+        #expect(scrolled.formatted(.measurement(width: .abbreviated, usage: .asProvided, numberFormatStyle: .number.precision(.fractionLength(0))).locale(english)) == "1,234 m")
+    }
+
+    @Test func usagesConvertToTheLocalesUnits() {
+        // Apple's own examples for the format style.
+        let trip = Measurement(value: 100, unit: UnitLength.kilometers)
+        #expect(trip.formatted(.measurement(width: .wide, usage: .road).locale(english)) == "62 miles")
+        let fever = Measurement(value: 38, unit: UnitTemperature.celsius)
+        #expect(fever.formatted(.measurement(width: .wide, usage: .weather, numberFormatStyle: .number.precision(.fractionLength(1))).locale(english)) == "100.4 degrees Fahrenheit")
+        #expect(Measurement(value: 5, unit: UnitLength.kilometers).formatted(.measurement(width: .abbreviated, usage: .road).locale(Locale(identifier: "de_DE"))) == "5 km")
+    }
+
+    @Test func theAttributedFormMarksTheUnit() {
+        let text = Measurement(value: 1, unit: UnitLength.kilometers).formatted(.measurement(width: .abbreviated, usage: .asProvided).locale(english).attributed)
+        let unit = text.runs.filter { $0.measurement == .unit }.map { String(text[$0.range].characters) }.joined()
+        let value = text.runs.filter { $0.measurement == .value }.map { String(text[$0.range].characters) }.joined()
+        #expect(unit == "km" && value == "1")
+        #expect(String(text.characters) == "1 km")
+    }
+
+    @Test func measurementFormatterUsesTheProvidedUnit() {
+        let formatter = MeasurementFormatter()
+        formatter.locale = english
+        formatter.unitOptions = .providedUnit
+        formatter.unitStyle = .short
+        let latency = Measurement(value: 250, unit: UnitDuration.milliseconds)
+        #expect(formatter.string(from: latency) == "250ms")
+        formatter.unitStyle = .medium
+        #expect(formatter.string(from: latency) == "250 ms")
+        formatter.unitStyle = .long
+        #expect(formatter.string(from: latency) == "250 milliseconds")
+    }
+}
+#endif
