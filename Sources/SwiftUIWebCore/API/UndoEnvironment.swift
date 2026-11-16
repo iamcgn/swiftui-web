@@ -1,11 +1,10 @@
 // `EnvironmentValues.undoManager`: the window's undo manager, one for the app (a browser page
 // is one window), so a view's `undoManager?.registerUndo(withTarget:handler:)` records steps that
 // `undo()` and `redo()` replay.
-#if os(WASI)
-import WebFoundation   // never full Foundation on wasm: it links ICU (decisions 0006, 0017)
-#else
+#if !os(WASI)
 import Foundation
 #endif
+import WebFoundation   // Foundation's UndoManager on Apple platforms, WebFoundation's on wasm and Linux
 
 /// An undo manager held where Sendable values must be (Foundation's is not Sendable).
 package final class _UndoManagerBox: @unchecked Sendable {

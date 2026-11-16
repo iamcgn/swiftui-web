@@ -1,11 +1,10 @@
 // UndoManager as document and Core Data apps and SwiftUI's `undoManager` use it: named steps,
 // undo then redo, nested groups, the levels kept and disabled registration. The cases run
-// against Foundation's on Apple platforms too, with explicit groups (no run loop turns here to
-// close the groups an event opens).
+// against Foundation's on Apple platforms and WebFoundation's on wasm and Linux, with explicit
+// groups (no run loop turns here to close the groups an event opens).
 import Testing
 import WebFoundation
 
-#if os(WASI) || canImport(Darwin)
 private final class Count: @unchecked Sendable {
     private let lock = NSLock()
     private var value = 0
@@ -121,4 +120,3 @@ private final class Count: @unchecked Sendable {
         #expect(undone.total == 2 && redone.total == 1)
     }
 }
-#endif

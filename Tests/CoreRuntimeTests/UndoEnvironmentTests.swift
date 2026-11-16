@@ -1,11 +1,11 @@
 // `EnvironmentValues.undoManager`: one undo manager for the window, and a subtree's own.
-// Apple platforms only: Linux's Foundation leaves UndoManager unimplemented.
 import Testing
 import Foundation
 import SwiftUI
 import SwiftUIWebCore
+import WebFoundation
 
-#if canImport(Darwin)
+#if !os(WASI)
 @Suite @MainActor struct UndoEnvironmentTests {
     @Test func viewsShareTheWindowsUndoManager() {
         let manager = EnvironmentValues().undoManager

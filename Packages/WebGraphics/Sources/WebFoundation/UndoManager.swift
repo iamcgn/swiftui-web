@@ -1,4 +1,4 @@
-// `UndoManager` for wasm, which FoundationEssentials lacks (SwiftUI's `undoManager` environment
+// `UndoManager` for wasm and Linux, whose Foundations lack it (SwiftUI's `undoManager` environment
 // value, Core Data and document apps). Registrations go into groups; a group is one undo step.
 // `undo()` runs the top group's actions newest first, and the actions they register go to the
 // redo stack; `redo()` does the same the other way. With `groupsByEvent` on (the default), a
@@ -6,7 +6,10 @@
 // Foundation's closes at the end of the run loop pass. Selector and invocation registration
 // (`registerUndo(withTarget:selector:object:)`, `prepare(withInvocationTarget:)`) is not kept:
 // there is no Objective-C runtime to send them through.
-#if os(WASI)
+#if !canImport(Darwin)
+#if !os(WASI)
+import Foundation
+#endif
 
 extension Notification.Name {
     public static let NSUndoManagerCheckpoint = Notification.Name("NSUndoManagerCheckpointNotification")

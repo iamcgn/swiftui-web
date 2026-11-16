@@ -2511,8 +2511,8 @@
         {
           "api": "UndoManager / EnvironmentValues.undoManager",
           "status": "partial",
-          "notes": "pf-undo-manager (2026-11-16): registerUndo(withTarget:handler:) into groups, one undo step each; undo runs a step's actions newest first and what they register becomes the redo step; nested groups, action names and menu titles, levelsOfUndo, disabled registration, removeAllActions (with a target too) and the undo notifications. With groupsByEvent a registration outside a group opens one that closes on the main actor's next turn. The environment's undo manager is one for the window. No selector or invocation registration (no Objective-C runtime).",
-          "noFixture": "Values, not a screen; FrameworkTests (UndoManagerTests) run the same steps against Foundation's on macOS, and CoreRuntimeTests (UndoEnvironmentTests) read the environment's."
+          "notes": "pf-undo-manager (2026-11-16), on wasm and Linux, whose Foundations have none: registerUndo(withTarget:handler:) into groups, one undo step each; undo runs a step's actions newest first and what they register becomes the redo step; nested groups, action names and menu titles, levelsOfUndo, disabled registration, removeAllActions (with a target too) and the undo notifications. With groupsByEvent a registration outside a group opens one that closes on the main actor's next turn. The environment's undo manager is one for the window. No selector or invocation registration (no Objective-C runtime).",
+          "noFixture": "Values, not a screen; FrameworkTests (UndoManagerTests) run the same steps against Foundation's on macOS and WebFoundation's on wasm and Linux, and CoreRuntimeTests (UndoEnvironmentTests) read the environment's."
         }
       ]
     },
