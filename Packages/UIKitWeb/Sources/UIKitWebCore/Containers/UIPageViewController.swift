@@ -49,7 +49,7 @@ extension UIPageViewControllerDelegate {
 public enum UIInterfaceOrientation: Int, Sendable { case unknown = 0, portrait, portraitUpsideDown, landscapeLeft, landscapeRight }
 
 /// The orientations a view controller supports.
-public struct UIInterfaceOrientationMask: OptionSet, Sendable {
+public struct UIInterfaceOrientationMask: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let portrait = UIInterfaceOrientationMask(rawValue: 1 << 1)
