@@ -45,6 +45,13 @@ import UIKit
         #expect(Self.attributes(text, at: "Hello")[.foregroundColor] as? UIColor == UIColor.black)
     }
 
+    @Test func unquotedLinksKeepTheirSlashes() {
+        let text = Self.read("<p><a href=https://example.com/a>full</a> <a href=/docs/page>root</a> <a class=x href=b/c>rel</a></p>")
+        #expect((Self.attributes(text, at: "full")[.link] as? URL)?.absoluteString == "https://example.com/a")
+        #expect((Self.attributes(text, at: "root")[.link] as? URL)?.relativeString == "/docs/page")
+        #expect((Self.attributes(text, at: "rel")[.link] as? URL)?.relativeString == "b/c")
+    }
+
     @Test func styleSheetsApplyBySpecificityThenInlineStyles() throws {
         let text = Self.read("""
         <html><head><title>Doc &amp; co</title><style>

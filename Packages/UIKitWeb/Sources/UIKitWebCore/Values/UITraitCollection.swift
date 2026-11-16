@@ -179,7 +179,7 @@ public struct UITraitOverrides: Hashable, Sendable {
     /// Takes the override of `trait` away, so the inherited value shows again.
     public mutating func remove<T: UITraitDefinition>(_ trait: T.Type) {
         if let storage = T._storage { if let key = storage.overrides { self[keyPath: key] = nil }; return }
-        customTraits.values[ObjectIdentifier(T.self)] = nil
+        customTraits.set(ObjectIdentifier(T.self), nil)
     }
 }
 
@@ -202,27 +202,50 @@ extension UITraitOverrides: UIMutableTraits {
         }
         set {
             if let storage = T._storage { if let key = storage.overrides { self[keyPath: key] = newValue }; return }
-            customTraits.values[ObjectIdentifier(T.self)] = newValue
+            customTraits.set(ObjectIdentifier(T.self), newValue)
         }
     }
 }
 
 /// The values of an app's own traits, by trait type. Values compare with `==` when their type
 /// is Equatable; any other value (an action holding a closure, as swift-navigation's are)
-/// counts as changed whenever it is set.
+/// counts as changed only when it is set again.
 public struct _UICustomTraitValues: Hashable, @unchecked Sendable {
-    var values: [ObjectIdentifier: Any] = [:]
+    private(set) var values: [ObjectIdentifier: Any] = [:]
+    /// When each value was set: a value that can't be compared is the same value while its
+    /// stamp is, however many collections it is passed down through.
+    private var stamps: [ObjectIdentifier: UInt64] = [:]
+    nonisolated(unsafe) private static var nextStamp: UInt64 = 0
+
+    mutating func set(_ key: ObjectIdentifier, _ value: Any?) {
+        values[key] = value
+        if value != nil {
+            Self.nextStamp &+= 1
+            stamps[key] = Self.nextStamp
+        } else {
+            stamps[key] = nil
+        }
+    }
 
     mutating func merge(_ other: _UICustomTraitValues) {
-        for (key, value) in other.values { values[key] = value }
+        for (key, value) in other.values { values[key] = value; stamps[key] = other.stamps[key] }
+    }
+
+    /// Whether `key`'s value is the same in both: by `==` when its type is Equatable, else by
+    /// whether it is the value set at the same time.
+    func same(_ key: ObjectIdentifier, as other: _UICustomTraitValues) -> Bool {
+        switch (values[key], other.values[key]) {
+        case (nil, nil): return true
+        case let (mine?, theirs?):
+            if mine is any Equatable { return _traitValuesEqual(mine, theirs) }
+            return stamps[key] != nil && stamps[key] == other.stamps[key]
+        default: return false
+        }
     }
 
     public static func == (lhs: _UICustomTraitValues, rhs: _UICustomTraitValues) -> Bool {
         guard lhs.values.count == rhs.values.count else { return false }
-        for (key, value) in lhs.values {
-            guard let other = rhs.values[key], _traitValuesEqual(value, other) else { return false }
-        }
-        return true
+        return lhs.values.keys.allSatisfy { lhs.same($0, as: rhs) }
     }
 
     public func hash(into hasher: inout Hasher) { hasher.combine(values.count) }
@@ -314,11 +337,7 @@ extension UITraitCollection {
         func check<T: UITraitDefinition>(_ type: T.Type) -> Bool {
             guard T._storage == nil else { return !_traitValuesEqual(T.value(in: a), T.value(in: b)) }
             // An app's trait changed when it was set or cleared, or set to another value.
-            switch (a.customTraits.values[ObjectIdentifier(T.self)], b.customTraits.values[ObjectIdentifier(T.self)]) {
-            case (nil, nil): return false
-            case let (old?, new?): return !_traitValuesEqual(old, new)
-            default: return true
-            }
+            return !a.customTraits.same(ObjectIdentifier(T.self), as: b.customTraits)
         }
         return check(trait)
     }

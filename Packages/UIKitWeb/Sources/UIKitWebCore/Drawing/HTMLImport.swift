@@ -648,7 +648,11 @@ struct HTMLImport {
                     while index < scalars.count, scalars[index] != quote { value.unicodeScalars.append(scalars[index]); index += 1 }
                     index += 1
                 } else {
-                    while index < scalars.count, !isSpace(scalars[index]) { value.unicodeScalars.append(scalars[index]); index += 1 }
+                    // An unquoted value runs to the next space: its slashes are its own
+                    // (`href=/docs/page`, `href=https://example.com/a`).
+                    while index < scalars.count, scalars[index] != " ", scalars[index] != "\n", scalars[index] != "\t", scalars[index] != "\r" {
+                        value.unicodeScalars.append(scalars[index]); index += 1
+                    }
                 }
             }
             if !key.isEmpty { attributes[key.lowercased()] = decodeEntities(value) }

@@ -122,6 +122,23 @@ private final class LineTextEngine: TextEngine {
         #expect(document.page(at: 1)?.bounds(for: .mediaBox) == a4 && document.page(at: 1)?.string == nil)
     }
 
+    @Test func savingKeepsTheInformationAndPageBoundsChanged() throws {
+        let format = UIGraphicsPDFRendererFormat()
+        format.documentInfo = ["Title": "Original"]
+        let data = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: 300, height: 400), format: format).pdfData { context in
+            context.beginPage()
+            context.fill(CGRect(x: 10, y: 10, width: 20, height: 20))
+        }
+        let document = try #require(PDFDocument(data: data))
+        document.documentAttributes?["Title"] = "Changed"
+        document.page(at: 0)?.setBounds(CGRect(x: 0, y: 0, width: 200, height: 100), for: .mediaBox)
+        let saved = try #require(document.dataRepresentation())
+        #expect(saved != data)
+        let reopened = try #require(PDFDocument(data: saved))
+        #expect(reopened.documentAttributes?["Title"] as? String == "Changed")
+        #expect(reopened.page(at: 0)?.bounds(for: .mediaBox).size == CGSize(width: 200, height: 100))
+    }
+
     @Test func anotherPDFsPagesAndSizes() throws {
         // Two pages, the first with a box of its own, the second inheriting the tree's.
         let foreign = """
@@ -142,6 +159,10 @@ private final class LineTextEngine: TextEngine {
         #expect(document.documentAttributes?["Title"] as? String == "A (small) file")
         #expect(document.documentAttributes?["Producer"] as? String == "Hi")
         #expect(PDFDocument(data: Data("not a pdf".utf8)) == nil)
+        // Its pages are read for their sizes only, so a changed title keeps the file's own bytes
+        // rather than writing blank pages.
+        document.documentAttributes?["Title"] = "Renamed"
+        #expect(document.dataRepresentation() == Data(foreign.utf8))
 
         // A page made from a drawn image keeps the drawing; a new page is US Letter.
         let image = UIGraphicsImageRenderer(size: CGSize(width: 40, height: 30)).image { $0.fill(CGRect(x: 0, y: 0, width: 40, height: 30)) }
