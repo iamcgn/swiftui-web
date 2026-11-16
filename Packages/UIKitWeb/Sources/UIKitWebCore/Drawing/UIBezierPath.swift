@@ -3,9 +3,11 @@
 // Phase 3).
 
 /// A path that consists of straight and curved line segments that you can render in your
-/// custom views.
+/// custom views. Rooted as the responders are (`UIResponderBase`, `NSObject` with the runtime),
+/// as UIKit's is an `NSObject`: an `@objc` method or block can return one (CVCalendar's
+/// delegate, `selectionViewPath() -> ((CGRect) -> UIBezierPath)`).
 @preconcurrency @MainActor
-public final class UIBezierPath {
+public final class UIBezierPath: UIResponderBase {
     /// The path itself (`cgPath` in UIKit; the substrate's `Path` stands in for CGPath).
     public var cgPath: Path
     public var lineWidth: CGFloat = 1
@@ -17,19 +19,21 @@ public final class UIBezierPath {
     private var dash: [CGFloat] = []
     private var dashPhase: CGFloat = 0
 
-    public init() { cgPath = Path() }
-    public init(cgPath: Path) { self.cgPath = cgPath }
-    public init(rect: CGRect) { cgPath = Path(rect) }
-    public init(ovalIn rect: CGRect) { cgPath = Path(ellipseIn: rect) }
-    public init(roundedRect rect: CGRect, cornerRadius: CGFloat) { cgPath = Path(roundedRect: rect, cornerRadius: cornerRadius, style: .circular) }
+    public override init() { cgPath = Path(); super.init() }
+    public init(cgPath: Path) { self.cgPath = cgPath; super.init() }
+    public init(rect: CGRect) { cgPath = Path(rect); super.init() }
+    public init(ovalIn rect: CGRect) { cgPath = Path(ellipseIn: rect); super.init() }
+    public init(roundedRect rect: CGRect, cornerRadius: CGFloat) { cgPath = Path(roundedRect: rect, cornerRadius: cornerRadius, style: .circular); super.init() }
     public init(roundedRect rect: CGRect, byRoundingCorners corners: UIRectCorner, cornerRadii: CGSize) {
         let r = cornerRadii.width
         cgPath = Path(roundedRect: rect, cornerRadii: RectangleCornerRadii(
             topLeading: corners.contains(.topLeft) ? r : 0, bottomLeading: corners.contains(.bottomLeft) ? r : 0,
             bottomTrailing: corners.contains(.bottomRight) ? r : 0, topTrailing: corners.contains(.topRight) ? r : 0), style: .circular)
+        super.init()
     }
     public init(arcCenter center: CGPoint, radius: CGFloat, startAngle: CGFloat, endAngle: CGFloat, clockwise: Bool) {
         cgPath = Path()
+        super.init()
         addArc(withCenter: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: clockwise)
     }
 
