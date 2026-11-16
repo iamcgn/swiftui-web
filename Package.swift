@@ -163,7 +163,10 @@ let package = Package(
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(name: "WidgetKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
-        .target(name: "EventKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Its event queries take an `NSPredicate`, which Apple's Foundation declares and WebCoreData holds here.
+        .target(name: "EventKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics"),
+                                                 .target(name: "WebCoreData", condition: .when(platforms: [.wasi]))],
+                swiftSettings: [.treatAllWarnings(as: .error)]),
         // Live Activities: a page has no Lock Screen or Dynamic Island, so none starts.
         .target(name: "ActivityKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // Background work, launched while the page is hidden. Its hook (the app's state, SwiftUI's

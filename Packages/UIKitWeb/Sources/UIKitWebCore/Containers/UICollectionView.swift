@@ -157,7 +157,7 @@ open class UICollectionViewLayout {
     var registeredDecorations: [String: () -> UICollectionReusableView] = [:]
     open func register(_ viewClass: AnyClass?, forDecorationViewOfKind kind: String) {
         guard let type = viewClass as? UICollectionReusableView.Type else { registeredDecorations[kind] = nil; return }
-        registeredDecorations[kind] = { type.init(frame: .zero) }
+        registeredDecorations[kind] = { _makeRegisteredView(type) }
     }
 }
 
@@ -384,7 +384,16 @@ open class UICollectionReusableView: UIView {
         attributes.frame = CGRect(origin: layoutAttributes.frame.origin, size: fitting)
         return attributes
     }
+    #if canImport(ObjectiveC)
+    /// Not `required`, as UIKit's isn't, so a subclass overrides it without `required`
+    /// (SwiftyFORM's precision slider cells). Registration makes a registered class through the
+    /// runtime, as UIKit does, which reaches the subclass's override.
+    @objc(initWithFrame:)
+    public override init(frame: CGRect) { super.init(frame: frame) }
+    #else
+    /// Required without the Objective-C runtime: registration makes the class through its type.
     public required override init(frame: CGRect) { super.init(frame: frame) }
+    #endif
 }
 
 /// A single data item when that item is within the collection view's visible bounds.
@@ -466,8 +475,19 @@ open class UICollectionViewCell: UICollectionReusableView {
     }
     var configuredContent: ConfiguredContent?
 
+    #if canImport(ObjectiveC)
+    public override init(frame: CGRect) {
+        super.init(frame: frame)
+        setUpCell()
+    }
+    #else
     public required init(frame: CGRect) {
         super.init(frame: frame)
+        setUpCell()
+    }
+    #endif
+
+    private func setUpCell() {
         contentView.frame = bounds
         contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(contentView)
@@ -587,7 +607,7 @@ open class UICollectionView: UIScrollView {
 
     open func register(_ cellClass: AnyClass?, forCellWithReuseIdentifier identifier: String) {
         guard let type = cellClass as? UICollectionViewCell.Type else { return }
-        registeredCells[identifier] = { type.init(frame: .zero) }
+        registeredCells[identifier] = { _makeRegisteredView(type) }
     }
 
     func hasRegisteredCell(withIdentifier identifier: String) -> Bool { registeredCells[identifier] != nil }
@@ -611,7 +631,7 @@ open class UICollectionView: UIScrollView {
 
     open func register(_ viewClass: AnyClass?, forSupplementaryViewOfKind kind: String, withReuseIdentifier identifier: String) {
         guard let type = viewClass as? UICollectionReusableView.Type else { return }
-        registeredSupplementaries[kind + "|" + identifier] = { type.init(frame: .zero) }
+        registeredSupplementaries[kind + "|" + identifier] = { _makeRegisteredView(type) }
     }
 
     open func dequeueReusableSupplementaryView(ofKind kind: String, withReuseIdentifier identifier: String, for indexPath: IndexPath) -> UICollectionReusableView {
@@ -1289,4 +1309,33 @@ final class OrthogonalScrollView: UIScrollView {
 @preconcurrency @MainActor
 protocol _OutlineToggling: AnyObject {
     func toggleOutlineItem(at indexPath: IndexPath) -> Bool
+}
+
+/// A registered cell, supplementary or decoration view, made as UIKit makes one: with the
+/// Objective-C runtime, `+alloc` and then `-initWithFrame:` sent to the new object, so a
+/// subclass's own `init(frame:)` runs though it isn't `required`. Each method is looked up and
+/// called with its own signature (WebAssembly checks the type of every indirect call).
+@MainActor
+func _makeRegisteredView<View: UICollectionReusableView>(_ type: View.Type) -> View {
+    #if canImport(ObjectiveC)
+    typealias Alloc = @convention(c) (UnsafeRawPointer, Selector) -> UnsafeMutableRawPointer?
+    typealias Initialize = @convention(c) (UnsafeMutableRawPointer, Selector, CGRect) -> UnsafeMutableRawPointer?
+    let cls: AnyClass = type
+    let alloc = sel_registerName("alloc")   // Swift's `#selector` cannot name +alloc
+    let initialize = #selector(UICollectionReusableView.init(frame:))
+    // The class object as an object (no bridging): its class is the metaclass, which holds `+alloc`.
+    guard let metaclass = object_getClass(unsafeBitCast(cls, to: AnyObject.self)),
+          let allocate = class_getMethodImplementation(metaclass, alloc),
+          let initializer = class_getMethodImplementation(cls, initialize),
+          let instance = unsafeBitCast(allocate, to: Alloc.self)(unsafeBitCast(cls, to: UnsafeRawPointer.self), alloc) else {
+        fatalError("UICollectionView: cannot make a \(type) view")
+    }
+    // `init` consumes the allocated object and returns the initialized one retained.
+    guard let made = unsafeBitCast(initializer, to: Initialize.self)(instance, initialize, .zero) else {
+        fatalError("UICollectionView: \(type).init(frame:) returned nil")
+    }
+    return Unmanaged<View>.fromOpaque(made).takeRetainedValue()
+    #else
+    return type.init(frame: .zero)
+    #endif
 }

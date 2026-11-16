@@ -297,10 +297,17 @@ open class UICollectionViewListCell: UICollectionViewCell {
     /// Whether the cell stands for a header or footer rather than a row.
     var isHeaderOrFooter: Bool { supplementaryKind != nil || isHeaderItem }
 
+    #if canImport(ObjectiveC)
+    public override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .clear
+    }
+    #else
     public required init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .clear
     }
+    #endif
 
     /// The list content configuration a list cell starts from: body text over subheadline
     /// secondary text on the list's metrics (`UIListContentConfiguration.listMetrics`).
