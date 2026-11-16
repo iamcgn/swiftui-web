@@ -270,15 +270,19 @@ import Foundation
 
     @Test func roundingRulesAndIncrementsMatchFoundation() {
         let locale = Locale(identifier: "en_US")
-        let percent = _NumberFormatting(style: .percent).rounded(rule: .toNearestOrEven, increment: 1)
+        // The style's `rounded(rule:increment:)` sets these two (it is wasm-only, beside the styles).
+        var percent = _NumberFormatting(style: .percent)
+        percent.roundingIncrement = 1
         #expect(percent.format(7) == 7.formatted(.percent.rounded(increment: 1).locale(locale)))
-        let fives = _NumberFormatting().rounded(rule: .down, increment: 0.05)
+        var fives = _NumberFormatting()
+        fives.roundingRule = .down
+        fives.roundingIncrement = 0.05
         #expect(fives.format(1.15) == 1.15.formatted(.number.rounded(rule: .down, increment: 0.05).locale(locale)))
         let rules: [FloatingPointRoundingRule] = [.toNearestOrEven, .toNearestOrAwayFromZero, .up, .down, .towardZero, .awayFromZero]
         for rule in rules {
             var whole = _NumberFormatting()
             whole.maximumFractionDigits = 0
-            whole = whole.rounded(rule: rule, increment: nil)
+            whole.roundingRule = rule
             for value in [1.9, 2.5, -1.9, -2.5, 3.5, 0.2] {
                 let expected = value.formatted(.number.precision(.fractionLength(0)).rounded(rule: rule).locale(locale))
                 #expect(whole.format(value) == expected, "\(value) \(rule)")
