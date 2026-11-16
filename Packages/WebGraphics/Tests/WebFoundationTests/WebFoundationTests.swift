@@ -333,7 +333,10 @@ import Foundation
         // An integer percentage is already in percent, as Foundation's IntegerFormatStyle.Percent is.
         #expect(percent.format(1 as Int) == "1%")
         var halves = _NumberFormatting(); halves.roundingIncrement = 0.5
-        #expect(halves.format(1.3) == "1.5" && halves.format(1.2) == "1" && halves.format(1234.76) == "1,235")
+        // An increment's fraction digits always show, as Foundation's do (1.2 → "1.0").
+        for value in [1.3, 1.2, 1234.76] {
+            #expect(halves.format(value) == value.formatted(.number.rounded(increment: 0.5).locale(Locale(identifier: "en_US"))), "\(value)")
+        }
         var down = _NumberFormatting(); down.roundingIncrement = 10; down.roundingRule = .down
         #expect(down.format(57.0) == "50" && down.format(57 as Int) == "50")
     }
