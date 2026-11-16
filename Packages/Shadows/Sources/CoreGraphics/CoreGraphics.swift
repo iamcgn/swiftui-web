@@ -8,9 +8,16 @@
 #if os(WASI)
 @_exported import WASILibc
 @_exported import typealias WebGraphics.CGFloat
+#if canImport(ObjectiveC)
+// The C structs with the runtime (WebGraphics's Geometry/CGTypes.swift).
+@_exported import struct WebCGGeometry.CGPoint
+@_exported import struct WebCGGeometry.CGSize
+@_exported import struct WebCGGeometry.CGRect
+#else
 @_exported import struct WebGraphics.CGPoint
 @_exported import struct WebGraphics.CGSize
 @_exported import struct WebGraphics.CGRect
+#endif
 @_exported import enum WebGraphics.CGRectEdge
 @_exported import struct WebGraphics.CGVector
 @_exported import struct WebGraphics.CGAffineTransform

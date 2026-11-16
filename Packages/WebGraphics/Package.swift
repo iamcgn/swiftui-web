@@ -72,7 +72,7 @@ let package = Package(
         ),
         .target(
             name: "WebGraphics",
-            dependencies: ["WebFoundation"],
+            dependencies: ["WebFoundation", "WebCGGeometry"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         // ImageIO's image sources on wasm (the `ImageIO` shadow re-exports it, Packages/Shadows):
@@ -126,6 +126,9 @@ let package = Package(
             dependencies: ["WebFoundation", "WebGraphics"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
+        // CGPoint, CGSize and CGRect as C structs, imported only on wasm with the Objective-C
+        // runtime (Geometry/CGTypes.swift), so `@objc` methods and blocks can take them.
+        .systemLibrary(name: "WebCGGeometry"),
         // Cairo through pkg-config (libcairo2-dev on Debian and Ubuntu, `brew install cairo`);
         // the painter paints the display list into an image surface or any cairo context.
         .systemLibrary(

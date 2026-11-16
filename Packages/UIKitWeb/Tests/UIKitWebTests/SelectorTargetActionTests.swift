@@ -17,6 +17,37 @@ import UIKit
     @objc func nextField(_ sender: UIBarButtonItem) { calls.append("next \(sender.title ?? "")") }
 }
 
+/// A controller whose `@objc` method takes a rectangle and is declared in an extension, as
+/// CVCalendar's content controllers' `updateFrames(_ frame: CGRect)` is, and a subclass that
+/// overrides it: both compile only where `CGRect` is representable in Objective-C.
+@MainActor class FramedController: UIViewController {
+    var log: [String] = []
+}
+
+extension FramedController {
+    @objc func updateFrames(_ frame: CGRect) { log.append("base \(Int(frame.width))x\(Int(frame.height))") }
+}
+
+@MainActor final class MonthFramedController: FramedController {
+    override func updateFrames(_ frame: CGRect) {
+        super.updateFrames(frame)
+        log.append("month")
+    }
+}
+
+/// A delegate protocol in CVCalendar's shape: `@objc` optional methods that return a size and a
+/// block from a rectangle to a path.
+@MainActor @objc protocol CalendarShapeDelegate {
+    @objc optional func dotMarker(sizeOnDayView view: UIView) -> CGFloat
+    @objc optional func selectionViewPath() -> ((CGRect) -> UIBezierPath)
+    @objc optional func preferredSize() -> CGSize
+}
+
+@MainActor final class CalendarShapes: NSObject, CalendarShapeDelegate {
+    func selectionViewPath() -> ((CGRect) -> UIBezierPath) { { UIBezierPath(rect: $0) } }
+    func preferredSize() -> CGSize { CGSize(width: 44, height: 30) }
+}
+
 /// A controller whose `viewDidLoad()` override is in an extension, as Dime's
 /// `extension UINavigationController { override open func viewDidLoad() }` is: it compiles only
 /// where the method is `@objc dynamic`, as UIKit's is.
@@ -155,6 +186,41 @@ extension ExtensionLoadedController {
         late.action = #selector(ActionTarget.tapped(_:))
         latePlatter.sendActions(for: .primaryActionTriggered)
         #expect(first.calls == ["tapped item"])
+    }
+
+    /// CVCalendar's `@objc func updateFrames(_ frame: CGRect)` in an extension, overridden by a
+    /// subclass: the override runs, with the rectangle as sent.
+    @Test func anObjectiveCMethodTakesARectangleAndItsOverrideRuns() {
+        let controller: FramedController = MonthFramedController(nibName: nil, bundle: nil)
+        controller.updateFrames(CGRect(x: 0, y: 0, width: 320, height: 48))
+        #expect(controller.log == ["base 320x48", "month"])
+        #expect(controller.responds(to: #selector(FramedController.updateFrames(_:))))
+    }
+
+    /// An `@objc` optional method returns a block from a rectangle to a path, and another a
+    /// size; an unimplemented one answers nil. The path is an NSObject, as UIKit's is.
+    @Test func anObjectiveCProtocolReturnsAPathBlockAndASize() {
+        let delegate: CalendarShapeDelegate = CalendarShapes()
+        let rect = CGRect(x: 4, y: 6, width: 30, height: 20)
+        let path = delegate.selectionViewPath?()(rect)
+        #expect(path?.bounds == rect)
+        #expect(delegate.preferredSize?() == CGSize(width: 44, height: 30))
+        #expect(delegate.dotMarker?(sizeOnDayView: UIView()) == nil)
+        let object: NSObject? = path
+        #expect(object != nil && object?.isEqual(path) == true && object?.isEqual(UIBezierPath()) == false)
+    }
+
+    /// The geometry structs keep their value semantics: equal by value, hashable, with zero and
+    /// null and the Int initializers.
+    @Test func geometryStructsCompareAndHashByValue() {
+        let a = CGRect(x: 1, y: 2, width: 3, height: 4)
+        let b = CGRect(origin: CGPoint(x: 1.0, y: 2.0), size: CGSize(width: 3.0, height: 4.0))
+        #expect(a == b && a != .zero && CGRect.null.isNull && CGPoint() == .zero && CGSize() == .zero)
+        // On the Mac host these are Apple's structs, whose Hashable needs macOS 15.
+        if #available(macOS 15, *) {
+            #expect(Set([a, b, .zero]).count == 2 && Set([CGPoint(x: 1, y: 1), CGPoint(x: 1, y: 1)]).count == 1)
+        }
+        #expect(a.maxX == 4 && a.midY == 4 && a.contains(CGPoint(x: 2, y: 3)))
     }
 }
 #endif

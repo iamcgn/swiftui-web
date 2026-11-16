@@ -10,15 +10,34 @@ import Foundation
 
 public typealias CGFloat = Double
 
+#if canImport(ObjectiveC)
+// With the Objective-C runtime the three are C structs (WebCGGeometry's header), as
+// CoreGraphics's are on iOS: an `@objc` method or block can then take or return them
+// (CVCalendar's `@objc func updateFrames(_ frame: CGRect)` and its delegate's
+// `selectionViewPath() -> ((CGRect) -> UIBezierPath)`). A Swift struct never can.
+@_exported import WebCGGeometry
+
+extension CGPoint: @retroactive Equatable, @retroactive Hashable {
+    public static func == (lhs: CGPoint, rhs: CGPoint) -> Bool { lhs.x == rhs.x && lhs.y == rhs.y }
+    public func hash(into hasher: inout Hasher) { hasher.combine(x); hasher.combine(y) }
+}
+
+extension CGSize: @retroactive Equatable, @retroactive Hashable {
+    public static func == (lhs: CGSize, rhs: CGSize) -> Bool { lhs.width == rhs.width && lhs.height == rhs.height }
+    public func hash(into hasher: inout Hasher) { hasher.combine(width); hasher.combine(height) }
+}
+
+extension CGRect: @retroactive Equatable, @retroactive Hashable {
+    public static func == (lhs: CGRect, rhs: CGRect) -> Bool { lhs.origin == rhs.origin && lhs.size == rhs.size }
+    public func hash(into hasher: inout Hasher) { hasher.combine(origin); hasher.combine(size) }
+}
+#else
 public struct CGPoint: Equatable, Hashable, Sendable {
     public var x: CGFloat
     public var y: CGFloat
 
     public init() { x = 0; y = 0 }
     public init(x: CGFloat, y: CGFloat) { self.x = x; self.y = y }
-    public init(x: Int, y: Int) { self.x = CGFloat(x); self.y = CGFloat(y) }
-
-    public static let zero = CGPoint()
 }
 
 public struct CGSize: Equatable, Hashable, Sendable {
@@ -27,9 +46,6 @@ public struct CGSize: Equatable, Hashable, Sendable {
 
     public init() { width = 0; height = 0 }
     public init(width: CGFloat, height: CGFloat) { self.width = width; self.height = height }
-    public init(width: Int, height: Int) { self.width = CGFloat(width); self.height = CGFloat(height) }
-
-    public static let zero = CGSize()
 }
 
 public struct CGRect: Equatable, Hashable, Sendable {
@@ -38,9 +54,24 @@ public struct CGRect: Equatable, Hashable, Sendable {
 
     public init() { origin = .zero; size = .zero }
     public init(origin: CGPoint, size: CGSize) { self.origin = origin; self.size = size }
+}
+#endif
+
+extension CGPoint {
+    public init(x: Int, y: Int) { self.init(x: CGFloat(x), y: CGFloat(y)) }
+
+    public static let zero = CGPoint()
+}
+
+extension CGSize {
+    public init(width: Int, height: Int) { self.init(width: CGFloat(width), height: CGFloat(height)) }
+
+    public static let zero = CGSize()
+}
+
+extension CGRect {
     public init(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
-        origin = CGPoint(x: x, y: y)
-        size = CGSize(width: width, height: height)
+        self.init(origin: CGPoint(x: x, y: y), size: CGSize(width: width, height: height))
     }
     public init(x: Int, y: Int, width: Int, height: Int) {
         self.init(x: CGFloat(x), y: CGFloat(y), width: CGFloat(width), height: CGFloat(height))
