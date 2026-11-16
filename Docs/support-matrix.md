@@ -14,8 +14,8 @@ Generated from `Docs/support.json` (last edited 2026-11-16) by `scripts/gen-prog
 |---|---|---|---|---|---|---|
 | SwiftUI | 186 | 43 | 128 | 4 | 10 | 1 |
 | UIKit | 69 | 22 | 43 | 4 | 0 | 0 |
-| Interop | 58 | 8 | 50 | 0 | 0 | 0 |
-| **All** | **313** | 73 | 221 | 8 | 10 | 1 |
+| Interop | 59 | 8 | 51 | 0 | 0 | 0 |
+| **All** | **314** | 73 | 222 | 8 | 10 | 1 |
 
 ## App lifecycle
 
@@ -421,6 +421,7 @@ Generated from `Docs/support.json` (last edited 2026-11-16) by `scripts/gen-prog
 | `ListFormatter` | 🟢 partial | `localizedString(byJoining:)`, `string(from:)` and `string(for:)` as English prose with the serial comma (Foundation's en_US form; other locales not carried), an `itemFormatter` for the items (decision 0021, 2026-10-12) | — Strings, not a screen; WasmFoundationTests. |
 | `NSRegularExpression / NSTextCheckingResult (Equatable, Hashable)` | ✅ full | pf-everyday-apis (2026-11-14): Foundation's are NSObjects, so they compare and hash: an expression equals another with the same pattern and options, as isEqual(_:) says on Apple platforms, and a match result only itself. A struct that keeps a compiled expression synthesizes Equatable and Hashable (IceCubes' and MastodonKit's HTMLString) | — A conformance, not a screen; FoundationGapsTests. |
 | `AttributedStringProtocol / AttributedSubstring / ScopedAttributeContainer / AttributeMergePolicy / replaceAttributes(_:with:) / AttributeContainer(_ dictionary:)` | 🟢 partial | pf-everyday-apis (2026-11-15): on wasm, an attribute read from a whole string or a slice is the value every character shares (nil where runs differ) and neighbouring runs with the same attributes are one, as Foundation keeps them; slices take any range expression, set through it, and append, insert and replace as strings; a type of an app's own conforms to AttributedStringProtocol (EmojiText's partial string in IceCubes); `text.swiftUI.font`, `container.uiKit.foregroundColor` and an app's own scope read and set through a scoped container; merges keep the new or the current value, and replaceAttributes changes only runs that have every attribute given; `AttributeContainer(dictionary)` keeps the UIKit and Foundation keys (Harbour). Open: the localized and Markdown initializers' options, Codable | — Behaviour of a value type, not a screen; AttributedStringProtocolTests holds it to Foundation on macOS and Linux, AttributeScopeTests the SwiftUI and UIKit scopes on wasm. |
+| `UndoManager / EnvironmentValues.undoManager` | 🟢 partial | pf-undo-manager (2026-11-16), on wasm and Linux, whose Foundations have none: registerUndo(withTarget:handler:) into groups, one undo step each; undo runs a step's actions newest first and what they register becomes the redo step; nested groups, action names and menu titles, levelsOfUndo, disabled registration, removeAllActions (with a target too) and the undo notifications. With groupsByEvent a registration outside a group opens one that closes on the main actor's next turn. The environment's undo manager is one for the window. No selector or invocation registration (no Objective-C runtime). | — Values, not a screen; FrameworkTests (UndoManagerTests) run the same steps against Foundation's on macOS and WebFoundation's on wasm and Linux, and CoreRuntimeTests (UndoEnvironmentTests) read the environment's. |
 
 ## Linux (decision 0018, pf-linux)
 
