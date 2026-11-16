@@ -132,6 +132,25 @@ import WebGraphics
         #expect(view.layoutManager.numberOfGlyphs == 8)
     }
 
+    @Test func aHeldStorageFollowsTheViewsText() {
+        let view = textView("Before", width: 200)
+        let storage = view.textStorage
+        view.text = "After"
+        #expect(storage.string == "After")
+        view.attributedText = NSAttributedString(string: "Styled")
+        #expect(storage.string == "Styled")
+    }
+
+    @Test func attributesADelegateAddsWhileProcessingJoinTheEdit() {
+        let storage = NSTextStorage(string: "let x = 1")
+        let highlighter = Highlighter()
+        storage.delegate = highlighter
+        storage.replaceCharacters(in: NSRange(location: 8, length: 1), with: "2")
+        #expect(highlighter.will == 1 && highlighter.did == 1 && highlighter.deepest == 1)
+        #expect(highlighter.didMask == [.editedCharacters, .editedAttributes])
+        #expect(storage.attribute(.foregroundColor, at: 0, effectiveRange: nil) != nil)
+    }
+
     @Test func aStandAloneLayoutManagerLaysOutInItsContainer() {
         _ = window()
         let manager = NSLayoutManager()
@@ -207,6 +226,24 @@ import WebGraphics
 private final class CaretView: UITextView {
     var overrideCaret: CGRect?
     override func caretRect(for position: UITextPosition) -> CGRect { overrideCaret ?? super.caretRect(for: position) }
+}
+
+/// Colours the whole text as each edit is processed, as a syntax highlighter does, counting the
+/// callbacks and how deeply they nest.
+private final class Highlighter: NSTextStorageDelegate {
+    var will = 0, did = 0, depth = 0, deepest = 0
+    var didMask: NSTextStorage.EditActions = []
+    func textStorage(_ textStorage: NSTextStorage, willProcessEditing editedMask: NSTextStorage.EditActions, range editedRange: NSRange, changeInLength delta: Int) {
+        will += 1
+        depth += 1
+        deepest = max(deepest, depth)
+        textStorage.addAttribute(.foregroundColor, value: UIColor.red, range: NSRange(location: 0, length: textStorage.length))
+        depth -= 1
+    }
+    func textStorage(_ textStorage: NSTextStorage, didProcessEditing editedMask: NSTextStorage.EditActions, range editedRange: NSRange, changeInLength delta: Int) {
+        did += 1
+        didMask = editedMask
+    }
 }
 
 private final class StorageListener: NSTextStorageDelegate {

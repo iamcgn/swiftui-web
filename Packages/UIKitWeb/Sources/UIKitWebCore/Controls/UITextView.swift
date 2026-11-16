@@ -88,7 +88,7 @@ open class UITextView: UIScrollView, HostTextInput, UITextInput {
     private var settingAttributedText = false
     /// The font; nil draws UIKit's default, Helvetica 12 (its iOS metrics: 13.8 pt lines).
     open var font: UIFont? { didSet { textDidChange() } }
-    open var textColor: UIColor? = .label { didSet { textStorageIsStale = true; setNeedsDisplay() } }
+    open var textColor: UIColor? = .label { didSet { if !applyingTextStorageEdit { invalidateTextStorage() }; setNeedsDisplay() } }
     /// The kinds of data a non-editable view shows as links.
     open var dataDetectorTypes: UIDataDetectorTypes = [] { didSet { textDidChange() } }
     /// The attributes links draw with: a `.foregroundColor` replaces the link blue.
@@ -117,12 +117,15 @@ open class UITextView: UIScrollView, HostTextInput, UITextInput {
     public let layoutManager = NSLayoutManager()
     /// The text as TextKit sees it: edits to it show in the view, and the view's text is in it.
     open var textStorage: NSTextStorage {
+        textStorageVended = true
         syncTextStorage()
         return ownTextStorage
     }
     private let ownTextStorage = NSTextStorage()
-    /// The storage is filled from the view's text when next asked for, after the text changed.
+    /// The storage is filled from the view's text when next asked for, after the text changed;
+    /// once it has been asked for, at once, since the caller may hold it.
     private var textStorageIsStale = true
+    private var textStorageVended = false
     private var updatingTextStorage = false
     private var applyingTextStorageEdit = false
     /// Told before and after the text or selection changes (`UITextInput`).
@@ -153,7 +156,7 @@ open class UITextView: UIScrollView, HostTextInput, UITextInput {
     }
 
     func textDidChange() {
-        if !applyingTextStorageEdit { textStorageIsStale = true }
+        if !applyingTextStorageEdit { invalidateTextStorage() }
         layoutManager.invalidateLines()
         invalidateIntrinsicContentSize()
         setNeedsLayout()
@@ -661,6 +664,12 @@ open class UITextView: UIScrollView, HostTextInput, UITextInput {
     }
 
     // MARK: TextKit
+
+    /// The view's text or its look changed: a storage that has been handed out follows now.
+    private func invalidateTextStorage() {
+        textStorageIsStale = true
+        if textStorageVended { syncTextStorage() }
+    }
 
     /// Fills the storage from the view's text if the text changed since.
     private func syncTextStorage() {
