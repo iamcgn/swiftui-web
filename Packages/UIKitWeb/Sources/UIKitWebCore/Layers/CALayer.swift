@@ -81,14 +81,31 @@ public func CATransform3DIsAffine(_ t: CATransform3D) -> Bool {
 
 /// The inverse, or `t` itself when it has none (as Core Animation answers).
 public func CATransform3DInvert(_ t: CATransform3D) -> CATransform3D {
-    // Gauss–Jordan elimination with partial pivoting on [t | I]. A pivot counts as zero only
-    // against the matrix's own size, down to rounding error, so a tiny scale such as 1e-13 still
-    // inverts (to 1e13), while a singular matrix's leftover rounding does not.
+    // Gauss–Jordan elimination with partial pivoting on an equilibrated copy. Each row, then each
+    // column, is scaled by a power of two (exact, no rounding) so its largest entry lies in
+    // [1, 2): a scale of 1e-16 or a translation of 1e16 then pivots on numbers near 1 and
+    // inverts (issue 173), while a singular matrix still leaves only rounding error in a pivot.
+    // With A' = R·A·C, the inverse is A⁻¹ = C·A'⁻¹·R.
     var a = t._rows
+    guard a.joined().allSatisfy({ $0.isFinite }) else { return t }
+    func unit(_ m: CGFloat) -> CGFloat? {
+        guard m > 0 else { return nil }
+        let f = CGFloat(sign: .plus, exponent: -m.exponent, significand: 1)
+        return f.isFinite && f > 0 ? f : nil
+    }
+    var r = [CGFloat](repeating: 1, count: 4), c = [CGFloat](repeating: 1, count: 4)
+    for i in 0..<4 {
+        guard let f = unit(a[i].map(abs).max() ?? 0) else { return t }
+        r[i] = f
+        for j in 0..<4 { a[i][j] *= f }
+    }
+    for j in 0..<4 {
+        guard let f = unit((0..<4).map { abs(a[$0][j]) }.max() ?? 0) else { return t }
+        c[j] = f
+        for i in 0..<4 { a[i][j] *= f }
+    }
     var inv: [[CGFloat]] = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
-    let largest = a.joined().map(abs).max() ?? 0
-    guard largest > 0, largest.isFinite else { return t }
-    let zero = largest * 4 * CGFloat.ulpOfOne
+    let zero = (a.joined().map(abs).max() ?? 0) * 4 * CGFloat.ulpOfOne
     for col in 0..<4 {
         var pivot = col
         for row in col + 1..<4 where abs(a[row][col]) > abs(a[pivot][col]) { pivot = row }
@@ -102,6 +119,8 @@ public func CATransform3DInvert(_ t: CATransform3D) -> CATransform3D {
             for j in 0..<4 { a[row][j] -= f * a[col][j]; inv[row][j] -= f * inv[col][j] }
         }
     }
+    for i in 0..<4 { for j in 0..<4 { inv[i][j] *= c[i] * r[j] } }
+    guard inv.joined().allSatisfy({ $0.isFinite }) else { return t }
     return CATransform3D(_rows: inv)
 }
 
