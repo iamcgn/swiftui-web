@@ -123,9 +123,8 @@ extension ExtensionLoadedController {
         let touch = UITouch(at: .zero, in: nil, view: nil, type: .direct, timestamp: 0)
         let event = UIEvent(type: .touches, timestamp: 0)
         let press = UIPress(phase: .began, key: nil)
-        #expect((touch as AnyObject) is NSObject)
-        #expect((event as AnyObject) is NSObject)
-        #expect((press as AnyObject) is NSObject)
+        let objects: [NSObject] = [touch, event, press]
+        #expect(objects[0].isEqual(touch) && !objects[0].isEqual(event))
         // Hashable by identity, as before.
         let other = UITouch(at: .zero, in: nil, view: nil, type: .direct, timestamp: 0)
         #expect(Set([touch, touch, other]).count == 2)
