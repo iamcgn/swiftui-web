@@ -312,7 +312,9 @@ import Foundation
     @Test func roundsToAnIncrement() {
         // `.percent.rounded(increment: 1)` (ButtonKit's progress) and `.number.rounded(increment:)`.
         var percent = _NumberFormatting(style: .percent); percent.roundingIncrement = 1
-        #expect(percent.format(0.256) == "26%" && percent.format(0.125) == "12%" && percent.format(1) == "100%")
+        #expect(percent.format(0.256) == "26%" && percent.format(0.125) == "12%" && percent.format(1.0) == "100%")
+        // An integer percentage is already in percent, as Foundation's IntegerFormatStyle.Percent is.
+        #expect(percent.format(1 as Int) == "1%")
         var halves = _NumberFormatting(); halves.roundingIncrement = 0.5
         #expect(halves.format(1.3) == "1.5" && halves.format(1.2) == "1" && halves.format(1234.76) == "1,235")
         var down = _NumberFormatting(); down.roundingIncrement = 10; down.roundingRule = .down
