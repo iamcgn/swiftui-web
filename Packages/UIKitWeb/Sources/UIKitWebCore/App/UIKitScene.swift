@@ -2,6 +2,8 @@
 // windows, one frame (layout, then the layer tree painted into the display list), touches from
 // the host's pointer, and the semantics tree from the views' accessibility properties.
 
+import WebFoundation
+
 /// The UIKit app as a hosted scene. One per process, like `UIApplication.shared`.
 @preconcurrency @MainActor
 public final class UIKitScene: HostedScene {
