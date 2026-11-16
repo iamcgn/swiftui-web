@@ -163,5 +163,17 @@ extension Locale: CurrencyNaming {}
         formatter.unitStyle = .long
         #expect(formatter.string(from: latency) == "250 milliseconds")
     }
+
+    @Test func measurementFormatterRoundsToThreeDigitsByDefault() {
+        let formatter = MeasurementFormatter()
+        formatter.locale = english
+        formatter.unitOptions = .providedUnit
+        #expect(formatter.numberFormatter != nil)
+        let length = Measurement(value: 12.3456, unit: UnitLength.meters)
+        #expect(formatter.string(from: length) == "12.346 m")
+        #expect(formatter.string(for: length) == "12.346 m")
+        formatter.numberFormatter.maximumFractionDigits = 1
+        #expect(formatter.string(from: length) == "12.3 m")
+    }
 }
 #endif

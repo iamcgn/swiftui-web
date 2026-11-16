@@ -419,8 +419,22 @@ open class MeasurementFormatter: Formatter {
     open var unitOptions: UnitOptions = []
     open var unitStyle: UnitStyle = .medium
     open var locale: Locale! = .current
-    /// The number's format; its fraction digit limits are used when set.
-    open var numberFormatter: NumberFormatter!
+    /// The number's format: decimal with up to three fraction digits unless replaced. Its fraction
+    /// digit limits and grouping are used; setting nil restores the default.
+    open var numberFormatter: NumberFormatter! {
+        get { _numberFormatter }
+        set { _numberFormatter = newValue ?? Self._defaultNumberFormatter() }
+    }
+    private var _numberFormatter: NumberFormatter = MeasurementFormatter._defaultNumberFormatter()
+
+    private static func _defaultNumberFormatter() -> NumberFormatter {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 3
+        formatter.usesGroupingSeparator = true
+        return formatter
+    }
 
     public override init() { super.init() }
 
@@ -447,11 +461,10 @@ open class MeasurementFormatter: Formatter {
     private func _typedParts(_ measurement: Measurement<Dimension>, dimension: Dimension, width: _MeasurementWidth,
                              usage: MeasurementFormatUnitUsage<Dimension>.Kind) -> _MeasurementParts {
         let locale = locale ?? .current
-        let style = numberFormatter.map { formatter in
-            var style = FloatingPointFormatStyle<Double>()
-            style = style.precision(.fractionLength(formatter.minimumFractionDigits...max(formatter.minimumFractionDigits, formatter.maximumFractionDigits)))
-            return style
-        }
+        let formatter = _numberFormatter
+        var style = FloatingPointFormatStyle<Double>()
+            .precision(.fractionLength(formatter.minimumFractionDigits...max(formatter.minimumFractionDigits, formatter.maximumFractionDigits)))
+        if !formatter.usesGroupingSeparator { style = style.grouping(.never) }
         func typed<D: Dimension>(_ unit: D) -> _MeasurementParts {
             _parts(Measurement<D>(value: measurement.value, unit: unit), width: width,
                    usage: MeasurementFormatUnitUsage<D>.Kind(rawValue: usage.rawValue) ?? .general, locale: locale, numberFormatStyle: style)
@@ -477,8 +490,21 @@ open class MeasurementFormatter: Formatter {
     }
 
     open override func string(for obj: Any?) -> String? {
-        guard let measurement = obj as? Measurement<Dimension> else { return nil }
-        return string(from: measurement)
+        // A Measurement<UnitLength> doesn't cast to Measurement<Dimension>, so read any
+        // measurement through its value and unit.
+        guard let measurement = obj as? _AnyMeasurement else { return nil }
+        return string(from: Measurement<Unit>(value: measurement._measurementValue, unit: measurement._measurementUnit))
     }
+}
+
+/// Any `Measurement`, whatever its unit type, for `MeasurementFormatter.string(for:)`.
+private protocol _AnyMeasurement {
+    var _measurementValue: Double { get }
+    var _measurementUnit: Unit { get }
+}
+
+extension Measurement: _AnyMeasurement {
+    fileprivate var _measurementValue: Double { value }
+    fileprivate var _measurementUnit: Unit { unit }
 }
 #endif
