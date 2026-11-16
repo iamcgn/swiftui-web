@@ -1,6 +1,8 @@
 // Records, their IDs, zones, references and assets: the values an app builds to save and reads
 // back. They are plain values here, kept in memory: nothing reaches a server.
 @_exported import WebFoundation
+// A record holds a location, as Apple's CloudKit, which imports Core Location, has it.
+@_exported import CoreLocation
 #if os(WASI)
 // Foundation declares predicates and sort descriptors on Apple's platforms; here Core Data does,
 // so a query sees them as an app that imports only CloudKit expects.
@@ -36,6 +38,10 @@ extension Bool: CKRecordValueProtocol {}
 extension Date: CKRecordValueProtocol {}
 extension Data: CKRecordValueProtocol {}
 extension Array: CKRecordValueProtocol where Element: CKRecordValueProtocol {}
+// The Foundation and Core Location classes a record holds as Apple's does.
+extension NSNumber: CKRecordValueProtocol {}
+extension NSString: CKRecordValueProtocol {}
+extension CLLocation: CKRecordValueProtocol {}
 
 // MARK: - Zones
 

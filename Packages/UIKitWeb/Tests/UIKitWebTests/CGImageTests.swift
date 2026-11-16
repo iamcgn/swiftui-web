@@ -145,6 +145,16 @@ import Foundation
         #expect(commands.contains { if case .drawBitmap(_, let rect) = $0 { return rect == CGRect(x: 1, y: 1, width: 2, height: 1) } else { return false } })
     }
 
+    @Test func aRecordedImageDrawsOnlyWithinItsBounds() throws {
+        let ctx = try #require(UIGraphicsRecordingContext(data: nil, width: 2, height: 2, bitsPerComponent: 8, bytesPerRow: 0,
+                                         space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        ctx.fill(CGRect(x: -1, y: -1, width: 4, height: 4))
+        let image = try #require(ctx.makeImage())
+        let rect = CGRect(x: 10, y: 10, width: 2, height: 2)
+        let commands = image._commands(in: rect)
+        #expect(commands.contains(.clipRect(rect)))
+    }
+
     /// A bitmap context as CoreGraphics makes one (Nuke's decompression): pixels, y up from the
     /// bottom left, an image drawn into it comes out as `makeImage()`, and one asked to draw into
     /// caller memory, or with no pixels, is not made. (Named by its class: `CGContext` is its name on
