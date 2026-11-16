@@ -172,7 +172,11 @@ extension Locale: CurrencyNaming {}
         let length = Measurement(value: 12.3456, unit: UnitLength.meters)
         #expect(formatter.string(from: length) == "12.346 m")
         #expect(formatter.string(for: length) == "12.346 m")
-        formatter.numberFormatter.maximumFractionDigits = 1
+        // A replacement number formatter's digit limits are used.
+        let oneDigit = NumberFormatter()
+        oneDigit.numberStyle = .decimal
+        oneDigit.maximumFractionDigits = 1
+        formatter.numberFormatter = oneDigit
         #expect(formatter.string(from: length) == "12.3 m")
     }
 }
