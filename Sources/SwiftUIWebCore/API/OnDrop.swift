@@ -151,6 +151,27 @@ extension View {
     nonisolated public func onDrop(of supportedTypes: [String], delegate: some DropDelegate) -> some View {
         onDrop(of: supportedTypes.map { UTType(_declared: $0) }, delegate: delegate)
     }
+
+    /// Makes this view a drag source (iOS 13-16): `data` gives the item provider when a drag
+    /// starts, and the drag carries the provider's text (a drop destination for text gets it).
+    nonisolated public func onDrag(_ data: @escaping () -> NSItemProvider) -> some View {
+        draggable(_itemProviderText(data()))
+    }
+
+    /// Makes this view a drag source that drags `preview`.
+    nonisolated public func onDrag<V: View>(_ data: @escaping () -> NSItemProvider, @ViewBuilder preview: () -> V) -> some View {
+        draggable(_itemProviderText(data()), preview: preview)
+    }
+}
+
+/// The text an item provider carries, for a drag started by `onDrag` (Foundation's providers
+/// load asynchronously, so the native host's drag carries none).
+func _itemProviderText(_ provider: NSItemProvider) -> String {
+    #if canImport(Darwin)
+    return ""
+    #else
+    return provider._text ?? ""
+    #endif
 }
 
 // MARK: - Item providers

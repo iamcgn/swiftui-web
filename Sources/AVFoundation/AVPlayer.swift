@@ -67,6 +67,9 @@ public class AVPlayer {
     public var volume: Float = 1
     public var actionAtItemEnd: ActionAtItemEnd = .pause
     public var allowsExternalPlayback = true
+    /// Whether the screen stays awake while video plays (the browser decides: a playing video
+    /// keeps the display on there already).
+    public var preventsDisplaySleepDuringVideoPlayback = true
     /// Whether the host shows transport controls (`VideoPlayer` shows them; apps hide them
     /// through the view's `_controls`).
     package var showsControls = true

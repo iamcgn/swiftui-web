@@ -37,6 +37,18 @@ extension Label where Title == Text, Icon == Image {
         self.init(title: { Text(title) }, icon: { Image(name) })
     }
 
+    /// Creates a label with an image set of the app's asset catalogs (`.logo`) and a title from a
+    /// localized string.
+    public init(_ titleKey: LocalizedStringKey, image resource: ImageResource) {
+        self.init(title: { Text(titleKey) }, icon: { Image(resource) })
+    }
+
+    /// Creates a label with an image set of the app's asset catalogs and a title from a string.
+    @_disfavoredOverload
+    public init<S: StringProtocol>(_ title: S, image resource: ImageResource) {
+        self.init(title: { Text(title) }, icon: { Image(resource) })
+    }
+
     /// Creates a label with a system symbol image and a title generated from a localized string
     /// (the symbol is a stub until the icon table lands: it draws nothing and has no size).
     nonisolated public init(_ titleKey: LocalizedStringKey, systemImage name: String) {

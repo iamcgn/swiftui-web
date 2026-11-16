@@ -93,6 +93,15 @@ extension Button where Label == SwiftUIWebCore.Label<Text, Image> {
     @preconcurrency nonisolated public init<S: StringProtocol>(_ title: S, image: String, action: @escaping @MainActor () -> Void) {
         self.init(action: action) { SwiftUIWebCore.Label(title, image: image) }
     }
+    /// Creates a button with a label from a localized string key and an image set of the app's
+    /// asset catalogs (`.logo`).
+    public init(_ titleKey: LocalizedStringKey, image: ImageResource, action: @escaping @MainActor () -> Void) {
+        self.init(action: action) { SwiftUIWebCore.Label(titleKey, image: image) }
+    }
+    @_disfavoredOverload
+    public init<S: StringProtocol>(_ title: S, image: ImageResource, action: @escaping @MainActor () -> Void) {
+        self.init(action: action) { SwiftUIWebCore.Label(title, image: image) }
+    }
 }
 
 extension Button where Label == Text {

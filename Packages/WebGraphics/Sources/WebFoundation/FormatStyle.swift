@@ -15,6 +15,10 @@ public struct _NumberFormatting: Hashable, Sendable {
     public var minimumFractionDigits = 0
     public var maximumFractionDigits: Int?
     public var usesGrouping = true
+    /// Rounds the shown value to a multiple of the increment first (`rounded(rule:increment:)`;
+    /// a percentage's increment is in percent).
+    public var roundingIncrement: Double?
+    public var roundingRule: FloatingPointRoundingRule = .toNearestOrEven
 
     public init(style: Style = .decimal) { self.style = style }
 
@@ -51,6 +55,13 @@ public struct _NumberFormatting: Hashable, Sendable {
 
     public func format(_ value: Double) -> String {
         guard value.isFinite else { return value.isNaN ? "NaN" : (value < 0 ? "-∞" : "∞") }
+        if let increment = roundingIncrement, increment > 0 {
+            let scale: Double = style == .percent ? 100 : 1
+            let shown = ((value * scale) / increment).rounded(roundingRule) * increment
+            var plain = self
+            plain.roundingIncrement = nil
+            return plain.format(shown / scale)
+        }
         // ICU rounds the shortest decimal representation (2.675 → "2.68"), not the binary value.
         var (digits, exponent) = Self.decimalDigits(abs(value))
         if case .percent = style { exponent += 2 }
@@ -117,6 +128,7 @@ public struct _NumberFormatting: Hashable, Sendable {
     }
 
     public func format<I: BinaryInteger>(_ value: I) -> String {
+        if roundingIncrement != nil { return format(Double(value)) }
         let magnitude = value.magnitude
         var integerPart = String(magnitude)
         if usesGrouping { integerPart = Self.grouped(integerPart) }
@@ -230,6 +242,13 @@ extension _NumberFormatting {
         copy.usesGrouping = grouping.groups
         return copy
     }
+
+    public func rounded(rule: FloatingPointRoundingRule, increment: Double?) -> _NumberFormatting {
+        var copy = self
+        copy.roundingRule = rule
+        copy.roundingIncrement = increment
+        return copy
+    }
 }
 
 /// A structure that converts between integer values and their textual representations.
@@ -241,6 +260,7 @@ public struct IntegerFormatStyle<Value: BinaryInteger>: ParseableFormatStyle {
     public var parseStrategy: IntegerParseStrategy<Self> { IntegerParseStrategy(core: core) }
     public func precision(_ precision: NumberFormatStyleConfiguration.Precision) -> Self { var copy = self; copy.core = core.precision(precision); return copy }
     public func grouping(_ grouping: NumberFormatStyleConfiguration.Grouping) -> Self { var copy = self; copy.core = core.grouping(grouping); return copy }
+    public func rounded(rule: FloatingPointRoundingRule = .toNearestOrEven, increment: Int? = nil) -> Self { var copy = self; copy.core = core.rounded(rule: rule, increment: increment.map(Double.init)); return copy }
 
     /// The integer as a percentage (7 → "7%").
     public struct Percent: ParseableFormatStyle {
@@ -250,6 +270,7 @@ public struct IntegerFormatStyle<Value: BinaryInteger>: ParseableFormatStyle {
         public var parseStrategy: IntegerParseStrategy<Self> { IntegerParseStrategy(core: core) }
         public func precision(_ precision: NumberFormatStyleConfiguration.Precision) -> Self { var copy = self; copy.core = core.precision(precision); return copy }
         public func grouping(_ grouping: NumberFormatStyleConfiguration.Grouping) -> Self { var copy = self; copy.core = core.grouping(grouping); return copy }
+        public func rounded(rule: FloatingPointRoundingRule = .toNearestOrEven, increment: Int? = nil) -> Self { var copy = self; copy.core = core.rounded(rule: rule, increment: increment.map(Double.init)); return copy }
     }
 
     /// The integer as an amount of a currency (1234 → "$1,234.00").
@@ -260,6 +281,7 @@ public struct IntegerFormatStyle<Value: BinaryInteger>: ParseableFormatStyle {
         public var parseStrategy: IntegerParseStrategy<Self> { IntegerParseStrategy(core: core) }
         public func precision(_ precision: NumberFormatStyleConfiguration.Precision) -> Self { var copy = self; copy.core = core.precision(precision); return copy }
         public func grouping(_ grouping: NumberFormatStyleConfiguration.Grouping) -> Self { var copy = self; copy.core = core.grouping(grouping); return copy }
+        public func rounded(rule: FloatingPointRoundingRule = .toNearestOrEven, increment: Int? = nil) -> Self { var copy = self; copy.core = core.rounded(rule: rule, increment: increment.map(Double.init)); return copy }
     }
 }
 
@@ -272,6 +294,7 @@ public struct FloatingPointFormatStyle<Value: BinaryFloatingPoint>: ParseableFor
     public var parseStrategy: FloatingPointParseStrategy<Self> { FloatingPointParseStrategy(core: core) }
     public func precision(_ precision: NumberFormatStyleConfiguration.Precision) -> Self { var copy = self; copy.core = core.precision(precision); return copy }
     public func grouping(_ grouping: NumberFormatStyleConfiguration.Grouping) -> Self { var copy = self; copy.core = core.grouping(grouping); return copy }
+    public func rounded(rule: FloatingPointRoundingRule = .toNearestOrEven, increment: Double? = nil) -> Self { var copy = self; copy.core = core.rounded(rule: rule, increment: increment); return copy }
 
     /// The value as a percentage (0.25 → "25%").
     public struct Percent: ParseableFormatStyle {
@@ -281,6 +304,7 @@ public struct FloatingPointFormatStyle<Value: BinaryFloatingPoint>: ParseableFor
         public var parseStrategy: FloatingPointParseStrategy<Self> { FloatingPointParseStrategy(core: core) }
         public func precision(_ precision: NumberFormatStyleConfiguration.Precision) -> Self { var copy = self; copy.core = core.precision(precision); return copy }
         public func grouping(_ grouping: NumberFormatStyleConfiguration.Grouping) -> Self { var copy = self; copy.core = core.grouping(grouping); return copy }
+        public func rounded(rule: FloatingPointRoundingRule = .toNearestOrEven, increment: Double? = nil) -> Self { var copy = self; copy.core = core.rounded(rule: rule, increment: increment); return copy }
     }
 
     /// The value as an amount of a currency (12.5 → "$12.50").
@@ -291,6 +315,7 @@ public struct FloatingPointFormatStyle<Value: BinaryFloatingPoint>: ParseableFor
         public var parseStrategy: FloatingPointParseStrategy<Self> { FloatingPointParseStrategy(core: core) }
         public func precision(_ precision: NumberFormatStyleConfiguration.Precision) -> Self { var copy = self; copy.core = core.precision(precision); return copy }
         public func grouping(_ grouping: NumberFormatStyleConfiguration.Grouping) -> Self { var copy = self; copy.core = core.grouping(grouping); return copy }
+        public func rounded(rule: FloatingPointRoundingRule = .toNearestOrEven, increment: Double? = nil) -> Self { var copy = self; copy.core = core.rounded(rule: rule, increment: increment); return copy }
     }
 }
 

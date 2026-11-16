@@ -484,6 +484,12 @@ open class UINavigationBar: UIView {
     open var backItem: UINavigationItem? { (items?.count ?? 0) > 1 ? items?[items!.count - 2] : nil }
     open var prefersLargeTitles = false { didSet { rebuild() } }
     open var isTranslucent = true
+    /// The hairline under the bar (kept; an empty image is how apps hide it).
+    open var shadowImage: UIImage?
+    private var backgroundImages: [UIBarMetrics: UIImage] = [:]
+    /// Sets the bar's background image for the metrics (kept; the bar paints its appearance).
+    open func setBackgroundImage(_ backgroundImage: UIImage?, for barMetrics: UIBarMetrics) { backgroundImages[barMetrics] = backgroundImage }
+    open func backgroundImage(for barMetrics: UIBarMetrics) -> UIImage? { backgroundImages[barMetrics] }
     open var barStyle = 0
     open var barTintColor: UIColor?
     open var titleTextAttributes: [NSAttributedString.Key: Any]?
@@ -764,4 +770,9 @@ final class BarPlatterButton: UIControl {
             break
         }
     }
+}
+
+/// The sizes a bar is drawn at, for its background images.
+public enum UIBarMetrics: Int, Sendable {
+    case `default` = 0, compact = 1, defaultPrompt = 101, compactPrompt = 102
 }
