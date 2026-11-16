@@ -185,18 +185,29 @@ public struct AsyncUnicodeScalarSequence<Base: AsyncSequence & Sendable>: AsyncS
         public mutating func next() async throws -> Unicode.Scalar? {
             let lead: UInt8
             if let byte = pending { lead = byte; pending = nil } else if let byte = try await base.next() { lead = byte } else { return nil }
-            let count = lead < 0x80 ? 1 : lead >> 5 == 0b110 ? 2 : lead >> 4 == 0b1110 ? 3 : lead >> 3 == 0b11110 ? 4 : 0
-            guard count > 0 else { return "\u{FFFD}" }
-            var bytes = [lead]
-            while bytes.count < count {
-                guard let byte = try await base.next() else { break }
-                // A byte that does not continue the sequence starts the next one.
-                guard byte & 0xC0 == 0x80 else { pending = byte; break }
-                bytes.append(byte)
+            // Each malformed maximal subpart reads as one U+FFFD, as Swift's own decoder does
+            // (C0 AF is two, ED A0 80 three): the ranges are Unicode's well-formed byte table.
+            let count: Int
+            var low: UInt8 = 0x80, high: UInt8 = 0xBF
+            switch lead {
+            case 0x00...0x7F: return Unicode.Scalar(lead)
+            case 0xC2...0xDF: count = 2
+            case 0xE0: count = 3; low = 0xA0
+            case 0xE1...0xEC, 0xEE...0xEF: count = 3
+            case 0xED: count = 3; high = 0x9F
+            case 0xF0: count = 4; low = 0x90
+            case 0xF1...0xF3: count = 4
+            case 0xF4: count = 4; high = 0x8F
+            default: return "\u{FFFD}"
             }
-            var decoder = UTF8()
-            var input = bytes.makeIterator()
-            if case .scalarValue(let scalar) = decoder.decode(&input) { return scalar }
+            var value = UInt32(lead) & (count == 2 ? 0x1F : count == 3 ? 0x0F : 0x07)
+            for index in 1..<count {
+                guard let byte = try await base.next() else { return "\u{FFFD}" }
+                // A byte that does not continue the sequence starts the next one.
+                guard (index == 1 ? low...high : 0x80...0xBF).contains(byte) else { pending = byte; return "\u{FFFD}" }
+                value = value << 6 | UInt32(byte & 0x3F)
+            }
+            if let scalar = Unicode.Scalar(value) { return scalar }
             return "\u{FFFD}"
         }
     }

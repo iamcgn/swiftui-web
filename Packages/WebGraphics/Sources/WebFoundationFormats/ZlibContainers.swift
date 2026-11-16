@@ -149,7 +149,12 @@ private func decodeGzip(_ source: [UInt8]) throws(_ZlibDecodeError) -> _ZlibDeco
             if source[p - 1] == 0 { break }
         }
     }
-    if flags & 2 != 0 { p += 2 }   // FHCRC
+    if flags & 2 != 0 {   // FHCRC: the low 16 bits of the CRC-32 of the header before it
+        guard source.count >= p + 2 else { throw .truncated }
+        let stored = UInt16(source[p]) | UInt16(source[p + 1]) << 8
+        guard stored == UInt16(truncatingIfNeeded: _zlibCRC32(0, source[..<p])) else { throw .invalid }
+        p += 2
+    }
     guard p <= source.count else { throw .truncated }
     let (output, end) = try inflate(source, from: p)
     guard source.count >= end + 8 else { throw .truncated }

@@ -268,6 +268,28 @@ import Foundation
         }
     }
 
+    @Test func roundingRulesAndIncrementsMatchFoundation() {
+        let locale = Locale(identifier: "en_US")
+        // The style's `rounded(rule:increment:)` sets these two (it is wasm-only, beside the styles).
+        var percent = _NumberFormatting(style: .percent)
+        percent.roundingIncrement = 1
+        #expect(percent.format(7) == 7.formatted(.percent.rounded(increment: 1).locale(locale)))
+        var fives = _NumberFormatting()
+        fives.roundingRule = .down
+        fives.roundingIncrement = 0.05
+        #expect(fives.format(1.15) == 1.15.formatted(.number.rounded(rule: .down, increment: 0.05).locale(locale)))
+        let rules: [FloatingPointRoundingRule] = [.toNearestOrEven, .toNearestOrAwayFromZero, .up, .down, .towardZero, .awayFromZero]
+        for rule in rules {
+            var whole = _NumberFormatting()
+            whole.maximumFractionDigits = 0
+            whole.roundingRule = rule
+            for value in [1.9, 2.5, -1.9, -2.5, 3.5, 0.2] {
+                let expected = value.formatted(.number.precision(.fractionLength(0)).rounded(rule: rule).locale(locale))
+                #expect(whole.format(value) == expected, "\(value) \(rule)")
+            }
+        }
+    }
+
     @Test func parsesLikeFoundation() {
         let core = _NumberFormatting()
         #expect(core.parse("1,234") == 1234)
@@ -290,7 +312,9 @@ import Foundation
     @Test func roundsToAnIncrement() {
         // `.percent.rounded(increment: 1)` (ButtonKit's progress) and `.number.rounded(increment:)`.
         var percent = _NumberFormatting(style: .percent); percent.roundingIncrement = 1
-        #expect(percent.format(0.256) == "26%" && percent.format(0.125) == "12%" && percent.format(1) == "100%")
+        #expect(percent.format(0.256) == "26%" && percent.format(0.125) == "12%" && percent.format(1.0) == "100%")
+        // An integer percentage is already in percent, as Foundation's IntegerFormatStyle.Percent is.
+        #expect(percent.format(1 as Int) == "1%")
         var halves = _NumberFormatting(); halves.roundingIncrement = 0.5
         #expect(halves.format(1.3) == "1.5" && halves.format(1.2) == "1" && halves.format(1234.76) == "1,235")
         var down = _NumberFormatting(); down.roundingIncrement = 10; down.roundingRule = .down

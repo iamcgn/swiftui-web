@@ -105,6 +105,14 @@ extension Set: _BothSetForms {}
         #if os(WASI) || canImport(Darwin)
         let handed: Any = NSArray(objects: "a", "b")
         #expect((handed as? NSArray)?.count == 2)
+        // Separate arrays with equal nested arrays are equal, by value.
+        let nested = NSArray(array: [NSArray(array: [1, "x"]), 2])
+        let same = NSArray(array: [NSArray(array: [1, "x"]), 2])
+        #expect(nested.isEqual(same))
+        #expect(nested.isEqual(to: [NSArray(array: [1, "x"]), 2]))
+        #expect(NSArray(array: [nested]).contains(same))
+        #expect(NSArray(array: [nested]).index(of: same) == 0)
+        #expect(!nested.isEqual(NSArray(array: [NSArray(array: [1, "y"]), 2])))
         #endif
     }
 

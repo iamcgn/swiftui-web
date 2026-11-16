@@ -65,6 +65,15 @@ import WebFoundation
         #expect(separated.lineRange(for: NSRange(location: 0, length: 0)) == NSRange(location: 0, length: 2))
         #expect(separated.paragraphRange(for: NSRange(location: 0, length: 0)) == NSRange(location: 0, length: 4))
         #expect(separated.paragraphRange(for: NSRange(location: 4, length: 0)) == NSRange(location: 4, length: 1))
+
+        // A location on the line feed of a CR LF belongs to the line the pair ends.
+        let crlf = ns("one\r\ntwo")
+        #expect(crlf.lineRange(for: NSRange(location: 4, length: 0)) == NSRange(location: 0, length: 5))
+        #expect(crlf.paragraphRange(for: NSRange(location: 4, length: 0)) == NSRange(location: 0, length: 5))
+        // NEL ends a line but not a paragraph.
+        let nel = ns("a\u{85}b")
+        #expect(nel.lineRange(for: NSRange(location: 0, length: 0)) == NSRange(location: 0, length: 2))
+        #expect(nel.paragraphRange(for: NSRange(location: 0, length: 0)) == NSRange(location: 0, length: 3))
     }
 
     @Test func pathsAsTheDocumentationAnswers() {

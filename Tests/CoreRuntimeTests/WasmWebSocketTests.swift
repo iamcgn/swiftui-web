@@ -202,6 +202,23 @@ import WebFoundation
         bad.resume()
         #expect((bad.error as? URLError)?.code == .badURL && host.sockets.count == 2)
 
+        // Cancelled before it was resumed: no socket opens, and a send and a receive both fail as
+        // cancelled (-999).
+        let unstarted = URLSession.shared.webSocketTask(with: URL(string: "wss://local.example/")!)
+        unstarted.cancel()
+        let sendCode = Box<Int?>(nil), receiveCode = Box<Int?>(nil)
+        unstarted.send(.string("hi")) { error in sendCode.value = error.flatMap { Self.code(of: $0) } }
+        unstarted.receive { result in if case .failure(let error) = result { receiveCode.value = Self.code(of: error) } }
+        #expect(sendCode.value == -999 && receiveCode.value == -999 && host.sockets.count == 2)
+
+        // A close reason is cut to at most 123 UTF-8 bytes at a whole character.
+        let long = URLSession.shared.webSocketTask(with: URL(string: "wss://local.example/")!)
+        long.resume()
+        host.sockets[2].open()
+        long.cancel(with: .normalClosure, reason: Data((String(repeating: "a", count: 122) + "é").utf8))
+        let reason = host.sockets[2].closedWith?.reason ?? ""
+        #expect(reason.utf8.count <= 123 && reason == String(repeating: "a", count: 122))
+
         #expect(URLSessionWebSocketTask.CloseCode.messageTooBig.rawValue == 1009)
         #expect(URLSessionWebSocketTask.CloseCode.tlsHandshakeFailure.rawValue == 1015)
         #expect(URLSessionWebSocketTask.CloseCode(rawValue: 1004) == nil)
