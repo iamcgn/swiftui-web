@@ -32,6 +32,26 @@ import UIKit
         #expect(!scroll.isTracking)
     }
 
+    @Test func aScrollViewTracksATouchOnAControlInside() {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.configureScreen(size: CGSize(width: 200, height: 200), scale: 2)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 200, height: 200))
+        let scroll = UIScrollView(frame: CGRect(x: 0, y: 0, width: 200, height: 200))
+        scroll.contentSize = CGSize(width: 200, height: 600)
+        let button = UIButton(frame: CGRect(x: 20, y: 20, width: 100, height: 44))
+        scroll.addSubview(button)
+        window.addSubview(scroll)
+        window.makeKeyAndVisible()
+        scene.layout(in: CGSize(width: 200, height: 200))
+        let point = CGPoint(x: 50, y: 40)
+        scene.pointerDown(at: point, type: .touch, time: 0)
+        #expect(button.isTracking && scroll.isTracking && !scroll.isDragging)
+        scene.pointerUp(at: point, time: 0.05)
+        #expect(!scroll.isTracking && !button.isTracking)
+        scene.removeAllWindows()
+    }
+
     @Test func textInputModesAreTheBrowsersLanguage() {
         final class EmojiField: UITextField {
             override var textInputContextIdentifier: String? { "" }

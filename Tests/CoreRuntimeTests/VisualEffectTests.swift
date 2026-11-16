@@ -124,5 +124,26 @@ import SwiftUIWebCore
         #expect(ScrollTransitionPhase.topLeading.value == -1 && ScrollTransitionPhase.bottomTrailing.value == 1)
         #expect(ScrollTransitionPhase.identity.isIdentity && !ScrollTransitionPhase.topLeading.isIdentity)
     }
+
+    /// A horizontal scroll view 60 down in a vertical one; the view's offset is its y in `space`, plus 1.
+    private func nestedOffset(in space: NamedCoordinateSpace) -> [CGPoint] {
+        let r = Runtime()
+        r.mount(ScrollView {
+            VStack(spacing: 0) {
+                Color.blue.frame(height: 60)
+                ScrollView(.horizontal) {
+                    Color.red.frame(width: 40, height: 30).visualEffect { content, proxy in content.offset(x: proxy.frame(in: space).minY + 1) }
+                }
+            }
+        })
+        r.layout(in: CGSize(width: 100, height: 200))
+        return translations(r)
+    }
+
+    @Test func anAxisPicksTheScrollViewThatScrollsAlongIt() {
+        #expect(nestedOffset(in: .scrollView(axis: .vertical)).contains { $0.x == 61 }, "\(nestedOffset(in: .scrollView(axis: .vertical)))")
+        #expect(nestedOffset(in: .scrollView(axis: .horizontal)).contains { $0.x == 1 })
+        #expect(nestedOffset(in: .scrollView).contains { $0.x == 1 })
+    }
 }
 #endif

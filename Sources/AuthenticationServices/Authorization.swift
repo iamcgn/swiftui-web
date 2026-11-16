@@ -618,8 +618,17 @@ struct _ASCredentialCall {
 
     init?(_ requests: [ASAuthorizationRequest], mediation: String?) {
         registration = requests.first { $0 is ASAuthorizationPlatformPublicKeyCredentialRegistrationRequest || $0 is ASAuthorizationSecurityKeyPublicKeyCredentialRegistrationRequest }
-        passkeyAssertion = requests.lazy.compactMap { $0 as? ASAuthorizationPlatformPublicKeyCredentialAssertionRequest }.first
-        keyAssertion = requests.lazy.compactMap { $0 as? ASAuthorizationSecurityKeyPublicKeyCredentialAssertionRequest }.first
+        let platform = requests.lazy.compactMap { $0 as? ASAuthorizationPlatformPublicKeyCredentialAssertionRequest }.first
+        let key = requests.lazy.compactMap { $0 as? ASAuthorizationSecurityKeyPublicKeyCredentialAssertionRequest }.first
+        passkeyAssertion = platform
+        // One `get` signs one challenge for one relying party, so a security-key request asks
+        // alongside the passkey request only when both name the same ones; otherwise the
+        // passkey request is made alone, as a key's assertion would sign the wrong challenge.
+        if let platform, let key, platform.challenge != key.challenge || platform.relyingPartyIdentifier != key.relyingPartyIdentifier {
+            keyAssertion = nil
+        } else {
+            keyAssertion = key
+        }
         password = requests.lazy.compactMap { $0 as? ASAuthorizationPasswordRequest }.first
         var options: [String: Any] = [:]
         if let mediation { options["mediation"] = mediation }

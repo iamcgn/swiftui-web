@@ -4,12 +4,17 @@
 extension ViewNode {
     /// The nearest ancestor (including self) that names `space`, if any.
     package func ancestorCoordinateSpace(_ space: CoordinateSpace) -> ViewNode? {
-        // `.scrollView`: the nearest scroll view, whose frame is its visible area.
-        let isScrollView = space == NamedCoordinateSpace.scrollView.coordinateSpace
-        var node: ViewNode? = isScrollView ? parent : self
+        // `.scrollView`: the nearest scroll view, whose frame is its visible area; with an axis,
+        // the nearest that scrolls along it.
+        var scrollName: _ScrollViewCoordinateSpaceName?
+        if case .named(let name) = space { scrollName = name.base as? _ScrollViewCoordinateSpaceName }
+        var node: ViewNode? = scrollName != nil ? parent : self
         while let current = node {
-            if isScrollView {
-                if current is any _ScrollViewport { return current }
+            if let scrollName {
+                if let scroll = current as? any _ScrollViewport {
+                    guard let axis = scrollName.axis else { return current }
+                    if scroll.axes.contains(axis == .horizontal ? .horizontal : .vertical) { return current }
+                }
             } else if let named = current as? _NamedCoordinateSpace, named.coordinateSpace == space { return current }
             node = current.parent
         }
