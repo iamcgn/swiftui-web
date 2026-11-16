@@ -83,6 +83,15 @@ import UIKit
         var flat = CATransform3DIdentity
         flat.m11 = 0
         #expect(CATransform3DEqualToTransform(CATransform3DInvert(flat), flat))
+        // A tiny scale is invertible, as Core Animation inverts it (issue 173).
+        let tiny = CATransform3DMakeScale(1e-13, 1, 1)
+        let undone = CATransform3DInvert(tiny)
+        #expect(abs(undone.m11 - 1e13) <= 1e13 * 1e-12)
+        #expect(near(CATransform3DConcat(tiny, undone), CATransform3DIdentity))
+        // A singular matrix whose elimination leaves only rounding error still has no inverse.
+        var rankTwo = CATransform3DIdentity
+        rankTwo.m11 = 0.1; rankTwo.m12 = 0.2; rankTwo.m21 = 0.3; rankTwo.m22 = 0.6
+        #expect(CATransform3DEqualToTransform(CATransform3DInvert(rankTwo), rankTwo))
     }
 
     /// `endEditing(_:)` resigns a text field inside the view (and leaves one elsewhere), and

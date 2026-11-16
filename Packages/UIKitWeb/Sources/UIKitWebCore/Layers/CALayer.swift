@@ -81,13 +81,18 @@ public func CATransform3DIsAffine(_ t: CATransform3D) -> Bool {
 
 /// The inverse, or `t` itself when it has none (as Core Animation answers).
 public func CATransform3DInvert(_ t: CATransform3D) -> CATransform3D {
-    // Gauss–Jordan elimination with partial pivoting on [t | I].
+    // Gauss–Jordan elimination with partial pivoting on [t | I]. A pivot counts as zero only
+    // against the matrix's own size, down to rounding error, so a tiny scale such as 1e-13 still
+    // inverts (to 1e13), while a singular matrix's leftover rounding does not.
     var a = t._rows
     var inv: [[CGFloat]] = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+    let largest = a.joined().map(abs).max() ?? 0
+    guard largest > 0, largest.isFinite else { return t }
+    let zero = largest * 4 * CGFloat.ulpOfOne
     for col in 0..<4 {
         var pivot = col
         for row in col + 1..<4 where abs(a[row][col]) > abs(a[pivot][col]) { pivot = row }
-        if abs(a[pivot][col]) < 1e-12 { return t }
+        if abs(a[pivot][col]) <= zero { return t }
         a.swapAt(col, pivot); inv.swapAt(col, pivot)
         let p = a[col][col]
         for j in 0..<4 { a[col][j] /= p; inv[col][j] /= p }

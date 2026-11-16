@@ -256,6 +256,16 @@ extension NSNumber {
             return value == 0 ? false : value == 1 ? true : nil
         }
     }
+    /// The Swift value the number stands for as a hashable, so that a key that crossed the bridge
+    /// as a number finds the entry its original value keyed (`AnyHashable(42)` and back).
+    var _webHashableValue: AnyHashable {
+        switch storage {
+        case .int(let v): return Int(exactly: v).map(AnyHashable.init) ?? AnyHashable(v)
+        case .uint(let v): return UInt(exactly: v).map(AnyHashable.init) ?? AnyHashable(v)
+        case .double(let v): return AnyHashable(v)
+        case .bool(let v): return AnyHashable(v)
+        }
+    }
 }
 
 extension Int: @retroactive _ObjectiveCBridgeable, _WebNumberBridged {

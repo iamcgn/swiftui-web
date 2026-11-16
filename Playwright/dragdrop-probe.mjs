@@ -62,7 +62,7 @@ await drag('drop', targetX, targetY, 'own');
 await drag('dragend', targetX, targetY, 'own');
 await page.mouse.up();
 await page.waitForTimeout(100);
-check('the drop shows the dropped text', (await list()).some(c => c.startsWith('drawText("Drag me"') && !c.includes('#')) || (await list()).filter(c => c.startsWith('drawText("Drag me"')).length >= 2);
+check('the drop shows the dropped text', await until(async () => { const l = await list(); return l.some(c => c.startsWith('drawText("Drag me"') && !c.includes('#')) || l.filter(c => c.startsWith('drawText("Drag me"')).length >= 2; }));
 check('the destination is blue again', await until(async () => { const f = await targetFill(); return f?.includes('#0088FF') || f?.includes('#007AFF'); }));
 check('the canvas is no longer draggable', !(await page.evaluate(() => document.querySelector('canvas').draggable)));
 // 2. A drag from outside the page.
@@ -72,7 +72,9 @@ await page.waitForTimeout(50);
 check('the destination turns green for it', await until(async () => (await targetFill())?.includes('#34C759')));
 await drag('drop', targetX, targetY, 'outside');
 await page.waitForTimeout(100);
-check('its text is dropped', (await list()).some(c => c.startsWith('drawText("From outside"')));
+// The drop's text loads asynchronously and paints on a later frame, which a CI runner can take
+// more than 100 ms to reach (PR 192's browser job), so this polls as the green check above does.
+check('its text is dropped', await until(async () => (await list()).some(c => c.startsWith('drawText("From outside"'))));
 // 3. A type nothing takes.
 await setTransfer('png', 'image/png', 'iVBORw0KGgo=');
 check('a PNG drag is refused over the text destination', !(await drag('dragover', targetX, targetY, 'png')));
