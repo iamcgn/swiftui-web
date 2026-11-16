@@ -105,6 +105,9 @@ extension UIMutableTraits {
         let (_, _, root) = scene()
         let view = UIView()
         root.view.addSubview(view)
+        // Pin the style before observing, so the window's appearance (which other tests may set)
+        // neither starts out dark nor changes underneath the observer (issue 203).
+        root.traitOverrides[UITraitUserInterfaceStyle.self] = .light
         var scores: [Int] = []
         view.registerForTraitChanges([ScoreTrait.self]) { (view: UIView, _: UITraitCollection) in scores.append(view.traitCollection.score) }
         var styleChanges = 0

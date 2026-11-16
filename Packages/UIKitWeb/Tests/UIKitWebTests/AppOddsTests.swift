@@ -88,6 +88,17 @@ import UIKit
         let undone = CATransform3DInvert(tiny)
         #expect(abs(undone.m11 - 1e13) <= 1e13 * 1e-12)
         #expect(near(CATransform3DConcat(tiny, undone), CATransform3DIdentity))
+        // Smaller still, and a huge translation: both invertible (issue 173's retest).
+        let tinier = CATransform3DMakeScale(1e-16, 1, 1)
+        let tinierUndone = CATransform3DInvert(tinier)
+        #expect(abs(tinierUndone.m11 - 1e16) <= 1e16 * 1e-12)
+        #expect(near(CATransform3DConcat(tinier, tinierUndone), CATransform3DIdentity))
+        let far = CATransform3DMakeTranslation(1e16, 0, 0)
+        let back = CATransform3DInvert(far)
+        #expect(back.m41 == -1e16 && back.m11 == 1 && back.m44 == 1)
+        #expect(near(CATransform3DConcat(far, back), CATransform3DIdentity))
+        let both = CATransform3DTranslate(CATransform3DMakeScale(1e-16, 3, 1), 1e16, -2, 5)
+        #expect(near(CATransform3DConcat(both, CATransform3DInvert(both)), CATransform3DIdentity))
         // A singular matrix whose elimination leaves only rounding error still has no inverse.
         var rankTwo = CATransform3DIdentity
         rankTwo.m11 = 0.1; rankTwo.m12 = 0.2; rankTwo.m21 = 0.3; rankTwo.m22 = 0.6
