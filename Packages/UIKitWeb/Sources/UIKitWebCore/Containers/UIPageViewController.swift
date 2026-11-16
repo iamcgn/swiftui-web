@@ -44,6 +44,9 @@ extension UIPageViewControllerDelegate {
 /// with the Objective-C runtime, as UIKit's is, so `@objc` delegate methods can return it.
 @objc public enum UIInterfaceOrientation: Int, Sendable { case unknown = 0, portrait, portraitUpsideDown, landscapeLeft, landscapeRight }
 // `UIInterfaceOrientationMask` is C's here (UIKitWebCTypes, imported above).
+// The importer makes it an `OptionSet` but not `Hashable`, which UIKit's is (apps key
+// dictionaries and sets by it); the raw value's hash is RawRepresentable's.
+extension UIInterfaceOrientationMask: @retroactive Hashable {}
 #else
 /// The orientation of the interface (the browser's window is a portrait phone).
 public enum UIInterfaceOrientation: Int, Sendable { case unknown = 0, portrait, portraitUpsideDown, landscapeLeft, landscapeRight }
