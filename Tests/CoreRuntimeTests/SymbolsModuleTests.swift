@@ -63,10 +63,11 @@ import SwiftUIWebHeadless
 
     @Test func imageResourcesAndDragsMount() {
         let runtime = Runtime()
+        runtime.textEngine = MonospaceTextEngine()
         runtime.mount(Resources())
         runtime.layout(in: CGSize(width: 300, height: 200))
-        let texts = runtime.render(scale: 1).commands.map(\.description).filter { $0.contains("Save") || $0.contains("Send") || $0.contains("Drag me") }
-        #expect(texts.count >= 3)
+        let texts = runtime.render(scale: 1).commands.map(\.description).filter { $0.hasPrefix("drawText(") }
+        #expect(["Save", "Send", "Drag me"].allSatisfy { word in texts.contains { $0.hasPrefix("drawText(\"\(word)\"") } }, "\(texts)")
     }
 }
 #endif
