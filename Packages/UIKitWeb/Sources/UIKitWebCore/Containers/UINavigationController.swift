@@ -36,7 +36,11 @@ open class UINavigationController: UIViewController {
     private var interactivePop: (top: UIView, previous: UIView, veil: UIView)?
 
     /// The operation a push or pop performs (`UINavigationControllerDelegate`'s animator).
+    #if canImport(ObjectiveC)
+    @objc public enum Operation: Int, Sendable { case none = 0, push, pop }
+    #else
     public enum Operation: Int, Sendable { case none = 0, push, pop }
+    #endif
 
     public init(rootViewController: UIViewController) {
         super.init(nibName: nil, bundle: nil)
@@ -233,11 +237,11 @@ open class UINavigationController: UIViewController {
             tabBarController?.viewIfLoaded?.setNeedsLayout()
         }
         if let newTop = topViewController, newTop !== oldTop {
-            delegate?.navigationController(self, willShow: newTop, animated: animated)
+            delegateWillShow(newTop, animated: animated)
         }
         if isViewLoaded { showTop(previous: oldTop, sliding: slides ? (push: isPush, leaving: oldTop) : nil) }
         if let newTop = topViewController, newTop !== oldTop {
-            delegate?.navigationController(self, didShow: newTop, animated: animated)
+            delegateDidShow(newTop, animated: animated)
         }
     }
 
@@ -265,7 +269,7 @@ open class UINavigationController: UIViewController {
                 content.autoresizingMask = [.flexibleWidth, .flexibleHeight]
                 if hasAppeared { top.beginAppearanceTransition(true, animated: sliding != nil) }
                 if let sliding, let leavingView, let previous,
-                   let animator = delegate?.navigationController(self, animationControllerFor: sliding.push ? .push : .pop, from: previous, to: top) {
+                   let animator = delegateAnimator(for: sliding.push ? .push : .pop, from: previous, to: top) {
                     // The delegate's animator moves the screens itself.
                     view.insertSubview(content, belowSubview: navigationBar)
                     let context = TransitionContext(containerView: view, from: previous, to: top,
@@ -274,7 +278,7 @@ open class UINavigationController: UIViewController {
                                                     onComplete: { [weak self] completed in
                                                         leavingView.removeFromSuperview()
                                                         leavingView.frame.origin = .zero
-                                                        animator.animationEnded(completed)
+                                                        animator.transitionEnded(completed)
                                                         if self?.hasAppeared == true {
                                                             previous.endAppearanceTransition()
                                                             top.endAppearanceTransition()
@@ -444,11 +448,49 @@ open class UINavigationController: UIViewController {
     }
 }
 
+#if canImport(ObjectiveC)
+/// The methods a navigation controller's delegate implements: an `@objc` protocol of optional
+/// methods with the Objective-C runtime, as UIKit's is, so a delegate that forwards to another
+/// asks whether it implements one (`base?.navigationController?(_:willShow:animated:)`,
+/// swift-navigation's NavigationStackController).
+@preconcurrency @MainActor
+@objc public protocol UINavigationControllerDelegate {
+    @objc optional func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool)
+    @objc optional func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool)
+    /// The orientations the controller supports (asked of the delegate; the page keeps its own).
+    @objc optional func navigationControllerSupportedInterfaceOrientations(_ navigationController: UINavigationController) -> UIInterfaceOrientationMask
+    @objc optional func navigationControllerPreferredInterfaceOrientationForPresentation(_ navigationController: UINavigationController) -> UIInterfaceOrientation
+    /// An interaction controller for the animator (accepted: transitions here run to completion).
+    @objc optional func navigationController(_ navigationController: UINavigationController,
+                                             interactionControllerFor animationController: any UIViewControllerAnimatedTransitioning) -> (any UIViewControllerInteractiveTransitioning)?
+    /// An animator for a push or pop (nil for the standard slide).
+    @objc optional func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation,
+                                             from fromVC: UIViewController, to toVC: UIViewController) -> (any UIViewControllerAnimatedTransitioning)?
+}
+
+extension UINavigationController {
+    func delegateWillShow(_ viewController: UIViewController, animated: Bool) {
+        delegate?.navigationController?(self, willShow: viewController, animated: animated)
+    }
+    func delegateDidShow(_ viewController: UIViewController, animated: Bool) {
+        delegate?.navigationController?(self, didShow: viewController, animated: animated)
+    }
+    func delegateAnimator(for operation: Operation, from: UIViewController, to: UIViewController) -> (any UIViewControllerAnimatedTransitioning)? {
+        delegate?.navigationController?(self, animationControllerFor: operation, from: from, to: to)
+    }
+}
+#else
 /// The methods a navigation controller's delegate implements.
 @preconcurrency @MainActor
 public protocol UINavigationControllerDelegate: AnyObject {
     func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool)
     func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool)
+    /// The orientations the controller supports (asked of the delegate; the page keeps its own).
+    func navigationControllerSupportedInterfaceOrientations(_ navigationController: UINavigationController) -> UIInterfaceOrientationMask
+    func navigationControllerPreferredInterfaceOrientationForPresentation(_ navigationController: UINavigationController) -> UIInterfaceOrientation
+    /// An interaction controller for the animator (accepted: transitions here run to completion).
+    func navigationController(_ navigationController: UINavigationController,
+                              interactionControllerFor animationController: any UIViewControllerAnimatedTransitioning) -> (any UIViewControllerInteractiveTransitioning)?
     /// An animator for a push or pop (nil for the standard slide).
     func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation,
                               from fromVC: UIViewController, to toVC: UIViewController) -> (any UIViewControllerAnimatedTransitioning)?
@@ -457,9 +499,30 @@ public protocol UINavigationControllerDelegate: AnyObject {
 extension UINavigationControllerDelegate {
     public func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {}
     public func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {}
+    public func navigationControllerSupportedInterfaceOrientations(_ navigationController: UINavigationController) -> UIInterfaceOrientationMask {
+        navigationController.topViewController?.supportedInterfaceOrientations ?? .allButUpsideDown
+    }
+    public func navigationControllerPreferredInterfaceOrientationForPresentation(_ navigationController: UINavigationController) -> UIInterfaceOrientation {
+        navigationController.topViewController?.preferredInterfaceOrientationForPresentation ?? .portrait
+    }
+    public func navigationController(_ navigationController: UINavigationController,
+                                     interactionControllerFor animationController: any UIViewControllerAnimatedTransitioning) -> (any UIViewControllerInteractiveTransitioning)? { nil }
     public func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation,
                                      from fromVC: UIViewController, to toVC: UIViewController) -> (any UIViewControllerAnimatedTransitioning)? { nil }
 }
+
+extension UINavigationController {
+    func delegateWillShow(_ viewController: UIViewController, animated: Bool) {
+        delegate?.navigationController(self, willShow: viewController, animated: animated)
+    }
+    func delegateDidShow(_ viewController: UIViewController, animated: Bool) {
+        delegate?.navigationController(self, didShow: viewController, animated: animated)
+    }
+    func delegateAnimator(for operation: Operation, from: UIViewController, to: UIViewController) -> (any UIViewControllerAnimatedTransitioning)? {
+        delegate?.navigationController(self, animationControllerFor: operation, from: from, to: to)
+    }
+}
+#endif
 
 /// Navigational controls in a bar along the top of the screen.
 @preconcurrency @MainActor

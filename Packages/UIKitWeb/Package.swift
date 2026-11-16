@@ -44,9 +44,13 @@ let package = Package(
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(name: "UIKitSubmodules"),
+        // UIKit's option sets as C declares them, which UIKitWebCore imports with the Objective-C
+        // runtime only, so `@objc` delegate methods can take and return them.
+        .systemLibrary(name: "UIKitWebCTypes"),
         .target(
             name: "UIKitWebCore",
-            dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
+            dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics"),
+                           "UIKitWebCTypes"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         // The fidelity loop (decision 0014): the UIKit fixture API, the fixtures themselves (a symlink

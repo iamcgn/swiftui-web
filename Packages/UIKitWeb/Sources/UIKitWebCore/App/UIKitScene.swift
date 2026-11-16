@@ -101,7 +101,7 @@ public final class UIKitScene: HostedScene {
                                             initialFrames: [ObjectIdentifier(presenter): presenter.viewIfLoaded?.frame ?? .zero],
                                             finalFrames: [ObjectIdentifier(controller): view.frame, ObjectIdentifier(presenter): presenter.viewIfLoaded?.frame ?? .zero],
                                             onComplete: { completed in
-                                                animator.animationEnded(completed)
+                                                animator.transitionEnded(completed)
                                                 completion?()
                                             })
             animator.animateTransition(using: context)
@@ -152,7 +152,7 @@ public final class UIKitScene: HostedScene {
                                             finalFrames: [ObjectIdentifier(controller): view.frame],
                                             onComplete: { completed in
                                                 container.removeFromSuperview()
-                                                animator.animationEnded(completed)
+                                                animator.transitionEnded(completed)
                                                 controller.viewIfLoaded?.removeFromSuperview()
                                                 controller.endAppearanceTransition()
                                                 controller.window = nil
