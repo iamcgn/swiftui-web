@@ -5,6 +5,18 @@ import Foundation
 import Testing
 import CloudKit
 
+// This target sees the SDK's own Foundation beside WebFoundation, whose object types CloudKit's
+// records take on wasm, so the test names those by module there. An app's `Foundation` is
+// WebFoundation's, so its plain `NSNumber` and `NSString` are the same types.
+#if os(WASI)
+import WebFoundation
+private typealias RecordNumber = WebFoundation.NSNumber
+private typealias RecordString = WebFoundation.NSString
+#else
+private typealias RecordNumber = NSNumber
+private typealias RecordString = NSString
+#endif
+
 /// Collects what a callback hands over (the callbacks run before the call returns).
 final class Box<T>: @unchecked Sendable {
     var value: T?
@@ -140,6 +152,17 @@ final class Box<T>: @unchecked Sendable {
         #expect(share.url == nil)
         #expect(share.owner.role == .owner)
         #expect(CKShare(recordZoneID: zone.zoneID).recordID.zoneID == zone.zoneID)
+    }
+
+    @Test func recordsHoldFoundationAndLocationObjects() {
+        let record = CKRecord(recordType: "Place")
+        record["visits"] = RecordNumber(value: 4)
+        record["name"] = RecordString(string: "Harbour")
+        record["where"] = CLLocation(latitude: 41.9, longitude: -87.6)
+        #expect((record["visits"] as? RecordNumber)?.intValue == 4)
+        #expect((record["name"] as? RecordString)?.description == "Harbour")
+        let place: CLLocation? = record["where"]
+        #expect(place?.coordinate.latitude == 41.9 && place?.coordinate.longitude == -87.6)
     }
 
     @Test func queriesAndSubscriptions() {

@@ -52,6 +52,8 @@ open class UITextField: UIControl {
                 selection = NSRange(location: start, length: min(selection.length, length - start))
             } else {
                 selection = NSRange(location: length, length: 0)
+                // A selection the app set earlier is replaced by the caret at the end.
+                if pendingSelection != nil { pendingSelection = selection }
             }
             setNeedsDisplay()
         }

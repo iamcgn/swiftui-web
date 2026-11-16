@@ -82,6 +82,25 @@ struct TranslationTests {
         await #expect(throws: TranslationError.unsupportedLanguagePairing) { _ = try await session.translate("Hello") }
     }
 
+    @Test func aBrowserThatTranslatesNoPairListsNoLanguages() async {
+        StandInTranslator.install()
+        _TranslationHost.availability = { _, _, done in done(.unavailable) }
+        #expect(await LanguageAvailability().supportedLanguages.isEmpty)
+    }
+
+    @Test func cancellingTheTaskEndsATranslationInFlight() async throws {
+        StandInTranslator.install()
+        final class Pending: @unchecked Sendable { var done: ((String?, String?) -> Void)? }
+        let pending = Pending()
+        _TranslationHost.translate = { _, _, _, done in pending.done = done }
+        let session = TranslationSession(installedSource: Locale.Language(identifier: "en"), target: Locale.Language(identifier: "fr"))
+        let task = Task { try await session.translate("Hello") }
+        await settle { pending.done != nil }
+        task.cancel()
+        pending.done?("Bonjour", nil)
+        await #expect(throws: CancellationError.self) { _ = try await task.value }
+    }
+
     @Test func availabilityReadsInstalledSupportedAndUnsupported() async throws {
         StandInTranslator.install()
         let availability = LanguageAvailability()

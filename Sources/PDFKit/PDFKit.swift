@@ -39,7 +39,7 @@ open class PDFDocument: @unchecked Sendable {
     open private(set) var majorVersion = 1
     open private(set) var minorVersion = 4
     /// The information, by `PDFDocumentAttribute` raw value.
-    open var documentAttributes: [AnyHashable: Any]?
+    open var documentAttributes: [AnyHashable: Any]? { didSet { contentChanged() } }
     open var isEncrypted: Bool { false }
     open var isLocked: Bool { false }
     open var allowsPrinting: Bool { true }
@@ -48,6 +48,15 @@ open class PDFDocument: @unchecked Sendable {
     private var pages: [PDFPage] = []
     /// The data the document was opened on, while no page has changed.
     private var original: Data?
+    /// Whether the pages hold their drawings, so the document can be written afresh: false for
+    /// a PDF made elsewhere, whose pages are read only for their sizes.
+    private var pagesHoldDrawings = true
+
+    /// The information or a page's bounds changed: the document is written afresh when saved,
+    /// unless writing it would blank pages made elsewhere (their bytes are then kept as they are).
+    func contentChanged() {
+        if pagesHoldDrawings { original = nil }
+    }
 
     /// An empty document.
     public init() {}
@@ -74,6 +83,7 @@ open class PDFDocument: @unchecked Sendable {
             pages = recorded.map { PDFPage(size: $0.size, commands: $0.commands) }
         } else {
             pages = PDFScan.pageSizes(bytes).map { PDFPage(size: $0, commands: []) }
+            pagesHoldDrawings = pages.isEmpty
         }
         for page in pages { page.document = self }
     }
@@ -155,7 +165,11 @@ open class PDFPage: @unchecked Sendable {
     }
 
     open func bounds(for box: PDFDisplayBox) -> CGRect { mediaBox }
-    open func setBounds(_ bounds: CGRect, for box: PDFDisplayBox) { if box == .mediaBox { mediaBox = bounds } }
+    open func setBounds(_ bounds: CGRect, for box: PDFDisplayBox) {
+        guard box == .mediaBox, bounds != mediaBox else { return }
+        mediaBox = bounds
+        document?.contentChanged()
+    }
 
     /// The page's number in its document, from 1.
     open var label: String? { document.map { String($0.index(for: self) + 1) } }

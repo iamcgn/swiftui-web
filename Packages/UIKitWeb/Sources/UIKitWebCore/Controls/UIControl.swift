@@ -183,7 +183,7 @@ open class UIControl: UIView {
         let hasTarget = object != nil
         let send = UIAction { [weak self, weak object] _ in
             guard let self, !hasTarget || object != nil else { return }
-            self.sendAction(action, to: object, for: nil)
+            self.sendAction(action, to: object, for: self.trackingEvent)
         }
         targetActions.append(TargetAction(target: object, hasTarget: hasTarget, selector: action, action: send))
         actions.append((send, controlEvents))
@@ -246,8 +246,13 @@ open class UIControl: UIView {
     var longPressMenu: UIMenu? { nil }
     private var longPressTimer: UIKitScene.Timer?
     private var longPressStart = CGPoint.zero
+    /// The touch event being handled while it sends actions, so a selector that takes an event
+    /// (`touchDown(_:event:)`) gets it, as UIKit sends it; nil for `sendActions(for:)` outside one.
+    var trackingEvent: UIEvent?
 
     override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        trackingEvent = event
+        defer { trackingEvent = nil }
         guard isEnabled, let touch = touches.first else { return }
         isTracking = beginTracking(touch, with: event)
         guard isTracking else { return }
@@ -268,6 +273,8 @@ open class UIControl: UIView {
     }
 
     override open func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        trackingEvent = event
+        defer { trackingEvent = nil }
         guard isTracking, let touch = touches.first else { return }
         if longPressTimer != nil {
             let location = touch.location(in: nil)
@@ -284,6 +291,8 @@ open class UIControl: UIView {
     }
 
     override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        trackingEvent = event
+        defer { trackingEvent = nil }
         longPressTimer?.cancel()
         longPressTimer = nil
         guard isTracking, let touch = touches.first else { return }
@@ -300,6 +309,8 @@ open class UIControl: UIView {
     }
 
     override open func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        trackingEvent = event
+        defer { trackingEvent = nil }
         longPressTimer?.cancel()
         longPressTimer = nil
         guard isTracking else { return }

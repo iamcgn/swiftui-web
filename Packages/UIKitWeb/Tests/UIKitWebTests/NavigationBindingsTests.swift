@@ -119,6 +119,10 @@ extension UIMutableTraits {
         root.traitOverrides.dismiss = DismissAction(run: nil)
         root.traitOverrides.dismiss = DismissAction(run: nil)
         #expect(dismissals == 2 && scores == [2, 5])
+        // Other traits changing leave it alone: it is the value set, passed down unchanged.
+        root.traitOverrides.score = 7
+        root.traitOverrides[UITraitUserInterfaceStyle.self] = .dark
+        #expect(dismissals == 2 && scores == [2, 5, 7] && styleChanges == 1)
     }
 
     /// swift-navigation's `textSelection`: the selection as offsets from the start, and back.
@@ -156,6 +160,10 @@ extension UIMutableTraits {
         select(6..<11, in: field)
         #expect(selection(of: field) == 6..<11)
         #expect(field.semanticsNode()?.textInput?.selection == TextRange(start: 6, end: 11))
+        // A text the app sets after that sends the element the caret at its end, not the old selection.
+        field.text = "Hello world, and the rest!"
+        #expect(selection(of: field) == 26..<26 && field.semanticsNode()?.textInput?.selection == TextRange(start: 26, end: 26))
+        field.text = "Hello world"
 
         // The host reports the caret moving: the field takes it, and the delegate hears.
         scene.textField(field.semanticsIdentifier, selectionStart: 2, end: 4)

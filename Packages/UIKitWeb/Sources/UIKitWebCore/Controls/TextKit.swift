@@ -192,9 +192,13 @@ extension NSTextStorage {
 
     func processPendingEdit() {
         guard !pending.mask.isEmpty else { return }
+        // The delegate's own changes (highlighting as the text is edited) join this edit rather
+        // than starting another, as they do in TextKit: one will and one did for the change.
+        pending.depth += 1
+        delegate?.textStorage(self, willProcessEditing: pending.mask, range: pending.range, changeInLength: pending.delta)
+        delegate?.textStorage(self, didProcessEditing: pending.mask, range: pending.range, changeInLength: pending.delta)
+        pending.depth -= 1
         let mask = pending.mask, range = pending.range, delta = pending.delta
-        delegate?.textStorage(self, willProcessEditing: mask, range: range, changeInLength: delta)
-        delegate?.textStorage(self, didProcessEditing: mask, range: range, changeInLength: delta)
         pending.mask = []
         pending.range = NSRange(location: NSNotFound, length: 0)
         pending.delta = 0

@@ -167,7 +167,7 @@ public final class UIApplication: UIResponder {
                 ?? ((delegate as? NSObject).flatMap { $0.responds(to: action) ? $0 : nil })
         }
         guard let receiver else { return false }
-        receiver._send(action, passing: sender)
+        receiver._send(action, passing: sender, and: event)
         return true
         #else
         return false

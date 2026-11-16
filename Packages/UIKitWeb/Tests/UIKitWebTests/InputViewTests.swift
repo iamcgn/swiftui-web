@@ -104,6 +104,23 @@ import Foundation
         #expect(toolbar.superview == nil)
     }
 
+    @Test func theAccessoryFollowsTheWindowWhenItResizes() {
+        let scene = scene()
+        let root = UIViewController()
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
+        window.rootViewController = root
+        window.makeKeyAndVisible()
+        let editor = UITextView(frame: CGRect(x: 0, y: 0, width: 320, height: 200))
+        let toolbar = Toolbar()
+        editor.inputAccessoryView = toolbar
+        root.view.addSubview(editor)
+        scene.layout(in: CGSize(width: 320, height: 480))
+        #expect(editor.becomeFirstResponder())
+        scene.layout(in: CGSize(width: 480, height: 320))
+        #expect(toolbar.frame == CGRect(x: 0, y: 320 - window.safeAreaInsets.bottom - 46, width: 480, height: 46))
+        _ = editor.resignFirstResponder()
+    }
+
     @Test func aFieldAndASearchBarTakeAccessoriesToo() {
         let scene = scene()
         let root = UIViewController()

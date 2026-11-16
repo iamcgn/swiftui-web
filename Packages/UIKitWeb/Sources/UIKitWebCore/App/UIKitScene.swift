@@ -393,6 +393,8 @@ public final class UIKitScene: HostedScene {
                 UITraitCollection.current = UIScreen.main.traitCollection
                 for window in windows { window.propagateTraitChange(from: previous) }
             }
+            // A docked input accessory stays along the bottom of the resized window.
+            if dockedInputAccessory != nil { updateInputAccessory() }
         }
         for window in windows {
             window.layoutIfNeeded()

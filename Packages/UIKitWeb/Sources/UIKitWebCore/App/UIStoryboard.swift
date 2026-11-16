@@ -63,7 +63,10 @@ open class UINib {
 
 extension Bundle {
     /// The top-level objects of the nib named `name`: nil, as for a nib the bundle doesn't hold.
-    @MainActor
+    /// Main-actor isolated as UIKit's is, and `@preconcurrency` as an imported UIKit method is,
+    /// so a Swift 5 mode package calling it from nonisolated code (SwiftyFORM's
+    /// Bundle+LoadView.swift) builds with a warning, as on iOS, rather than an error.
+    @preconcurrency @MainActor
     public func loadNibNamed(_ name: String, owner: Any?, options: [UINib.OptionsKey: Any]? = nil) -> [Any]? { nil }
 }
 

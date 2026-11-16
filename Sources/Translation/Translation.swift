@@ -69,7 +69,9 @@ public final class LanguageAvailability: Sendable {
     /// The languages the browser's translator knows; none without one.
     public var supportedLanguages: [Locale.Language] {
         get async {
-            guard _TranslationHost.translate != nil else { return [] }
+            // A browser that answers every pair as unavailable (one without `Translator`) has none.
+            guard _TranslationHost.translate != nil,
+                  await _availability(Locale.Language(identifier: "en"), Locale.Language(identifier: "es")) != .unavailable else { return [] }
             return _translatorLanguages.map { Locale.Language(identifier: $0) }
         }
     }
@@ -238,9 +240,11 @@ public final class TranslationSession: @unchecked Sendable {
         lock.lock(); cancelled = true; lock.unlock()
     }
 
+    /// Throws when the session or the task translating has been cancelled.
     private func checkCancelled() throws {
         lock.lock(); let cancelled = cancelled; lock.unlock()
         if cancelled { throw CancellationError() }
+        try Task.checkCancellation()
     }
 
     /// Makes sure the pair translates: on the device, or downloaded when the session may.
