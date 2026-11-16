@@ -57,12 +57,11 @@ public struct _NumberFormatting: Hashable, Sendable {
         guard value.isFinite else { return value.isNaN ? "NaN" : (value < 0 ? "-∞" : "∞") }
         if let increment = roundingIncrement, increment > 0 {
             let scale: Double = style == .percent ? 100 : 1
-            // ICU divides in decimal, so 1.15 is exactly 23 steps of 0.05; the binary quotient
-            // (22.999999999999996) is snapped to the whole step it stands for before rounding.
-            var steps = (value * scale) / increment
-            let nearest = steps.rounded()
-            if abs(steps - nearest) <= 1e-9 * max(1, abs(steps)) { steps = nearest }
-            let shown = steps.rounded(roundingRule) * increment
+            // ICU divides in decimal, so 1.15 is exactly 23 steps of 0.05 (the binary quotient is
+            // 22.999999999999996) while 1.999999999 is just under 2 steps of 1.
+            let steps = Self.decimalSteps(value, of: increment, percent: style == .percent, rule: roundingRule)
+                ?? ((value * scale) / increment).rounded(roundingRule)
+            let shown = steps * increment
             var plain = self
             plain.roundingIncrement = nil
             // The rule was applied to the increment; the digits that are left round to nearest.
@@ -101,6 +100,56 @@ public struct _NumberFormatting: Hashable, Sendable {
         if usesGrouping { integerPart = Self.grouped(integerPart) }
         let negative = value < 0 && (integer.contains { $0 != 0 } || fraction.contains { $0 != 0 })
         return assemble(integer: integerPart, fraction: fraction.map { String($0) }.joined(), negative: negative)
+    }
+
+    /// How many whole increments `value` (in percent when `percent`) rounds to under the rule,
+    /// worked in decimal from each number's shortest digits, as ICU does. Nil when the digits don't
+    /// fit in 64-bit integers.
+    static func decimalSteps(_ value: Double, of increment: Double, percent: Bool,
+                             rule: FloatingPointRoundingRule) -> Double? {
+        func whole(_ digits: [UInt8]) -> Int64? {
+            var result: Int64 = 0
+            for digit in digits {
+                let (times, o1) = result.multipliedReportingOverflow(by: 10)
+                let (plus, o2) = times.addingReportingOverflow(Int64(digit))
+                if o1 || o2 { return nil }
+                result = plus
+            }
+            return result
+        }
+        func scaled(_ number: Int64, _ power: Int) -> Int64? {
+            var result = number
+            for _ in 0..<power {
+                let (times, overflow) = result.multipliedReportingOverflow(by: 10)
+                if overflow { return nil }
+                result = times
+            }
+            return result
+        }
+        let (valueDigits, valueExponent) = decimalDigits(abs(value))
+        let (stepDigits, stepExponent) = decimalDigits(increment)
+        if valueDigits.isEmpty { return 0 }
+        guard !stepDigits.isEmpty, let v = whole(valueDigits), let i = whole(stepDigits) else { return nil }
+        // value = v × 10^(valueExponent − its digit count), and likewise the increment.
+        let power = (valueExponent - valueDigits.count + (percent ? 2 : 0)) - (stepExponent - stepDigits.count)
+        guard let numerator = power >= 0 ? scaled(v, power) : v,
+              let denominator = power >= 0 ? i : scaled(i, -power) else { return nil }
+        var quotient = numerator / denominator
+        let remainder = numerator % denominator
+        let negative = value < 0
+        if remainder != 0 {
+            let twice = remainder.multipliedReportingOverflow(by: 2)
+            let half = twice.overflow ? 1 : (twice.partialValue < denominator ? -1 : (twice.partialValue == denominator ? 0 : 1))
+            switch rule {
+            case .toNearestOrAwayFromZero: if half >= 0 { quotient += 1 }
+            case .up: if !negative { quotient += 1 }
+            case .down: if negative { quotient += 1 }
+            case .towardZero: break
+            case .awayFromZero: quotient += 1
+            default: if half > 0 || (half == 0 && quotient % 2 == 1) { quotient += 1 }
+            }
+        }
+        return negative ? -Double(quotient) : Double(quotient)
     }
 
     /// Adds one unit in the last fraction place, carrying into the whole part.

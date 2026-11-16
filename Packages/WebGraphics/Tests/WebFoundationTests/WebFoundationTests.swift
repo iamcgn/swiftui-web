@@ -278,6 +278,21 @@ import Foundation
         fives.roundingRule = .down
         fives.roundingIncrement = 0.05
         #expect(fives.format(1.15) == 1.15.formatted(.number.rounded(rule: .down, increment: 0.05).locale(locale)))
+        // Just under a whole step stays under it, in decimal as ICU works it.
+        for rule in [FloatingPointRoundingRule.down, .up, .toNearestOrEven, .towardZero] {
+            var ones = _NumberFormatting()
+            ones.roundingRule = rule
+            ones.roundingIncrement = 1
+            for value in [1.999999999, 999999999.6, -1.999999999, 2.5, 0.000001, 12.5] {
+                #expect(ones.format(value) == value.formatted(.number.rounded(rule: rule, increment: 1).locale(locale)), "\(value) \(rule)")
+            }
+        }
+        var quarters = _NumberFormatting(style: .percent)
+        quarters.roundingRule = .up
+        quarters.roundingIncrement = 0.25
+        for value in [0.0712, 0.07, -0.0712] {
+            #expect(quarters.format(value) == value.formatted(.percent.rounded(rule: .up, increment: 0.25).locale(locale)), "\(value)")
+        }
         let rules: [FloatingPointRoundingRule] = [.toNearestOrEven, .toNearestOrAwayFromZero, .up, .down, .towardZero, .awayFromZero]
         for rule in rules {
             var whole = _NumberFormatting()
