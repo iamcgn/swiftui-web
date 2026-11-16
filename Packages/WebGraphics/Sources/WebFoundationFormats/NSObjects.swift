@@ -150,6 +150,12 @@ public final class _WebNSArray: NSObject, @unchecked Sendable {
         super.init()
     }
     public var count: Int { elements.count }
+    /// Equal when the elements are, pair by pair, as Foundation's arrays are (nested arrays too).
+    public override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? _WebNSArray else { return false }
+        return other.elements.count == elements.count && zip(elements, other.elements).allSatisfy { _webValuesEqual($0, $1) }
+    }
+    public override var hash: Int { elements.count }
 }
 
 /// `array as NSArray` and `nsArray as? [String]`, as with the runtime (ObjectiveCBridging.swift).

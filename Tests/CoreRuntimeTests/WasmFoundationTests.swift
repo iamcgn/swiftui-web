@@ -342,7 +342,8 @@ import WebCombine
     @Test func urlSessionBytesReadAsLinesCharactersAndScalars() async throws {
         final class Host: _WebHTTPTask, @unchecked Sendable { func cancel() {} }
         let body = Array("caf\u{65}\u{301}\nnext\r\nend".utf8)
-        nonisolated(unsafe) var bodies = [body, [0x61, 0xC3, 0x62]]
+        let malformed: [UInt8] = [0xC0, 0xAF, 0xED, 0xA0, 0x80, 0x62]
+        nonisolated(unsafe) var bodies = [body, [0x61, 0xC3, 0x62], malformed]
         _WebHTTPHost.send = { _, completion in
             completion(.success(_WebHTTPResponse(url: "https://api.example/feed", status: 200, headers: [:], body: bodies.removeFirst())))
             return Host()
@@ -364,6 +365,13 @@ import WebCombine
         var scalars: [Unicode.Scalar] = []
         for try await scalar in broken.unicodeScalars { scalars.append(scalar) }
         #expect(scalars == ["a", "\u{FFFD}", "b"])
+        // One U+FFFD per malformed maximal subpart, as Swift's decoder gives: C0 AF is two,
+        // ED A0 80 (a surrogate) three.
+        let (malformedBytes, _) = try await session.bytes(for: URLRequest(url: URL(string: "https://api.example/feed")!))
+        var replaced: [Unicode.Scalar] = []
+        for try await scalar in malformedBytes.unicodeScalars { replaced.append(scalar) }
+        #expect(replaced == Array(String(decoding: malformed, as: UTF8.self).unicodeScalars))
+        #expect(replaced == Array(repeating: "\u{FFFD}", count: 5) + ["b"])
     }
 
     /// The resolver calls: a page has no resolver, so a lookup finds nothing (RevenueCat's

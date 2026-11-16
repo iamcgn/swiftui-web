@@ -163,9 +163,25 @@ open class URLSessionWebSocketTask: URLSessionTask, @unchecked Sendable {
         closeReason = reason
         let code = closeCode.rawValue
         let sent = code == 1000 || (3000...4999).contains(code) ? code : 1000
-        // The browser takes a reason of at most 123 UTF-8 bytes.
-        let text = reason.map { String(decoding: $0.prefix(123), as: UTF8.self) } ?? ""
+        // The browser takes a reason of at most 123 UTF-8 bytes; it is cut at a whole scalar, so a
+        // character split at the limit isn't turned into a three-byte replacement that overruns it.
+        var text = ""
+        var bytes = 0
+        for scalar in reason.map({ String(decoding: $0, as: UTF8.self) })?.unicodeScalars ?? "".unicodeScalars {
+            let width = UTF8.width(scalar)
+            if bytes + width > 123 { break }
+            bytes += width
+            text.unicodeScalars.append(scalar)
+        }
         end(error: nil, closing: sent, reason: text)
+    }
+
+    /// Cancels the task. One cancelled before it was resumed never opens, so it ends at once, and
+    /// a send, receive or ping made on it fails as cancelled, as Foundation's does.
+    public override func cancel() {
+        let unstarted = core == nil
+        super.cancel()
+        if unstarted, ending == nil, state == .completed { end(error: URLError(.cancelled), closing: nil, reason: "") }
     }
 
     // MARK: The socket

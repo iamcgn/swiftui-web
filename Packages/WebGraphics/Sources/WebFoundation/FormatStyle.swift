@@ -57,9 +57,16 @@ public struct _NumberFormatting: Hashable, Sendable {
         guard value.isFinite else { return value.isNaN ? "NaN" : (value < 0 ? "-∞" : "∞") }
         if let increment = roundingIncrement, increment > 0 {
             let scale: Double = style == .percent ? 100 : 1
-            let shown = ((value * scale) / increment).rounded(roundingRule) * increment
+            // ICU divides in decimal, so 1.15 is exactly 23 steps of 0.05; the binary quotient
+            // (22.999999999999996) is snapped to the whole step it stands for before rounding.
+            var steps = (value * scale) / increment
+            let nearest = steps.rounded()
+            if abs(steps - nearest) <= 1e-9 * max(1, abs(steps)) { steps = nearest }
+            let shown = steps.rounded(roundingRule) * increment
             var plain = self
             plain.roundingIncrement = nil
+            // The rule was applied to the increment; the digits that are left round to nearest.
+            plain.roundingRule = .toNearestOrEven
             return plain.format(shown / scale)
         }
         // ICU rounds the shortest decimal representation (2.675 → "2.68"), not the binary value.
@@ -75,9 +82,17 @@ public struct _NumberFormatting: Hashable, Sendable {
             let restNonZero = fraction[(range.upperBound + 1)...].contains { $0 != 0 }
             fraction.removeSubrange(range.upperBound...)
             let lastKept = range.upperBound > 0 ? fraction[range.upperBound - 1] : (integer.last ?? 0)
-            if next > 5 || (next == 5 && (restNonZero || lastKept % 2 == 1)) {
-                Self.increment(&integer, &fraction)
+            let dropped = next != 0 || restNonZero
+            let roundsUp: Bool
+            switch roundingRule {
+            case .toNearestOrAwayFromZero: roundsUp = next >= 5
+            case .up: roundsUp = dropped && value > 0
+            case .down: roundsUp = dropped && value < 0
+            case .towardZero: roundsUp = false
+            case .awayFromZero: roundsUp = dropped
+            default: roundsUp = next > 5 || (next == 5 && (restNonZero || lastKept % 2 == 1))
             }
+            if roundsUp { Self.increment(&integer, &fraction) }
         }
         while fraction.count > range.lowerBound, fraction.last == 0 { fraction.removeLast() }
         while fraction.count < range.lowerBound { fraction.append(0) }
@@ -128,7 +143,16 @@ public struct _NumberFormatting: Hashable, Sendable {
     }
 
     public func format<I: BinaryInteger>(_ value: I) -> String {
-        if roundingIncrement != nil { return format(Double(value)) }
+        if let increment = roundingIncrement, increment > 0 {
+            // An integer percentage is already in percent (7 → "7%"), so it isn't scaled by 100
+            // the way the floating-point path scales 0.07.
+            let shown = (Double(value) / increment).rounded(roundingRule) * increment
+            var plain = self
+            plain.roundingIncrement = nil
+            if shown.rounded() == shown, abs(shown) < 9e15 { return plain.format(Int64(shown)) }
+            if case .percent = style { return plain.format(shown / 100) }
+            return plain.format(shown)
+        }
         let magnitude = value.magnitude
         var integerPart = String(magnitude)
         if usesGrouping { integerPart = Self.grouped(integerPart) }

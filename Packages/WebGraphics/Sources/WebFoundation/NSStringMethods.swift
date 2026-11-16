@@ -112,8 +112,8 @@ extension _WebNSString {
     public func lineRange(for range: NSRange) -> NSRange { enclosing(range, breaks: [0x0A, 0x0D, 0x85, 0x2028, 0x2029]) }
 
     /// The whole paragraphs `range` touches, with the terminator of the last (as lines, but a
-    /// line separator does not end a paragraph).
-    public func paragraphRange(for range: NSRange) -> NSRange { enclosing(range, breaks: [0x0A, 0x0D, 0x85, 0x2029]) }
+    /// line separator or NEL does not end a paragraph).
+    public func paragraphRange(for range: NSRange) -> NSRange { enclosing(range, breaks: [0x0A, 0x0D, 0x2029]) }
 
     public func getLineStart(_ startPtr: UnsafeMutablePointer<Int>?, end lineEndPtr: UnsafeMutablePointer<Int>?,
                              contentsEnd contentsEndPtr: UnsafeMutablePointer<Int>?, for range: NSRange) {
@@ -128,12 +128,15 @@ extension _WebNSString {
         let paragraph = paragraphRange(for: range)
         startPtr?.pointee = paragraph.location
         parEndPtr?.pointee = NSMaxRange(paragraph)
-        contentsEndPtr?.pointee = contentsEnd(of: paragraph, breaks: [0x0A, 0x0D, 0x85, 0x2029])
+        contentsEndPtr?.pointee = contentsEnd(of: paragraph, breaks: [0x0A, 0x0D, 0x2029])
     }
 
     private func enclosing(_ range: NSRange, breaks: Set<UInt16>) -> NSRange {
         let units = Array(string.utf16)
         var start = min(max(range.location, 0), units.count)
+        // A location on the line feed of a CR LF is inside that terminator, so its line is the
+        // one the pair ends: the carriage return before it doesn't start a new line.
+        if start > 0, start < units.count, units[start] == 0x0A, units[start - 1] == 0x0D { start -= 1 }
         while start > 0, !breaks.contains(units[start - 1]) { start -= 1 }
         var index = max(start, min(range.length > 0 ? NSMaxRange(range) - 1 : range.location, units.count))
         while index < units.count, !breaks.contains(units[index]) { index += 1 }

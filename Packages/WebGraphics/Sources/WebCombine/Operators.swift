@@ -558,10 +558,14 @@ public enum Publishers {
             let suffix = self.suffix
             let current = _State<AnyCancellable?>(nil)
             let cancelled = _State(false)
-            let first = prefix._subscribeOnMain(receive) { completion in
-                guard case .finished = completion else { return complete(completion) }
+            // A suffix that publishes synchronously (a sequence) runs to its end before its token
+            // exists, so a cancel from downstream mid-way is honoured by dropping what follows.
+            let forward: @MainActor (Output) -> Void = { if !cancelled.value { receive($0) } }
+            let finish: @MainActor (Subscribers.Completion<Failure>) -> Void = { if !cancelled.value { complete($0) } }
+            let first = prefix._subscribeOnMain(forward) { completion in
+                guard case .finished = completion else { return finish(completion) }
                 guard !cancelled.value else { return }
-                current.value = suffix._subscribeOnMain(receive, complete)
+                current.value = suffix._subscribeOnMain(forward, finish)
             }
             if current.value == nil { current.value = first }
             return AnyCancellable { cancelled.value = true; current.value?.cancel() }

@@ -52,6 +52,17 @@ import Foundation
         #expect(throws: _ZlibDecodeError.invalid) { try _zlibDecode([0x78, 0x9D, 0], wrapper: .zlib) }
     }
 
+    /// A member with a header CRC (FHCRC): zlib checks it, so a flipped bit is invalid.
+    @Test func theHeaderCRCIsChecked() throws {
+        // The header's CRC-32, from Python's zlib.crc32, is 0x...AB12; its low 16 bits follow it.
+        let header: [UInt8] = [0x1F, 0x8B, 0x08, 0x02, 0x00, 0x00, 0x00, 0x00, 0x02, 0xFF]
+        let stream = header + [0x12, 0xAB] + Array(Self.gzip[10...])
+        #expect(try _zlibDecode(stream, wrapper: .gzip).output == Self.text)
+        var corrupt = stream
+        corrupt[10] ^= 1
+        #expect(throws: _ZlibDecodeError.invalid) { try _zlibDecode(corrupt, wrapper: .gzip) }
+    }
+
     @Test func bytesAfterTheStreamAreLeftUnread() throws {
         let decoded = try _zlibDecode(Self.zlib + [1, 2, 3], wrapper: .zlib)
         #expect(decoded.output == Self.text && decoded.consumed == Self.zlib.count)
