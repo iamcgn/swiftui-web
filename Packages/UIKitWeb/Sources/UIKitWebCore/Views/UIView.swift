@@ -265,6 +265,14 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
         return false
     }
 
+    /// Resigns the first responder (a text field's keyboard) if it is this view or one inside
+    /// it; whether it did. `force` makes no difference: a field resigns when asked.
+    @discardableResult
+    open func endEditing(_ force: Bool) -> Bool {
+        guard let responder = UIKitScene.shared.firstResponder as? UIView, responder.isDescendant(of: self) else { return false }
+        return responder.resignFirstResponder()
+    }
+
     open func viewWithTag(_ tag: Int) -> UIView? {
         if self.tag == tag { return self }
         for subview in subviews {

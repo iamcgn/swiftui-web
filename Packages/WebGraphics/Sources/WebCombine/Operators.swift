@@ -544,6 +544,40 @@ public enum Publishers {
             return AnyCancellable {}
         }
     }
+
+    /// A publisher that emits all of one publisher's elements before those from another.
+    public struct Concatenate<Prefix: Publisher, Suffix: Publisher>: Publisher
+    where Prefix.Output == Suffix.Output, Prefix.Failure == Suffix.Failure {
+        public typealias Output = Suffix.Output
+        public typealias Failure = Suffix.Failure
+        public let prefix: Prefix
+        public let suffix: Suffix
+        public init(prefix: Prefix, suffix: Suffix) { self.prefix = prefix; self.suffix = suffix }
+        @MainActor public func _subscribe(_ receive: @escaping @MainActor (Output) -> Void,
+                                          _ complete: @escaping @MainActor (Subscribers.Completion<Failure>) -> Void) -> AnyCancellable {
+            let suffix = self.suffix
+            let current = _State<AnyCancellable?>(nil)
+            let cancelled = _State(false)
+            let first = prefix._subscribeOnMain(receive) { completion in
+                guard case .finished = completion else { return complete(completion) }
+                guard !cancelled.value else { return }
+                current.value = suffix._subscribeOnMain(receive, complete)
+            }
+            if current.value == nil { current.value = first }
+            return AnyCancellable { cancelled.value = true; current.value?.cancel() }
+        }
+    }
+}
+
+extension Publisher {
+    /// This publisher's elements, then the other's once this one finishes.
+    public func append<P: Publisher>(_ publisher: P) -> Publishers.Concatenate<Self, P> where P.Output == Output, P.Failure == Failure {
+        Publishers.Concatenate(prefix: self, suffix: publisher)
+    }
+    /// The other publisher's elements, then this one's once the other finishes.
+    public func prepend<P: Publisher>(_ publisher: P) -> Publishers.Concatenate<P, Self> where P.Output == Output, P.Failure == Failure {
+        Publishers.Concatenate(prefix: publisher, suffix: self)
+    }
 }
 
 extension Sequence {

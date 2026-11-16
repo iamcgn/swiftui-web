@@ -19,6 +19,36 @@ import FoundationNetworking
 @MainActor @Suite(.serialized) struct WebCombineTests {
     enum Failure: Error, Equatable { case bad }
 
+    /// `Publishers.Concatenate` (and `append` / `prepend` of a publisher): the suffix is
+    /// subscribed once the prefix finishes, and a failure in the prefix ends it.
+    @Test func concatenateRunsTheSuffixAfterThePrefix() {
+        var values: [Int] = []
+        var completions: [String] = []
+        let first = PassthroughSubject<Int, Failure>()
+        let joined = Publishers.Concatenate(prefix: first, suffix: [3, 4].publisher.setFailureType(to: Failure.self))
+        let a = joined.sink(receiveCompletion: { completions.append("\($0)") }, receiveValue: { values.append($0) })
+        first.send(1)
+        first.send(2)
+        #expect(values == [1, 2] && completions.isEmpty)
+        first.send(completion: .finished)
+        #expect(values == [1, 2, 3, 4] && completions == ["finished"])
+        a.cancel()
+
+        values = []
+        let b = Just(1).append(Just(2)).prepend(Just(0)).sink { values.append($0) }
+        #expect(values == [0, 1, 2])
+        b.cancel()
+
+        completions = []
+        let failing = PassthroughSubject<Int, Failure>()
+        let c = failing.append(Just(9).setFailureType(to: Failure.self))
+            .sink(receiveCompletion: { completions.append("\($0)") }, receiveValue: { values.append($0) })
+        failing.send(completion: .failure(.bad))
+        #expect(completions.count == 1 && completions.first?.hasPrefix("failure") == true)
+        #expect(!values.contains(9))
+        c.cancel()
+    }
+
     @Test func justAndSubjectsDeliverValuesThenCompletion() {
         var values: [Int] = []
         var completions: [String] = []

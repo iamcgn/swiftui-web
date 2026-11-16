@@ -31,6 +31,9 @@ public final class FileManager: _WebObjectBase, @unchecked Sendable {
     /// The app's home: `file:///` with Documents, Library and tmp under it.
     public var homeDirectoryForCurrentUser: URL { URL(fileURLWithPath: "/", isDirectory: true) }
     public var temporaryDirectory: URL { URL(fileURLWithPath: "/tmp/", isDirectory: true) }
+    /// The signed-in iCloud account's token: a page has no iCloud account, so nil (as on a
+    /// device signed out of iCloud).
+    public var ubiquityIdentityToken: (any NSCoding & NSCopying & NSObjectProtocol)? { nil }
     public var currentDirectoryPath: String { "/" }
 
     public func urls(for directory: SearchPathDirectory, in domainMask: SearchPathDomainMask) -> [URL] {
