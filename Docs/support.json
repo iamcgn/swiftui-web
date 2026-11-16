@@ -2343,7 +2343,7 @@
         {
           "api": "lowercased(with:) / uppercased(with:) / capitalized(with:) / capitalized / String.StandardComparator (.localizedStandard, .localized, .lexical)",
           "status": "partial",
-          "notes": "pf-string-case (2026-11-16), on wasm, for strings and NSString: case maps as the root locale does, with Turkish and Azerbaijani dotted and dotless i; other languages' special rules are not kept. The standard comparators sort through compare(_:options:locale:), so .localized and .localizedStandard order as the root collation does; they are not Codable.",
+          "notes": "pf-string-case (2026-11-16), on wasm, for strings and NSString: case maps as the root locale does, with Turkish and Azerbaijani dotted and dotless i; other languages' special rules are not kept. The standard comparators sort through compare(_:options:locale:), so .localized and .localizedStandard order as the root collation does; they are not Codable. Linux's Foundation has only .lexical, so a Linux host build lacks the localized two.",
           "noFixture": "Foundation API with nothing on screen; FrameworkTests (StringCaseAndComparatorTests) run the same cases against Foundation on macOS and Linux and the wasm forms."
         },
         {

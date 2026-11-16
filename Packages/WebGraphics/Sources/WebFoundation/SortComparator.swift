@@ -110,22 +110,25 @@ extension String {
     /// Finder does, with numbers by value ("File 2" before "File 10").
     public struct StandardComparator: SortComparator, Sendable {
         /// Orders strings by their scalars, ignoring the locale.
-        public static let lexical = StandardComparator([], isLocalized: false)
+        public static let lexical = StandardComparator(options: [], isLocalized: false)
         /// Orders strings as the current locale's collation does.
-        public static let localized = StandardComparator([], isLocalized: true)
+        public static let localized = StandardComparator(options: [], isLocalized: true)
         /// Orders strings as the Finder lists file names.
-        public static let localizedStandard = StandardComparator(.numeric, isLocalized: true)
+        public static let localizedStandard = StandardComparator(options: .numeric, isLocalized: true)
 
-        /// The comparison options the comparator applies.
-        public let options: String.CompareOptions
-        /// Whether the comparator orders by the current locale.
-        public let isLocalized: Bool
+        let options: String.CompareOptions
+        let isLocalized: Bool
         public var order: SortOrder
 
-        public init(_ options: String.CompareOptions, isLocalized: Bool = true, order: SortOrder = .forward) {
+        init(options: String.CompareOptions, isLocalized: Bool, order: SortOrder = .forward) {
             self.options = options
             self.isLocalized = isLocalized
             self.order = order
+        }
+
+        /// The comparator `base` in `order`.
+        public init(_ base: StandardComparator, order: SortOrder = .forward) {
+            self.init(options: base.options, isLocalized: base.isLocalized, order: order)
         }
 
         public func compare(_ lhs: String, _ rhs: String) -> ComparisonResult {

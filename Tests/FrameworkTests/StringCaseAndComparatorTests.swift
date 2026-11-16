@@ -32,25 +32,30 @@ private struct Item: Sendable { let name: String }
         #expect(NSString(string: "hello world").capitalized(with: nil) == "Hello World")
     }
 
-    @Test func standardComparatorsSort() {
+    @Test func lexicalComparatorSortsByScalars() {
+        let lexical = String.StandardComparator.lexical
+        #expect(["b", "B", "a"].sorted(using: lexical) == ["B", "a", "b"])
+        #expect(lexical.compare("a", "B") == .orderedDescending)
+        let descending = String.StandardComparator(lexical, order: .reverse)
+        #expect(["b", "B", "a"].sorted(using: descending) == ["b", "a", "B"])
+        #expect(descending != lexical && descending.order == .reverse)
+        #expect(String.StandardComparator(descending) == lexical)
+    }
+
+    // Linux's Foundation keeps only `.lexical`; the localized comparators are Apple's and wasm's.
+    #if canImport(Darwin) || os(WASI)
+    @Test func localizedComparatorsSort() {
         #expect(["File 10", "file 2", "File 1"].sorted(using: .localizedStandard) == ["File 1", "file 2", "File 10"])
-        #expect(["b", "B", "a"].sorted(using: String.StandardComparator.lexical) == ["B", "a", "b"])
         #expect(["b", "B", "a", "A"].sorted(using: String.StandardComparator.localized) == ["a", "A", "b", "B"])
-        let descending = String.StandardComparator(.numeric, order: .reverse)
+        let descending = String.StandardComparator(.localizedStandard, order: .reverse)
         #expect(["2", "10", "1"].sorted(using: descending) == ["10", "2", "1"])
         let items = [Item(name: "Track 12"), Item(name: "track 3"), Item(name: "Track 1")]
         let sorted = items.sorted(using: KeyPathComparator(\Item.name, comparator: .localizedStandard))
         #expect(sorted.map(\.name) == ["Track 1", "track 3", "Track 12"])
-    }
-
-    @Test func standardComparatorsCompareAndEqual() {
         #expect(String.StandardComparator.localizedStandard.compare("File 2", "File 10") == .orderedAscending)
-        #expect(String.StandardComparator.lexical.compare("a", "B") == .orderedDescending)
         #expect(String.StandardComparator.localizedStandard == .localizedStandard)
         #expect(String.StandardComparator.localizedStandard != .lexical)
-        #expect(String.StandardComparator.localized.isLocalized && !String.StandardComparator.lexical.isLocalized)
-        var reversed = String.StandardComparator.localized
-        reversed.order = .reverse
-        #expect(reversed != .localized && reversed.order == .reverse)
+        #expect(String.StandardComparator.localized != .localizedStandard)
     }
+    #endif
 }
