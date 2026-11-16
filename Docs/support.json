@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-06",
+  "generated": "2026-11-16",
   "sections": [
     {
       "title": "App lifecycle",
@@ -2507,6 +2507,12 @@
           "status": "partial",
           "notes": "pf-everyday-apis (2026-11-15): on wasm, an attribute read from a whole string or a slice is the value every character shares (nil where runs differ) and neighbouring runs with the same attributes are one, as Foundation keeps them; slices take any range expression, set through it, and append, insert and replace as strings; a type of an app's own conforms to AttributedStringProtocol (EmojiText's partial string in IceCubes); `text.swiftUI.font`, `container.uiKit.foregroundColor` and an app's own scope read and set through a scoped container; merges keep the new or the current value, and replaceAttributes changes only runs that have every attribute given; `AttributeContainer(dictionary)` keeps the UIKit and Foundation keys (Harbour). Open: the localized and Markdown initializers' options, Codable",
           "noFixture": "Behaviour of a value type, not a screen; AttributedStringProtocolTests holds it to Foundation on macOS and Linux, AttributeScopeTests the SwiftUI and UIKit scopes on wasm."
+        },
+        {
+          "api": "UndoManager / EnvironmentValues.undoManager",
+          "status": "partial",
+          "notes": "pf-undo-manager (2026-11-16): registerUndo(withTarget:handler:) into groups, one undo step each; undo runs a step's actions newest first and what they register becomes the redo step; nested groups, action names and menu titles, levelsOfUndo, disabled registration, removeAllActions (with a target too) and the undo notifications. With groupsByEvent a registration outside a group opens one that closes on the main actor's next turn. The environment's undo manager is one for the window. No selector or invocation registration (no Objective-C runtime).",
+          "noFixture": "Values, not a screen; FrameworkTests (UndoManagerTests) run the same steps against Foundation's on macOS, and CoreRuntimeTests (UndoEnvironmentTests) read the environment's."
         }
       ]
     },
