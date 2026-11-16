@@ -262,8 +262,11 @@ public final class CGImage: Hashable, @unchecked Sendable {
                                               tx: fullRect.minX, ty: fullRect.minY)
             draw = [.concat(transform)] + commands
         }
-        let cropped = fullRect.integral != rect.integral
-        return [.save] + (cropped ? [.clipRect(rect)] : []) + draw + [.restore]
+        // A recording can draw past its canvas (a fill wider than the context), and a bitmap
+        // image has nothing there, so it is clipped to the image as well as to a crop.
+        var clipped = fullRect.integral != rect.integral
+        if case .recording = _content { clipped = true }
+        return [.save] + (clipped ? [.clipRect(rect)] : []) + draw + [.restore]
     }
 
     private var dataURL: String?

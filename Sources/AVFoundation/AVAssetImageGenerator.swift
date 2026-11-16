@@ -133,8 +133,10 @@ open class AVAssetImageGenerator: NSObject, @unchecked Sendable {
         let finish: @Sendable (Answer) -> Void = { [weak self] answer in
             guard let self, self.generation == current, !self.queue.isEmpty else { return }
             self.queue.removeFirst()
+            // The answer's handler may cancel and ask again, which starts the next read itself.
+            self.reading = false
             request.answer(answer)
-            self.readNext()
+            if !self.reading { self.readNext() }
         }
         let failed = Answer(image: nil, actualTime: .invalid, result: .failed, error: AVError(.decodeFailed, userInfo: [AVErrorTimeKey: request.time]))
         guard let host = _AVFrameHost.frame, request.time.isValid, request.time.seconds >= 0 else {

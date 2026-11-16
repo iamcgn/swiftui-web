@@ -56,6 +56,10 @@ enum TranslationHost {
 
     static func install() {
         guard let api else { return }
+        installDetector(api)
+        // A browser without `Translator` (Safari, Firefox) gets no translation hooks, so every
+        // pair reads as unavailable and no languages as supported.
+        guard JSObject.global.Translator.object != nil else { return }
         _TranslationHost.availability = { source, target, done in
             let callback = JSOneshotClosure { (arguments: [JSValue]) -> JSValue in
                 switch arguments.first?.string {
@@ -81,6 +85,9 @@ enum TranslationHost {
             }
             _ = api.translate!(source, target, text, callback)
         }
+    }
+
+    private static func installDetector(_ api: JSObject) {
         _TranslationHost.detect = { text, done in
             let callback = JSOneshotClosure { (arguments: [JSValue]) -> JSValue in
                 done(arguments.first?.string)

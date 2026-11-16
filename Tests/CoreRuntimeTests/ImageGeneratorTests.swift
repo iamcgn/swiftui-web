@@ -99,6 +99,30 @@ private final class Answers: @unchecked Sendable {
         #expect(abs(actual.seconds - 3.02) < 0.000_1)
     }
 
+    @Test func aHandlerThatCancelsAndAsksAgainGetsEachFrameOnce() async {
+        StandInVideo.install()
+        defer { _AVFrameHost.frame = nil }
+        let generator = AVAssetImageGenerator(asset: AVAsset(url: movie))
+        let answers = Answers()
+        let second: AVAssetImageGeneratorCompletionHandler = { requested, image, actual, result, error in
+            answers.calls.append((requested.seconds, image?.width, actual.seconds, result, error))
+        }
+        generator.generateCGImagesAsynchronously(forTimes: [NSValue(time: CMTime(seconds: 1, preferredTimescale: 600))]) { _, _, _, _, _ in
+            generator.cancelAllCGImageGeneration()
+            generator.generateCGImagesAsynchronously(forTimes: [NSValue(time: CMTime(seconds: 2, preferredTimescale: 600)),
+                                                                NSValue(time: CMTime(seconds: 3, preferredTimescale: 600))], completionHandler: second)
+        }
+        StandInVideo.answer(StandInVideo.frame(at: 1))
+        #expect(StandInVideo.requests.map(\.seconds) == [2])
+        StandInVideo.answer(StandInVideo.frame(at: 2))
+        #expect(StandInVideo.requests.map(\.seconds) == [3])
+        StandInVideo.answer(StandInVideo.frame(at: 3))
+        #expect(StandInVideo.requests.isEmpty)
+        #expect(answers.calls.map(\.requested) == [2, 3])
+        #expect(answers.calls.allSatisfy { $0.result == .succeeded })
+        #expect(abs((answers.calls.last?.actual ?? 0) - 3.02) < 0.000_1)
+    }
+
     @Test func withoutAHostEveryRequestFails() async {
         _AVFrameHost.frame = nil
         let generator = AVAssetImageGenerator(asset: AVAsset(url: movie))

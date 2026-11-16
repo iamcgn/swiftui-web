@@ -191,7 +191,7 @@ let package = Package(
         // so the container says so and requests fail as on a signed-out device. Queries take
         // Core Data's NSPredicate on wasm (Foundation's elsewhere).
         .target(name: "CloudKit",
-                dependencies: [.product(name: "WebFoundation", package: "WebGraphics"),
+                dependencies: ["CoreLocation", .product(name: "WebFoundation", package: "WebGraphics"),
                                .target(name: "WebCoreData", condition: .when(platforms: [.wasi]))],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "TipKit", dependencies: ["SwiftUI", "TipKitMacros", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),

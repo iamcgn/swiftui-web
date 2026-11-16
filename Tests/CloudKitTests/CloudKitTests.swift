@@ -142,6 +142,17 @@ final class Box<T>: @unchecked Sendable {
         #expect(CKShare(recordZoneID: zone.zoneID).recordID.zoneID == zone.zoneID)
     }
 
+    @Test func recordsHoldFoundationAndLocationObjects() {
+        let record = CKRecord(recordType: "Place")
+        record["visits"] = NSNumber(value: 4)
+        record["name"] = NSString(string: "Harbour")
+        record["where"] = CLLocation(latitude: 41.9, longitude: -87.6)
+        #expect((record["visits"] as? NSNumber)?.intValue == 4)
+        #expect((record["name"] as? NSString)?.description == "Harbour")
+        let place: CLLocation? = record["where"]
+        #expect(place?.coordinate.latitude == 41.9 && place?.coordinate.longitude == -87.6)
+    }
+
     @Test func queriesAndSubscriptions() {
         let query = CKQuery(recordType: "Note", predicate: NSPredicate(value: true))
         #expect(query.recordType == "Note")
