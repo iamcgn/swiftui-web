@@ -8,14 +8,14 @@
 import ObjectiveC
 
 extension NSObject {
-    /// Sends `selector` with `argument` if the method takes one (and nil as a second if it takes
-    /// two, `action:forEvent:`), or with none if it takes none.
+    /// Sends `selector` with `argument` if the method takes one (and `second` as a second if it
+    /// takes two, a control's event for `action:forEvent:`), or with none if it takes none.
     @discardableResult
-    public func _send(_ selector: Selector, passing argument: Any?) -> Unmanaged<AnyObject>? {
+    public func _send(_ selector: Selector, passing argument: Any?, and second: Any? = nil) -> Unmanaged<AnyObject>? {
         switch NSStringFromSelector(selector).reduce(0, { $1 == ":" ? $0 + 1 : $0 }) {
         case 0: return perform(selector)
         case 1: return perform(selector, with: argument)
-        default: return perform(selector, with: argument, with: nil)
+        default: return perform(selector, with: argument, with: second)
         }
     }
 }
