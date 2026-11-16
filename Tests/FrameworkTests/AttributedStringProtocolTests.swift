@@ -105,6 +105,21 @@ func plainCharacters<S: AttributedStringProtocol>(_ text: S) -> String { String(
         #expect(mixed.notes.noteColor == "red" && mixed.runs.count == 1)
     }
 
+    @Test func clearingThroughAScopeClearsRunsThatDiffer() {
+        // The runs differ, so the scope holds no colour, and clearing it still clears them all.
+        var mixed = coloured("ab", "red") + coloured("cd", "blue")
+        mixed.notes.noteColor = nil
+        #expect(mixed.runs.count == 1)
+        #expect(mixed.runs.allSatisfy { $0.noteColor == nil } && mixed.languageIdentifier == "en")
+
+        // Through a slice, only the slice's characters lose it.
+        var three = coloured("ab", "red") + coloured("cd", "blue") + coloured("ef", "green")
+        let middle = three.index(three.startIndex, offsetByCharacters: 1)..<three.index(three.startIndex, offsetByCharacters: 4)
+        three[middle].notes.noteColor = nil
+        #expect(three.runs.map { String(three[$0.range].characters) } == ["a", "bcd", "ef"])
+        #expect(three.runs.map(\.noteColor) == ["red", nil, "green"])
+    }
+
     @Test func mergesKeepTheNewOrTheCurrentValue() {
         var added = AttributeContainer()
         added.noteColor = "blue"

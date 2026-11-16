@@ -183,14 +183,21 @@ public struct ScrollTransitionConfiguration: Sendable {
     }
 }
 
-/// The scroll view's coordinate space: its visible area, the content's scroll included.
-public struct _ScrollViewCoordinateSpaceName: Hashable, Sendable {}
+/// The scroll view's coordinate space: its visible area, the content's scroll included. With an
+/// axis, the nearest scroll view that scrolls along it.
+public struct _ScrollViewCoordinateSpaceName: Hashable, Sendable {
+    package var axis: Axis?
+    public init() {}
+    package init(axis: Axis?) { self.axis = axis }
+}
 
 extension CoordinateSpaceProtocol where Self == NamedCoordinateSpace {
     /// The nearest enclosing scroll view's coordinate space.
     public static var scrollView: NamedCoordinateSpace { NamedCoordinateSpace(AnyHashable(_ScrollViewCoordinateSpaceName())) }
-    /// The nearest enclosing scroll view along `axis`'s coordinate space.
-    public static func scrollView(axis: Axis) -> NamedCoordinateSpace { scrollView }
+    /// The coordinate space of the nearest enclosing scroll view that scrolls along `axis`.
+    public static func scrollView(axis: Axis) -> NamedCoordinateSpace {
+        NamedCoordinateSpace(AnyHashable(_ScrollViewCoordinateSpaceName(axis: axis)))
+    }
 }
 
 // MARK: - Modifiers

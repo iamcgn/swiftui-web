@@ -297,7 +297,8 @@ open class UIScrollView: UIView {
     public override init(frame: CGRect) {
         super.init(frame: frame)
         clipsToBounds = true
-        let pan = UIPanGestureRecognizer()
+        let pan = _ScrollViewPanGestureRecognizer()
+        pan.touchDown = { [weak self] down in self?._trackTouch(down) }
         pan.allowsSimultaneousRecognition = true
         pan.addTarget { [weak self] recognizer in self?.handlePan(recognizer as! UIPanGestureRecognizer) }
         panGestureRecognizer = pan
@@ -572,20 +573,46 @@ open class UIScrollView: UIView {
         return true
     }
 
+    /// A finger down on the scroll view or anything in it (its pan recognizer sees the touch
+    /// even when a control inside takes it): the scroll view is tracking, and momentum stops.
+    fileprivate func _trackTouch(_ down: Bool) {
+        if down { stopMomentum() }
+        _touchDown = down
+    }
+
     override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        stopMomentum()
-        _touchDown = true
+        _trackTouch(true)
         super.touchesBegan(touches, with: event)
     }
 
     override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        _touchDown = false
+        _trackTouch(false)
         super.touchesEnded(touches, with: event)
     }
 
     override open func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        _touchDown = false
+        _trackTouch(false)
         super.touchesCancelled(touches, with: event)
+    }
+}
+
+/// The scroll view's pan recognizer, which also tells it when a touch goes down and up in it.
+private final class _ScrollViewPanGestureRecognizer: UIPanGestureRecognizer {
+    var touchDown: ((Bool) -> Void)?
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesBegan(touches, with: event)
+        touchDown?(true)
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesEnded(touches, with: event)
+        touchDown?(false)
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        super.touchesCancelled(touches, with: event)
+        touchDown?(false)
     }
 }
 

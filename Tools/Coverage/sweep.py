@@ -935,20 +935,23 @@ def cmd_prepare(args):
     # enable them; --all-traits turns every one on (the surface build, which has no apps).
     traits_needed = set(app_traits.TRAITS) if args.all_traits else set()
     declared, uses_syntax = set(), False
-    for app in plan["apps"]:
-        if app.get("batch") != args.batch:
-            continue
-        local = {t["module"] for t in app["targets"]} | {t["module"].replace("-", "_") for t in app["targets"]}
-        strip = (set(app["missing_imports"]) | set(strip_extra.get(app["name"], []))) - local
-        strips[app["name"]] = sorted(strip)
-        # The targets a macro uses, directly or through others: they build for the host too.
+    batch_apps = [app for app in plan["apps"] if app.get("batch") == args.batch]
+    # The targets a macro uses, directly or through others, in any app of the batch: they build
+    # for the host too. A package two apps share is declared once, so whether it builds for the
+    # host can't depend on which app comes first.
+    for_host = set()
+    for app in batch_apps:
         by_module = {t["module"]: t for t in app["targets"] if not t.get("skip")}
-        for_host, pending = set(), [d for t in by_module.values() if t.get("macro") for d in t["deps"]]
+        pending = [d for t in by_module.values() if t.get("macro") for d in t["deps"]]
         while pending:
             m = pending.pop()
             if m in by_module and m not in for_host and not by_module[m].get("macro"):
                 for_host.add(m)
                 pending += by_module[m]["deps"]
+    for app in batch_apps:
+        local = {t["module"] for t in app["targets"]} | {t["module"].replace("-", "_") for t in app["targets"]}
+        strip = (set(app["missing_imports"]) | set(strip_extra.get(app["name"], []))) - local
+        strips[app["name"]] = sorted(strip)
         for t in app["targets"]:
             if t.get("skip"):
                 continue

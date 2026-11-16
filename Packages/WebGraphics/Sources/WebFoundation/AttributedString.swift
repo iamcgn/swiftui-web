@@ -90,10 +90,12 @@ public struct AttributeContainer: Hashable, Sendable {
         return result
     }
 
-    /// The attributes `new` changes from `old` set here, and those it dropped removed.
-    mutating func _apply(_ new: AttributeContainer, over old: AttributeContainer) {
+    /// The attributes `new` changes from `old` set here, and those it dropped removed, as are
+    /// those `cleared` names (set to nil where their value varied, so `old` never had them).
+    mutating func _apply(_ new: AttributeContainer, over old: AttributeContainer, cleared: Set<String> = []) {
         for (key, value) in new.storage where old.storage[key] != value { storage[key] = value }
         for key in old.storage.keys where new.storage[key] == nil { storage[key] = nil }
+        for key in cleared where new.storage[key] == nil { storage[key] = nil }
     }
 
     /// When every one of `attributes` is here with its value: those taken off, `others` merged in.
@@ -248,7 +250,7 @@ public struct AttributedString: AttributedStringProtocol, Hashable, Sendable, Cu
         get { ScopedAttributeContainer(_uniformAttributes(in: startIndex..<endIndex)) }
         set {
             let old = _uniformAttributes(in: startIndex..<endIndex)
-            _edit(startIndex..<endIndex) { $0._apply(newValue._container, over: old) }
+            _edit(startIndex..<endIndex) { $0._apply(newValue._container, over: old, cleared: newValue._cleared) }
         }
     }
 
@@ -435,7 +437,7 @@ public struct AttributedSubstring: AttributedStringProtocol, Sendable, CustomStr
         get { ScopedAttributeContainer(base._uniformAttributes(in: range)) }
         set {
             let old = base._uniformAttributes(in: range)
-            base._edit(range) { $0._apply(newValue._container, over: old) }
+            base._edit(range) { $0._apply(newValue._container, over: old, cleared: newValue._cleared) }
         }
     }
 
@@ -516,12 +518,18 @@ extension AttributedStringProtocol {
 @dynamicMemberLookup
 public struct ScopedAttributeContainer<S: AttributeScope>: Sendable {
     public var _container: AttributeContainer
+    /// The keys set to nil through this view: on a string whose runs differ in one, the view
+    /// never held it, and clearing it still clears every run (`text.uiKit.foregroundColor = nil`).
+    public var _cleared: Set<String> = []
 
     public init(_ container: AttributeContainer = AttributeContainer()) { _container = container }
 
     public subscript<T: AttributedStringKey>(dynamicMember keyPath: KeyPath<S, T>) -> T.Value? {
         get { _container[T.self] }
-        set { _container[T.self] = newValue }
+        set {
+            _container[T.self] = newValue
+            if newValue == nil { _cleared.insert(T.name) } else { _cleared.remove(T.name) }
+        }
     }
 }
 

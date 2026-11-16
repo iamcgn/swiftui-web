@@ -266,6 +266,28 @@ private func json(_ object: [String: Any]) -> String {
         guard case .securityKeyAssertion = key else { Issue.record("not a key assertion"); return }
     }
 
+    @Test func requestsWithDifferentChallengesAreNotMerged() async throws {
+        let browser = StandInCredentials()
+        browser.install()
+        let passkeys = ASAuthorizationPlatformPublicKeyCredentialProvider(relyingPartyIdentifier: "example.com")
+        let keys = ASAuthorizationSecurityKeyPublicKeyCredentialProvider(relyingPartyIdentifier: "example.com")
+        let passkey = passkeys.createCredentialAssertionRequest(challenge: Data([1]))
+        passkey.allowedCredentials = [ASAuthorizationPlatformPublicKeyCredentialDescriptor(credentialID: Data([4]))]
+        let key = keys.createCredentialAssertionRequest(challenge: Data([2]))
+        key.allowedCredentials = [ASAuthorizationSecurityKeyPublicKeyCredentialDescriptor(credentialID: Data([8]), transports: [.usb])]
+        _ = try? await EnvironmentValues().authorizationController.performRequests([passkey, key])
+        var publicKey = try #require(browser.options["publicKey"] as? [String: Any])
+        #expect(publicKey["challenge"] as? String == b64url([1]))
+        #expect((publicKey["allowCredentials"] as? [[String: Any]])?.map { $0["id"] as? String } == [b64url([4])])
+
+        // The same challenge and relying party: one call asks for both kinds of credential.
+        let sameKey = keys.createCredentialAssertionRequest(challenge: Data([1]))
+        sameKey.allowedCredentials = key.allowedCredentials
+        _ = try? await EnvironmentValues().authorizationController.performRequests([passkey, sameKey])
+        publicKey = try #require(browser.options["publicKey"] as? [String: Any])
+        #expect((publicKey["allowCredentials"] as? [[String: Any]])?.map { $0["id"] as? String } == [b64url([4]), b64url([8])])
+    }
+
     @Test func theBrowsersRefusalsBecomeAuthorizationErrors() async throws {
         let browser = StandInCredentials()
         browser.install()
