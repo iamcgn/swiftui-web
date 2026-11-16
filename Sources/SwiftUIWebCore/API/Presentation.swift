@@ -36,9 +36,12 @@ public struct PresentationMode {
     }
 
     /// Dismisses the presentation the view is in (or pops its navigation destination).
-    @MainActor public mutating func dismiss() {
+    /// Nonisolated, as SwiftUI's is (PresentationMode predates actors), so a plain closure may
+    /// call it (WhatsNewKit's dismiss action); the page has one thread, the main actor's.
+    public mutating func dismiss() {
         guard isPresented else { return }
-        dismissAction()
+        nonisolated(unsafe) let action = dismissAction
+        MainActor.assumeIsolated { action() }
         isPresented = false
     }
 }

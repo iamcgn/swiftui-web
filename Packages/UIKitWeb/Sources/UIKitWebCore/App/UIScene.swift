@@ -94,7 +94,7 @@ public final class UISceneConfiguration: @unchecked Sendable {
     public let role: UISceneSession.Role
     public var delegateClass: AnyClass?
     public var sceneClass: AnyClass?
-    public var storyboard: Any?
+    public var storyboard: UIStoryboard?
     public init(name: String?, sessionRole: UISceneSession.Role = .windowApplication) {
         self.name = name
         self.role = sessionRole

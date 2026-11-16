@@ -197,6 +197,12 @@ extension NSAttributedString: Equatable {
     }
 }
 
+/// Hashable, as Foundation's is (an `NSObject`): a struct that stores one synthesizes `Hashable`
+/// (WhatsNewKit's `WhatsNew.Text`). Equal strings have equal text, so the text is the hash.
+extension NSAttributedString: Hashable {
+    public func hash(into hasher: inout Hasher) { hasher.combine(string) }
+}
+
 extension NSAttributedString {
     public func copy() -> Any { NSAttributedString(attributedString: self) }
     public func mutableCopy() -> Any { NSMutableAttributedString(attributedString: self) }

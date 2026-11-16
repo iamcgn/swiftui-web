@@ -90,16 +90,16 @@ import UIKit
         let cell = try #require(table.dequeueReusableCell(withIdentifier: "badged") as? Badged)
         #expect(cell.madeWith == "badged")
         #expect(cell.badge == "new")
-        #expect(cell.style == .subtitle)
+        // Made with the subtitle style: the cell has a detail label.
         #expect(cell.reuseIdentifier == "badged")
         #expect(cell.detailTextLabel != nil)
         // The plain class still registers and dequeues.
         table.register(UITableViewCell.self, forCellReuseIdentifier: "plain")
         let plain = try #require(table.dequeueReusableCell(withIdentifier: "plain"))
-        #expect(type(of: plain) == UITableViewCell.self && plain.style == .default && plain.reuseIdentifier == "plain")
+        #expect(type(of: plain) == UITableViewCell.self && plain.detailTextLabel == nil && plain.reuseIdentifier == "plain")
         #if canImport(ObjectiveC)
         let own = OwnInitializer(value: 3)
-        #expect(own.value == 3 && own.style == .value1)
+        #expect(own.value == 3 && own.detailTextLabel != nil)
         #endif
     }
 }

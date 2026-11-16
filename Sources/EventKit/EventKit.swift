@@ -4,6 +4,9 @@
 // that writes an event compiles and runs; saving without access throws, as it does on a device.
 // Apple's frameworks re-export Foundation: a file importing only this module names Date.
 @_exported import WebFoundation
+#if os(WASI)
+import WebCoreData   // NSPredicate, which Apple's Foundation declares
+#endif
 
 /// The kinds of entity an event store holds.
 public enum EKEntityType: UInt, Sendable {
@@ -113,4 +116,14 @@ open class EKEventStore: @unchecked Sendable {
 
     /// The event with this identifier: none without access.
     open func event(withIdentifier identifier: String) -> EKEvent? { nil }
+
+    /// A query for the events between two dates in some calendars (all of them when nil). The
+    /// store holds none without access, so the query matches nothing.
+    open func predicateForEvents(withStart startDate: Date, end endDate: Date, calendars: [EKCalendar]?) -> NSPredicate {
+        NSPredicate(value: false)
+    }
+    /// The events a query matches: none without access, as a device answers a denied app.
+    open func events(matching predicate: NSPredicate) -> [EKEvent] { [] }
+    /// Calls `block` for each event a query matches: never without access.
+    open func enumerateEvents(matching predicate: NSPredicate, using block: (EKEvent, UnsafeMutablePointer<ObjCBool>) -> Void) {}
 }

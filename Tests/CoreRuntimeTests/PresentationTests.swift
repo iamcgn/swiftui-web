@@ -311,9 +311,12 @@ import SwiftUIWebHeadless
         let name: String
         let seen: Seen
         @Environment(\.presentationMode) private var presentationMode
+        /// The dismissal kept as a plain closure, as WhatsNewKit's dismiss action keeps it: not
+        /// main-actor isolated, so `dismiss()` is callable from it, as SwiftUI's is.
+        nonisolated(unsafe) static let dismissThrough: (Binding<PresentationMode>) -> Void = { $0.wrappedValue.dismiss() }
         var body: some View {
             seen.presented[name] = presentationMode.wrappedValue.isPresented
-            return Button("Done") { presentationMode.wrappedValue.dismiss() }._probe(name)
+            return Button("Done") { Self.dismissThrough(presentationMode) }._probe(name)
         }
     }
 

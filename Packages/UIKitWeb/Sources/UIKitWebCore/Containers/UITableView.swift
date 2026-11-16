@@ -1016,7 +1016,9 @@ open class UITableViewCell: UIView {
     public enum SeparatorStyle: Int, Sendable { case none = 0, singleLine }
     public enum EditingStyle: Int, Sendable { case none = 0, delete, insert }
 
-    public let style: CellStyle
+    /// The style the cell was made with. Internal, as UIKit has no such property, so a subclass
+    /// may declare a `style` of its own (SwiftyFORM's precision slider cell).
+    let style: CellStyle
     public let reuseIdentifier: String?
     public let contentView = UIView()
     public private(set) var textLabel: UILabel?

@@ -26,6 +26,13 @@ import WebFoundation
         event.calendar = store.defaultCalendarForNewEvents
         #expect(event.title == "Focus" && event.endDate.timeIntervalSince(event.startDate) == 1500)
         #expect(throws: EKError.self) { try store.save(event, span: .thisEvent) }
+
+        // A query for a range of events (Shift's day view) matches none without access.
+        let query = store.predicateForEvents(withStart: Date(timeIntervalSince1970: 0), end: Date(timeIntervalSince1970: 86_400), calendars: nil)
+        #expect(store.events(matching: query).isEmpty)
+        var visited = 0
+        store.enumerateEvents(matching: query) { _, _ in visited += 1 }
+        #expect(visited == 0)
     }
 
     @Test func systemSoundsCompleteSilently() {
