@@ -53,6 +53,17 @@ open class UIWindowScene: UIScene {
     public var interfaceOrientation: UIInterfaceOrientation { screen.bounds.width > screen.bounds.height ? .landscapeLeft : .portrait }
     public var traitCollection: UITraitCollection { screen.traitCollection }
     public var sizeRestrictions: UISceneSizeRestrictions? { nil }
+    /// The scene's geometry now: its orientation.
+    public var effectiveGeometry: Geometry { Geometry(interfaceOrientation: interfaceOrientation) }
+
+    /// A window scene's geometry.
+    @preconcurrency @MainActor
+    public final class Geometry {
+        public let interfaceOrientation: UIInterfaceOrientation
+        /// Whether the person is resizing the window (a browser window's resize is not reported as one).
+        public var isInteractivelyResizing: Bool { false }
+        init(interfaceOrientation: UIInterfaceOrientation) { self.interfaceOrientation = interfaceOrientation }
+    }
 }
 
 /// A scene's session: its role and identity.

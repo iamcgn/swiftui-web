@@ -267,6 +267,45 @@ public final class UIFontDescriptor {
         return UIFontDescriptor(font: UIFont(resolved: resolved, weight: font.weight, textStyle: font.textStyle))
     }
 
+    /// The traits a font has: bold, italic, monospaced and the like.
+    public struct SymbolicTraits: OptionSet, Hashable, Sendable {
+        public let rawValue: UInt32
+        public init(rawValue: UInt32) { self.rawValue = rawValue }
+        public static let traitItalic = SymbolicTraits(rawValue: 1 << 0)
+        public static let traitBold = SymbolicTraits(rawValue: 1 << 1)
+        public static let traitExpanded = SymbolicTraits(rawValue: 1 << 5)
+        public static let traitCondensed = SymbolicTraits(rawValue: 1 << 6)
+        public static let traitMonoSpace = SymbolicTraits(rawValue: 1 << 10)
+        public static let traitVertical = SymbolicTraits(rawValue: 1 << 11)
+        public static let traitUIOptimized = SymbolicTraits(rawValue: 1 << 12)
+        public static let traitTightLeading = SymbolicTraits(rawValue: 1 << 15)
+        public static let traitLooseLeading = SymbolicTraits(rawValue: 1 << 16)
+    }
+
+    /// The font's traits: bold from semibold up (the bold system font is semibold), italic, and
+    /// monospaced for the monospaced system design.
+    public var symbolicTraits: SymbolicTraits {
+        var traits: SymbolicTraits = []
+        if font.weight.rawValue >= UIFont.Weight.semibold.rawValue { traits.insert(.traitBold) }
+        if font.resolved.italic { traits.insert(.traitItalic) }
+        if font.resolved.family == "system-monospaced" { traits.insert(.traitMonoSpace) }
+        return traits
+    }
+
+    /// The same font with exactly these traits (bold, italic; the others are kept as they are).
+    public func withSymbolicTraits(_ traits: SymbolicTraits) -> UIFontDescriptor? {
+        var resolved = font.resolved
+        var weight = font.weight
+        let isBold = weight.rawValue >= UIFont.Weight.semibold.rawValue
+        if traits.contains(.traitBold) != isBold {
+            weight = isBold ? .regular : .bold
+            resolved.weight = FontWeight(weight.css)
+            resolved.weightOverridden = true
+        }
+        resolved.italic = traits.contains(.traitItalic)
+        return UIFontDescriptor(font: UIFont(resolved: resolved, weight: weight, textStyle: font.textStyle))
+    }
+
     /// A design of the system font.
     public struct SystemDesign: Hashable, Sendable, RawRepresentable {
         public let rawValue: String

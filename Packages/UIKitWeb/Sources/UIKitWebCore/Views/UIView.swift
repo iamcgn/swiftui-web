@@ -837,6 +837,16 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
         }
     }
 
+    /// Repeats the animations inside an animation block `count` times, playing back each time when
+    /// `autoreverses` (here the enclosing block's whole animation repeats).
+    open class func modifyAnimations(withRepeatCount count: CGFloat, autoreverses: Bool, animations: () -> Void) {
+        if let group = UIViewAnimationContext.current {
+            group.repeatCount = Double(count)
+            group.autoreverses = autoreverses
+        }
+        animations()
+    }
+
     /// Runs `actions` with animation recording off, inside an animation block or not.
     open class func performWithoutAnimation(_ actions: () -> Void) {
         let previous = UIViewAnimationContext.disabled

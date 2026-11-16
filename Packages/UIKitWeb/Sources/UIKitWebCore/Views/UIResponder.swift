@@ -71,6 +71,14 @@ open class UIResponder: UIResponderBase {
     open func selectAll(_ sender: Any?) {}
     #endif
 
+    // MARK: Text input
+
+    /// The keyboard input mode the responder asks for (nil: the person's current keyboard). A page
+    /// cannot switch the person's keyboard, so what a subclass returns is not acted on.
+    open var textInputMode: UITextInputMode? { nil }
+    /// The identifier under which the keyboard remembers its mode for this responder.
+    open var textInputContextIdentifier: String? { nil }
+
     // MARK: Commands and menus (Events/Keyboard.swift, Containers/MenuBuilder.swift)
 
     /// Whether this responder handles `action` (`UIResponderStandardEditActions` and
@@ -168,4 +176,19 @@ open class UIResponder: UIResponderBase {
     open func pressesChanged(_ presses: Set<UIPress>, with event: UIPressesEvent?) { next?.pressesChanged(presses, with: event) }
     open func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?) { next?.pressesEnded(presses, with: event) }
     open func pressesCancelled(_ presses: Set<UIPress>, with event: UIPressesEvent?) { next?.pressesCancelled(presses, with: event) }
+}
+
+/// A keyboard input mode: here the one keyboard of the browser's language, as a page cannot
+/// list the person's keyboards.
+public final class UITextInputMode: @unchecked Sendable {
+    /// The mode's language (a BCP 47 tag such as "en-US"; "emoji" for the emoji keyboard).
+    public let primaryLanguage: String?
+
+    init(primaryLanguage: String?) { self.primaryLanguage = primaryLanguage }
+
+    /// The keyboards the person has turned on: the browser's language.
+    public static var activeInputModes: [UITextInputMode] { [UITextInputMode(primaryLanguage: Locale.preferredLanguages.first)] }
+
+    /// Posted when the person switches keyboards (never: a page is not told).
+    public static let currentInputModeDidChangeNotification = NSNotification.Name("UITextInputCurrentInputModeDidChangeNotification")
 }
