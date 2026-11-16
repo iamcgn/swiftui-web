@@ -66,6 +66,10 @@ public struct _NumberFormatting: Hashable, Sendable {
             plain.roundingIncrement = nil
             // The rule was applied to the increment; the digits that are left round to nearest.
             plain.roundingRule = .toNearestOrEven
+            // ICU shows as many fraction digits as the increment has, so 7 in quarters is "7.00".
+            let (stepDigits, stepExponent) = Self.decimalDigits(increment)
+            let stepFraction = max(0, stepDigits.count - stepExponent)
+            plain.minimumFractionDigits = min(max(minimumFractionDigits, stepFraction), maximumFractionDigits ?? .max)
             return plain.format(shown / scale)
         }
         // ICU rounds the shortest decimal representation (2.675 → "2.68"), not the binary value.

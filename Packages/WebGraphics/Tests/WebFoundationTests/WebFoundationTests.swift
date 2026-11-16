@@ -278,6 +278,8 @@ import Foundation
         fives.roundingRule = .down
         fives.roundingIncrement = 0.05
         #expect(fives.format(1.15) == 1.15.formatted(.number.rounded(rule: .down, increment: 0.05).locale(locale)))
+        // A whole result still shows the increment's fraction digits.
+        #expect(fives.format(1.0) == 1.0.formatted(.number.rounded(rule: .down, increment: 0.05).locale(locale)))
         // Just under a whole step stays under it, in decimal as ICU works it.
         for rule in [FloatingPointRoundingRule.down, .up, .toNearestOrEven, .towardZero] {
             var ones = _NumberFormatting()
