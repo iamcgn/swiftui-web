@@ -17,6 +17,16 @@ import UIKit
     @objc func nextField(_ sender: UIBarButtonItem) { calls.append("next \(sender.title ?? "")") }
 }
 
+/// Action methods that take the event too, as KeyboardToolbar's `touchDown(_ sender: UIButton,
+/// event: UIEvent?)` does: they compile only where `UIEvent` is an Objective-C object.
+@MainActor final class EventTarget: NSObject {
+    var events: [String] = []
+    @objc private func touchDown(_ sender: UIButton, event: UIEvent?) {
+        events.append(event.map { "down \($0.type == .touches) \($0.allTouches?.count ?? 0)" } ?? "down nil")
+    }
+    static let touchDownAction = #selector(touchDown(_:event:))
+}
+
 /// A controller whose `@objc` method takes a rectangle and is declared in an extension, as
 /// CVCalendar's content controllers' `updateFrames(_ frame: CGRect)` is, and a subclass that
 /// overrides it: both compile only where `CGRect` is representable in Objective-C.
@@ -93,6 +103,33 @@ extension ExtensionLoadedController {
         #expect(target.calls.isEmpty)
         #expect(button.allTargets.isEmpty)
         #expect(order == ["action", "action", "action"])
+    }
+
+    @Test func aControlSendsTheTouchEventToAnActionThatTakesOne() {
+        let button = UIButton(type: .system)
+        button.frame = CGRect(x: 0, y: 0, width: 100, height: 44)
+        let target = EventTarget()
+        button.addTarget(target, action: EventTarget.touchDownAction, for: .touchDown)
+        let touch = UITouch(at: CGPoint(x: 10, y: 10), in: nil, view: button, type: .direct, timestamp: 0)
+        let event = UIEvent(type: .touches, timestamp: 0)
+        event.touches = [touch]
+        button.touchesBegan([touch], with: event)
+        // Outside a touch there is no event to send.
+        button.sendActions(for: .touchDown)
+        #expect(target.events == ["down true 1", "down nil"])
+    }
+
+    @Test func eventsTouchesAndPressesAreObjectiveCObjects() {
+        let touch = UITouch(at: .zero, in: nil, view: nil, type: .direct, timestamp: 0)
+        let event = UIEvent(type: .touches, timestamp: 0)
+        let press = UIPress(phase: .began, key: nil)
+        #expect((touch as AnyObject) is NSObject)
+        #expect((event as AnyObject) is NSObject)
+        #expect((press as AnyObject) is NSObject)
+        // Hashable by identity, as before.
+        let other = UITouch(at: .zero, in: nil, view: nil, type: .direct, timestamp: 0)
+        #expect(Set([touch, touch, other]).count == 2)
+        #expect(touch == touch && touch != other)
     }
 
     @Test func aControlHoldsItsTargetWeakly() {
