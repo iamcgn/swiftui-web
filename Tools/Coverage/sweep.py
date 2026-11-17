@@ -1135,6 +1135,26 @@ let package = Package(
 ERROR = re.compile(r"^(/[^:\n]+\.swift):(\d+):(\d+): error: (.+)$", re.MULTILINE)
 NO_MODULE = re.compile(r"no such module '([^']+)'")
 UNATTRIBUTED = re.compile(r"^(.*\berror: .+)$", re.MULTILINE)
+ERROR_LINE = re.compile(r"^(/[^:\n]+\.swift):(\d+):(\d+): error: (.+)$")
+NOTE_LINE = re.compile(r"^/[^:\n]+:\d+:\d+: note: .+$")
+OTHER_DIAGNOSTIC = re.compile(r"^/[^:\n]+:\d+:\d+: (?:error|warning): ")
+
+
+def notes_of(out):
+    """The compiler's `note:` lines after each error, keyed as ERROR's matches are (path, line,
+    column, message): "found this candidate in module …" and the like, which --show prints."""
+    notes, current = {}, None
+    for text in out.splitlines():
+        error = ERROR_LINE.match(text)
+        if error:
+            current = error.groups()
+            notes.setdefault(current, [])
+        elif current and NOTE_LINE.match(text):
+            if text not in notes[current]:
+                notes[current].append(text)
+        elif OTHER_DIAGNOSTIC.match(text):
+            current = None
+    return notes
 
 
 def normalize_type(t):
@@ -1286,7 +1306,11 @@ def cmd_run(args):
                 cat, key = classify(msg)
                 shown = f"[{where['package']}] {where['file']}" if where.get("package") else where["file"]
                 errors.append({"file": shown, "line": int(line), "msg": msg, "category": cat, "key": key,
+                               "raw": (path, line, col, msg),
                                **({"package": where["package"]} if where.get("package") else {})})
+            # Kept for the log alone (--show), so the results' error rows stay as they were.
+            notes = notes_of(out) if args.show else {}
+            error_notes = [notes.get(e.pop("raw"), [])[:8] for e in errors]
             ok = code == 0
             if not ok:
                 failed.add(t["module"])
@@ -1306,8 +1330,10 @@ def cmd_run(args):
             if args.show and re.search(args.show, f"{app['name']} {t['module']}"):
                 # The whole list in the job log, for a module a change is aimed at (the
                 # artifacts hold it too, but a log is what every reader can open).
-                for e in errors:
+                for e, these in zip(errors, error_notes):
                     print(f"  {e['file']}:{e['line']}: {e['msg']}")
+                    for note in these:
+                        print(f"      {note}")
         files = [f for t in app["targets"] if not t.get("skip") and not t.get("remote") for f in t["files"]]
         results["apps"].append({
             **{k: app.get(k) for k in ("name", "repo", "sha", "control", "missing_imports", "asset_names",
