@@ -1,7 +1,9 @@
 // Foundation's sort comparators on wasm (decision 0017): `ComparisonResult`, `SortOrder`,
-// `SortComparator`, `ComparableComparator`, `KeyPathComparator` and `sorted(using:)`. A package
-// that imports only Foundation sorts by key path too (BackyardBirds' data package).
+// `SortComparator`, `ComparableComparator`, `KeyPathComparator`, `String.StandardComparator` and
+// `sorted(using:)`. A package that imports only Foundation sorts by key path too (BackyardBirds'
+// data package).
 #if os(WASI)
+import FoundationEssentials
 public enum ComparisonResult: Int, Sendable, Hashable, Codable {
     case orderedAscending = -1
     case orderedSame = 0
@@ -100,5 +102,55 @@ public struct KeyPathComparator<Compared>: SortComparator, @unchecked Sendable {
         hasher.combine(keyPath)
         hasher.combine(order)
     }
+}
+
+extension String {
+    /// Foundation's string comparators: `.lexical` orders by the strings' Unicode scalars,
+    /// `.localized` as the current locale's collation does, and `.localizedStandard` as the
+    /// Finder does, with numbers by value ("File 2" before "File 10").
+    public struct StandardComparator: SortComparator, Sendable {
+        /// Orders strings by their scalars, ignoring the locale.
+        public static let lexical = StandardComparator(options: [], isLocalized: false)
+        /// Orders strings as the current locale's collation does.
+        public static let localized = StandardComparator(options: [], isLocalized: true)
+        /// Orders strings as the Finder lists file names.
+        public static let localizedStandard = StandardComparator(options: .numeric, isLocalized: true)
+
+        let options: String.CompareOptions
+        let isLocalized: Bool
+        public var order: SortOrder
+
+        init(options: String.CompareOptions, isLocalized: Bool, order: SortOrder = .forward) {
+            self.options = options
+            self.isLocalized = isLocalized
+            self.order = order
+        }
+
+        /// The comparator `base` in `order`.
+        public init(_ base: StandardComparator, order: SortOrder = .forward) {
+            self.init(options: base.options, isLocalized: base.isLocalized, order: order)
+        }
+
+        public func compare(_ lhs: String, _ rhs: String) -> ComparisonResult {
+            let result = lhs.compare(rhs, options: options, locale: isLocalized ? Locale.current : nil)
+            return order == .forward ? result : ComparisonResult(rawValue: -result.rawValue)!
+        }
+
+        public static func == (lhs: Self, rhs: Self) -> Bool {
+            lhs.options.rawValue == rhs.options.rawValue && lhs.isLocalized == rhs.isLocalized && lhs.order == rhs.order
+        }
+
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(options.rawValue)
+            hasher.combine(isLocalized)
+            hasher.combine(order)
+        }
+    }
+}
+
+extension SortComparator where Self == String.StandardComparator {
+    public static var lexical: String.StandardComparator { String.StandardComparator.lexical }
+    public static var localized: String.StandardComparator { String.StandardComparator.localized }
+    public static var localizedStandard: String.StandardComparator { String.StandardComparator.localizedStandard }
 }
 #endif
