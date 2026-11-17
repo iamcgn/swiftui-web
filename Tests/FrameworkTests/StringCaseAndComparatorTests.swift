@@ -25,6 +25,19 @@ private struct Item: Sendable { let name: String }
         #expect("hello wORLD"[...].capitalized == "Hello World")
     }
 
+    // Issues 213 and 214: titlecase forms, words that start with digits or an apostrophe, final
+    // sigma and Turkish i with an accent after it. Linux's Foundation maps these its own way.
+    #if canImport(Darwin) || os(WASI)
+    @Test func titlecaseFinalSigmaAndAccentedTurkishI() {
+        #expect("ßeta".capitalized(with: nil) == "Sseta")
+        #expect("123hello".capitalized(with: nil) == "123Hello")
+        #expect("'hello".capitalized(with: nil) == "'Hello")
+        #expect("ΟΣ".lowercased(with: nil) == "ος")
+        #expect("i\u{0301}".uppercased(with: turkish) == "İ\u{0301}")
+        #expect("I\u{0301}".lowercased(with: turkish) == "ı\u{0301}")
+    }
+    #endif
+
     @Test func nsStringCaseChanges() {
         let word = NSString(string: "ÉCOLE")
         #expect(word.lowercased(with: nil) == "école")

@@ -78,6 +78,36 @@ private final class Count: @unchecked Sendable {
         #expect(box.value == 2)
     }
 
+    // Issue 208: while the outer group is open, `undoNestedGroup()` undoes the inner group that
+    // just closed inside it, and the outer group stays open.
+    @Test func undoNestedGroupUndoesTheInnerGroupInsideAnOpenOne() {
+        let manager = manager()
+        let box = Box(manager)
+        manager.beginUndoGrouping()
+        manager.beginUndoGrouping()
+        box.set(1)
+        manager.endUndoGrouping()
+        manager.undoNestedGroup()
+        #expect(box.value == 0)
+        #expect(manager.groupingLevel == 1)
+        manager.endUndoGrouping()
+        #expect(manager.groupingLevel == 0)
+    }
+
+    // Issue 207: a new change ends what could be redone as it registers, before its group closes.
+    @Test func registeringInsideAGroupDropsRedoAtOnce() {
+        let manager = manager()
+        let box = Box(manager)
+        step(manager, "One") { box.set(1) }
+        manager.undo()
+        #expect(manager.canRedo)
+        manager.beginUndoGrouping()
+        box.set(5)
+        #expect(!manager.canRedo)
+        manager.endUndoGrouping()
+        #expect(!manager.canRedo && manager.canUndo)
+    }
+
     @Test func levelsOfUndoKeepTheNewestSteps() {
         let manager = manager()
         manager.levelsOfUndo = 2
