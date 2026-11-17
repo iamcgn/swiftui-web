@@ -307,6 +307,16 @@ import Foundation
         }
     }
 
+    // Issue 162: an increment finer than the default six fraction digits shows all of its own.
+    @Test func incrementsFinerThanSixDigits() {
+        let locale = Locale(identifier: "en_US")
+        var fine = _NumberFormatting()
+        fine.roundingIncrement = 0.0000001
+        for value in [1.0, 1.23456789, 0.5] {
+            #expect(fine.format(value) == value.formatted(.number.rounded(increment: 0.0000001).locale(locale)), "\(value) \(fine.format(value))")
+        }
+    }
+
     @Test func parsesLikeFoundation() {
         let core = _NumberFormatting()
         #expect(core.parse("1,234") == 1234)
@@ -371,3 +381,49 @@ import Foundation
         #expect(runs("snake_case_name") == [_InlineMarkdownRun(text: "snake_case_name")])
     }
 }
+
+// The case changes wasm's `lowercased(with:)`, `uppercased(with:)` and `capitalized(with:)` make
+// (issues 213 and 214), held to Foundation's on Apple platforms; Linux's maps some of these its
+// own way.
+#if canImport(Darwin)
+@Suite struct CaseMappingTests {
+    static let words = ["ßeta", "123hello", "'hello", "1st place", "ΟΣ", "ΟΔΟΣ ΚΑΙ ΣΑΣ", "ΑΣ. Σ",
+                        "i\u{0301}", "I\u{0301}", "I\u{0307}x", "Iİ", "istanbul ılık", "hello wORLD",
+                        "straße", "ÉCOLE", "ǆemal ǄEMAL", "x-ray o'neil"]
+    static let locales: [Locale?] = [nil, Locale(identifier: "en_US"), Locale(identifier: "tr_TR"), Locale(identifier: "az")]
+
+    @Test func matchesFoundation() {
+        for locale in Self.locales {
+            let dotted = _CaseMapping.dottedI(locale)
+            let name = locale?.identifier ?? "root"
+            for word in Self.words {
+                let string = word as NSString
+                let lower = _CaseMapping.lowercased(word, dottedI: dotted)
+                let upper = _CaseMapping.uppercased(word, dottedI: dotted)
+                let title = _CaseMapping.capitalized(word, dottedI: dotted)
+                let nsTitle = _CaseMapping.capitalizedAfterUncased(word, dottedI: dotted)
+                #expect(lower == string.lowercased(with: locale), "\(word) lower \(name): \(lower)")
+                #expect(upper == string.uppercased(with: locale), "\(word) upper \(name): \(upper)")
+                // A String titles a word's first letter or digit; NSString any letter after an
+                // uncased scalar.
+                #expect(title == word.capitalized(with: locale), "\(word) title \(name): \(title)")
+                #expect(nsTitle == string.capitalized(with: locale), "\(word) NSString title \(name): \(nsTitle)")
+            }
+        }
+    }
+
+    /// The `capitalized` properties: NSString's as Core Foundation does, a String's the same but
+    /// leaving an uppercase first letter as it is.
+    static let propertyWords = ["ßeta", "123hello", "'hello", "1st place", "don't stop", "x-ray o'neil",
+                                "hello wORLD", "ǆemal ǄEMAL", "ÉCOLE normale"]
+
+    @Test func propertyMatchesFoundation() {
+        for word in Self.propertyWords {
+            let nsTitle = _CaseMapping.capitalizedAfterUncased(word, dottedI: false)
+            #expect(nsTitle == (word as NSString).capitalized, "\(word) NSString: \(nsTitle)")
+            let title = _CaseMapping.capitalizedAfterUncased(word, dottedI: false, titlesUppercase: false)
+            #expect(title == word.capitalized, "\(word): \(title)")
+        }
+    }
+}
+#endif

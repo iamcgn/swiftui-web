@@ -26,9 +26,12 @@ public struct _NumberFormatting: Hashable, Sendable {
         switch style {
         case .currency(let code):
             let digits = Self.currencyDigits(code)
-            return (maximumFractionDigits == nil ? digits : minimumFractionDigits)...(maximumFractionDigits ?? digits)
+            let lower = maximumFractionDigits == nil ? digits : minimumFractionDigits
+            return lower...max(lower, maximumFractionDigits ?? digits)
         default:
-            return minimumFractionDigits...(maximumFractionDigits ?? 6)
+            // A minimum past the default six (an increment of 0.0000001 asks for seven) raises
+            // the maximum with it, as ICU does.
+            return minimumFractionDigits...max(minimumFractionDigits, maximumFractionDigits ?? 6)
         }
     }
 

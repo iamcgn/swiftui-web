@@ -29,11 +29,47 @@ open class UndoManager: NSObject, @unchecked Sendable {
         let perform: @MainActor (AnyObject) -> Void
     }
 
-    /// One undo step: its actions in the order they were registered, and its name.
+    /// What a group holds: an action, or a nested group that closed inside it.
+    private enum Item {
+        case action(Action)
+        case group(Group)
+    }
+
+    /// One undo step: its actions and the groups nested in it, in the order they were
+    /// registered, and its name. A nested group stays whole so `undoNestedGroup()` can undo it
+    /// while the group around it is still open.
     private final class Group {
-        var actions: [Action] = []
+        var items: [Item] = []
         var name = ""
         var isDiscardable = false
+
+        var hasActions: Bool {
+            items.contains {
+                if case .group(let nested) = $0 { return nested.hasActions }
+                return true
+            }
+        }
+
+        /// Runs the actions newest first, a nested group's as one.
+        @MainActor func performNewestFirst() {
+            for item in items.reversed() {
+                switch item {
+                case .action(let action): action.perform(action.target)
+                case .group(let nested): nested.performNewestFirst()
+                }
+            }
+        }
+
+        /// Drops the actions registered with `object`, and any nested group left empty.
+        func strip(_ object: AnyObject) {
+            for case .group(let nested) in items { nested.strip(object) }
+            items.removeAll {
+                switch $0 {
+                case .action(let action): return action.target === object
+                case .group(let nested): return !nested.hasActions
+                }
+            }
+        }
     }
 
     private var undoStack: [Group] = []
@@ -76,10 +112,10 @@ open class UndoManager: NSObject, @unchecked Sendable {
         guard let group = openGroups.popLast() else { return }
         post(.NSUndoManagerWillCloseUndoGroup)
         if let outer = openGroups.last {
-            // A nested group's actions belong to the group around it.
-            outer.actions += group.actions
+            // A nested group belongs to the group around it, and stays whole inside it.
+            if group.hasActions { outer.items.append(.group(group)) }
             if outer.name.isEmpty { outer.name = group.name }
-        } else if !group.actions.isEmpty {
+        } else if group.hasActions {
             if isUndoing {
                 push(group, onto: &redoStack)
             } else if isRedoing {
@@ -100,7 +136,10 @@ open class UndoManager: NSObject, @unchecked Sendable {
             beginUndoGrouping()
             closeOnNextTurn()
         }
-        openGroups[openGroups.count - 1].actions.append(Action(target: target) { handler($0 as! TargetType) })
+        // A new change, not one an undo or redo makes, ends what could be redone at once, before
+        // its group closes.
+        if !isUndoing && !isRedoing { redoStack.removeAll() }
+        openGroups[openGroups.count - 1].items.append(.action(Action(target: target) { handler($0 as! TargetType) }))
     }
 
     /// Names the open group, or the step on top of the stack the next registration goes to.
@@ -119,13 +158,13 @@ open class UndoManager: NSObject, @unchecked Sendable {
     }
 
     open var canUndo: Bool {
-        !undoStack.isEmpty || openGroups.contains { !$0.actions.isEmpty }
+        !undoStack.isEmpty || openGroups.contains { $0.hasActions }
     }
 
     open var canRedo: Bool { !redoStack.isEmpty }
 
     open var undoActionName: String {
-        openGroups.first(where: { !$0.actions.isEmpty })?.name ?? undoStack.last?.name ?? ""
+        openGroups.first(where: { $0.hasActions })?.name ?? undoStack.last?.name ?? ""
     }
 
     open var redoActionName: String { redoStack.last?.name ?? "" }
@@ -151,17 +190,23 @@ open class UndoManager: NSObject, @unchecked Sendable {
         undoNestedGroup()
     }
 
-    /// Undoes the top step: its actions run newest first, and what they register becomes the
-    /// step `redo()` performs.
+    /// Undoes the last group: the top step, or, while a group is open, the group that last
+    /// closed inside it. Its actions run newest first, and what they register becomes the step
+    /// `redo()` performs.
     @MainActor open func undoNestedGroup() {
-        guard openGroups.isEmpty, let group = undoStack.popLast() else { return }
+        let group: Group
+        if let open = openGroups.last {
+            guard case .group(let nested)? = open.items.last else { return }
+            open.items.removeLast()
+            group = nested
+        } else {
+            guard let top = undoStack.popLast() else { return }
+            group = top
+        }
         post(.NSUndoManagerCheckpoint)
         post(.NSUndoManagerWillUndoChange)
         isUndoing = true
-        beginUndoGrouping()
-        openGroups[openGroups.count - 1].name = group.name
-        for action in group.actions.reversed() { action.perform(action.target) }
-        endUndoGrouping()
+        perform(group)
         isUndoing = false
         post(.NSUndoManagerDidUndoChange)
     }
@@ -172,12 +217,21 @@ open class UndoManager: NSObject, @unchecked Sendable {
         post(.NSUndoManagerCheckpoint)
         post(.NSUndoManagerWillRedoChange)
         isRedoing = true
-        beginUndoGrouping()
-        openGroups[openGroups.count - 1].name = group.name
-        for action in group.actions.reversed() { action.perform(action.target) }
-        endUndoGrouping()
+        perform(group)
         isRedoing = false
         post(.NSUndoManagerDidRedoChange)
+    }
+
+    /// Runs `group` inside a top-level group of its own, so what it registers lands on the
+    /// redo stack (undoing) or the undo stack (redoing), even while the caller has groups open.
+    @MainActor private func perform(_ group: Group) {
+        let outer = openGroups
+        openGroups = []
+        beginUndoGrouping()
+        openGroups[0].name = group.name
+        group.performNewestFirst()
+        endUndoGrouping()
+        openGroups = outer
     }
 
     open func removeAllActions() {
@@ -190,12 +244,12 @@ open class UndoManager: NSObject, @unchecked Sendable {
     open func removeAllActions(withTarget target: Any) {
         let object = target as AnyObject
         func strip(_ stack: inout [Group]) {
-            for group in stack { group.actions.removeAll { $0.target === object } }
-            stack.removeAll { $0.actions.isEmpty }
+            for group in stack { group.strip(object) }
+            stack.removeAll { !$0.hasActions }
         }
         strip(&undoStack)
         strip(&redoStack)
-        for group in openGroups { group.actions.removeAll { $0.target === object } }
+        for group in openGroups { group.strip(object) }
     }
 
     private func push(_ group: Group, onto stack: inout [Group]) {
