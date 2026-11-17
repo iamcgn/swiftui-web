@@ -10,6 +10,9 @@ public final class UIAlertAction {
     public let title: String?
     public let style: Style
     public var isEnabled = true
+    /// What assistive technologies read for the action's button (its title when nil).
+    public var accessibilityLabel: String?
+    public var accessibilityIdentifier: String?
     let handler: ((UIAlertAction) -> Void)?
 
     public init(title: String?, style: Style, handler: ((UIAlertAction) -> Void)? = nil) {
@@ -284,7 +287,8 @@ final class AlertActionButton: UIControl {
         super.init(frame: .zero)
         isAccessibilityElement = true
         accessibilityTraits = .button
-        accessibilityLabel = action.title
+        accessibilityLabel = action.accessibilityLabel ?? action.title
+        accessibilityIdentifier = action.accessibilityIdentifier
         isEnabled = action.isEnabled
         label.text = action.title
         label.font = .systemFont(ofSize: 17, weight: action.style == .cancel ? .semibold : .regular)
