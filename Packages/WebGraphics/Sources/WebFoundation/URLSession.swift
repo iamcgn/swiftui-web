@@ -155,10 +155,13 @@ public struct URLRequest: Hashable, Sendable {
         case returnCacheDataDontLoad = 3
         case reloadRevalidatingCacheData = 5
     }
-    public enum NetworkServiceType: UInt, Sendable { case `default` = 0, voip = 1, video = 2, background = 3, voice = 4, responsiveData = 6, avStreaming = 8, responsiveAV = 9, callSignaling = 11
-        /// swift-corelibs-foundation's name for `callSignaling`, which packages use off Apple
-        /// platforms (swift-custom-dump's description of a request's service type).
-        public static let networkServiceTypeCallSignaling: NetworkServiceType = .callSignaling
+    /// Named as swift-corelibs-foundation names them, which is what packages switch over off Apple
+    /// platforms (swift-custom-dump lists every case): call signaling is
+    /// `networkServiceTypeCallSignaling`, and Apple's `callSignaling` names the same value.
+    public enum NetworkServiceType: UInt, Sendable {
+        case `default` = 0, voip = 1, video = 2, background = 3, voice = 4, responsiveData = 6, avStreaming = 8, responsiveAV = 9
+        case networkServiceTypeCallSignaling = 11
+        public static let callSignaling: NetworkServiceType = .networkServiceTypeCallSignaling
     }
 
     public var url: URL?
