@@ -992,9 +992,11 @@ def cmd_prepare(args):
                 )
                 continue
             # SwiftPM gives each package its own -package-name, so `package` declarations stay
-            # inside it. Here every app and pinned package is one package, so each target names
-            # the package it came from (the later flag wins over SwiftPM's), or swift-case-paths'
-            # package `UncheckedSendable` would clash with ConcurrencyExtras' in swift-navigation.
+            # inside it. Here every app and pinned package is one package, so each target turns
+            # SwiftPM's name off (`packageAccess: false`) and names the package it came from, or
+            # swift-case-paths' package `UncheckedSendable` would clash with ConcurrencyExtras' in
+            # swift-navigation. (With SwiftPM's name left on, it wins over the flag: PR 227's first
+            # sweep.) Macro targets keep SwiftPM's name and add the flag.
             package_flag = PACKAGE_NAME_FLAG.format(json.dumps(package_name_of(t, app)))
             if t.get("macro"):
                 # Built for the host against the sweep package's swift-syntax; sources as they are.
@@ -1102,6 +1104,7 @@ def cmd_prepare(args):
                 f'            path: "Sources/{t["module"]}",\n'
                 + (f'            exclude: [{", ".join(json.dumps(m) for m in models)}],\n' if models else "")
                 + (f'            resources: [{", ".join(resources)}],\n' if resources else "")
+                + "            packageAccess: false,\n"
                 + f'            swiftSettings: [{", ".join(settings)}]'
                 + (",\n            linkerSettings: stack" if t.get("app") else "")
                 + (f',\n            plugins: [{", ".join(plugins)}]' if plugins else "")
