@@ -261,14 +261,14 @@ extension Set: _BothSetForms {}
             default: return "other"
             }
         }
-        #expect(URLRequest.NetworkServiceType.networkServiceTypeCallSignaling.rawValue == 11)
         var request = URLRequest(url: URL(string: "https://example.com")!)
         request.networkServiceType = .networkServiceTypeCallSignaling
         #expect(name(request.networkServiceType) == "callSignaling")
         #expect(name(.default) == "default" && name(.voice) == "other")
         #if os(WASI)
-        // Apple's name for it, which iOS code assigns.
+        // Apple's name and raw value for it (corelibs numbers it 5).
         #expect(URLRequest.NetworkServiceType.callSignaling == .networkServiceTypeCallSignaling)
+        #expect(URLRequest.NetworkServiceType.callSignaling.rawValue == 11)
         #endif
     }
     #endif
