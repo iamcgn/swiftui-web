@@ -11,7 +11,13 @@ open class UINavigationController: UIViewController {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
 
-    public private(set) var viewControllers: [UIViewController] = []
+    /// The stack, bottom first. Setting it replaces the stack without animation, as
+    /// `setViewControllers(_:animated: false)` does.
+    open var viewControllers: [UIViewController] {
+        get { stack }
+        set { setViewControllers(newValue, animated: false) }
+    }
+    private var stack: [UIViewController] = []
     public let navigationBar = UINavigationBar()
     open weak var delegate: (any UINavigationControllerDelegate)?
     open var isNavigationBarHidden = false { didSet { navigationBar.isHidden = isNavigationBarHidden; viewIfLoaded?.setNeedsLayout() } }
@@ -50,6 +56,13 @@ open class UINavigationController: UIViewController {
 
     public override init(nibName: String? = nil, bundle: Any? = nil) {
         super.init(nibName: nibName, bundle: bundle)
+        navigationBar.controller = self
+    }
+
+    /// A navigation controller with its own bar and toolbar classes (accepted: the bar and the
+    /// toolbar here are always UIKitWeb's, which apps customise through their appearance).
+    public init(navigationBarClass: AnyClass?, toolbarClass: AnyClass?) {
+        super.init(nibName: nil, bundle: nil)
         navigationBar.controller = self
     }
 
@@ -225,7 +238,7 @@ open class UINavigationController: UIViewController {
             if !(slides && controller === oldTop) { controller.viewIfLoaded?.removeFromSuperview() }
             controller.removeFromParent()
         }
-        viewControllers = controllers
+        stack = controllers
         for controller in controllers where controller.parent !== self {
             addChild(controller)
             controller.didMove(toParent: self)
@@ -451,10 +464,10 @@ open class UINavigationController: UIViewController {
 #if canImport(ObjectiveC)
 /// The methods a navigation controller's delegate implements: an `@objc` protocol of optional
 /// methods with the Objective-C runtime, as UIKit's is, so a delegate that forwards to another
-/// asks whether it implements one (`base?.navigationController?(_:willShow:animated:)`,
-/// swift-navigation's NavigationStackController).
+/// asks whether it implements one (`base?.navigationController?(_:willShow:animated:)` or
+/// `base.responds(to:)`, swift-navigation's NavigationStackController).
 @preconcurrency @MainActor
-@objc public protocol UINavigationControllerDelegate {
+@objc public protocol UINavigationControllerDelegate: NSObjectProtocol {
     @objc optional func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool)
     @objc optional func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool)
     /// The orientations the controller supports (asked of the delegate; the page keeps its own).

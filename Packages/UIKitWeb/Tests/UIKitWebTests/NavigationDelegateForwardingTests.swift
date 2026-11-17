@@ -17,6 +17,33 @@ import UIKit
         #expect(UIViewController().supportedInterfaceOrientations == .allButUpsideDown)
     }
 
+    /// A subclass sets its stack through `viewControllers` and calls UIKit's bar-class
+    /// initializer (swift-navigation's NavigationStackController does both).
+    final class Stack: UINavigationController {
+        init(root: UIViewController) {
+            super.init(navigationBarClass: nil, toolbarClass: nil)
+            viewControllers = [root]
+        }
+        required init?(coder: NSCoder) { nil }
+    }
+
+    @Test func aSubclassSetsItsStack() {
+        let root = UIViewController(), detail = UIViewController()
+        let stack = Stack(root: root)
+        #expect(stack.viewControllers.count == 1 && stack.topViewController === root && root.parent === stack)
+        stack.viewControllers = [root, detail]
+        #expect(stack.topViewController === detail && detail.navigationController === stack)
+        stack.viewControllers = [detail]
+        #expect(root.parent == nil && stack.viewControllers.count == 1)
+    }
+
+    @Test func alertActionsCarryTheirAccessibilityLabel() {
+        let action = UIAlertAction(title: "OK", style: .default)
+        #expect(action.accessibilityLabel == nil)
+        action.accessibilityLabel = "Confirm"
+        #expect(action.accessibilityLabel == "Confirm")
+    }
+
     #if canImport(ObjectiveC)
     /// Implements only `didShow` and the animator.
     final class Partial: NSObject, UINavigationControllerDelegate {
@@ -87,6 +114,9 @@ import UIKit
         // Nor does a delegate without them answer for them.
         let delegate: any UINavigationControllerDelegate = base
         #expect(delegate.navigationControllerSupportedInterfaceOrientations?(navigation) == nil)
+        // `responds(to:)` tells the same, as the protocol refines NSObjectProtocol.
+        #expect(delegate.responds(to: #selector(UINavigationControllerDelegate.navigationController(_:didShow:animated:))))
+        #expect(!delegate.responds(to: #selector(UINavigationControllerDelegate.navigationControllerSupportedInterfaceOrientations(_:))))
     }
 
     @Test func aForwardedAnimatorMovesThePush() {
