@@ -448,6 +448,18 @@ private struct QueryView<T: PersistentModel>: View {
         // An optional sort key: nils first in forward order.
         let flags = try context.fetch(FetchDescriptor<DBModel.Country>(sortBy: [SortDescriptor(\DBModel.Country.flag?.absoluteString), SortDescriptor(\DBModel.Country.name)]))
         #expect(flags.map(\.alpha3Code) == ["NOR", "POL", "SWE", "FIN"])
+        // A string comparator, as BackyardBirds' `.init(\BirdFood.name, comparator: .localizedStandard)`.
+        let reversed = try context.fetch(FetchDescriptor<DBModel.Country>(sortBy: [SortDescriptor(\DBModel.Country.name, comparator: .lexical, order: .reverse)]))
+        #expect(reversed.map(\.alpha3Code) == ["SWE", "POL", "NOR", "FIN"])
+        let byPopulation = FetchDescriptor<DBModel.Country>(sortBy: [.init(\.population, order: .reverse), .init(\.name, comparator: .lexical)])
+        #expect(try context.fetch(byPopulation).map(\.alpha3Code) == ["POL", "SWE", "FIN", "NOR"])
+        #if canImport(Darwin)
+        // Apple's default for a string is `.localizedStandard`: case-insensitive, digits by value.
+        let files = [DBModel.Country(name: "file 10", translations: [:], population: 1, alpha3Code: "F10"),
+                     DBModel.Country(name: "File 9", translations: [:], population: 1, alpha3Code: "F9")]
+        let standard = FetchDescriptor<DBModel.Country>(sortBy: [.init(\.name)]).sortBy[0]
+        #expect(standard.compare(files[1], files[0]) == .orderedAscending)
+        #endif
         #expect(try context.fetchCount(FetchDescriptor<DBModel.Country>(predicate: #Predicate { $0.population > 10_000_000 })) == 2)
     }
 
@@ -611,6 +623,16 @@ private struct QueryView<T: PersistentModel>: View {
         #expect(!finland.hasChanges)
     }
 
+    /// BackyardBirds' bird food sheet: a private `@Query` sorted by descriptors with a string
+    /// comparator, and the view still made with no arguments.
+    struct ByPopulation: View {
+        @Query(sort: [.init(\DBModel.Country.population, order: .reverse), .init(\DBModel.Country.name, comparator: .lexical)])
+        private var countries: [DBModel.Country]
+        var body: some View {
+            VStack { ForEach(countries) { Text($0.alpha3Code) } }
+        }
+    }
+
     struct CountryNames: View {
         @Query(sort: \DBModel.Country.name) private var countries: [DBModel.Country]
         var body: some View {
@@ -673,6 +695,15 @@ private struct QueryView<T: PersistentModel>: View {
         try await sut.store(countries: [.init(name: "Suomi", translations: [:], population: 1, flag: nil, alpha3Code: "FIN")])
         await settled { runtime.layout(in: CGSize(width: 320, height: 400)); return texts(runtime).first == "Iceland" }
         #expect(texts(runtime) == ["Iceland", "Norway", "Poland", "Suomi", "Sweden"])
+    }
+
+    @Test @MainActor func queryWithStringComparatorDescriptors() throws {
+        let container = try container()
+        for country in Self.countries { container.mainContext.insert(country.dbModel()) }
+        let runtime = Runtime()
+        runtime.mount(ByPopulation().modelContainer(container))
+        runtime.layout(in: CGSize(width: 320, height: 400))
+        #expect(texts(runtime) == ["POL", "SWE", "FIN", "NOR"])
     }
 
     /// Apple's `@Query` holds the results of the view's latest update: an action that inserts

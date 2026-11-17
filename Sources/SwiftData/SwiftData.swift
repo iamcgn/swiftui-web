@@ -456,6 +456,16 @@ public struct FetchDescriptor<T: PersistentModel> {
 // `Predicate` itself is WebFoundation's. This module names it `WebFoundation.Predicate`, because
 // on macOS and Linux other modules import Foundation directly and the bare name is ambiguous.
 
+/// The string comparator a `SortDescriptor` of a string uses unless told: Apple's
+/// `.localizedStandard`, or `.lexical` on Linux, whose Foundation has only that one.
+public enum _SortDefaults {
+    #if os(Linux)
+    public static var string: String.StandardComparator { .lexical }
+    #else
+    public static var string: String.StandardComparator { .localizedStandard }
+    #endif
+}
+
 /// A description of how to order models by one of their properties.
 public struct SortDescriptor<Compared>: @unchecked Sendable {
     public enum Order: Sendable { case forward, reverse }
@@ -481,10 +491,28 @@ public struct SortDescriptor<Compared>: @unchecked Sendable {
             }
         }
     }
-    public init(_ keyPath: KeyPath<Compared, String>, comparator: Any? = nil, order: Order = .forward) {
+    /// Orders by a string through one of Foundation's string comparators: Apple's default is
+    /// `.localizedStandard` (Finder's order: case-insensitive, digits by value), which Linux's
+    /// Foundation lacks, so a Linux build defaults to `.lexical`.
+    public init(_ keyPath: KeyPath<Compared, String>, comparator: String.StandardComparator = _SortDefaults.string, order: Order = .forward) {
         self.order = order
         self.keyPath = keyPath
-        ordersBefore = { a, b in order == .forward ? a[keyPath: keyPath] < b[keyPath: keyPath] : a[keyPath: keyPath] > b[keyPath: keyPath] }
+        let ascending: ComparisonResult = order == .forward ? .orderedAscending : .orderedDescending
+        ordersBefore = { a, b in comparator.compare(a[keyPath: keyPath], b[keyPath: keyPath]) == ascending }
+    }
+    /// The same for an optional string: nil comes first in forward order.
+    public init(_ keyPath: KeyPath<Compared, String?>, comparator: String.StandardComparator = _SortDefaults.string, order: Order = .forward) {
+        self.order = order
+        self.keyPath = keyPath
+        let ascending: ComparisonResult = order == .forward ? .orderedAscending : .orderedDescending
+        ordersBefore = { a, b in
+            switch (a[keyPath: keyPath], b[keyPath: keyPath]) {
+            case (nil, nil): return false
+            case (nil, _): return order == .forward
+            case (_, nil): return order == .reverse
+            case (let x?, let y?): return comparator.compare(x, y) == ascending
+            }
+        }
     }
 
     /// How two values order under the descriptor, its order applied (Foundation's

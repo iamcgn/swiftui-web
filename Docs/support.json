@@ -955,7 +955,7 @@
         {
           "api": "background / overlay",
           "status": "partial",
-          "notes": "View, style and shape forms; layout exact, display-list painting; Tier B (Chromium) within tolerance; one layer per element when applied to a list (foreach/modifier, section/modifier)",
+          "notes": "View, style and shape forms, and background() and background(in:) with the background style that backgroundStyle(_:) sets (2026-11-17, BackyardBirds); layout exact, display-list painting; Tier B (Chromium) within tolerance; one layer per element when applied to a list (foreach/modifier, section/modifier)",
           "fixtures": [
             "paint/background-overlay"
           ]
@@ -2481,7 +2481,7 @@
         {
           "api": "SwiftData: @Model / @Attribute(.unique) / @Relationship(inverse:) / #Predicate / @ModelActor / @Query / ModelContainer / ModelContext / FetchDescriptor",
           "status": "partial",
-          "notes": "decision 0021, pf-swiftdata (2026-10-13): the macros (SwiftDataMacros), containers and contexts over an in-memory table of rows persisted as one JSON document per store through the host (localStorage in the browser); insert as an upsert by the unique attribute, inverses kept from either side, predicates as closures over the models, sort/limit/offset, transactions and autosave, a model actor's own context synced to the main context and its @Query; a store of another schema version, corrupt bytes, missing storage or a refused write are explicit errors, never an in-memory stand-in. Not done: SQL, faulting, migration plans, CloudKit, undo, batch/enumerate APIs",
+          "notes": "decision 0021, pf-swiftdata (2026-10-13): the macros (SwiftDataMacros), containers and contexts over an in-memory table of rows persisted as one JSON document per store through the host (localStorage in the browser); insert as an upsert by the unique attribute, inverses kept from either side, predicates as closures over the models, sort/limit/offset (a string key through a String.StandardComparator, .localizedStandard by default as on Apple platforms, .lexical on Linux), transactions and autosave, a model actor's own context synced to the main context and its @Query; a store of another schema version, corrupt bytes, missing storage or a refused write are explicit errors, never an in-memory stand-in. Not done: SQL, faulting, migration plans, CloudKit, undo, batch/enumerate APIs",
           "noFixture": "No pixels: SwiftDataTests (the Countries models and repository flows) and the Launches reload probe in Chromium"
         },
         {
