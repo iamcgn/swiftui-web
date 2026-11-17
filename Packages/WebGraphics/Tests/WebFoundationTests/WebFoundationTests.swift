@@ -407,5 +407,17 @@ import Foundation
             }
         }
     }
+
+    /// The `capitalized` property titles a letter after any uncased scalar, as Core Foundation
+    /// does, unlike `capitalized(with:)`.
+    static let propertyWords = ["ßeta", "123hello", "'hello", "1st place", "don't stop", "x-ray o'neil",
+                                "hello wORLD", "ǆemal ǄEMAL", "ÉCOLE normale"]
+
+    @Test func propertyMatchesFoundation() {
+        for word in Self.propertyWords {
+            let title = _CaseMapping.capitalizedAfterUncased(word)
+            #expect(title == (word as NSString).capitalized, "\(word): \(title)")
+        }
+    }
 }
 #endif

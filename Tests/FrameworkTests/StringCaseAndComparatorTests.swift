@@ -30,7 +30,8 @@ private struct Item: Sendable { let name: String }
     #if canImport(Darwin) || os(WASI)
     @Test func titlecaseFinalSigmaAndAccentedTurkishI() {
         #expect("ßeta".capitalized(with: nil) == "Sseta")
-        #expect("123hello".capitalized(with: nil) == "123Hello")
+        // capitalized(with:) titles a word's first letter or digit, as Apple's does.
+        #expect("123hello".capitalized(with: nil) == "123hello")
         #expect("'hello".capitalized(with: nil) == "'Hello")
         #expect("ΟΣ".lowercased(with: nil) == "ος")
         #expect("i\u{0301}".uppercased(with: turkish) == "İ\u{0301}")
