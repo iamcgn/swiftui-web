@@ -75,6 +75,20 @@ import WebCombine
         #expect(transition.effects(insertion: true).isIdentity)
     }
 
+    // Harbour's IndicatorsKit: `.transition(.blurReplace)` fades and scales (the blur is not painted).
+    @Test func blurReplaceFadesAndScales() {
+        let downUp = AnyTransition.blurReplace
+        #expect(downUp.effects(insertion: true).fades && downUp.effects(insertion: true).scale == 0.8)
+        #expect(downUp.effects(insertion: false).fades && downUp.effects(insertion: false).scale == 0.8)
+        let upUp = AnyTransition.blurReplace(.upUp)
+        #expect(upUp.effects(insertion: true).scale == 0.8 && upUp.effects(insertion: false).scale == 1.2)
+        #expect(BlurReplaceTransition().configuration == .downUp)
+        let runtime = Runtime()
+        runtime.mount(Text("Subtitle").transition(.blurReplace))
+        runtime.layout(in: CGSize(width: 300, height: 100))
+        #expect(texts(runtime) == ["Subtitle"])
+    }
+
     // Deprecated API in a deprecated context: no warnings (the package treats them as errors).
     @available(*, deprecated)
     @Test func deprecatedFormsMapOntoTheCurrentAPI() {

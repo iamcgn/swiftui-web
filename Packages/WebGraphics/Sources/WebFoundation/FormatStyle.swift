@@ -19,6 +19,10 @@ public struct _NumberFormatting: Hashable, Sendable {
     /// a percentage's increment is in percent).
     public var roundingIncrement: Double?
     public var roundingRule: FloatingPointRoundingRule = .toNearestOrEven
+    /// Significant digits shown instead of fraction digits (`precision(.significantDigits(_:))`):
+    /// at least the minimum, at most the maximum (nil: no limit). Nil: fraction digits apply.
+    public var minimumSignificantDigits: Int?
+    public var maximumSignificantDigits: Int?
 
     public init(style: Style = .decimal) { self.style = style }
 
@@ -75,6 +79,7 @@ public struct _NumberFormatting: Hashable, Sendable {
             plain.minimumFractionDigits = min(max(minimumFractionDigits, stepFraction), maximumFractionDigits ?? .max)
             return plain.format(shown / scale)
         }
+        if let minimum = minimumSignificantDigits { return formatSignificant(value, minimum: minimum, maximum: maximumSignificantDigits) }
         // ICU rounds the shortest decimal representation (2.675 → "2.68"), not the binary value.
         var (digits, exponent) = Self.decimalDigits(abs(value))
         if case .percent = style { exponent += 2 }
@@ -88,17 +93,9 @@ public struct _NumberFormatting: Hashable, Sendable {
             let restNonZero = fraction[(range.upperBound + 1)...].contains { $0 != 0 }
             fraction.removeSubrange(range.upperBound...)
             let lastKept = range.upperBound > 0 ? fraction[range.upperBound - 1] : (integer.last ?? 0)
-            let dropped = next != 0 || restNonZero
-            let roundsUp: Bool
-            switch roundingRule {
-            case .toNearestOrAwayFromZero: roundsUp = next >= 5
-            case .up: roundsUp = dropped && value > 0
-            case .down: roundsUp = dropped && value < 0
-            case .towardZero: roundsUp = false
-            case .awayFromZero: roundsUp = dropped
-            default: roundsUp = next > 5 || (next == 5 && (restNonZero || lastKept % 2 == 1))
+            if Self.roundsUp(next: next, restNonZero: restNonZero, lastKept: lastKept, rule: roundingRule, negative: value < 0) {
+                Self.increment(&integer, &fraction)
             }
-            if roundsUp { Self.increment(&integer, &fraction) }
         }
         while fraction.count > range.lowerBound, fraction.last == 0 { fraction.removeLast() }
         while fraction.count < range.lowerBound { fraction.append(0) }
@@ -107,6 +104,55 @@ public struct _NumberFormatting: Hashable, Sendable {
         if usesGrouping { integerPart = Self.grouped(integerPart) }
         let negative = value < 0 && (integer.contains { $0 != 0 } || fraction.contains { $0 != 0 })
         return assemble(integer: integerPart, fraction: fraction.map { String($0) }.joined(), negative: negative)
+    }
+
+    /// Whether dropping digits from `next` on (the rest non-zero or not) rounds the last kept
+    /// digit up under the rule, for a value of that sign.
+    private static func roundsUp(next: UInt8, restNonZero: Bool, lastKept: UInt8, rule: FloatingPointRoundingRule,
+                                 negative: Bool) -> Bool {
+        let dropped = next != 0 || restNonZero
+        switch rule {
+        case .toNearestOrAwayFromZero: return next >= 5
+        case .up: return dropped && !negative
+        case .down: return dropped && negative
+        case .towardZero: return false
+        case .awayFromZero: return dropped
+        default: return next > 5 || (next == 5 && (restNonZero || lastKept % 2 == 1))
+        }
+    }
+
+    /// The value at significant digits, as ICU writes it: rounded to at most `maximum` of them
+    /// (whole digits too, so 12345 at three is "12,300"), then padded with fraction zeros to
+    /// `minimum` (0.5 at three is "0.500"); no fraction limit of its own.
+    private func formatSignificant(_ value: Double, minimum: Int, maximum: Int?) -> String {
+        var (digits, exponent) = Self.decimalDigits(abs(value))
+        if case .percent = style { exponent += 2 }
+        if let maximum, digits.count > max(maximum, 1) {
+            let keep = max(maximum, 1)
+            let next = digits[keep]
+            let restNonZero = digits[(keep + 1)...].contains { $0 != 0 }
+            let lastKept = digits[keep - 1]
+            digits.removeSubrange(keep...)
+            if Self.roundsUp(next: next, restNonZero: restNonZero, lastKept: lastKept, rule: roundingRule, negative: value < 0) {
+                var index = digits.count - 1
+                while index >= 0, digits[index] == 9 { digits[index] = 0; index -= 1 }
+                if index >= 0 { digits[index] += 1 } else { digits.insert(1, at: 0); exponent += 1 }
+            }
+            while let last = digits.last, last == 0 { digits.removeLast() }
+        }
+        var integer: [UInt8] = exponent > 0 ? Array(digits.prefix(exponent)) : []
+        while integer.count < max(0, exponent) { integer.append(0) }
+        var fraction: [UInt8] = []
+        if !digits.isEmpty {
+            if exponent < 0 { fraction = Array(repeating: 0, count: -exponent) }
+            if exponent < digits.count { fraction += digits[max(0, exponent)...] }
+        }
+        // Zero shows one significant digit, its "0".
+        var shown = digits.isEmpty ? 1 : (exponent > 0 ? integer.count + fraction.count : fraction.count + exponent)
+        while shown < minimum { fraction.append(0); shown += 1 }
+        var integerPart = integer.isEmpty ? "0" : integer.map { String($0) }.joined()
+        if usesGrouping { integerPart = Self.grouped(integerPart) }
+        return assemble(integer: integerPart, fraction: fraction.map { String($0) }.joined(), negative: value < 0 && !digits.isEmpty)
     }
 
     /// How many whole increments `value` (in percent when `percent`) rounds to under the rule,
@@ -199,6 +245,11 @@ public struct _NumberFormatting: Hashable, Sendable {
     }
 
     public func format<I: BinaryInteger>(_ value: I) -> String {
+        if minimumSignificantDigits != nil, roundingIncrement == nil {
+            // An integer percentage is already in percent (7 → "7%").
+            if case .percent = style { return format(Double(value) / 100) }
+            return format(Double(value))
+        }
         if let increment = roundingIncrement, increment > 0 {
             // An integer percentage is already in percent (7 → "7%"), so it isn't scaled by 100
             // the way the floating-point path scales 0.07.
@@ -293,11 +344,24 @@ public enum NumberFormatStyleConfiguration {
     public struct Precision: Hashable, Sendable {
         package var minimum: Int
         package var maximum: Int?
+        /// Significant digits instead of fraction digits (nil: fraction digits).
+        package var minimumSignificant: Int? = nil
+        package var maximumSignificant: Int? = nil
 
         public static func fractionLength(_ length: Int) -> Precision { Precision(minimum: length, maximum: length) }
         public static func fractionLength<R: RangeExpression>(_ limits: R) -> Precision where R.Bound == Int {
             let range = limits.relative(to: 0..<100)
             return Precision(minimum: range.lowerBound, maximum: range.upperBound - 1)
+        }
+        /// Exactly `digits` significant digits (0.5 at three is "0.500", 12345 is "12,300").
+        public static func significantDigits(_ digits: Int) -> Precision {
+            Precision(minimum: 0, maximum: nil, minimumSignificant: digits, maximumSignificant: digits)
+        }
+        /// Between the range's bounds of significant digits (an open upper bound: no limit).
+        public static func significantDigits<R: RangeExpression>(_ limits: R) -> Precision where R.Bound == Int {
+            let range = limits.relative(to: 1..<1000)
+            return Precision(minimum: 0, maximum: nil, minimumSignificant: range.lowerBound,
+                             maximumSignificant: range.upperBound >= 1000 ? nil : range.upperBound - 1)
         }
     }
 
@@ -314,6 +378,8 @@ extension _NumberFormatting {
         var copy = self
         copy.minimumFractionDigits = precision.minimum
         copy.maximumFractionDigits = precision.maximum
+        copy.minimumSignificantDigits = precision.minimumSignificant
+        copy.maximumSignificantDigits = precision.maximumSignificant
         return copy
     }
 

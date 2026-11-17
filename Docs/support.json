@@ -785,7 +785,7 @@
         {
           "api": "Image(size:label:renderer:) / Image(nsImage:) / Image(cgImage...)",
           "status": "partial",
-          "notes": "Image(size:label:renderer:) draws its GraphicsContext closure at paint time scaled into the frame, a template takes the foreground colour (image/corners, 2026-10-11); no CGImage/NSImage on wasm",
+          "notes": "Image(size:label:renderer:) draws its GraphicsContext closure at paint time scaled into the frame, a template takes the foreground colour (image/corners, 2026-10-11). Image(_:scale:orientation:label:) and Image(decorative:scale:orientation:) show a CGImage through a UIImage of it, turned by the orientation, and ImageRenderer.cgImage is a recording of the content at the renderer's scale (RepresentableTests, 2026-11-17); no NSImage on wasm",
           "fixtures": [
             "image/corners"
           ]
@@ -1447,7 +1447,7 @@
         {
           "api": "Transaction(animation:) / Animation.spring() / AnyTransition.modifier(active:identity:)",
           "status": "partial",
-          "notes": "`Transaction(animation:)`; `.spring()` with no arguments resolves to the duration/bounce form as Apple's does (measured: damping 1, response 0.5; the response/dampingFraction form is disfavoured); `AnyTransition.modifier(active:identity:)` is accepted as the identity transition (transitions paint as fades, moves and scales; the modifiers are not applied) (decision 0021, 2026-10-12)",
+          "notes": "`Transaction(animation:)`; `.spring()` with no arguments resolves to the duration/bounce form as Apple's does (measured: damping 1, response 0.5; the response/dampingFraction form is disfavoured); `AnyTransition.modifier(active:identity:)` is accepted as the identity transition (transitions paint as fades, moves and scales; the modifiers are not applied) (decision 0021, 2026-10-12). `AnyTransition.blurReplace` and `blurReplace(_:)` with BlurReplaceTransition's downUp and upUp configurations fade and scale (0.8 in, 0.8 or 1.2 out); the blur is not painted (2026-11-17)",
           "noFixture": "AppAPIGapsTests."
         },
         {
@@ -2285,6 +2285,12 @@
           "status": "partial",
           "notes": "Decimal.FormatStyle with its Percent and Currency styles, the .number, .percent and .currency(code:) shorthands, precision and grouping, and .formatted(); the value goes through its exact text to the shared number core, so digits past a Double's 15 or 16 are rounded. English output in every locale. On wasm it comes with `import Foundation` only when the app enables Shadows' DecimalFormatting trait, which Tools/Traits/traits.py asks of an app that names Decimal (decision 0024); not done: NSDecimalNumber, parsing strategies (2026-11-01)",
           "noFixture": "FrameworkTests.FoundationFormatTests holds the answers to Foundation's on macOS and Linux, and runs them on wasm."
+        },
+        {
+          "api": "NumberFormatStyleConfiguration.Precision.significantDigits(_:) (Int, ranges)",
+          "status": "partial",
+          "notes": "On wasm: .number and .percent styles round to the maximum significant digits, whole digits included ('12,300'), and pad fraction zeros to the minimum ('2.00'); zero shows one digit; integers go through the same rounding. Rounding follows the style's rounding rule. Not done: significant digits together with a rounding increment (2026-11-17)",
+          "noFixture": "Foundation API with nothing on screen; WebFoundationTests compares it with Foundation on macOS and Linux, FoundationFormatTests holds the answers."
         },
         {
           "api": "ListFormatStyle / Duration.TimeFormatStyle / Duration.UnitsFormatStyle / DateComponentsFormatter / NSCalendar.Unit / Locale.Language / Locale.LanguageCode / Locale.Region / FileManager.containerURL",

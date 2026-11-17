@@ -36,6 +36,16 @@ extension Locale: CurrencyNaming {}
         #expect(Decimal(string: "1500")!.formatted(.currency(code: "JPY").locale(english)) == "¥1,500")
     }
 
+    // FoodTruck's sales charts: significant digits round whole digits and pad to the minimum.
+    @Test func significantDigits() {
+        #expect(12345.0.formatted(.number.precision(.significantDigits(3)).locale(english)) == "12,300")
+        #expect(0.123456.formatted(.number.precision(.significantDigits(3)).locale(english)) == "0.123")
+        #expect(0.123456.formatted(.percent.precision(.significantDigits(3)).locale(english)) == "12.3%")
+        #expect(2.71828.formatted(.number.precision(.significantDigits(1...3)).locale(english)) == "2.72")
+        #expect(2.0.formatted(.number.precision(.significantDigits(3)).locale(english)) == "2.00")
+        #expect(98765.formatted(.number.precision(.significantDigits(2)).locale(english)) == "99,000")
+    }
+
     @Test func lists() {
         #expect(["a", "b", "c"].formatted(.list(type: .and).locale(english)) == "a, b, and c")
         #expect(["a", "b"].formatted(.list(type: .and).locale(english)) == "a and b")

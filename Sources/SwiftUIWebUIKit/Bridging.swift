@@ -30,6 +30,48 @@ extension Image {
     }
 }
 
+// CGImages where CGImage is WebGraphics's (wasm and Linux; Apple platforms keep CoreGraphics's):
+// a renderer's drawing as a recording CGImage, and an Image of a CGImage through a UIImage of it.
+#if !canImport(CoreGraphics) || os(WASI)
+extension ImageRenderer {
+    /// The content drawn as a CGImage: a recording of the drawing, its pixel size the content's
+    /// size at the renderer's scale; nil when the content has no size.
+    public var cgImage: CGImage? {
+        let drawn = _draw()
+        guard drawn.size.width > 0, drawn.size.height > 0 else { return nil }
+        return CGImage(_content: .recording(drawn.commands, size: drawn.size, scale: scale))
+    }
+}
+
+extension Image {
+    /// A labeled image of a CGImage at `scale` pixels per point, turned by `orientation`.
+    public init(_ cgImage: CGImage, scale: CGFloat, orientation: Image.Orientation = .up, label: Text) {
+        self.init(uiImage: UIImage(cgImage: cgImage, scale: scale, orientation: Self.uiKitOrientation(orientation)))
+        self.label = label.resolvedString
+    }
+
+    /// An unlabeled, decorative image of a CGImage at `scale` pixels per point, turned by `orientation`.
+    public init(decorative cgImage: CGImage, scale: CGFloat, orientation: Image.Orientation = .up) {
+        self.init(uiImage: UIImage(cgImage: cgImage, scale: scale, orientation: Self.uiKitOrientation(orientation)))
+        label = nil
+        isDecorative = true
+    }
+
+    private static func uiKitOrientation(_ orientation: Image.Orientation) -> UIImage.Orientation {
+        switch orientation {
+        case .up: return .up
+        case .upMirrored: return .upMirrored
+        case .down: return .down
+        case .downMirrored: return .downMirrored
+        case .left: return .left
+        case .leftMirrored: return .leftMirrored
+        case .right: return .right
+        case .rightMirrored: return .rightMirrored
+        }
+    }
+}
+#endif
+
 extension Font {
     /// Creates a SwiftUI font from a UIKit font: the same text style, or the same size and weight.
     public init(_ uiFont: UIFont) {
