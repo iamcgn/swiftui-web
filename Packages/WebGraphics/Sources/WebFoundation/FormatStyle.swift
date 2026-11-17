@@ -140,6 +140,8 @@ public struct _NumberFormatting: Hashable, Sendable {
             }
             while let last = digits.last, last == 0 { digits.removeLast() }
         }
+        // Zero has no digits to place: it is "0" whatever the exponent (a percentage's included).
+        if digits.isEmpty { exponent = 0 }
         var integer: [UInt8] = exponent > 0 ? Array(digits.prefix(exponent)) : []
         while integer.count < max(0, exponent) { integer.append(0) }
         var fraction: [UInt8] = []
