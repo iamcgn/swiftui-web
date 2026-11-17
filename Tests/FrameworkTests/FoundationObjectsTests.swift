@@ -249,4 +249,30 @@ extension Set: _BothSetForms {}
         os_unfair_lock_unlock(lock)
     }
     #endif
+
+    #if !canImport(Darwin)
+    /// Off Apple platforms swift-custom-dump names call signaling as corelibs does.
+    @Test func callSignalingHasCorelibsName() {
+        func name(_ type: URLRequest.NetworkServiceType) -> String {
+            // swift-custom-dump's switch: corelibs' six cases and `@unknown default`.
+            switch type {
+            case .default: return "default"
+            case .networkServiceTypeCallSignaling: return "callSignaling"
+            case .video: return "video"
+            case .voice, .voip, .background: return "other"
+            @unknown default: return "unknown"
+            }
+        }
+        var request = URLRequest(url: URL(string: "https://example.com")!)
+        request.networkServiceType = .networkServiceTypeCallSignaling
+        #expect(name(request.networkServiceType) == "callSignaling")
+        #expect(name(.default) == "default" && name(.voice) == "other")
+        #if os(WASI)
+        // Apple's name and raw value for it (corelibs numbers it 5).
+        #expect(URLRequest.NetworkServiceType.callSignaling == .networkServiceTypeCallSignaling)
+        #expect(URLRequest.NetworkServiceType.callSignaling.rawValue == 11)
+        #expect(URLRequest.NetworkServiceType.responsiveData == .default)
+        #endif
+    }
+    #endif
 }
