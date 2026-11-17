@@ -28,11 +28,19 @@ enum SpeechHost {
           && !!(window.AudioContext && window.AudioWorkletNode && window.MediaStreamAudioDestinationNode);
         if (!usable) { done('unavailable'); return; }
         var ask = function () { return R.available({ langs: [lang], processLocally: true }); };
-        var wait = function (tries) {
+        // Each answer is logged at info level (the speech probe prints these lines), so a run
+        // that ends unavailable shows which step said so.
+        var note = function (step, a) { try { console.info('speech host: ' + step + ' ' + lang + ' ' + a); } catch (e) {} };
+        // After an install, an "unavailable" is also asked again for up to twenty seconds: like
+        // the first answers after launch, it can come while Chrome registers the pack it just
+        // restored or downloaded.
+        var wait = function (tries, unavailableLeft) {
           ask().then(function (a) {
+            note('wait', a);
+            if (a === 'unavailable' && unavailableLeft > 0 && tries > 0) { setTimeout(function () { wait(tries - 1, unavailableLeft - 1); }, 1000); return; }
             if (a === 'available' || a === 'unavailable' || tries <= 0) { done(a === 'available' ? 'available' : (a === 'unavailable' ? 'unavailable' : 'downloadable')); return; }
-            setTimeout(function () { wait(tries - 1); }, 1000);
-          }, function () { done('unavailable'); });
+            setTimeout(function () { wait(tries - 1, unavailableLeft); }, 1000);
+          }, function (e) { note('wait failed', e); done('unavailable'); });
         };
         // Asked with `install` (requestAuthorization), an "unavailable" is asked again for a few
         // seconds: a Chrome just started can answer it while it is still registering the
@@ -43,6 +51,7 @@ enum SpeechHost {
         // the next load), so it is asked for up to twenty.
         var first = function (retries) {
           return ask().then(function (a) {
+            note('first', a);
             if (a !== 'unavailable' || !install || retries <= 0) return a;
             return new Promise(function (resolve) { setTimeout(resolve, 1000); }).then(function () { return first(retries - 1); });
           });
@@ -51,10 +60,11 @@ enum SpeechHost {
           if (a === 'available') { done('available'); return; }
           if (a === 'unavailable' || !install || typeof R.install !== 'function') { done(a === 'unavailable' ? 'unavailable' : 'downloadable'); return; }
           R.install({ langs: [lang], processLocally: true }).then(function (ok) {
+            note('install', ok);
             if (ok === false) { done('unavailable'); return; }
-            wait(600);
-          }, function () { done('unavailable'); });
-        }, function () { done('unavailable'); });
+            wait(600, 20);
+          }, function (e) { note('install failed', e); done('unavailable'); });
+        }, function (e) { note('first failed', e); done('unavailable'); });
         """
         return try? make.throws.new("lang", "install", "done", body)
     }()

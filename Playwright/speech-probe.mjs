@@ -32,6 +32,8 @@ const problems = [];
 page.on('pageerror', e => problems.push('pageerror: ' + e.message));
 // The network check's deliberate 404 (`/fixtures/missing.json`) and Chrome's own favicon request are matched by location; any other console error is a problem.
 page.on('console', m => { if (m.type() === 'error' && !/\/fixtures\/missing\.json$|\/favicon\.ico$/.test((m.location() && m.location().url) || '')) problems.push('console: ' + m.text() + ' @ ' + ((m.location() && m.location().url) || '')); });
+// The host's own notes on each availability answer, printed so a failed run shows its path.
+page.on('console', m => { if (m.type() === 'info' && m.text().startsWith('speech host: ')) console.log(m.text()); });
 const texts = () => page.evaluate(() => window.__swiftuiwebDebug.displayList().filter(c => c.startsWith('drawText')).map(c => c.match(/"([^"]*)"/)[1]));
 const speechLine = async () => { const t = await texts(); const start = t.findIndex(x => x.startsWith('speech: ')); if (start < 0) return ''; const parts = []; for (let i = start; i < t.length && t[i] !== 'Record again'; i++) parts.push(t[i]); return parts.join(' '); };
 const field = (line, name) => { const m = line.match(new RegExp(name + '=(\\[[^\\]]*\\]|\\S+)')); return m ? m[1].replace(/^\[|\]$/g, '') : null; };

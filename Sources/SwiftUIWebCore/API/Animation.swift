@@ -239,6 +239,19 @@ extension View {
 
 // MARK: - Transitions
 
+/// The blur replace transition's scaling (`AnyTransition.blurReplace(_:)`).
+public struct BlurReplaceTransition: Sendable {
+    public struct Configuration: Hashable, Sendable {
+        package let scalesUpOnRemoval: Bool
+        /// Scales down as the view is removed and up as it is inserted.
+        public static let downUp = Configuration(scalesUpOnRemoval: false)
+        /// Scales up as the view is removed and as it is inserted.
+        public static let upUp = Configuration(scalesUpOnRemoval: true)
+    }
+    public var configuration: Configuration
+    public init(configuration: Configuration = .downUp) { self.configuration = configuration }
+}
+
 /// A type-erased transition: how a view enters and leaves the tree under an animation.
 public struct AnyTransition: Sendable {
     package indirect enum Kind: Sendable {
@@ -303,6 +316,18 @@ public struct AnyTransition: Sendable {
     /// Attaches an animation to this transition.
     public func animation(_ animation: Animation?) -> AnyTransition {
         AnyTransition(kind: kind, animation: animation)
+    }
+
+    /// Blurs and scales the view as it is inserted and removed, iOS 17's blur replace; here it
+    /// fades and scales, without the blur (transitions paint as fades, moves and scales).
+    public static var blurReplace: AnyTransition { blurReplace(.downUp) }
+    /// The blur replace transition with the configuration's scaling: down on removal and up on
+    /// insertion (`downUp`), or up both ways (`upUp`).
+    public static func blurReplace(_ configuration: BlurReplaceTransition.Configuration = .downUp) -> AnyTransition {
+        let inserted = AnyTransition.scale(0.8).combined(with: .opacity)
+        return configuration.scalesUpOnRemoval
+            ? .asymmetric(insertion: inserted, removal: AnyTransition.scale(1.2).combined(with: .opacity))
+            : inserted
     }
 
     /// Returns a transition defined between an active modifier and an identity modifier

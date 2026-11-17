@@ -626,6 +626,28 @@ import Foundation
         #expect(UIImage(systemName: "star")?.pngData() == nil)
     }
 
+    #if !canImport(CoreGraphics)
+    /// FoodTruck's donut thumbnails: `ImageRenderer.cgImage` at the display scale, shown with
+    /// `Image(_:scale:label:)` at the content's size, drawing the content.
+    @Test func imageRendererCGImageShowsAsAnImage() throws {
+        let renderer = ImageRenderer(content: Color(red: 0, green: 0, blue: 1).frame(width: 30, height: 20))
+        renderer.scale = 2
+        let cgImage = try #require(renderer.cgImage)
+        #expect(cgImage.width == 60 && cgImage.height == 40)
+        #expect(ImageRenderer(content: EmptyView()).cgImage == nil)
+        let r = iOSRuntime()
+        r.mount(VStack(spacing: 0) {
+            Image(cgImage, scale: 2, label: Text("Donut"))._probe("labeled")
+            Image(decorative: cgImage, scale: 2, orientation: .left)._probe("turned")
+        })
+        r.layout(in: CGSize(width: 320, height: 200))
+        #expect(r.probeFrames["labeled"]?.size == CGSize(width: 30, height: 20))
+        #expect(r.probeFrames["turned"]?.size == CGSize(width: 20, height: 30))
+        let fills = r.render(scale: 2).commands.map(\.description).filter { $0.hasPrefix("fill") }
+        #expect(fills.filter { $0.contains("#0000FF") }.count == 2, "\(fills)")
+    }
+    #endif
+
     final class Beam: UIPointerInteractionDelegate {
         func pointerInteraction(_ interaction: UIPointerInteraction, styleFor region: UIPointerRegion) -> UIPointerStyle? {
             UIPointerStyle(shape: .horizontalBeam(length: 20))

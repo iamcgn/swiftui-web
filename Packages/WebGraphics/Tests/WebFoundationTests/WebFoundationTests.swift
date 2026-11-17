@@ -317,6 +317,29 @@ import Foundation
         }
     }
 
+    // FoodTruck's `.percent.precision(.significantDigits(3))`: significant digits round whole
+    // digits too and pad with zeros to the minimum, as Foundation's ICU styles do.
+    @Test func significantDigitsMatchFoundation() {
+        let locale = Locale(identifier: "en_US")
+        let values = [0.5, 12345.0, 0.000123456, 1.0, 999.96, 0.0, -2.71828, 123.456, 0.1, 99.5, 0.0995]
+        for (low, high) in [(3, 3), (1, 3), (2, 6), (1, 1)] {
+            var decimal = _NumberFormatting()
+            decimal.minimumSignificantDigits = low
+            decimal.maximumSignificantDigits = high
+            var percent = decimal
+            percent.style = .percent
+            for value in values {
+                let number = value.formatted(.number.precision(.significantDigits(low...high)).locale(locale))
+                #expect(decimal.format(value) == number, "\(value) \(low)...\(high): \(decimal.format(value))")
+                let percentText = value.formatted(.percent.precision(.significantDigits(low...high)).locale(locale))
+                #expect(percent.format(value) == percentText, "\(value) \(low)...\(high) percent: \(percent.format(value))")
+            }
+            for integer in [12345, 7, 0, -98765] {
+                #expect(decimal.format(integer) == integer.formatted(.number.precision(.significantDigits(low...high)).locale(locale)), "\(integer) \(low)...\(high)")
+            }
+        }
+    }
+
     @Test func parsesLikeFoundation() {
         let core = _NumberFormatting()
         #expect(core.parse("1,234") == 1234)

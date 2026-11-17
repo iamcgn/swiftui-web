@@ -3,8 +3,9 @@
 // proposal is unspecified) and drawn; `uiImage` (SwiftUIWebUIKit) keeps the drawing as a
 // UIImage recording, which an `Image`, a `ShareLink` or `pngData()` takes as any other. The
 // runtime measures text with the engine and reads images from the catalog the host installed.
-// Not here: `cgImage` (there is no CGImage type on the web), `render(rasterizationScale:renderer:)`
-// and observing the renderer (it is no `ObservableObject`).
+// `cgImage` (SwiftUIWebUIKit, where CGImage is WebGraphics's) is the same drawing as a recording
+// CGImage. Not here: `render(rasterizationScale:renderer:)` and observing the renderer (it is no
+// `ObservableObject`).
 #if os(WASI)
 import WebFoundation
 #else
