@@ -196,16 +196,17 @@ extension View {
         })
     }
 
-    /// Presents a popover when a given condition is true.
+    /// Presents a popover when a given condition is true. A `nil` arrow edge lets the system
+    /// choose, as iOS 18 does; here that is the top edge, the old default.
     nonisolated public func popover<Content: View>(isPresented: Binding<Bool>, attachmentAnchor: PopoverAttachmentAnchor = .rect(.bounds),
-                                                   arrowEdge: Edge = .top, @ViewBuilder content: @escaping () -> Content) -> some View {
-        modifier(_PresentationModifier(kind: .popover(arrowEdge: arrowEdge, anchor: attachmentAnchor), isPresented: isPresented, onDismiss: nil) { AnyView(content()) })
+                                                   arrowEdge: Edge? = nil, @ViewBuilder content: @escaping () -> Content) -> some View {
+        modifier(_PresentationModifier(kind: .popover(arrowEdge: arrowEdge ?? .top, anchor: attachmentAnchor), isPresented: isPresented, onDismiss: nil) { AnyView(content()) })
     }
 
     /// Presents a popover using the given item as a data source for the popover's content.
     nonisolated public func popover<Item: Identifiable, Content: View>(item: Binding<Item?>, attachmentAnchor: PopoverAttachmentAnchor = .rect(.bounds),
-                                                                       arrowEdge: Edge = .top, @ViewBuilder content: @escaping (Item) -> Content) -> some View {
-        modifier(_PresentationModifier(kind: .popover(arrowEdge: arrowEdge, anchor: attachmentAnchor), isPresented: _itemBinding(item), onDismiss: nil) {
+                                                                       arrowEdge: Edge? = nil, @ViewBuilder content: @escaping (Item) -> Content) -> some View {
+        modifier(_PresentationModifier(kind: .popover(arrowEdge: arrowEdge ?? .top, anchor: attachmentAnchor), isPresented: _itemBinding(item), onDismiss: nil) {
             item.wrappedValue.map { AnyView(content($0)) } ?? AnyView(EmptyView())
         })
     }
