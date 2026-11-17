@@ -100,12 +100,8 @@ extension _WebNSString {
         return String(decoding: units, as: UTF16.self)
     }
 
-    #if os(WASI)
     /// Core Foundation's titling, as NSString's is on Apple platforms ("123hello" → "123Hello").
     public var capitalized: String { _CaseMapping.capitalizedAfterUncased(string, dottedI: false) }
-    #else
-    public var capitalized: String { string.localizedCapitalized }
-    #endif
     public var localizedCapitalized: String { string.localizedCapitalized }
     public var localizedLowercase: String { string.lowercased() }
     public var localizedUppercase: String { string.uppercased() }
