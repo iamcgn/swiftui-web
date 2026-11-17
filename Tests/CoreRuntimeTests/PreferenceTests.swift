@@ -20,10 +20,10 @@ private struct RectKey: PreferenceKey {
 /// Helpers in a plain extension of the proxy, as BackyardBirds' parallax offset is written: the
 /// proxy's members are nonisolated, as Apple's are.
 fileprivate extension GeometryProxy {
-    func outerOffset() -> CGPoint? {
+    /// The reader's x in the named space, and the named space's x in the reader's own.
+    func outerOffsets() -> (mine: CGFloat, outer: CGFloat, top: CGFloat)? {
         guard let outer = bounds(of: .named("outer")) else { return nil }
-        let mine = frame(in: .named("outer"))
-        return CGPoint(x: mine.minX - outer.minX, y: safeAreaInsets.top + mine.minY)
+        return (frame(in: .named("outer")).minX, outer.minX, safeAreaInsets.top)
     }
 }
 
@@ -113,7 +113,7 @@ private final class Box { var value: Int? ; var names: [String] = []; var calls 
     }
 
     @Test func proxyMembersAreReadableOutsideTheMainActor() {
-        final class Seen: @unchecked Sendable { var offset: CGPoint?; var missing: CGRect? = .zero }
+        final class Seen: @unchecked Sendable { var offsets: (mine: CGFloat, outer: CGFloat, top: CGFloat)?; var missing: CGRect? = .zero }
         let seen = Seen()
         let runtime = Runtime()
         runtime.mount(
@@ -121,7 +121,7 @@ private final class Box { var value: Int? ; var names: [String] = []; var calls 
                 Color.blue.frame(width: 20)
                 GeometryReader { proxy in
                     let _ = {
-                        seen.offset = proxy.outerOffset()
+                        seen.offsets = proxy.outerOffsets()
                         seen.missing = proxy.bounds(of: .named("nowhere"))
                     }()
                     Color.green
@@ -130,7 +130,7 @@ private final class Box { var value: Int? ; var names: [String] = []; var calls 
             .coordinateSpace(name: "outer")
             .frame(width: 100, height: 40))
         runtime.layout(in: CGSize(width: 100, height: 40))
-        #expect(seen.offset == CGPoint(x: 20, y: 0))
+        #expect(seen.offsets?.mine == 20 && seen.offsets?.outer == -20 && seen.offsets?.top == 0)
         #expect(seen.missing == nil)
     }
 
