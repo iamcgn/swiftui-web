@@ -155,13 +155,18 @@ public struct URLRequest: Hashable, Sendable {
         case returnCacheDataDontLoad = 3
         case reloadRevalidatingCacheData = 5
     }
-    /// Named as swift-corelibs-foundation names them, which is what packages switch over off Apple
-    /// platforms (swift-custom-dump lists every case): call signaling is
-    /// `networkServiceTypeCallSignaling`, and Apple's `callSignaling` names the same value.
+    /// The cases swift-corelibs-foundation has, under its names, because packages that build off
+    /// Apple platforms switch over exactly those (swift-custom-dump lists all six and ends in
+    /// `@unknown default`, which doesn't stand in for a known case). Apple's names for the rest
+    /// are constants: `callSignaling` is corelibs' `networkServiceTypeCallSignaling`, and the
+    /// responsive and streaming types, which mean nothing to a browser's fetch, are `.default`.
     public enum NetworkServiceType: UInt, Sendable {
-        case `default` = 0, voip = 1, video = 2, background = 3, voice = 4, responsiveData = 6, avStreaming = 8, responsiveAV = 9
+        case `default` = 0, voip = 1, video = 2, background = 3, voice = 4
         case networkServiceTypeCallSignaling = 11
         public static let callSignaling: NetworkServiceType = .networkServiceTypeCallSignaling
+        public static let responsiveData: NetworkServiceType = .default
+        public static let avStreaming: NetworkServiceType = .default
+        public static let responsiveAV: NetworkServiceType = .default
     }
 
     public var url: URL?
