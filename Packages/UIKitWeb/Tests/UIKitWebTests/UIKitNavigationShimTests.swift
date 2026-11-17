@@ -1,8 +1,8 @@
 // What swift-navigation's UIKitNavigationShim adds to UIViewController on Apple's platforms
 // (App/UIViewController.swift): work queued for a view's first appearance runs once when it
-// appears, and a presented controller's dismiss work runs once when it is dismissed, an alert's
-// after the handler of the action that dismissed it. Its UIKit bindings (UIKitNavigation, in
-// EhPanda and CriticalMaps) present and dismiss through them.
+// appears, and a controller's dismiss work runs once when it is dismissed (an alert's after the
+// handler of the action that dismissed it) or leaves its parent, as a popped one does. Its UIKit
+// bindings (UIKitNavigation, in EhPanda and CriticalMaps) present and dismiss through them.
 import Testing
 import UIKit
 
@@ -56,8 +56,8 @@ import UIKit
         #expect(presented._UIKitNavigation_onDismiss == nil)
     }
 
-    /// A pushed controller that is popped is not dismissed, so its work waits.
-    @Test func poppingIsNotDismissing() {
+    /// A pushed controller that is popped leaves its parent, so its dismiss work runs, once.
+    @Test func poppingRunsDismissWorkOnce() async {
         let root = window()
         let navigation = UINavigationController(rootViewController: UIViewController())
         root.present(navigation, animated: false)
@@ -67,9 +67,29 @@ import UIKit
         detail._UIKitNavigation_onDismiss = { dismissed += 1 }
         navigation.pushViewController(detail, animated: false)
         UIKitScene.shared.layout(in: CGSize(width: 320, height: 500))
+        #expect(dismissed == 0)
         navigation.popViewController(animated: false)
         UIKitScene.shared.layout(in: CGSize(width: 320, height: 500))
+        #expect(dismissed == 1)
+        await settle { detail._UIKitNavigation_onDismiss == nil }
+        #expect(detail._UIKitNavigation_onDismiss == nil)
+        // Pushed again and popped again, it has no work left to run.
+        navigation.pushViewController(detail, animated: false)
+        navigation.popViewController(animated: false)
+        #expect(dismissed == 1)
+    }
+
+    /// A child taken out of a container by hand leaves its parent too.
+    @Test func removingAChildRunsItsDismissWork() {
+        let parent = UIViewController(), child = UIViewController()
+        var dismissed = 0
+        child._UIKitNavigation_onDismiss = { dismissed += 1 }
+        parent.addChild(child)
+        child.didMove(toParent: parent)
         #expect(dismissed == 0)
+        child.willMove(toParent: nil)
+        child.removeFromParent()
+        #expect(dismissed == 1 && child.parent == nil)
     }
 
     @Test func anAlertsDismissWorkRunsAfterTheActionsHandler() async {
