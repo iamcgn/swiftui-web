@@ -185,6 +185,17 @@ extension View {
         padding(.all, length)
     }
 
+    /// Pads the given edges by the scene's minimum padding: on iOS, the system's default
+    /// padding, as `padding(_:)` with no length applies.
+    nonisolated public func scenePadding(_ edges: Edge.Set = .all) -> some View {
+        padding(edges)
+    }
+
+    /// Pads the given edges by the scene padding `padding` names.
+    nonisolated public func scenePadding(_ padding: ScenePadding, edges: Edge.Set = .all) -> some View {
+        self.padding(edges)
+    }
+
     /// Fixes this view at its ideal size in the specified dimensions.
     nonisolated public func fixedSize(horizontal: Bool, vertical: Bool) -> some View {
         modifier(_FixedSizeLayout(horizontal: horizontal, vertical: vertical))
@@ -214,4 +225,11 @@ extension View {
     nonisolated public func layoutValue<K: LayoutValueKey>(key: K.Type, value: K.Value) -> some View {
         modifier(_LayoutValueModifier<K>(value: value))
     }
+}
+
+/// The padding a scene applies around its content.
+public struct ScenePadding: Equatable, Sendable {
+    let kind: Int
+    /// The smallest padding the platform keeps content from a scene's edges.
+    public static let minimum = ScenePadding(kind: 0)
 }
