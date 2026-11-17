@@ -7,6 +7,10 @@
 // 374 tall under a 26 pt page control centred at the bottom; the page-curl style shows its page
 // edge to edge and scrolls like the scroll style (the curl itself is not drawn).
 import WebFoundation   // NSCoder, for init?(coder:)
+#if canImport(ObjectiveC)
+// `UIInterfaceOrientationMask` as C declares it, which `@objc` delegate methods can return.
+@_exported import UIKitWebCTypes
+#endif
 
 @preconcurrency @MainActor
 public protocol UIPageViewControllerDataSource: AnyObject {
@@ -35,11 +39,20 @@ extension UIPageViewControllerDelegate {
     public func pageViewController(_ pageViewController: UIPageViewController, spineLocationFor orientation: UIInterfaceOrientation) -> UIPageViewController.SpineLocation { .min }
 }
 
+#if canImport(ObjectiveC)
+/// The orientation of the interface (the browser's window is a portrait phone). An `@objc` enum
+/// with the Objective-C runtime, as UIKit's is, so `@objc` delegate methods can return it.
+@objc public enum UIInterfaceOrientation: Int, Sendable { case unknown = 0, portrait, portraitUpsideDown, landscapeLeft, landscapeRight }
+// `UIInterfaceOrientationMask` is C's here (UIKitWebCTypes, imported above).
+// The importer makes it an `OptionSet` but not `Hashable`, which UIKit's is (apps key
+// dictionaries and sets by it); the raw value's hash is RawRepresentable's.
+extension UIInterfaceOrientationMask: @retroactive Hashable {}
+#else
 /// The orientation of the interface (the browser's window is a portrait phone).
 public enum UIInterfaceOrientation: Int, Sendable { case unknown = 0, portrait, portraitUpsideDown, landscapeLeft, landscapeRight }
 
 /// The orientations a view controller supports.
-public struct UIInterfaceOrientationMask: OptionSet, Sendable {
+public struct UIInterfaceOrientationMask: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
     public init(rawValue: UInt) { self.rawValue = rawValue }
     public static let portrait = UIInterfaceOrientationMask(rawValue: 1 << 1)
@@ -50,6 +63,7 @@ public struct UIInterfaceOrientationMask: OptionSet, Sendable {
     public static let all: UIInterfaceOrientationMask = [.portrait, .portraitUpsideDown, .landscape]
     public static let allButUpsideDown: UIInterfaceOrientationMask = [.portrait, .landscape]
 }
+#endif
 
 /// A container view controller that manages navigation between pages of content.
 @preconcurrency @MainActor

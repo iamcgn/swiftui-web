@@ -7,7 +7,7 @@ import UIKit
 @testable import UIKitWebCore
 
 @Suite @MainActor struct NavigationTests {
-    final class Log: UINavigationControllerDelegate {
+    final class Log: NSObject, UINavigationControllerDelegate {
         var shown: [String] = []
         func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
             shown.append((viewController.title ?? "?") + (animated ? "*" : ""))
