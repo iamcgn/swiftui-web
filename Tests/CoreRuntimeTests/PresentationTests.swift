@@ -117,6 +117,34 @@ import SwiftUIWebHeadless
         #expect(!r.hasPresentations)
     }
 
+    /// Forwards an optional arrow edge, as swift-navigation's `popover(item:arrowEdge:)` does.
+    struct OptionalEdgePopoverPresenter: View {
+        let model: Model
+        let arrowEdge: Edge?
+        var body: some View {
+            Button("Open") { model.popover = true }._probe("open")
+                .popover(isPresented: Binding(get: { model.popover }, set: { model.popover = $0 }), arrowEdge: arrowEdge) {
+                    Text("Inside")._probe("inside")
+                }
+        }
+    }
+
+    @Test func aNilArrowEdgeLetsTheSystemChoose() {
+        for edge in [nil, Edge.top] {
+            let model = Model()
+            let r = runtime(OptionalEdgePopoverPresenter(model: model, arrowEdge: edge))
+            model.popover = true
+            relayout(r)
+            let open = r.probeFrames["open"]!, inside = r.probeFrames["inside"]!
+            #expect(inside.maxY + 13 == open.minY)
+        }
+        let model = Model()
+        let r = runtime(OptionalEdgePopoverPresenter(model: model, arrowEdge: .bottom))
+        model.popover = true
+        relayout(r)
+        #expect(r.probeFrames["inside"]!.minY - 13 == r.probeFrames["open"]!.maxY)
+    }
+
     struct InspectorPresenter: View {
         let model: Model
         var body: some View {
