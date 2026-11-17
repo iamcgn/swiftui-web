@@ -712,13 +712,19 @@
         {
           "api": "GeometryReader / GeometryProxy (size, frame(in:), bounds(of:), safeAreaInsets)",
           "status": "partial",
-          "notes": "The reader extends into a safe area it sits under and safeAreaInsets reports the inset (zero when it ignores the safe area, zero in a browser window); no anchors; Tier B (Chromium) within tolerance",
+          "notes": "The reader extends into a safe area it sits under and safeAreaInsets reports the inset (zero when it ignores the safe area, zero in a browser window); no anchors; Tier B (Chromium) within tolerance; the proxy's members are nonisolated, as Apple's are, so helpers in a plain extension of GeometryProxy compile (BackyardBirds' parallax, 2026-11-17)",
           "fixtures": [
             "position/basic",
             "position/safe-area-geometry",
             "scroll/scroll-to",
             "layout/alignment-guide"
           ]
+        },
+        {
+          "api": "scenePadding(_:) / scenePadding(_:edges:) / ScenePadding.minimum",
+          "status": "approximate",
+          "notes": "pf-scene-padding (2026-11-17): the system's default padding on the edges named, as padding(_:) with no length gives on iOS (BackyardBirds' card titles).",
+          "noFixture": "Same layout as padding(_:) with no length, which has fixtures; CoreRuntimeTests (ScenePaddingTests) checks the two agree."
         },
         {
           "api": "ScrollView (axes, showsIndicators) / ScrollViewReader / ScrollViewProxy.scrollTo",
