@@ -96,6 +96,16 @@ import SwiftUIWebHeadless
             "fillRRect(90, 45, 20, 10) r=3 #0088FF",
             "fillRect(90, 45, 20, 10) #FF383C",
         ])
+        // `.background()` and `.background(in:)` fill with the background style, as
+        // BackyardBirds' grid header does under `.backgroundStyle(_:)`.
+        #expect(render(Color.red.frame(width: 20, height: 10).background().backgroundStyle(.green)) == [
+            "fillRect(90, 45, 20, 10) #34C759",
+            "fillRect(90, 45, 20, 10) #FF383C",
+        ])
+        #expect(render(Color.red.frame(width: 20, height: 10).background(in: RoundedRectangle(cornerRadius: 3, style: .circular)).backgroundStyle(.green)) == [
+            "fillRRect(90, 45, 20, 10) r=3 #34C759",
+            "fillRect(90, 45, 20, 10) #FF383C",
+        ])
     }
 
     @Test func opacityAndClipping() {
