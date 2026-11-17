@@ -401,22 +401,28 @@ import Foundation
                 let lower = _CaseMapping.lowercased(word, dottedI: dotted)
                 let upper = _CaseMapping.uppercased(word, dottedI: dotted)
                 let title = _CaseMapping.capitalized(word, dottedI: dotted)
+                let nsTitle = _CaseMapping.capitalizedAfterUncased(word, dottedI: dotted)
                 #expect(lower == string.lowercased(with: locale), "\(word) lower \(name): \(lower)")
                 #expect(upper == string.uppercased(with: locale), "\(word) upper \(name): \(upper)")
-                #expect(title == string.capitalized(with: locale), "\(word) title \(name): \(title)")
+                // A String titles a word's first letter or digit; NSString any letter after an
+                // uncased scalar.
+                #expect(title == word.capitalized(with: locale), "\(word) title \(name): \(title)")
+                #expect(nsTitle == string.capitalized(with: locale), "\(word) NSString title \(name): \(nsTitle)")
             }
         }
     }
 
-    /// The `capitalized` property titles a letter after any uncased scalar, as Core Foundation
-    /// does, unlike `capitalized(with:)`.
+    /// The `capitalized` properties: a String's titles as its `capitalized(with: nil)` does,
+    /// NSString's as Core Foundation does.
     static let propertyWords = ["ßeta", "123hello", "'hello", "1st place", "don't stop", "x-ray o'neil",
                                 "hello wORLD", "ǆemal ǄEMAL", "ÉCOLE normale"]
 
     @Test func propertyMatchesFoundation() {
         for word in Self.propertyWords {
-            let title = _CaseMapping.capitalizedAfterUncased(word)
-            #expect(title == (word as NSString).capitalized, "\(word): \(title)")
+            let nsTitle = _CaseMapping.capitalizedAfterUncased(word, dottedI: false)
+            #expect(nsTitle == (word as NSString).capitalized, "\(word) NSString: \(nsTitle)")
+            let title = _CaseMapping.capitalized(word, dottedI: false)
+            #expect(title == word.capitalized, "\(word): \(title)")
         }
     }
 }

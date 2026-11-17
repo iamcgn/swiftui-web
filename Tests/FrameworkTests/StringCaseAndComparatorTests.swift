@@ -33,6 +33,8 @@ private struct Item: Sendable { let name: String }
         // capitalized(with:) titles a word's first letter or digit, as Apple's does.
         #expect("123hello".capitalized(with: nil) == "123hello")
         #expect("'hello".capitalized(with: nil) == "'Hello")
+        // NSString titles a letter after a digit too, as Core Foundation does.
+        #expect(NSString(string: "123hello").capitalized(with: nil) == "123Hello")
         #expect("ΟΣ".lowercased(with: nil) == "ος")
         #expect("i\u{0301}".uppercased(with: turkish) == "İ\u{0301}")
         #expect("I\u{0301}".lowercased(with: turkish) == "ı\u{0301}")
