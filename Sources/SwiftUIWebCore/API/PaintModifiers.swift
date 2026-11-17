@@ -116,9 +116,16 @@ extension View {
         modifier(_BackgroundModifier(background: FillShapeView(shape: shape, style: style, fillStyle: fillStyle, background: EmptyView()), alignment: .center))
     }
 
-    /// Sets the view's background to a shape filled with the foreground style.
+    /// Sets the view's background to a shape filled with the background style (what
+    /// `backgroundStyle(_:)` sets, the window's ground otherwise).
     nonisolated public func background<T: Shape>(in shape: T, fillStyle: FillStyle = FillStyle()) -> some View {
-        modifier(_BackgroundModifier(background: FillShapeView(shape: shape, style: ForegroundStyle(), fillStyle: fillStyle, background: EmptyView()), alignment: .center))
+        modifier(_BackgroundModifier(background: FillShapeView(shape: shape, style: BackgroundStyle(), fillStyle: fillStyle, background: EmptyView()), alignment: .center))
+    }
+
+    /// Sets the view's background to the background style (what `backgroundStyle(_:)` sets, the
+    /// window's ground otherwise): `.background()`.
+    nonisolated public func background(ignoresSafeAreaEdges edges: Edge.Set = .all) -> some View {
+        background(BackgroundStyle(), ignoresSafeAreaEdges: edges)
     }
 
     /// Layers a secondary view in front of this view (soft-deprecated by Apple; see `background`).

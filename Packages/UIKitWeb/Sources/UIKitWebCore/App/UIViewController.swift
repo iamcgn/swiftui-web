@@ -205,11 +205,52 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
         if appearing {
             hasAppeared = true
             viewDidAppear(false)
+            runFirstAppearanceWork()
         } else {
             hasAppeared = false
             viewDidDisappear(false)
+            runDismissWork()
         }
         for child in children { child.endAppearanceTransition() }
+    }
+
+    // MARK: swift-navigation's shim
+
+    // swift-navigation's UIKitNavigationShim adds these three to UIViewController on Apple's
+    // platforms, in an Objective-C category whose header needs <TargetConditionals.h> and
+    // <UIKit/UIKit.h> and so is empty here; its swizzled viewDidAppear(_:) and
+    // viewDidDisappear(_:) run the work, as endAppearanceTransition() does here. Its UIKit
+    // bindings (UIKitNavigation, in EhPanda and CriticalMaps) present and dismiss through them.
+
+    /// Whether the view has appeared once.
+    public var _UIKitNavigation_hasViewAppeared = false
+    /// Work to do when the view first appears, once.
+    public var _UIKitNavigation_onViewAppear: [() -> Void] = []
+    /// Work to do when the controller is dismissed, once.
+    public var _UIKitNavigation_onDismiss: (() -> Void)?
+
+    private func runFirstAppearanceWork() {
+        guard !_UIKitNavigation_hasViewAppeared else { return }
+        _UIKitNavigation_hasViewAppeared = true
+        let work = _UIKitNavigation_onViewAppear
+        _UIKitNavigation_onViewAppear = []
+        for item in work { item() }
+    }
+
+    /// A dismissed controller's work runs once it has disappeared; an alert's after the next
+    /// turn, so after the handler of the action that dismissed it, as the shim's does.
+    private func runDismissWork() {
+        guard isBeingDismissed, _UIKitNavigation_onDismiss != nil else { return }
+        let run: @MainActor () -> Void = { [weak self] in
+            guard let self, let work = self._UIKitNavigation_onDismiss else { return }
+            work()
+            Task { @MainActor [weak self] in self?._UIKitNavigation_onDismiss = nil }
+        }
+        if self is UIAlertController {
+            Task { @MainActor in run() }
+        } else {
+            run()
+        }
     }
 
     func completeAppearanceIfPending() {
