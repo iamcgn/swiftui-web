@@ -585,6 +585,17 @@ def describe_app(entry, root: Path, work: Path = None):
     if app_target:
         name, members, base = app_target
         kept = [f for f in app_files if f in members or not Path(f).is_relative_to(base)]
+        # A repository of several apps, each in its own project folder (SimpleSwiftUI): the
+        # other apps' folders are theirs, and their types would redeclare this app's.
+        try:
+            others = [b for b in xcodeproj.application_project_bases(root, pbx_files)
+                      if b != base and str(b) != "." and not base.is_relative_to(b)]
+        except Exception:
+            others = []
+        dropped = [f for f in kept if f not in members and any(Path(f).is_relative_to(b) for b in others)]
+        if dropped:
+            kept = [f for f in kept if f not in dropped]
+            notes.append(f"app target {name}: left out {len(dropped)} Swift files of the other apps' projects ({', '.join(sorted(str(b) for b in others))})")
         if kept:
             if len(kept) < len(app_files):
                 notes.append(f"app target {name}: {len(kept)} of {len(app_files)} Swift files outside the packages")

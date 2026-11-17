@@ -189,6 +189,19 @@ class Project:
         return out
 
 
+def application_project_bases(root: Path, pbx_files):
+    """The folders holding a project that builds an application (any platform)."""
+    bases = set()
+    for pbx in pbx_files:
+        try:
+            project = Project(pbx, root)
+        except Exception:
+            continue
+        if any(t.get("productType") == "com.apple.product-type.application" for _, t in project.targets()):
+            bases.add(project.base)
+    return bases
+
+
 def app_target_files(root: Path, pbx_files):
     """The iOS app target's name, its Swift files (and those of the frameworks it builds) and the
     folder holding its project, from the project whose application is likeliest the iOS app; None
