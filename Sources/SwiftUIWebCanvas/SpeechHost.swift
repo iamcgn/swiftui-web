@@ -38,14 +38,16 @@ enum SpeechHost {
         // seconds: a Chrome just started can answer it while it is still registering the
         // on-device recogniser and packs already on disk (PR 196's browser job: the first page
         // load after launch, with the pack restored from the cache, read restricted, and the
-        // five loads after it in the same browser read authorized).
+        // five loads after it in the same browser read authorized). Five seconds was too few on
+        // a busy runner (PR 221's browser job, twice: still unavailable after five, authorized on
+        // the next load), so it is asked for up to twenty.
         var first = function (retries) {
           return ask().then(function (a) {
             if (a !== 'unavailable' || !install || retries <= 0) return a;
             return new Promise(function (resolve) { setTimeout(resolve, 1000); }).then(function () { return first(retries - 1); });
           });
         };
-        first(5).then(function (a) {
+        first(20).then(function (a) {
           if (a === 'available') { done('available'); return; }
           if (a === 'unavailable' || !install || typeof R.install !== 'function') { done(a === 'unavailable' ? 'unavailable' : 'downloadable'); return; }
           R.install({ langs: [lang], processLocally: true }).then(function (ok) {
