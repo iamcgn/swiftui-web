@@ -99,6 +99,17 @@ import UIKit
         #expect(near(CATransform3DConcat(far, back), CATransform3DIdentity))
         let both = CATransform3DTranslate(CATransform3DMakeScale(1e-16, 3, 1), 1e16, -2, 5)
         #expect(near(CATransform3DConcat(both, CATransform3DInvert(both)), CATransform3DIdentity))
+        // Scales that together pass Double's range (issue 173's last retest): each entry of
+        // the inverse is still in range.
+        var extreme = CATransform3DIdentity
+        extreme.m11 = 1e-200; extreme.m42 = 1e200
+        let extremeUndone = CATransform3DInvert(extreme)
+        #expect(abs(extremeUndone.m11 - 1e200) <= 1e200 * 1e-12)
+        #expect(abs(extremeUndone.m42 + 1e200) <= 1e200 * 1e-12)
+        #expect(extremeUndone.m22 == 1 && extremeUndone.m44 == 1 && extremeUndone.m12 == 0 && extremeUndone.m41 == 0)
+        // A subnormal scale inverts too, to a finite inverse.
+        let subnormal = CATransform3DInvert(CATransform3DMakeScale(1e-308, 1, 1))
+        #expect(abs(subnormal.m11 - 1e308) <= 1e308 * 1e-12)
         // A singular matrix whose elimination leaves only rounding error still has no inverse.
         var rankTwo = CATransform3DIdentity
         rankTwo.m11 = 0.1; rankTwo.m12 = 0.2; rankTwo.m21 = 0.3; rankTwo.m22 = 0.6

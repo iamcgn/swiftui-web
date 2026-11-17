@@ -85,24 +85,24 @@ public func CATransform3DInvert(_ t: CATransform3D) -> CATransform3D {
     // column, is scaled by a power of two (exact, no rounding) so its largest entry lies in
     // [1, 2): a scale of 1e-16 or a translation of 1e16 then pivots on numbers near 1 and
     // inverts (issue 173), while a singular matrix still leaves only rounding error in a pivot.
-    // With A' = R·A·C, the inverse is A⁻¹ = C·A'⁻¹·R.
+    // With A' = R·A·C, the inverse is A⁻¹ = C·A'⁻¹·R. The scales are kept as exponents and
+    // applied one entry at a time, so a pair of them past Double's range (a scale of 1e-200
+    // beside a translation of 1e200) scales an entry only as far as the entry itself goes.
     var a = t._rows
     guard a.joined().allSatisfy({ $0.isFinite }) else { return t }
-    func unit(_ m: CGFloat) -> CGFloat? {
-        guard m > 0 else { return nil }
-        let f = CGFloat(sign: .plus, exponent: -m.exponent, significand: 1)
-        return f.isFinite && f > 0 ? f : nil
-    }
-    var r = [CGFloat](repeating: 1, count: 4), c = [CGFloat](repeating: 1, count: 4)
+    func scaled(_ x: CGFloat, _ e: Int) -> CGFloat { x == 0 ? 0 : CGFloat(sign: .plus, exponent: e, significand: x) }
+    var r = [Int](repeating: 0, count: 4), c = [Int](repeating: 0, count: 4)
     for i in 0..<4 {
-        guard let f = unit(a[i].map(abs).max() ?? 0) else { return t }
-        r[i] = f
-        for j in 0..<4 { a[i][j] *= f }
+        let m = a[i].map(abs).max() ?? 0
+        guard m > 0 else { return t }
+        r[i] = -Int(m.exponent)
+        for j in 0..<4 { a[i][j] = scaled(a[i][j], r[i]) }
     }
     for j in 0..<4 {
-        guard let f = unit((0..<4).map { abs(a[$0][j]) }.max() ?? 0) else { return t }
-        c[j] = f
-        for i in 0..<4 { a[i][j] *= f }
+        let m = (0..<4).map { abs(a[$0][j]) }.max() ?? 0
+        guard m > 0 else { return t }
+        c[j] = -Int(m.exponent)
+        for i in 0..<4 { a[i][j] = scaled(a[i][j], c[j]) }
     }
     var inv: [[CGFloat]] = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
     let zero = (a.joined().map(abs).max() ?? 0) * 4 * CGFloat.ulpOfOne
@@ -119,7 +119,7 @@ public func CATransform3DInvert(_ t: CATransform3D) -> CATransform3D {
             for j in 0..<4 { a[row][j] -= f * a[col][j]; inv[row][j] -= f * inv[col][j] }
         }
     }
-    for i in 0..<4 { for j in 0..<4 { inv[i][j] *= c[i] * r[j] } }
+    for i in 0..<4 { for j in 0..<4 { inv[i][j] = scaled(inv[i][j], c[i] + r[j]) } }
     guard inv.joined().allSatisfy({ $0.isFinite }) else { return t }
     return CATransform3D(_rows: inv)
 }
