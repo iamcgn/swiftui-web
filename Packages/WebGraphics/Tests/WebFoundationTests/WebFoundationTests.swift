@@ -412,8 +412,8 @@ import Foundation
         }
     }
 
-    /// The `capitalized` properties: a String's titles as its `capitalized(with: nil)` does,
-    /// NSString's as Core Foundation does.
+    /// The `capitalized` properties: NSString's as Core Foundation does, a String's the same but
+    /// leaving an uppercase first letter as it is.
     static let propertyWords = ["ßeta", "123hello", "'hello", "1st place", "don't stop", "x-ray o'neil",
                                 "hello wORLD", "ǆemal ǄEMAL", "ÉCOLE normale"]
 
@@ -421,7 +421,7 @@ import Foundation
         for word in Self.propertyWords {
             let nsTitle = _CaseMapping.capitalizedAfterUncased(word, dottedI: false)
             #expect(nsTitle == (word as NSString).capitalized, "\(word) NSString: \(nsTitle)")
-            let title = _CaseMapping.capitalized(word, dottedI: false)
+            let title = _CaseMapping.capitalizedAfterUncased(word, dottedI: false, titlesUppercase: false)
             #expect(title == word.capitalized, "\(word): \(title)")
         }
     }

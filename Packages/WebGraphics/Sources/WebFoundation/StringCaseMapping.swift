@@ -2,10 +2,13 @@
 // standard library's: `lowercased(with:)`, `uppercased(with:)`, `capitalized(with:)` and
 // `capitalized`, on strings and on NSString. They map each scalar by its full Unicode mapping, as
 // ICU does: Greek capital sigma lowercases to final ς at the end of a word, and a word's first
-// letter takes its titlecase form ("ßeta" → "Sseta"). Foundation titles words two ways: a
-// String's `capitalized(with:)` and `capitalized` title the first letter or digit of each word,
-// as ICU does, so "123hello" stays as it is, while NSString's title every letter that follows an
-// uncased one, as Core Foundation does ("123hello" → "123Hello", "1st" → "1St"). Turkish and
+// letter takes its titlecase form ("ßeta" → "Sseta"). Foundation titles words three ways, each
+// held to it on macOS by WebFoundationTests: a String's `capitalized(with:)` titles the first
+// letter or digit of each word, as ICU does, so "123hello" stays as it is; NSString's
+// `capitalized` and `capitalized(with:)` title every letter that follows an uncased one, as Core
+// Foundation does ("123hello" → "123Hello", "1st" → "1St"); and a String's `capitalized`
+// property does the same but leaves an uppercase first letter as it is ("ǄEMAL" → "Ǆemal",
+// where NSString writes the titlecase "ǅemal"). Turkish and
 // Azerbaijani map the dotted and dotless i ("I" lowercases to "ı", "i" uppercases to "İ", with or
 // without accents after it), the one tailoring apps meet in practice; other languages' special
 // rules (Lithuanian's retained dot, Greek's dropped accents in uppercase) are not kept.
@@ -64,6 +67,9 @@ enum _CaseMapping {
                 titled = true
                 result += dottedI && scalar == "i" ? "\u{0130}" : scalar.properties.titlecaseMapping
                 index += 1
+                // ICU lowercases the rest of a Turkish word in context: a dot above after a
+                // titled I goes ("I\u{0307}x" → "Ix").
+                if dottedI, scalar == "I", index < scalars.count, scalars[index] == "\u{0307}" { index += 1 }
             } else {
                 let (piece, used) = lower(scalars, index, dottedI: dottedI)
                 result += piece
@@ -75,8 +81,9 @@ enum _CaseMapping {
 
     /// NSString's form, Core Foundation's: a letter after an uncased scalar (skipping
     /// case-ignorable ones such as apostrophes) in titlecase, the rest in lowercase, so
-    /// "123hello" becomes "123Hello" and "don't" stays "Don't".
-    static func capitalizedAfterUncased(_ string: String, dottedI: Bool) -> String {
+    /// "123hello" becomes "123Hello" and "don't" stays "Don't". With `titlesUppercase` false (a
+    /// String's `capitalized` property), such a letter changes only when it is lowercase.
+    static func capitalizedAfterUncased(_ string: String, dottedI: Bool, titlesUppercase: Bool = true) -> String {
         let scalars = Array(string.unicodeScalars)
         var result = ""
         var lastCased = false
@@ -88,8 +95,11 @@ enum _CaseMapping {
                 let (piece, used) = lower(scalars, index, dottedI: dottedI)
                 result += piece
                 index += used
-            } else {
+            } else if titlesUppercase || properties.isLowercase {
                 result += dottedI && scalar == "i" ? "\u{0130}" : properties.titlecaseMapping
+                index += 1
+            } else {
+                result.unicodeScalars.append(scalar)
                 index += 1
             }
             lastCased = properties.isCased || (properties.isCaseIgnorable && lastCased)
@@ -146,8 +156,9 @@ enum _CaseMapping {
 
 #if os(WASI)
 extension StringProtocol {
-    /// Each word's first letter or digit in titlecase and the rest in lowercase, in the root locale.
-    public var capitalized: String { _CaseMapping.capitalized(String(self), dottedI: false) }
+    /// A lowercase letter after an uncased scalar in titlecase and the rest in lowercase, in the
+    /// root locale, as Apple's String property does ("123hello" → "123Hello").
+    public var capitalized: String { _CaseMapping.capitalizedAfterUncased(String(self), dottedI: false, titlesUppercase: false) }
 
     /// The string in lowercase as `locale` maps case (the root locale's when nil).
     public func lowercased(with locale: Locale?) -> String {
