@@ -306,9 +306,17 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
     }
 }
 
+#if canImport(ObjectiveC)
+/// An `@objc` enum with the Objective-C runtime, as UIKit's is, so the `@objc` transition
+/// context can report it.
+@objc public enum UIModalPresentationStyle: Int, Sendable {
+    case fullScreen = 0, pageSheet, formSheet, currentContext, custom, overFullScreen, overCurrentContext, popover, none = -1, automatic = -2
+}
+#else
 public enum UIModalPresentationStyle: Int, Sendable {
     case fullScreen = 0, pageSheet, formSheet, currentContext, custom, overFullScreen, overCurrentContext, popover, none = -1, automatic = -2
 }
+#endif
 
 public enum UIModalTransitionStyle: Int, Sendable {
     case coverVertical = 0, flipHorizontal, crossDissolve, partialCurl

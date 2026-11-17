@@ -4,6 +4,64 @@
 // their frames and `completeTransition`. Interaction controllers and presentation controllers
 // are accepted and ignored.
 
+import WebFoundation   // NSObject, the root of the transition objects with the Objective-C runtime
+
+#if canImport(ObjectiveC)
+// With the Objective-C runtime the transition protocols are `@objc`, as UIKit's are, so an
+// `@objc` delegate (UINavigationControllerDelegate) can return an animator and an app can
+// forward its optional methods (`base?.navigationController?(_:animationControllerFor:...)`,
+// swift-navigation). Everything they take must then be representable in Objective-C, so the
+// keys are objects (UIKit's are typed strings, which only an imported type can be).
+
+/// The keys identifying the controllers and views a transition moves between.
+public final class UITransitionContextViewControllerKey: NSObject, @unchecked Sendable {
+    package let name: String
+    package init(name: String) { self.name = name }
+    public static let from = UITransitionContextViewControllerKey(name: "from")
+    public static let to = UITransitionContextViewControllerKey(name: "to")
+}
+
+public final class UITransitionContextViewKey: NSObject, @unchecked Sendable {
+    package let name: String
+    package init(name: String) { self.name = name }
+    public static let from = UITransitionContextViewKey(name: "from")
+    public static let to = UITransitionContextViewKey(name: "to")
+}
+
+/// What an animator learns about and reports on a transition.
+@preconcurrency @MainActor
+@objc public protocol UIViewControllerContextTransitioning {
+    var containerView: UIView { get }
+    var isAnimated: Bool { get }
+    var isInteractive: Bool { get }
+    var transitionWasCancelled: Bool { get }
+    var presentationStyle: UIModalPresentationStyle { get }
+    func viewController(forKey key: UITransitionContextViewControllerKey) -> UIViewController?
+    func view(forKey key: UITransitionContextViewKey) -> UIView?
+    func initialFrame(for vc: UIViewController) -> CGRect
+    func finalFrame(for vc: UIViewController) -> CGRect
+    func completeTransition(_ didComplete: Bool)
+}
+
+/// An object that moves the views of a transition.
+@preconcurrency @MainActor
+@objc public protocol UIViewControllerAnimatedTransitioning {
+    func transitionDuration(using transitionContext: (any UIViewControllerContextTransitioning)?) -> Double
+    func animateTransition(using transitionContext: any UIViewControllerContextTransitioning)
+    @objc optional func animationEnded(_ transitionCompleted: Bool)
+}
+
+extension UIViewControllerAnimatedTransitioning {
+    /// Tells the animator its transition ended, when it implements `animationEnded(_:)`.
+    func transitionEnded(_ transitionCompleted: Bool) { animationEnded?(transitionCompleted) }
+}
+
+/// An interaction controller (accepted: transitions here run to completion).
+@preconcurrency @MainActor
+@objc public protocol UIViewControllerInteractiveTransitioning {
+    func startInteractiveTransition(_ transitionContext: any UIViewControllerContextTransitioning)
+}
+#else
 /// The keys identifying the controllers and views a transition moves between.
 public struct UITransitionContextViewControllerKey: Hashable, Sendable {
     package let name: String
@@ -42,6 +100,8 @@ public protocol UIViewControllerAnimatedTransitioning: AnyObject {
 
 extension UIViewControllerAnimatedTransitioning {
     public func animationEnded(_ transitionCompleted: Bool) {}
+    /// Tells the animator its transition ended.
+    func transitionEnded(_ transitionCompleted: Bool) { animationEnded(transitionCompleted) }
 }
 
 /// An interaction controller (accepted: transitions here run to completion).
@@ -49,6 +109,7 @@ extension UIViewControllerAnimatedTransitioning {
 public protocol UIViewControllerInteractiveTransitioning: AnyObject {
     func startInteractiveTransition(_ transitionContext: any UIViewControllerContextTransitioning)
 }
+#endif
 
 /// A presentation controller (accepted: the container lays presented views out itself).
 @preconcurrency @MainActor
@@ -83,9 +144,10 @@ extension UIViewControllerTransitioningDelegate {
     public func presentationController(forPresented presented: UIViewController, presenting: UIViewController?, source: UIViewController) -> UIPresentationController? { nil }
 }
 
-/// The context the scene and navigation controllers hand to custom animators.
+/// The context the scene and navigation controllers hand to custom animators (an object the
+/// Objective-C runtime knows, where there is one, as the `@objc` protocol asks).
 @preconcurrency @MainActor
-final class TransitionContext: UIViewControllerContextTransitioning {
+final class TransitionContext: TransitionContextBase, UIViewControllerContextTransitioning {
     let containerView: UIView
     let isAnimated = true
     let isInteractive = false
@@ -106,6 +168,7 @@ final class TransitionContext: UIViewControllerContextTransitioning {
         self.initialFrames = initialFrames
         self.finalFrames = finalFrames
         self.onComplete = onComplete
+        super.init()
     }
 
     func viewController(forKey key: UITransitionContextViewControllerKey) -> UIViewController? { key == .from ? from : to }
@@ -121,3 +184,13 @@ final class TransitionContext: UIViewControllerContextTransitioning {
         complete?(didComplete)
     }
 }
+
+#if canImport(ObjectiveC)
+typealias TransitionContextBase = NSObject
+#else
+/// The transition context's root without an Objective-C runtime.
+@preconcurrency @MainActor
+class TransitionContextBase {
+    init() {}
+}
+#endif

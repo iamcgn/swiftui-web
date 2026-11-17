@@ -1,0 +1,4 @@
+module UIKitWebCTypes {
+    header "UIKitWebCTypes.h"
+    export *
+}

@@ -5,7 +5,7 @@ import Testing
 import UIKit
 
 @Suite @MainActor struct NavigationPolishTests {
-    @MainActor final class Log: UINavigationControllerDelegate {
+    @MainActor final class Log: NSObject, UINavigationControllerDelegate {
         var shown: [String] = []
         var animator: (any UIViewControllerAnimatedTransitioning)?
         func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {

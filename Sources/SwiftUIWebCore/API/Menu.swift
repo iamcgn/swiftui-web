@@ -246,10 +246,10 @@ extension View {
         environment(\._menuIndicator, visibility)
     }
 
-    /// Sets the preferred order of items for menus presented from this view (menus always
-    /// present in fixed order here).
+    /// Sets the preferred order of items for menus presented from this view (recorded in the
+    /// environment; menus always present in fixed order here).
     nonisolated public func menuOrder(_ order: MenuOrder) -> some View {
-        self
+        environment(\.menuOrder, order)
     }
 
     /// Adds a context menu to a view: a secondary click (right click) presents `menuItems` at

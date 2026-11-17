@@ -12,10 +12,10 @@ Generated from `Docs/support.json` (last edited 2026-11-16) by `scripts/gen-prog
 
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
-| SwiftUI | 186 | 43 | 128 | 4 | 10 | 1 |
+| SwiftUI | 187 | 43 | 128 | 5 | 10 | 1 |
 | UIKit | 69 | 22 | 43 | 4 | 0 | 0 |
 | Interop | 60 | 8 | 52 | 0 | 0 | 0 |
-| **All** | **315** | 73 | 223 | 8 | 10 | 1 |
+| **All** | **316** | 73 | 223 | 9 | 10 | 1 |
 
 ## App lifecycle
 
@@ -190,6 +190,7 @@ Generated from `Docs/support.json` (last edited 2026-11-16) by `scripts/gen-prog
 | `Transaction(animation:) / Animation.spring() / AnyTransition.modifier(active:identity:)` | 🟢 partial | `Transaction(animation:)`; `.spring()` with no arguments resolves to the duration/bounce form as Apple's does (measured: damping 1, response 0.5; the response/dampingFraction form is disfavoured); `AnyTransition.modifier(active:identity:)` is accepted as the identity transition (transitions paint as fades, moves and scales; the modifiers are not applied) (decision 0021, 2026-10-12) | — AppAPIGapsTests. |
 | `Deprecated forms: NavigationView / navigationViewStyle (stack, columns, automatic) / navigationBarTitle(_:) / navigationBarTitle(_:displayMode:) / colorScheme(_:) / ContentSizeCategory / sizeCategory / accessibilityEnabled / EnvironmentalModifier` | 🟢 partial | `NavigationView` is a NavigationStack (every style lays out as a stack), `navigationBarTitle` maps onto navigationTitle and navigationBarTitleDisplayMode, `colorScheme(_:)` sets the environment's scheme for the subtree, `ContentSizeCategory` and `sizeCategory` are DynamicTypeSize under the old names (Comparable, isAccessibilityCategory), `accessibilityEnabled` is false (unknown in a browser), `EnvironmentalModifier` resolves in the node's environment and again when it changes; Apple's deprecation messages are kept (decision 0021, 2026-10-12) | — AppAPIGapsTests.deprecatedFormsMapOntoTheCurrentAPI. |
 | `Alert / Alert.Button / ActionSheet / alert(isPresented:content:) / alert(item:content:) / actionSheet(isPresented:content:) / actionSheet(item:content:) / navigationBarHidden / disableAutocorrection` | ✅ full | The iOS 13 value forms map onto the current presentations: an Alert is the alert with its title, message and buttons ("OK" when it names none; .default, .cancel and .destructive become the button roles), an ActionSheet the confirmation dialog, the item forms present while the item is set; navigationBarHidden is the navigation bar's toolbar visibility and disableAutocorrection is autocorrectionDisabled. Apple's deprecation of these is soft, so they compile without warnings (pf-everyday-apis, 2026-10-31) | — AppAPIGapsTests.valueAlertsAndActionSheets and renamedModifiersAndTheTintStyle. |
+| `System environment values: accessibilityVoiceOverEnabled / accessibilitySwitchControlEnabled / accessibilityShowButtonShapes / accessibilityDimFlashingLights / accessibilityPlayAnimatedImages / accessibilityLargeContentViewerEnabled / accessibilityAssistiveAccessEnabled / legibilityWeight / pixelLength / isLuminanceReduced / isSceneCaptured / appearsActive / backgroundProminence / backgroundMaterial / defaultMinListHeaderHeight / contentTransitionAddsDrawingGroup; badgeProminence / buttonRepeatBehavior / springLoadingBehavior / allowedDynamicRange / labelsVisibility / menuOrder / menuIndicatorVisibility / headerProminence (View + EnvironmentValues)` | 🟡 approximate | pf-system-environment (2026-11-16): a page cannot tell whether VoiceOver, Switch Control, button shapes, Always On or screen capture are on, so these read as an iPhone with them off (animated images play, the legibility weight is regular, the window appears active); pixelLength is one over the display scale. The styling modifiers set their values for the views beneath to read; badges, held buttons, spring loading, dynamic range, labels and menu order draw the standard way. | — Values, not a screen; CoreRuntimeTests (SystemEnvironmentTests) read the defaults and the values the modifiers set. |
 
 ## Charts (decision 0018, sw-frameworks)
 
