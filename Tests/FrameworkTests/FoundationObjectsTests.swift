@@ -249,4 +249,24 @@ extension Set: _BothSetForms {}
         os_unfair_lock_unlock(lock)
     }
     #endif
+
+    #if !canImport(Darwin)
+    /// Off Apple platforms swift-custom-dump names call signaling as corelibs does, in a switch
+    /// that ends in `@unknown default`.
+    @Test func callSignalingHasCorelibsName() {
+        func name(_ type: URLRequest.NetworkServiceType) -> String {
+            switch type {
+            case .default: return "default"
+            case .networkServiceTypeCallSignaling: return "callSignaling"
+            case .video: return "video"
+            @unknown default: return "other"
+            }
+        }
+        #expect(URLRequest.NetworkServiceType.networkServiceTypeCallSignaling.rawValue == 11)
+        var request = URLRequest(url: URL(string: "https://example.com")!)
+        request.networkServiceType = .networkServiceTypeCallSignaling
+        #expect(name(request.networkServiceType) == "callSignaling")
+        #expect(name(.default) == "default" && name(.voice) == "other")
+    }
+    #endif
 }
