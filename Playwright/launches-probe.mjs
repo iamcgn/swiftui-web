@@ -32,11 +32,32 @@ const expectedConsoleError = (m) => {
   return false;
 };
 page.on('console', m => { if (m.type() === 'error' && !expectedConsoleError(m)) problems.push('console: ' + m.text() + ' @ ' + ((m.location() && m.location().url) || '')); });
+// What the page did, so a load that never draws (issue 210) says why: its last console lines,
+// the requests that failed or answered 4xx/5xx other than the deliberate ones, and whether the
+// app's debug hook exists and how far it got.
+const recent = [];
+page.on('console', m => { recent.push(`${m.type()}: ${m.text()}`.slice(0, 300)); if (recent.length > 40) recent.shift(); });
+const failedRequests = [];
+page.on('requestfailed', r => { if (r.url() !== deliberate.cors) failedRequests.push(`${r.url()} ${r.failure() ? r.failure().errorText : ''}`); });
+page.on('response', r => { if (r.status() >= 400 && r.url() !== deliberate.missing) failedRequests.push(`${r.url()} ${r.status()}`); });
+const firstFrame = async (load) => {
+  try {
+    await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 180000 });
+  } catch (error) {
+    const hook = await page.evaluate(() => window.__swiftuiwebDebug ? `hook present, ${window.__swiftuiwebDebug.frameCount()} frames` : 'no debug hook').catch(e => 'page unreadable: ' + e.message);
+    console.log(`load ${load}: no frame within 180 s (${hook})`);
+    console.log('failed requests: ' + (failedRequests.join('; ') || 'none'));
+    console.log('page errors and console errors: ' + (problems.join('; ') || 'none'));
+    console.log('last console lines:\n  ' + (recent.join('\n  ') || 'none'));
+    await browser.close();
+    process.exit(1);
+  }
+};
 const networkLine = (t) => { const start = t.findIndex(x => x.startsWith('network: ')); if (start < 0) return ''; const parts = []; for (let i = start; i < t.length && t[i] !== 'Record again'; i++) parts.push(t[i]); return parts.join(' '); };
 const texts = () => page.evaluate(() => window.__swiftuiwebDebug.displayList().filter(c => c.startsWith('drawText')).map(c => c.match(/"([^"]*)"/)[1]));
 for (let load = 1; load <= 3; load++) {
   await page.goto(url, { waitUntil: 'commit', timeout: 180000 });
-  await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 180000 });
+  await firstFrame(load);
   await page.waitForTimeout(400);
   const shown = await texts();
   const summary = shown.find(t => t.startsWith('launch ')) || '';
