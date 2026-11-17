@@ -17,6 +17,16 @@ private struct RectKey: PreferenceKey {
     static func reduce(value: inout CGRect?, nextValue: () -> CGRect?) { value = nextValue() ?? value }
 }
 
+/// Helpers in a plain extension of the proxy, as BackyardBirds' parallax offset is written: the
+/// proxy's members are nonisolated, as Apple's are.
+fileprivate extension GeometryProxy {
+    func outerOffset() -> CGPoint? {
+        guard let outer = bounds(of: .named("outer")) else { return nil }
+        let mine = frame(in: .named("outer"))
+        return CGPoint(x: mine.minX - outer.minX, y: safeAreaInsets.top + mine.minY)
+    }
+}
+
 @MainActor
 private final class Box { var value: Int? ; var names: [String] = []; var calls = 0 }
 
@@ -100,6 +110,28 @@ private final class Box { var value: Int? ; var names: [String] = []; var calls 
         #expect(seen.bounds == CGRect(x: -25, y: 0, width: 100, height: 70))
         // The reader fills its proposal and places its content at the top-leading corner.
         #expect(f["inner"] == f["reader"])
+    }
+
+    @Test func proxyMembersAreReadableOutsideTheMainActor() {
+        final class Seen: @unchecked Sendable { var offset: CGPoint?; var missing: CGRect? = .zero }
+        let seen = Seen()
+        let runtime = Runtime()
+        runtime.mount(
+            HStack(spacing: 0) {
+                Color.blue.frame(width: 20)
+                GeometryReader { proxy in
+                    let _ = {
+                        seen.offset = proxy.outerOffset()
+                        seen.missing = proxy.bounds(of: .named("nowhere"))
+                    }()
+                    Color.green
+                }
+            }
+            .coordinateSpace(name: "outer")
+            .frame(width: 100, height: 40))
+        runtime.layout(in: CGSize(width: 100, height: 40))
+        #expect(seen.offset == CGPoint(x: 20, y: 0))
+        #expect(seen.missing == nil)
     }
 
     @Test func geometryReaderIsFlexibleWithTenPointIdeal() {

@@ -39,6 +39,10 @@ extension CoordinateSpaceProtocol where Self == NamedCoordinateSpace {
 }
 
 /// A proxy for access to the size and coordinate space of a container view.
+///
+/// Its members are nonisolated, as Apple's are, so a helper in a plain extension of the proxy
+/// can read them (BackyardBirds' parallax offset). Geometry is only ever read while the runtime
+/// lays out or renders on the main actor, which each member assumes.
 public struct GeometryProxy {
     package unowned let node: ViewNode
     /// The size of the container view.
@@ -51,26 +55,36 @@ public struct GeometryProxy {
 
     /// The safe area inset of the container view: how much of the reader's frame lies under a
     /// bar or a `safeAreaInset`; none inside `ignoresSafeArea` (`position/safe-area-geometry`).
-    @MainActor public var safeAreaInsets: EdgeInsets { node.safeAreaOverlap }
-
-    /// Returns the container view's bounds rectangle, converted to a defined coordinate space.
-    @MainActor
-    public func frame(in coordinateSpace: CoordinateSpace) -> CGRect {
-        node.frame(in: coordinateSpace)
+    public var safeAreaInsets: EdgeInsets {
+        let node = self.node
+        return MainActor.assumeIsolated { node.safeAreaOverlap }
     }
 
     /// Returns the container view's bounds rectangle, converted to a defined coordinate space.
-    @MainActor
+    public func frame(in coordinateSpace: CoordinateSpace) -> CGRect {
+        let node = self.node
+        return MainActor.assumeIsolated { node.frame(in: coordinateSpace) }
+    }
+
+    /// Returns the container view's bounds rectangle, converted to a defined coordinate space.
     public func frame(in coordinateSpace: some CoordinateSpaceProtocol) -> CGRect {
-        node.frame(in: coordinateSpace.coordinateSpace)
+        frame(in: coordinateSpace.coordinateSpace)
     }
 
     /// Returns the given coordinate space's bounds rectangle, converted to the local space.
-    @MainActor
     public func bounds(of coordinateSpace: NamedCoordinateSpace) -> CGRect? {
-        guard let space = node.ancestorCoordinateSpace(coordinateSpace.coordinateSpace) else { return nil }
-        let mine = node.frameInRoot, theirs = space.frameInRoot
-        return CGRect(x: theirs.minX - mine.minX, y: theirs.minY - mine.minY, width: theirs.width, height: theirs.height)
+        let node = self.node, space = coordinateSpace.coordinateSpace
+        return MainActor.assumeIsolated {
+            guard let named = node.ancestorCoordinateSpace(space) else { return nil }
+            let mine = node.frameInRoot, theirs = named.frameInRoot
+            return CGRect(x: theirs.minX - mine.minX, y: theirs.minY - mine.minY, width: theirs.width, height: theirs.height)
+        }
+    }
+
+    /// This container's origin in the root's coordinates, which anchors resolve against.
+    package var _originInRoot: CGPoint {
+        let node = self.node
+        return MainActor.assumeIsolated { node.frameInRoot.origin }
     }
 }
 
