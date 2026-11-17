@@ -48,6 +48,9 @@ when they do not, the sweep's heuristics are wrong, not the package.
   swift-syntax, with the libraries they use: those link SwiftUIWeb and the shadows of Apple's
   modules only on wasm, so on the host they see Apple's own Foundation and Dispatch). Binary, system-library and plugin targets, C-only targets and whatever needs
   them are left out, and an import of one of those is taken out like a missing framework;
+- every target passes `-package-name` with the package it came from (a pinned package's identity,
+  or the app's), so `package` declarations stay inside their own package as they do in a real
+  build, though the sweep puts every target into one generated package;
 - apps are grouped into batches whose module names do not collide (two apps pinning a package
   at the same revision share it), one generated package per batch, so SwiftUIWeb builds once a
   batch; the batches run in parallel.

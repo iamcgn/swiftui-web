@@ -876,6 +876,17 @@ IMPORTS_FOUNDATION = re.compile(r"^\s*(?:@\w+\s+)*import\s+(?:\w+\s+)?Foundation
 # Such a target imports the shadow implicitly, as the app's own manifest would (README, "Naming
 # Foundation"); only those targets, so Combine and the rest of what the shadow re-exports stay
 # out of files that do not see them on iOS (a package's own `Future` beside Combine's).
+PACKAGE_NAME_FLAG = '.unsafeFlags(["-package-name", {}])'
+
+
+def package_name_of(target, app):
+    """The package a target came from, as SwiftPM would name it: a pinned package's identity, or
+    the app (its own targets and local packages share one name)."""
+    if target.get("remote"):
+        return target["remote"].split("@")[0]
+    return "app-" + (target.get("base") or app["name"])
+
+
 IMPLICIT_FOUNDATION = '.unsafeFlags(["-Xfrontend", "-import-module", "-Xfrontend", "Foundation"], .when(platforms: [.wasi]))'
 
 
@@ -980,6 +991,11 @@ def cmd_prepare(args):
                     + f'            cSettings: [{", ".join(t["c_settings"])}]\n        ),'
                 )
                 continue
+            # SwiftPM gives each package its own -package-name, so `package` declarations stay
+            # inside it. Here every app and pinned package is one package, so each target names
+            # the package it came from (the later flag wins over SwiftPM's), or swift-case-paths'
+            # package `UncheckedSendable` would clash with ConcurrencyExtras' in swift-navigation.
+            package_flag = PACKAGE_NAME_FLAG.format(json.dumps(package_name_of(t, app)))
             if t.get("macro"):
                 # Built for the host against the sweep package's swift-syntax; sources as they are.
                 uses_syntax = True
@@ -989,7 +1005,7 @@ def cmd_prepare(args):
                     shutil.copy2(clone_dir / f, dest)
                 syntax = "".join(f', .product(name: "{n}", package: "swift-syntax")' for n in t.get("syntax", []))
                 deps = (", ".join(json.dumps(d) for d in t["deps"]) + syntax).lstrip(", ")
-                settings = ", ".join([f".swiftLanguageMode(.{t['mode']})"] + t["settings"])
+                settings = ", ".join([f".swiftLanguageMode(.{t['mode']})"] + t["settings"] + [package_flag])
                 decls.append(
                     f'        .macro(\n            name: "{t["module"]}",\n            dependencies: [{deps}],\n'
                     f'            path: "Sources/{t["module"]}",\n'
@@ -1070,7 +1086,7 @@ def cmd_prepare(args):
                 ['.plugin(name: "AssetSymbols", package: "SwiftUIWeb")']
                 if t.get("catalogs") or any(r.endswith('.xcassets")') for r in resources) else [])
             kind = "executableTarget" if t.get("app") else "target"
-            settings = [f".swiftLanguageMode(.{t['mode']})"] + t["settings"]
+            settings = [f".swiftLanguageMode(.{t['mode']})"] + t["settings"] + [package_flag]
             if foundation_name:
                 settings.append(IMPLICIT_FOUNDATION)
             extra = [json.dumps(d) for d in t["deps"]]
