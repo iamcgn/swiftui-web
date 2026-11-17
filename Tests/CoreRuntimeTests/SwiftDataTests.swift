@@ -451,13 +451,13 @@ private struct QueryView<T: PersistentModel>: View {
         // A string comparator, as BackyardBirds' `.init(\BirdFood.name, comparator: .localizedStandard)`.
         let reversed = try context.fetch(FetchDescriptor<DBModel.Country>(sortBy: [SortDescriptor(\DBModel.Country.name, comparator: .lexical, order: .reverse)]))
         #expect(reversed.map(\.alpha3Code) == ["SWE", "POL", "NOR", "FIN"])
-        let byCodeThenName: [SortDescriptor<DBModel.Country>] = [.init(\.population, order: .reverse), .init(\.name, comparator: .lexical)]
-        #expect(try context.fetch(FetchDescriptor(sortBy: byCodeThenName)).map(\.alpha3Code) == ["POL", "SWE", "FIN", "NOR"])
+        let byPopulation = FetchDescriptor<DBModel.Country>(sortBy: [.init(\.population, order: .reverse), .init(\.name, comparator: .lexical)])
+        #expect(try context.fetch(byPopulation).map(\.alpha3Code) == ["POL", "SWE", "FIN", "NOR"])
         #if canImport(Darwin)
         // Apple's default for a string is `.localizedStandard`: case-insensitive, digits by value.
         let files = [DBModel.Country(name: "file 10", translations: [:], population: 1, alpha3Code: "F10"),
                      DBModel.Country(name: "File 9", translations: [:], population: 1, alpha3Code: "F9")]
-        let standard = SortDescriptor(\DBModel.Country.name)
+        let standard = FetchDescriptor<DBModel.Country>(sortBy: [.init(\.name)]).sortBy[0]
         #expect(standard.compare(files[1], files[0]) == .orderedAscending)
         #endif
         #expect(try context.fetchCount(FetchDescriptor<DBModel.Country>(predicate: #Predicate { $0.population > 10_000_000 })) == 2)
