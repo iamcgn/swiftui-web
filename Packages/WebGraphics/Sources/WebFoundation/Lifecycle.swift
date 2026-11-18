@@ -240,17 +240,80 @@ public final class NotificationToken: NSObjectProtocolToken {
 
 #if !canImport(Darwin)
 
-/// A user activity: the type, title, user info and web page URL the app would continue.
+/// The identifier an activity's saved copies are deleted by.
+public typealias NSUserActivityPersistentIdentifier = String
+
+/// A user activity: the type, title, user info and web page URL the app would continue, with
+/// what it says about itself to search, Handoff and Siri. A page has none of those: the activity
+/// keeps what the app sets, and a scene continues it when the app hands it back.
 public final class NSUserActivity: @unchecked Sendable {
     public let activityType: String
     public var title: String?
     public var userInfo: [AnyHashable: Any]?
     public var webpageURL: URL?
+    public var referrerURL: URL?
+    public var expirationDate: Date?
+    /// The search keywords.
+    public var keywords: Set<String> = []
+    /// The `userInfo` keys the activity needs to be continued.
+    public var requiredUserInfoKeys: Set<String>?
+    /// The identifier the app deletes the activity's saved copies by.
+    public var persistentIdentifier: NSUserActivityPersistentIdentifier?
+    /// The identifier that picks the scene that continues the activity.
+    public var targetContentIdentifier: String?
+    public var needsSave = false
+    public var supportsContinuationStreams = false
     public var isEligibleForHandoff = true
+    public var isEligibleForSearch = false
+    public var isEligibleForPublicIndexing = false
+    public var isEligibleForPrediction = false
+    /// What other frameworks attach to the activity (CoreSpotlight's `contentAttributeSet`).
+    public var _attached: [String: Any] = [:]
 
     public init(activityType: String) { self.activityType = activityType }
     public func becomeCurrent() {}
     public func resignCurrent() {}
     public func invalidate() {}
+
+    /// Adds the entries to `userInfo`, replacing those with the same keys.
+    public func addUserInfoEntries(from otherDictionary: [AnyHashable: Any]) {
+        var info = userInfo ?? [:]
+        for (key, value) in otherDictionary { info[key] = value }
+        userInfo = info
+    }
+
+    /// Writes the payload's encoded keys into `userInfo`, as Apple's does, so
+    /// `requiredUserInfoKeys` can name them and `typedPayload(_:)` reads them back.
+    public func setTypedPayload<T: Encodable>(_ payload: T) throws {
+        let object = try JSONSerialization.jsonObject(with: JSONEncoder().encode(payload))
+        guard let entries = object as? [String: Any] else {
+            throw EncodingError.invalidValue(payload, EncodingError.Context(codingPath: [],
+                debugDescription: "A typed payload encodes as keyed values."))
+        }
+        var info: [AnyHashable: Any] = [:]
+        for (key, value) in entries { info[key] = value }
+        addUserInfoEntries(from: info)
+    }
+
+    /// Decodes the payload `setTypedPayload(_:)` wrote from `userInfo`'s string-keyed entries.
+    public func typedPayload<T: Decodable>(_ type: T.Type) throws -> T {
+        var entries: [String: Any] = [:]
+        for (key, value) in userInfo ?? [:] {
+            if let key = key as? String, JSONSerialization.isValidJSONObject([value]) { entries[key] = value }
+        }
+        return try JSONDecoder().decode(T.self, from: JSONSerialization.data(withJSONObject: entries))
+    }
+
+    /// Deletes the saved activities with these persistent identifiers (a page saves none).
+    public class func deleteSavedUserActivities(withPersistentIdentifiers persistentIdentifiers: [NSUserActivityPersistentIdentifier],
+                                                completionHandler handler: @escaping @Sendable () -> Void) { handler() }
+    public class func deleteSavedUserActivities(withPersistentIdentifiers persistentIdentifiers: [NSUserActivityPersistentIdentifier]) async {}
+    public class func deleteAllSavedUserActivities(completionHandler handler: @escaping @Sendable () -> Void) { handler() }
+    public class func deleteAllSavedUserActivities() async {}
+}
+
+extension NSUserActivity: Hashable {
+    public static func == (lhs: NSUserActivity, rhs: NSUserActivity) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 }
 #endif
