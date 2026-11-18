@@ -1,6 +1,6 @@
 name: Landing page
 # Builds Examples/Landing (release wasm bundle), the fixture gallery (Examples/Gallery, at
-# /gallery/), the progress page (/progress/) and the three unmodified apps of decision 0021
+# /gallery/), the progress page (/progress/) and the eight unmodified apps of decision 0021
 # (/apps/<app>/) and publishes them as the gh-pages branch, which GitHub Pages serves at
 # https://iamcgn.github.io/swiftui-web/ (repository settings: Pages source "Deploy from a branch",
 # gh-pages, /). The same as running scripts/deploy-landing.sh locally. A macOS runner: SwiftUI-2048

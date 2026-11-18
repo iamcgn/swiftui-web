@@ -44,7 +44,7 @@ sed -e "s|./.build/wasm/plugins/PackageToJS/outputs/Package/|./$PBUNDLE/|g" -e "
   -e "s|data-commit=\"\"|data-commit=\"$(git -C "$ROOT" rev-parse --short HEAD)\"|" \
   "$ROOT/Examples/Progress/index.html" > "$PROGRESS/index.html"
 if [[ -z "${1:-}" ]]; then "$ROOT/scripts/size-gate.sh" Examples/Progress 3670016; fi
-# The apps (decision 0021): the three unmodified iOS apps, each a release build at /apps/<app>/,
+# The apps (decision 0021): the eight unmodified iOS apps, each a release build at /apps/<app>/,
 # from Apps/index.html with the bundle path, name and wasm size filled in. The submodules must be
 # checked out at their pins (scripts/check-apps.sh --verify). SwiftUI2048 needs the Objective-C
 # runtime SDK (decision 0023), installed where this runs; it goes last because the Apps scratch
@@ -64,8 +64,35 @@ app_page() {   # app_page <dir> <Product> <name shown while loading>
     -e "s|data-wasm=\"\"|data-wasm=\"$2.wasm\"|" -e "s|data-app=\"\"|data-app=\"$3\"|" -e "s|<title>App — SwiftUIWeb</title>|<title>$3 — SwiftUIWeb</title>|" \
     "$ROOT/Apps/index.html" > "$APP/index.html"
 }
-"$ROOT/scripts/build-wasm.sh" Apps ${1:+"$1"} --product Scrumdinger && app_page scrumdinger Scrumdinger "Scrumdinger"
-"$ROOT/scripts/build-wasm.sh" Apps ${1:+"$1"} --product Ember && app_page ember Ember "Ember"
-SWIFTUIWEB_WASM_SDK="$OBJC_SDK" "$ROOT/scripts/build-wasm.sh" Apps ${1:+"$1"} --product SwiftUI2048 && app_page 2048 SwiftUI2048 "SwiftUI 2048"
+# Every app of Apps/Package.swift that CI's browser job runs. A release build first; when that
+# does not compile (SwiftUI-2048 and PomPadDo with the Objective-C runtime SDK, 2026-11-17:
+# NSNumber's `description` is ambiguous with ObjectiveC's in release only) the debug build the
+# browser job proves, with its DWARF stripped so the page downloads the code alone. An app whose
+# build fails is reported and left out; the rest of the site still deploys.
+app_build() {  # app_build <dir> <Product> <name shown while loading> [sdk]
+  local SDK_ENV=()
+  [[ -n "${4:-}" ]] && SDK_ENV=(SWIFTUIWEB_WASM_SDK="$4")
+  if env ${SDK_ENV[@]+"${SDK_ENV[@]}"} "$ROOT/scripts/build-wasm.sh" Apps $BUILD_FLAG --product "$2"; then
+    app_page "$1" "$2" "$3"
+  elif [[ -z "$BUILD_FLAG" ]] && env ${SDK_ENV[@]+"${SDK_ENV[@]}"} "$ROOT/scripts/build-wasm.sh" Apps --debug --product "$2"; then
+    local W="$ROOT/Apps/.build/wasm/plugins/PackageToJS/outputs/Package/$2.wasm"
+    if command -v wasm-opt >/dev/null; then
+      wasm-opt --all-features --strip-debug --strip-dwarf "$W" -o "$W.stripped" && mv "$W.stripped" "$W" || rm -f "$W.stripped"
+    fi
+    app_page "$1" "$2" "$3"
+    echo "build-landing: $2 is a debug build (its release build failed)"
+  else
+    echo "::warning::build-landing: $2 did not build; /apps/$1/ is left out"
+  fi
+}
+BUILD_FLAG="${1:-}"
+app_build scrumdinger Scrumdinger "Scrumdinger"
+app_build ember Ember "Ember"
+app_build charts ChartsExamples "Swift Charts Examples"
+app_build buttoncraft Buttoncraft "Buttoncraft"
+app_build simplescores SimpleScores "SimpleScores"
+app_build simpletodo SimpleToDo "SimpleToDo"
+app_build 2048 SwiftUI2048 "SwiftUI 2048" "$OBJC_SDK"
+app_build pompaddo Pompaddo "PomPadDo" "$OBJC_SDK"
 touch "$DIST/.nojekyll"
 echo "Site: $DIST ($(du -sh "$DIST" | cut -f1); gallery $(du -sh "$GALLERY" | cut -f1); progress $(du -sh "$PROGRESS" | cut -f1); apps $(du -sh "$DIST/apps" | cut -f1)); serve with: python3 -m http.server --directory $DIST"
