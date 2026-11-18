@@ -582,20 +582,36 @@ def describe_app(entry, root: Path, work: Path = None):
     except Exception as e:  # an unreadable project leaves the folder-based guess
         app_target = None
         notes.append(f"Xcode project not read ({type(e).__name__}: {str(e)[:120]})")
+    sub_apps = []  # (target name, project folder, files) of the repository's other iOS apps
+    other_bases = []  # the folders of the repository's other apps' projects
     if app_target:
         name, members, base = app_target
         kept = [f for f in app_files if f in members or not Path(f).is_relative_to(base)]
-        # A repository of several apps, each in its own project folder (SimpleSwiftUI): the
-        # other apps' folders are theirs, and their types would redeclare this app's.
-        try:
-            others = [b for b in xcodeproj.application_project_bases(root, pbx_files)
-                      if b != base and str(b) != "." and not base.is_relative_to(b)]
-        except Exception:
-            others = []
-        dropped = [f for f in kept if f not in members and any(Path(f).is_relative_to(b) for b in others)]
-        if dropped:
-            kept = [f for f in kept if f not in dropped]
-            notes.append(f"app target {name}: left out {len(dropped)} Swift files of the other apps' projects ({', '.join(sorted(str(b) for b in others))})")
+        # A repository of several apps, each in its own project folder (SimpleSwiftUI's four,
+        # SwiftUIExperiments' forty-five): each other iOS app is built as a module of its own,
+        # from the files its target compiles, since in one module their types redeclare one another.
+        for pbx in pbx_files:
+            other_base = pbx.relative_to(root).parent.parent
+            if str(other_base) == "." or other_base.is_relative_to(base) or base.is_relative_to(other_base):
+                continue
+            try:
+                other = xcodeproj.app_target_files(root, [pbx])
+                ios = other and xcodeproj.app_target_files(root, [pbx], ios_only=True)
+            except Exception:
+                continue
+            if not other:
+                continue
+            other_bases.append(other_base)
+            if ios:  # another platform's app (SimpleSwiftUI's macOS SimpleNotes) is left out
+                files = [f for f in app_files if f in ios[1] and f not in members]
+                if files:
+                    sub_apps.append((ios[0], other_base, files))
+        if other_bases:
+            claimed = {f for _, _, files in sub_apps for f in files}
+            kept = [f for f in kept if f in members or (f not in claimed and not any(Path(f).is_relative_to(b) for b in other_bases))]
+            left = len(other_bases) - len(sub_apps)
+            notes.append(f"{len(sub_apps)} more iOS apps in their own project folders, each built as its own module"
+                         + (f"; {left} other apps' folders left out" if left else ""))
         if kept:
             if len(kept) < len(app_files):
                 notes.append(f"app target {name}: {len(kept)} of {len(app_files)} Swift files outside the packages")
@@ -630,6 +646,27 @@ def describe_app(entry, root: Path, work: Path = None):
             "catalogs": catalogs, "symbol_extensions": bool(catalogs) and xcode_asset_symbol_extensions(root),
             "executable": True, "app": True,
         })
+        sub_bases = [b for _, b, _ in sub_apps]
+        if sub_bases:
+            main = targets[-1]
+            main["models"] = [m for m in main["models"] if not any(Path(m).is_relative_to(b) for b in sub_bases)]
+            main["catalogs"] = [c for c in main["catalogs"] if not any(Path(c).is_relative_to(b) for b in sub_bases)]
+            main["symbol_extensions"] = bool(main["catalogs"]) and main["symbol_extensions"]
+        used = {t["module"] for t in targets}
+        for sub_name, sub_base, files in sub_apps:
+            module = "Sweep" + re.sub(r"\W", "", entry["name"]) + "_" + (re.sub(r"\W", "", sub_name) or "App")
+            while module in used:
+                module += "_"
+            used.add(module)
+            sub_catalogs = [c for c in catalogs if Path(c).is_relative_to(sub_base)]
+            targets.append({
+                "module": module, "source_root": ".", "files": files,
+                "deps": sorted({t["module"] for t in targets if not t["executable"] and not t.get("macro")}),
+                "third_party": [], "mode": xcode_language_mode(root / sub_base), "settings": [], "resources": [],
+                "models": [m for m in models if Path(m).is_relative_to(sub_base)],
+                "catalogs": sub_catalogs, "symbol_extensions": bool(sub_catalogs) and xcode_asset_symbol_extensions(root / sub_base),
+                "executable": True, "app": True,
+            })
     # The app target links the package modules its files import (Xcode links the products the
     # project lists; the imports say which of them the app's code uses).
     remote_modules = {t["module"]: t for t in targets if t.get("remote") and not t.get("macro")}

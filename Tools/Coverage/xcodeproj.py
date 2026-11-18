@@ -189,23 +189,10 @@ class Project:
         return out
 
 
-def application_project_bases(root: Path, pbx_files):
-    """The folders holding a project that builds an application (any platform)."""
-    bases = set()
-    for pbx in pbx_files:
-        try:
-            project = Project(pbx, root)
-        except Exception:
-            continue
-        if any(t.get("productType") == "com.apple.product-type.application" for _, t in project.targets()):
-            bases.add(project.base)
-    return bases
-
-
-def app_target_files(root: Path, pbx_files):
+def app_target_files(root: Path, pbx_files, ios_only=False):
     """The iOS app target's name, its Swift files (and those of the frameworks it builds) and the
     folder holding its project, from the project whose application is likeliest the iOS app; None
-    when no project says."""
+    when no project says (or, with `ios_only`, when none builds an iOS application)."""
     candidates = []
     for pbx in pbx_files:
         try:
@@ -217,6 +204,8 @@ def app_target_files(root: Path, pbx_files):
                 continue
             name = target.get("name", "")
             ios = project.is_ios(target)
+            if ios_only and not ios:
+                continue
             score = (0 if ios else 1, 0 if IOS_HINT.search(name) else 1,
                      1 if OTHER_PLATFORM_HINT.search(name) else 0, len(name))
             candidates.append((score, str(pbx), tid, project))
