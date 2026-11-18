@@ -3,6 +3,11 @@ public struct ButtonRole: Equatable, Sendable {
     package let name: String
     public static let destructive = ButtonRole(name: "destructive")
     public static let cancel = ButtonRole(name: "cancel")
+    /// A button that closes the view it is in (iOS 26): a button with no label shows the
+    /// close mark.
+    public static let close = ButtonRole(name: "close")
+    /// A button that confirms the view's operation (iOS 26).
+    public static let confirm = ButtonRole(name: "confirm")
 }
 
 /// Holds a button's action. A class rather than a bare closure field so the runtime's field
@@ -66,6 +71,27 @@ public struct Button<Label: View>: View {
             _ButtonHost(action: action, isPressed: $isPressed, label: AnyView(style.makeBodyErased(configuration)))
                 .layoutValue(key: _ButtonRoleKey.self, value: role)
         }
+    }
+}
+
+/// The label a button with a role and no label of its own shows (iOS 26): the close mark, the
+/// confirm checkmark, or the role's word.
+public struct _ButtonRoleLabel: View {
+    let role: ButtonRole
+    public var body: some View {
+        switch role.name {
+        case "close": Image(systemName: "xmark").accessibilityLabel("Close")
+        case "confirm": Image(systemName: "checkmark").accessibilityLabel("Done")
+        case "destructive": Image(systemName: "trash").accessibilityLabel("Delete")
+        default: Image(systemName: "xmark").accessibilityLabel("Cancel")
+        }
+    }
+}
+
+extension Button where Label == _ButtonRoleLabel {
+    /// Creates a button with a role that shows the role's system label (iOS 26).
+    @preconcurrency nonisolated public init(role: ButtonRole, action: @escaping @MainActor () -> Void) {
+        self.init(role: role, action: action) { _ButtonRoleLabel(role: role) }
     }
 }
 
