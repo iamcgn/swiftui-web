@@ -127,13 +127,20 @@ public struct _NumberFormatting: Hashable, Sendable {
     private func formatSignificant(_ value: Double, minimum: Int, maximum: Int?) -> String {
         var (digits, exponent) = Self.decimalDigits(abs(value))
         if case .percent = style { exponent += 2 }
+        return formatSignificant(digits: digits, exponent: exponent, negative: value < 0, minimum: minimum, maximum: maximum)
+    }
+
+    /// The same for decimal digits `0.d₁d₂… × 10^exponent` (no leading or trailing zeros; none
+    /// for zero), so an integer keeps every digit (`Int64.max` at nineteen is exact, issue 231).
+    private func formatSignificant(digits: [UInt8], exponent: Int, negative: Bool, minimum: Int, maximum: Int?) -> String {
+        var digits = digits, exponent = exponent
         if let maximum, digits.count > max(maximum, 1) {
             let keep = max(maximum, 1)
             let next = digits[keep]
             let restNonZero = digits[(keep + 1)...].contains { $0 != 0 }
             let lastKept = digits[keep - 1]
             digits.removeSubrange(keep...)
-            if Self.roundsUp(next: next, restNonZero: restNonZero, lastKept: lastKept, rule: roundingRule, negative: value < 0) {
+            if Self.roundsUp(next: next, restNonZero: restNonZero, lastKept: lastKept, rule: roundingRule, negative: negative) {
                 var index = digits.count - 1
                 while index >= 0, digits[index] == 9 { digits[index] = 0; index -= 1 }
                 if index >= 0 { digits[index] += 1 } else { digits.insert(1, at: 0); exponent += 1 }
@@ -154,7 +161,7 @@ public struct _NumberFormatting: Hashable, Sendable {
         while shown < minimum { fraction.append(0); shown += 1 }
         var integerPart = integer.isEmpty ? "0" : integer.map { String($0) }.joined()
         if usesGrouping { integerPart = Self.grouped(integerPart) }
-        return assemble(integer: integerPart, fraction: fraction.map { String($0) }.joined(), negative: value < 0 && !digits.isEmpty)
+        return assemble(integer: integerPart, fraction: fraction.map { String($0) }.joined(), negative: negative && !digits.isEmpty)
     }
 
     /// How many whole increments `value` (in percent when `percent`) rounds to under the rule,
@@ -247,10 +254,13 @@ public struct _NumberFormatting: Hashable, Sendable {
     }
 
     public func format<I: BinaryInteger>(_ value: I) -> String {
-        if minimumSignificantDigits != nil, roundingIncrement == nil {
-            // An integer percentage is already in percent (7 → "7%").
-            if case .percent = style { return format(Double(value) / 100) }
-            return format(Double(value))
+        if let minimum = minimumSignificantDigits, roundingIncrement == nil {
+            // The integer's own digits, not a Double's 53 bits; an integer percentage is already
+            // in percent (7 → "7%"), so it isn't scaled.
+            var digits = String(value.magnitude).compactMap { $0.wholeNumberValue.map(UInt8.init) }
+            let exponent = digits == [0] ? 0 : digits.count
+            while let last = digits.last, last == 0 { digits.removeLast() }
+            return formatSignificant(digits: digits, exponent: exponent, negative: value < 0, minimum: minimum, maximum: maximumSignificantDigits)
         }
         if let increment = roundingIncrement, increment > 0 {
             // An integer percentage is already in percent (7 → "7%"), so it isn't scaled by 100

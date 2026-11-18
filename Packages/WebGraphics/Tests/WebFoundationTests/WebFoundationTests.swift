@@ -322,7 +322,7 @@ import Foundation
     @Test func significantDigitsMatchFoundation() {
         let locale = Locale(identifier: "en_US")
         let values = [0.5, 12345.0, 0.000123456, 1.0, 999.96, 0.0, -2.71828, 123.456, 0.1, 99.5, 0.0995]
-        for (low, high) in [(3, 3), (1, 3), (2, 6), (1, 1)] {
+        for (low, high) in [(3, 3), (1, 3), (2, 6), (1, 1), (1, 19)] {
             var decimal = _NumberFormatting()
             decimal.minimumSignificantDigits = low
             decimal.maximumSignificantDigits = high
@@ -334,7 +334,8 @@ import Foundation
                 let percentText = value.formatted(.percent.precision(.significantDigits(low...high)).locale(locale))
                 #expect(percent.format(value) == percentText, "\(value) \(low)...\(high) percent: \(percent.format(value))")
             }
-            for integer in [12345, 7, 0, -98765] {
+            // Past 2^53 an integer keeps its own digits (issue 231).
+            for integer in [12345, 7, 0, -98765, 9007199254740993, Int.max, Int.min] {
                 #expect(decimal.format(integer) == integer.formatted(.number.precision(.significantDigits(low...high)).locale(locale)), "\(integer) \(low)...\(high)")
             }
         }
@@ -412,7 +413,7 @@ import Foundation
 @Suite struct CaseMappingTests {
     static let words = ["ßeta", "123hello", "'hello", "1st place", "ΟΣ", "ΟΔΟΣ ΚΑΙ ΣΑΣ", "ΑΣ. Σ",
                         "i\u{0301}", "I\u{0301}", "I\u{0307}x", "Iİ", "istanbul ılık", "hello wORLD",
-                        "straße", "ÉCOLE", "ǆemal ǄEMAL", "x-ray o'neil"]
+                        "straße", "ÉCOLE", "ǆemal ǄEMAL", "x-ray o'neil", "I\u{0323}\u{0307}", "I\u{0323}\u{0307}x"]
     static let locales: [Locale?] = [nil, Locale(identifier: "en_US"), Locale(identifier: "tr_TR"), Locale(identifier: "az")]
 
     @Test func matchesFoundation() {
@@ -435,10 +436,25 @@ import Foundation
         }
     }
 
+    /// A String's `lowercased(with:)` maps in context, as ICU does: a Turkish I drops a dot above
+    /// past other combining marks (issue 214), where NSString's keeps it.
+    static let contextWords = ["I\u{0323}\u{0307}", "I\u{0323}\u{0307}x", "I\u{0307}x", "I\u{0301}", "istanbul ılık",
+                               "ΟΔΟΣ ΚΑΙ ΣΑΣ", "hello wORLD"]
+
+    @Test func stringLowercasingMatchesFoundation() {
+        for locale in Self.locales {
+            let dotted = _CaseMapping.dottedI(locale)
+            for word in Self.contextWords {
+                let lower = _CaseMapping.lowercased(word, dottedI: dotted, contextual: true)
+                #expect(lower == word.lowercased(with: locale), "\(word) String lower \(locale?.identifier ?? "root"): \(lower.unicodeScalars.map { String($0.value, radix: 16) })")
+            }
+        }
+    }
+
     /// The `capitalized` properties: NSString's as Core Foundation does, a String's the same but
     /// leaving an uppercase first letter as it is.
     static let propertyWords = ["ßeta", "123hello", "'hello", "1st place", "don't stop", "x-ray o'neil",
-                                "hello wORLD", "ǆemal ǄEMAL", "ÉCOLE normale"]
+                                "hello wORLD", "ǆemal ǄEMAL", "ÉCOLE normale", "ΟΣ", "ΟΔΟΣ ΚΑΙ ΣΑΣ"]
 
     @Test func propertyMatchesFoundation() {
         for word in Self.propertyWords {
