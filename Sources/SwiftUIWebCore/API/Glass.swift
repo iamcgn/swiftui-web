@@ -110,7 +110,8 @@ public struct GlassButtonStyle {
 
 extension GlassButtonStyle: PrimitiveButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
-        Button(role: configuration.role, action: configuration.trigger) { configuration.label }
+        let action = configuration.action
+        return Button(role: configuration.role, action: { action.run() }) { configuration.label }
             .buttonStyle(_GlassBodyStyle(kind: .bordered))
     }
 }
@@ -123,7 +124,8 @@ public struct GlassProminentButtonStyle {
 
 extension GlassProminentButtonStyle: PrimitiveButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
-        Button(role: configuration.role, action: configuration.trigger) { configuration.label }
+        let action = configuration.action
+        return Button(role: configuration.role, action: { action.run() }) { configuration.label }
             .buttonStyle(_GlassBodyStyle(kind: .prominent))
     }
 }
