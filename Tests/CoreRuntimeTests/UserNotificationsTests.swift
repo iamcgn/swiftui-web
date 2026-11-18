@@ -39,6 +39,18 @@ import WebFoundation
         UNUserNotificationCenter.current().delegate = nil
     }
 
+    @Test func requestsAndResponsesAreEqualByIdentity() {
+        let content = UNMutableNotificationContent()
+        let first = UNNotificationRequest(identifier: "same", content: content, trigger: nil)
+        let second = UNNotificationRequest(identifier: "same", content: content, trigger: nil)
+        #expect(first == first)
+        #expect(first != second)
+        #expect(Set([first, second, first]).count == 2)
+        // An app's state keeps the responses it has yet to handle in a set (Harbour).
+        let pending: Set<UNNotificationResponse> = []
+        #expect(pending.isEmpty)
+    }
+
     @Test func badgeCountAnswersBothForms() async throws {
         let center = UNUserNotificationCenter.current()
         nonisolated(unsafe) var told: [Bool] = []

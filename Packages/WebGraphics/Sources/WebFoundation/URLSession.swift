@@ -465,6 +465,11 @@ public final class URLSessionConfiguration: @unchecked Sendable {
     public var httpShouldUsePipelining = false
     public var isDiscretionary = false
     public var sessionSendsLaunchEvents = false
+    /// Recorded: a page can't tell a constrained or expensive network from another.
+    public var allowsConstrainedNetworkAccess = true
+    public var allowsExpensiveNetworkAccess = true
+    /// Recorded: a page has no background sessions to keep alive.
+    public var shouldUseExtendedBackgroundIdleMode = false
     public var networkServiceType: URLRequest.NetworkServiceType = .default
     /// Recorded: the browser answers HTTP authentication itself, so nothing reads it. Held
     /// untyped, and the shared storage named only when read, so a page that never asks links no

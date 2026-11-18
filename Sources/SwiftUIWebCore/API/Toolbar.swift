@@ -170,7 +170,11 @@ public struct _ToolbarContentList: ToolbarContent, CustomizableToolbarContent {
 @resultBuilder
 public enum ToolbarContentBuilder {
     public static func buildExpression<C: ToolbarContent>(_ content: C) -> _ToolbarContentList { _ToolbarContentList(items: content._toolbarItems) }
-    public static func buildBlock(_ parts: _ToolbarContentList...) -> _ToolbarContentList { _ToolbarContentList(items: parts.flatMap(\.items)) }
+    /// At least one part, as Apple's builder takes: an empty `toolbar { }` (every item behind an
+    /// `#if` another platform takes, Harbour's) is then the view builder's, not ambiguous.
+    public static func buildBlock(_ first: _ToolbarContentList, _ rest: _ToolbarContentList...) -> _ToolbarContentList {
+        _ToolbarContentList(items: first.items + rest.flatMap(\.items))
+    }
     public static func buildOptional(_ part: _ToolbarContentList?) -> _ToolbarContentList { part ?? _ToolbarContentList(items: []) }
     public static func buildEither(first: _ToolbarContentList) -> _ToolbarContentList { first }
     public static func buildEither(second: _ToolbarContentList) -> _ToolbarContentList { second }
@@ -193,6 +197,30 @@ extension _ToolbarModifier: ViewModifier {
 
     public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
         ToolbarNode(context)
+    }
+}
+
+/// A toolbar item the system puts there itself, which `toolbar(removing:)` takes out.
+public struct ToolbarDefaultItemKind: Hashable, Sendable {
+    package let name: String
+    /// The navigation split view's sidebar toggle.
+    public static let sidebarToggle = ToolbarDefaultItemKind(name: "sidebarToggle")
+    /// The window's title.
+    public static let title = ToolbarDefaultItemKind(name: "title")
+}
+
+/// Takes a default item out of the window toolbar while mounted (`toolbar(removing:)`).
+@frozen
+public struct _ToolbarRemovingModifier: Equatable {
+    public var kind: ToolbarDefaultItemKind?
+    public init(kind: ToolbarDefaultItemKind?) { self.kind = kind }
+}
+
+extension _ToolbarRemovingModifier: ViewModifier {
+    public typealias Body = Never
+
+    public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        ToolbarRemovingNode(context)
     }
 }
 
@@ -246,6 +274,12 @@ extension View {
 
     nonisolated public func toolbar<C: CustomizableToolbarContent>(id: String, @ToolbarContentBuilder content: () -> C) -> some View {
         modifier(_ToolbarModifier(id: id, items: content()._toolbarItems))
+    }
+
+    /// Takes a default item out of the window toolbar: the split view's sidebar toggle or the
+    /// title. Nil removes nothing.
+    nonisolated public func toolbar(removing defaultItemKind: ToolbarDefaultItemKind?) -> some View {
+        modifier(_ToolbarRemovingModifier(kind: defaultItemKind))
     }
 
     /// Shows or hides the window toolbar; other bars are accepted without effect.

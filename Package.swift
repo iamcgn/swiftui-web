@@ -53,6 +53,7 @@ let package = Package(
         .library(name: "CoreMotion", targets: ["CoreMotion"]),
         .library(name: "AudioToolbox", targets: ["AudioToolbox"]),
         .library(name: "PDFKit", targets: ["PDFKit"]),
+        .library(name: "CoreSpotlight", targets: ["CoreSpotlight"]),
         .library(name: "StoreKit", targets: ["StoreKit"]),
         .library(name: "AppIntents", targets: ["AppIntents"]),
         .library(name: "WebKit", targets: ["WebKit"]),
@@ -224,6 +225,9 @@ let package = Package(
         // PDF documents and pages over a PDF's data; the files UIGraphicsPDFRenderer wrote draw as recorded.
         .target(name: "PDFKit", dependencies: [.product(name: "UIKit", package: "UIKitWeb"), .product(name: "WebFoundation", package: "WebGraphics")],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
+        // An app's searchable items, kept by an index a page has no system search to hand them to.
+        .target(name: "CoreSpotlight", dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
+                swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "SpeechRecognitionHost", swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "Speech", dependencies: ["SpeechRecognitionHost", "AVFAudio", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -311,7 +315,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // JavaScriptCore on its own: under Node (the wasm tests) against its real engine; natively,

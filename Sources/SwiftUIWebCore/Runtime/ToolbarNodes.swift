@@ -114,6 +114,25 @@ package final class ToolbarVisibilityNode<Content: View>: UnaryLayoutModifierNod
     }
 }
 
+/// `toolbar(removing:)`: takes the default item out of the bar while mounted.
+@MainActor
+package final class ToolbarRemovingNode<Content: View>: UnaryLayoutModifierNode<Content, _ToolbarRemovingModifier> {
+    override package init(_ context: _NodeContext<ModifiedContent<Content, _ToolbarRemovingModifier>>) {
+        super.init(context)
+        runtime.setRemovedToolbarItem(self, modifier.kind)
+    }
+
+    override package func update(view: ModifiedContent<Content, _ToolbarRemovingModifier>, environment: EnvironmentValues, force: Bool) {
+        super.update(view: view, environment: environment, force: force)
+        runtime.setRemovedToolbarItem(self, view.modifier.kind)
+    }
+
+    override package func unmount() {
+        runtime.setRemovedToolbarItem(self, nil)
+        super.unmount()
+    }
+}
+
 /// The bar's view: leading items, the title, principal items centred, trailing items.
 struct _ToolbarBarView: View {
     let items: [_ToolbarItemData]
@@ -287,6 +306,17 @@ extension Runtime {
         requestLayout()
     }
 
+    package func setRemovedToolbarItem(_ node: ViewNode, _ kind: ToolbarDefaultItemKind?) {
+        removedToolbarItems.removeAll { $0.node === node || $0.node == nil }
+        if let kind { removedToolbarItems.append(ToolbarRemovalSource(node: node, kind: kind)) }
+        requestLayout()
+    }
+
+    /// Whether a mounted `toolbar(removing:)` takes the default item out.
+    package func removesToolbarItem(_ kind: ToolbarDefaultItemKind) -> Bool {
+        removedToolbarItems.contains { $0.node?.isMounted == true && $0.kind == kind }
+    }
+
     package func setToolbarVisibility(_ node: ViewNode, _ visibility: Visibility?) {
         toolbarVisibility.removeAll { $0.node === node || $0.node == nil }
         if let visibility { toolbarVisibility.append(ToolbarVisibilitySource(node: node, visibility: visibility)) }
@@ -362,8 +392,8 @@ extension Runtime {
         var environment = rootEnvironment
         environment.colorScheme = root.environment.colorScheme
         var toggle: (@MainActor () -> Void)?
-        if hasSplitView { toggle = { [weak self] in _ = self?.toggleSidebar() } }
-        let view = AnyView(_ToolbarBarView(items: toolbarItems, title: chromeShowsTitle ? navigationTitle : nil, search: searchField, scopes: activeSearchScopes, role: toolbarRole, sidebarToggle: toggle))
+        if hasSplitView && !removesToolbarItem(.sidebarToggle) { toggle = { [weak self] in _ = self?.toggleSidebar() } }
+        let view = AnyView(_ToolbarBarView(items: toolbarItems, title: chromeShowsTitle && !removesToolbarItem(.title) ? navigationTitle : nil, search: searchField, scopes: activeSearchScopes, role: toolbarRole, sidebarToggle: toggle))
         if let toolbar {
             toolbar.update(view: view, environment: environment)
         } else {
@@ -387,6 +417,11 @@ package struct ToolbarBackgroundSource {
 package struct ToolbarRoleSource {
     weak var node: ViewNode?
     var role: ToolbarRole
+}
+
+package struct ToolbarRemovalSource {
+    weak var node: ViewNode?
+    var kind: ToolbarDefaultItemKind
 }
 
 package struct ToolbarVisibilitySource {

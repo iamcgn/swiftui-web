@@ -179,7 +179,31 @@ public struct TextField<Label: View>: View {
     @Environment(\._formStyle) private var formStyle
     @Environment(\.labelsHidden) private var labelsHidden
 
+    /// The field an app's style is handed: it draws with the system style.
+    package var isStyleConfiguration = false
+
     public var body: some View {
+        if style._hasBody && !isStyleConfiguration {
+            style._bodyErased(_styleConfiguration)
+        } else {
+            _fieldBody(style: style._hasBody ? DefaultTextFieldStyle() : style)
+        }
+    }
+
+    /// This field as an app's style is handed it.
+    private var _styleConfiguration: TextField<_TextFieldStyleLabel> {
+        var configuration = TextField<_TextFieldStyleLabel>(text: text, prompt: prompt, isSecure: isSecure) {
+            _TextFieldStyleLabel(content: AnyView(label), text: _labelString)
+        }
+        configuration.axis = axis
+        configuration.commitsOnSubmit = commitsOnSubmit
+        configuration.onEditingChanged = onEditingChanged
+        configuration.onCommit = onCommit
+        configuration.isStyleConfiguration = true
+        return configuration
+    }
+
+    @ViewBuilder private func _fieldBody(style: any TextFieldStyle) -> some View {
         let core = _TextFieldCore(text: text, placeholder: prompt?.resolvedString ?? _labelString, isSecure: isSecure, style: style,
                                   axis: axis, commitsOnSubmit: commitsOnSubmit, onEditingChanged: onEditingChanged, onCommit: onCommit)
         switch formStyle {
@@ -198,6 +222,7 @@ public struct TextField<Label: View>: View {
 
     private var _labelString: String {
         if let text = label as? Text { return text.resolvedString }
+        if let label = label as? _TextFieldStyleLabel { return label.text }
         return ""
     }
 }
@@ -224,11 +249,38 @@ public struct SecureField<Label: View>: View {
 
 // MARK: - Styles
 
-/// A specification for the appearance and interaction of a text field.
+/// A specification for the appearance and interaction of a text field. The system styles give
+/// a bezel; an app's style gives a body (`_body(configuration:)`, as Apple's protocol spells it)
+/// that dresses the field it is handed, which draws with the system style.
 public protocol TextFieldStyle: Sendable {
     /// The style's bezel (macOS): rounded (the default), square (drawn like rounded on macOS 26)
     /// or none.
     var _bezel: _TextFieldBezel { get }
+    associatedtype _Body: View = Never
+    /// The field as this style shows it.
+    @ViewBuilder func _body(configuration: TextField<Self._Label>) -> Self._Body
+    typealias _Label = _TextFieldStyleLabel
+}
+
+extension TextFieldStyle {
+    /// An app's style draws the field it is handed rounded unless it sets another style.
+    public var _bezel: _TextFieldBezel { .rounded }
+    /// Whether the style gives a body of its own.
+    package var _hasBody: Bool { _Body.self != Never.self }
+    @MainActor package func _bodyErased(_ configuration: TextField<_TextFieldStyleLabel>) -> AnyView {
+        AnyView(_body(configuration: configuration))
+    }
+}
+
+extension TextFieldStyle where _Body == Never {
+    public func _body(configuration: TextField<_Label>) -> Never { fatalError("A system text field style draws through its bezel.") }
+}
+
+/// The label of the field a text field style is handed: the field's own label.
+public struct _TextFieldStyleLabel: View {
+    package let content: AnyView
+    package let text: String
+    public var body: some View { content }
 }
 
 /// How a text field is drawn.
@@ -332,6 +384,12 @@ extension View {
     /// Sets the submit label for this view (the keyboard's Return key on iOS, `enterkeyhint`).
     nonisolated public func submitLabel(_ submitLabel: SubmitLabel) -> some View {
         environment(\._submitLabel, submitLabel)
+    }
+
+    /// Prevents submit actions this view triggers from reaching `onSubmit` handlers above it
+    /// while `isBlocking` holds.
+    nonisolated public func submitScope(_ isBlocking: Bool = true) -> some View {
+        transformEnvironment(\.submitAction) { if isBlocking { $0 = nil } }
     }
 
     /// Sets the text content type for this view, which the system uses to offer suggestions
