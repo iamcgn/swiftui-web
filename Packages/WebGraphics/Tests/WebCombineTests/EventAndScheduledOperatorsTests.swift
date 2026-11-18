@@ -168,6 +168,21 @@ private final class StepScheduler: Scheduler, @unchecked Sendable {
         keepingFirst.cancel()
     }
 
+    @Test func nothingFollowsAThrottledStreamsCompletion() {
+        let scheduler = StepScheduler()
+        var events: [String] = []
+        let subject = PassthroughSubject<Int, Never>()
+        let subscription = subject.throttle(for: .seconds(2), scheduler: scheduler, latest: true)
+            .sink(receiveCompletion: { _ in events.append("finished") }, receiveValue: { events.append("value \($0)") })
+        subject.send(1)
+        subject.send(2)
+        subject.send(completion: .finished)
+        #expect(events == ["value 1", "finished"])
+        scheduler.advance(by: 2)
+        #expect(events == ["value 1", "finished"])
+        subscription.cancel()
+    }
+
     @Test func aNumberStillPicksTheSecondsForms() {
         let delayed: _Pipe<Int, Never> = Just(1).delay(for: 0.01, scheduler: StepScheduler())
         _ = delayed

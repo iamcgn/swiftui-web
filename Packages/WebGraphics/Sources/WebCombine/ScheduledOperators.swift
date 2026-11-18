@@ -60,7 +60,13 @@ extension Publisher {
                     window.value = (false, nil)
                     if live.value, let held { receive(held) }
                 }
-            }, complete)
+            }, { completion in
+                // A value held for the window's close dies with the stream: nothing follows the
+                // completion.
+                live.value = false
+                window.value = (false, nil)
+                complete(completion)
+            })
             return AnyCancellable { live.value = false; upstream.cancel() }
         }
     }
