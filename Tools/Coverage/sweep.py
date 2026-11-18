@@ -603,7 +603,9 @@ def describe_app(entry, root: Path, work: Path = None):
                 continue
             other_bases.append(other_base)
             if ios:  # another platform's app (SimpleSwiftUI's macOS SimpleNotes) is left out
-                files = [f for f in app_files if f in ios[1] and f not in members]
+                # Every file its target compiles, shared ones included: a file two apps list is
+                # built in each app's module (issue 236).
+                files = [f for f in app_files if f in ios[1]]
                 if files:
                     sub_apps.append((ios[0], other_base, files))
         if other_bases:
@@ -1044,7 +1046,8 @@ def cmd_prepare(args):
             # SwiftPM's name off (`packageAccess: false`) and names the package it came from, or
             # swift-case-paths' package `UncheckedSendable` would clash with ConcurrencyExtras' in
             # swift-navigation. (With SwiftPM's name left on, it wins over the flag: PR 227's first
-            # sweep.) Macro targets keep SwiftPM's name and add the flag.
+            # sweep.) Macro targets too, or a macro could not reach its own package's `package`
+            # helpers (issue 228).
             package_flag = PACKAGE_NAME_FLAG.format(json.dumps(package_name_of(t, app)))
             if t.get("macro"):
                 # Built for the host against the sweep package's swift-syntax; sources as they are.
@@ -1059,6 +1062,7 @@ def cmd_prepare(args):
                 decls.append(
                     f'        .macro(\n            name: "{t["module"]}",\n            dependencies: [{deps}],\n'
                     f'            path: "Sources/{t["module"]}",\n'
+                    f'            packageAccess: false,\n'
                     f'            swiftSettings: [{settings}]\n        ),'
                 )
                 continue

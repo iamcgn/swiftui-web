@@ -29,12 +29,15 @@ enum _CaseMapping {
         return language == "tr" || language == "az"
     }
 
-    static func lowercased(_ string: String, dottedI: Bool) -> String {
+    /// With `contextual` (a String's, ICU's), a Turkish "I" drops a dot above that follows it
+    /// past other combining marks ("I\u{0323}\u{0307}" → "i\u{0323}"); without it (NSString's,
+    /// Core Foundation's) only a dot right after the I does.
+    static func lowercased(_ string: String, dottedI: Bool, contextual: Bool = false) -> String {
         let scalars = Array(string.unicodeScalars)
         var result = ""
         var index = 0
         while index < scalars.count {
-            let (piece, used) = lower(scalars, index, dottedI: dottedI)
+            let (piece, used) = lower(scalars, index, dottedI: dottedI, contextual: contextual)
             result += piece
             index += used
         }
@@ -68,10 +71,14 @@ enum _CaseMapping {
                 result += dottedI && scalar == "i" ? "\u{0130}" : scalar.properties.titlecaseMapping
                 index += 1
                 // ICU lowercases the rest of a Turkish word in context: a dot above after a
-                // titled I goes ("I\u{0307}x" → "Ix").
-                if dottedI, scalar == "I", index < scalars.count, scalars[index] == "\u{0307}" { index += 1 }
+                // titled I goes ("I\u{0307}x" → "Ix"), past other combining marks too
+                // ("I\u{0323}\u{0307}" → "I\u{0323}").
+                if dottedI, scalar == "I", let dot = dotAbove(after: index - 1, in: scalars) {
+                    for mark in scalars[index..<dot] { result.unicodeScalars.append(mark) }
+                    index = dot + 1
+                }
             } else {
-                let (piece, used) = lower(scalars, index, dottedI: dottedI)
+                let (piece, used) = lower(scalars, index, dottedI: dottedI, contextual: true)
                 result += piece
                 index += used
             }
@@ -92,7 +99,8 @@ enum _CaseMapping {
             let scalar = scalars[index]
             let properties = scalar.properties
             if lastCased {
-                let (piece, used) = lower(scalars, index, dottedI: dottedI)
+                // A String's property maps each letter alone: no final sigma ("ΟΣ" → "Οσ").
+                let (piece, used) = lower(scalars, index, dottedI: dottedI, finalSigma: titlesUppercase)
                 result += piece
                 index += used
             } else if titlesUppercase || properties.isLowercase {
@@ -108,17 +116,36 @@ enum _CaseMapping {
     }
 
     /// The lowercase form of the scalar at `index`, and how many scalars it stands for (Turkish
-    /// "I" with a combining dot above is one "i").
-    private static func lower(_ scalars: [Unicode.Scalar], _ index: Int, dottedI: Bool) -> (String, Int) {
+    /// "I" with a combining dot above is one "i", the marks between them kept when `contextual`).
+    private static func lower(_ scalars: [Unicode.Scalar], _ index: Int, dottedI: Bool, contextual: Bool = false,
+                              finalSigma useFinalSigma: Bool = true) -> (String, Int) {
         let scalar = scalars[index]
         if dottedI {
             if scalar == "I" {
-                return index + 1 < scalars.count && scalars[index + 1] == "\u{0307}" ? ("i", 2) : ("\u{0131}", 1)
+                if index + 1 < scalars.count && scalars[index + 1] == "\u{0307}" { return ("i", 2) }
+                if contextual, let dot = dotAbove(after: index, in: scalars) {
+                    var piece = "i"
+                    for mark in scalars[(index + 1)..<dot] { piece.unicodeScalars.append(mark) }
+                    return (piece, dot - index + 1)
+                }
+                return ("\u{0131}", 1)
             }
             if scalar == "\u{0130}" { return ("i", 1) }
         }
-        if scalar == "\u{03A3}" { return (finalSigma(scalars, index) ? "\u{03C2}" : "\u{03C3}", 1) }
+        if scalar == "\u{03A3}" { return (useFinalSigma && finalSigma(scalars, index) ? "\u{03C2}" : "\u{03C3}", 1) }
         return (scalar.properties.lowercaseMapping, 1)
+    }
+
+    /// Unicode's Before_Dot after the I at `index`: the index of a combining dot above that
+    /// follows it past combining marks of neither class 0 nor 230, or nil.
+    private static func dotAbove(after index: Int, in scalars: [Unicode.Scalar]) -> Int? {
+        var next = index + 1
+        while next < scalars.count, scalars[next] != "\u{0307}" {
+            let combining = scalars[next].properties.canonicalCombiningClass.rawValue
+            if combining == 0 || combining == 230 { return nil }
+            next += 1
+        }
+        return next < scalars.count ? next : nil
     }
 
     /// Unicode's Final_Sigma: a cased letter before it and none after it, skipping case-ignorable
@@ -162,7 +189,7 @@ extension StringProtocol {
 
     /// The string in lowercase as `locale` maps case (the root locale's when nil).
     public func lowercased(with locale: Locale?) -> String {
-        _CaseMapping.lowercased(String(self), dottedI: _CaseMapping.dottedI(locale))
+        _CaseMapping.lowercased(String(self), dottedI: _CaseMapping.dottedI(locale), contextual: true)
     }
 
     /// The string in uppercase as `locale` maps case (the root locale's when nil).
@@ -177,7 +204,10 @@ extension StringProtocol {
 }
 
 extension _WebNSString {
-    public func lowercased(with locale: Locale?) -> String { string.lowercased(with: locale) }
+    /// Core Foundation's form: a Turkish I drops only a dot right after it.
+    public func lowercased(with locale: Locale?) -> String {
+        _CaseMapping.lowercased(string, dottedI: _CaseMapping.dottedI(locale))
+    }
     public func uppercased(with locale: Locale?) -> String { string.uppercased(with: locale) }
     /// Core Foundation's form, unlike a String's: a letter after a digit is titled too.
     public func capitalized(with locale: Locale?) -> String {

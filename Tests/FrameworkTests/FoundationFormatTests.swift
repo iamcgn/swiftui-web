@@ -44,6 +44,8 @@ extension Locale: CurrencyNaming {}
         #expect(2.71828.formatted(.number.precision(.significantDigits(1...3)).locale(english)) == "2.72")
         #expect(2.0.formatted(.number.precision(.significantDigits(3)).locale(english)) == "2.00")
         #expect(98765.formatted(.number.precision(.significantDigits(2)).locale(english)) == "99,000")
+        #expect(Int64(9007199254740993).formatted(.number.precision(.significantDigits(1...19)).locale(english)) == "9,007,199,254,740,993")
+        #expect(Int64.max.formatted(.number.precision(.significantDigits(1...19)).locale(english)) == "9,223,372,036,854,775,807")
     }
 
     @Test func lists() {
