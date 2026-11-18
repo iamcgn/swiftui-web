@@ -120,6 +120,16 @@ public struct Fail<Output, Failure: Error>: Publisher {
 public protocol Subject: AnyObject, Publisher {
     func send(_ value: Output)
     func send(completion: Subscribers.Completion<Failure>)
+    /// Gives the subject the subscription to an upstream publisher it was attached to
+    /// (`Publisher.subscribe(_:)` with a subject); the subject asks it for values.
+    func send(subscription: any Subscription)
+}
+
+extension Subject {
+    /// Asks for every value, as Combine's subjects do.
+    public func send(subscription: any Subscription) {
+        subscription.request(.unlimited)
+    }
 }
 
 /// The subscribers of a subject: closures kept until cancelled or the subject completes.

@@ -199,13 +199,17 @@ public enum _MemoryFiles {
         if creationDates[url.absoluteString] == nil { creationDates[url.absoluteString] = dates[url.absoluteString] }
         if url.isFileURL { createDirectory(url.deletingLastPathComponent()) }
         if isDurable(url) { _hostStore?.save(url.path, data.base64EncodedString()) }
+        _FileWatches.report(url, .write)
     }
-    public static func remove(_ url: URL) {
+    public static func remove(_ url: URL) { remove(url, reporting: .delete) }
+    /// Removes the file, reporting `event` to its watchers (`.rename` for a move).
+    static func remove(_ url: URL, reporting event: DispatchSource.FileSystemEvent) {
         files[url.absoluteString] = nil
         dates[url.absoluteString] = nil
         creationDates[url.absoluteString] = nil
         directories.remove(directoryKey(url))
         if isDurable(url) { _hostStore?.save(url.path, nil) }
+        _FileWatches.report(url, event)
     }
     public static func exists(_ url: URL) -> Bool {
         files[url.absoluteString] != nil || (isDurable(url) && _hostStore?.list().contains(url.path) == true)

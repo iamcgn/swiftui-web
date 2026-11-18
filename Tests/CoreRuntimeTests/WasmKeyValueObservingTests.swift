@@ -65,5 +65,54 @@ private final class Player: NSObject {
         for _ in 0..<20 { await Task.yield() }
         #expect(fractions == [0, 0.5, 1])
     }
+
+    // An observer added by key path (swift-sharing's app storage watches its user defaults key
+    // this way): it hears the defaults' sets of that key, with the values it asked for.
+    @Test func anObserverByKeyHearsTheDefaultsSetsOfItsKey() throws {
+        let defaults = try #require(UserDefaults(suiteName: "kvo.\(Int.random(in: 0..<1_000_000))"))
+        let observer = KeyObserver()
+        var context = 7
+        defaults.set(1, forKey: "count")
+        defaults.addObserver(observer, forKeyPath: "count", options: [.new, .old, .prior], context: &context)
+        defaults.set(2, forKey: "count")
+        defaults.set("x", forKey: "other")
+        #expect(observer.seen == ["prior count old=1 new=-", "count old=1 new=2"])
+        #expect(observer.contexts.count == 2 && observer.contexts.allSatisfy { $0 != nil })
+
+        defaults.removeObject(forKey: "count")
+        #expect(observer.seen.last == "count old=2 new=<null>")
+        defaults.removeObserver(observer, forKeyPath: "count")
+        defaults.set(3, forKey: "count")
+        #expect(observer.seen.count == 4)
+    }
+
+    @Test func anObserverByKeyHearsAHandMadeReportAndInitialValue() throws {
+        let player = Player()
+        let observer = KeyObserver()
+        player.addObserver(observer, forKeyPath: "title", options: [.initial], context: nil)
+        #expect(observer.seen == ["title old=- new=-"])
+        player.title = "Song"
+        player.rate = 1
+        #expect(observer.seen == ["title old=- new=-", "title old=- new=-"])
+        player.removeObserver(observer, forKeyPath: "title", context: nil)
+        player.title = "Other"
+        #expect(observer.seen.count == 2)
+    }
+}
+
+/// Records each change it is sent, as `prior key old=… new=…`.
+private final class KeyObserver: NSObject {
+    var seen: [String] = []
+    var contexts: [UnsafeMutableRawPointer?] = []
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?,
+                               change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
+        func describe(_ value: Any?) -> String {
+            guard let value else { return "-" }
+            return value is NSNull ? "<null>" : "\(value)"
+        }
+        let prior = (change?[.notificationIsPriorKey] as? Bool) == true
+        seen.append("\(prior ? "prior " : "")\(keyPath ?? "") old=\(describe(change?[.oldKey])) new=\(describe(change?[.newKey]))")
+        contexts.append(context)
+    }
 }
 #endif
