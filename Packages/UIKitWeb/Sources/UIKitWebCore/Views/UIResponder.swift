@@ -171,10 +171,23 @@ open class UIResponder: UIResponderBase {
     // MARK: Motion and remote control (the default forwards to the next responder; a page is
     // told of no shake or media key, so these run only when an app calls them)
 
+    // `@objc dynamic` with the runtime, under UIKit's selectors, so an app can override them from
+    // an extension (Harbour's `extension UIWindow { override func motionEnded(_:with:) }`).
+    #if canImport(ObjectiveC)
+    @objc(motionBegan:withEvent:)
+    dynamic open func motionBegan(_ motion: UIEvent.EventSubtype, with event: UIEvent?) { next?.motionBegan(motion, with: event) }
+    @objc(motionEnded:withEvent:)
+    dynamic open func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) { next?.motionEnded(motion, with: event) }
+    @objc(motionCancelled:withEvent:)
+    dynamic open func motionCancelled(_ motion: UIEvent.EventSubtype, with event: UIEvent?) { next?.motionCancelled(motion, with: event) }
+    @objc(remoteControlReceivedWithEvent:)
+    dynamic open func remoteControlReceived(with event: UIEvent?) { next?.remoteControlReceived(with: event) }
+    #else
     open func motionBegan(_ motion: UIEvent.EventSubtype, with event: UIEvent?) { next?.motionBegan(motion, with: event) }
     open func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) { next?.motionEnded(motion, with: event) }
     open func motionCancelled(_ motion: UIEvent.EventSubtype, with event: UIEvent?) { next?.motionCancelled(motion, with: event) }
     open func remoteControlReceived(with event: UIEvent?) { next?.remoteControlReceived(with: event) }
+    #endif
 
     // MARK: Keys (Events/Keyboard.swift)
 

@@ -113,4 +113,27 @@ import UIKit
         #expect(listener.heard == [.motionShake])
         #expect(UIEvent.EventSubtype.motionShake.rawValue == 1 && UIEvent.EventSubtype.remoteControlEndSeekingForward.rawValue == 109)
     }
+
+    #if canImport(ObjectiveC)
+    @Test func anOverrideFromAnExtensionHearsTheShake() {
+        let view = ExtensionShakeView()
+        let responder: UIResponder = view
+        responder.motionEnded(.motionShake, with: nil)
+        #expect(view.heardInExtension == [.motionShake])
+    }
+    #endif
 }
+
+#if canImport(ObjectiveC)
+/// Harbour overrides `motionEnded(_:with:)` in an extension of `UIWindow`, which Swift allows
+/// only for `@objc` methods; called through `UIResponder`, the override still runs.
+final class ExtensionShakeView: UIView {
+    var heardInExtension: [UIEvent.EventSubtype] = []
+}
+
+extension ExtensionShakeView {
+    override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+        heardInExtension.append(motion)
+    }
+}
+#endif
