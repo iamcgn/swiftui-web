@@ -129,8 +129,14 @@ private struct Token: Identifiable, Hashable { let id: String }
         #expect(missing != nil)
     }
     #endif
+}
+#endif
 
-    @Test func sessionsTakeTheirNetworkFlags() throws {
+// WebFoundation's URL and session configuration are wasm's; Apple's format and keep the flags
+// the same way, and Linux's Foundation may have neither.
+#if os(WASI) || canImport(Darwin)
+@Suite struct URLFormattingTests {
+    @Test func sessionsTakeTheirNetworkFlags() {
         let configuration = URLSessionConfiguration.default
         configuration.allowsConstrainedNetworkAccess = false
         configuration.allowsExpensiveNetworkAccess = false
@@ -138,13 +144,7 @@ private struct Token: Identifiable, Hashable { let id: String }
         #expect(!configuration.allowsConstrainedNetworkAccess && !configuration.allowsExpensiveNetworkAccess)
         #expect(configuration.shouldUseExtendedBackgroundIdleMode)
     }
-}
-#endif
 
-// WebFoundation's URL is wasm's; Apple's formats the same way, and Linux's Foundation may not
-// have the format style.
-#if os(WASI) || canImport(Darwin)
-@Suite struct URLFormattingTests {
     @Test func aURLFormatsWithoutItsQueryOrHTTPPort() throws {
         #expect(try #require(URL(string: "https://github.com/rrroyal/Harbour.git?ref=main#top")).formatted() == "https://github.com/rrroyal/Harbour.git")
         #expect(try #require(URL(string: "ssh://git.example.com:2222/repo")).formatted() == "ssh://git.example.com:2222/repo")
