@@ -102,6 +102,8 @@ public struct Text: Equatable, Sendable {
         package var design: Font.Design?
         /// A link (markdown `[text](url)`, the `link` attribute): accent-coloured, pressable.
         package var link: URL?
+        /// `customAttribute(_:)`: values a text renderer reads from the runs.
+        package var customAttributes: [_AnyTextAttribute] = []
 
         /// `self` applied on top of the enclosing text's modifiers.
         package func inheriting(_ parent: Modifiers) -> Modifiers {
@@ -117,6 +119,7 @@ public struct Text: Equatable, Sendable {
             result.monospacedDigit = monospacedDigit || parent.monospacedDigit
             result.design = design ?? parent.design
             result.link = link ?? parent.link
+            result.customAttributes = parent.customAttributes + customAttributes
             return result
         }
     }
@@ -1094,9 +1097,22 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
         let alignment = environment._resolvedTextAlignment
         let offsets = baselineOffsets
         let shiftUp = baselineShift.up
+        let renderer = environment._textRenderer
+        let base = CGAffineTransform(translationX: bounds.minX, y: bounds.minY)
+        var rendererLines: [Text.Layout.Line] = []
         for line in layout.lines {
             let lineX = bounds.minX + (frame.width - line.inkWidth) * alignment
+            var lineRuns: [Text.Layout.Run] = []
             for fragment in line.fragments where !fragment.text.isEmpty {
+                var runList = DisplayList()
+                defer {
+                    if renderer == nil {
+                        list.commands.append(contentsOf: runList.commands)
+                    } else {
+                        lineRuns.append(rendererRun(fragment, commands: runList.commands, line: line, lineX: lineX - bounds.minX,
+                                                    runs: runs, parts: parts, base: base))
+                    }
+                }
                 let run = min(max(fragment.run, 0), max(runs.count - 1, 0))
                 let font = fonts.indices.contains(run) ? fonts[run] : DisplayFont(resolvedFont)
                 let offset = offsets.indices.contains(run) ? offsets[run] : 0
@@ -1107,14 +1123,14 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
                     // An inline image sits on the baseline by its descent, as wide as its advance.
                     if let symbol = inlineSymbol(for: image, font: runs[run].font), let glyph = symbol.glyph {
                         let rect = CGRect(x: origin.x, y: origin.y + symbol.size.descent - symbol.size.height, width: fragment.width, height: symbol.size.height)
-                        _SymbolPainter.paint(glyph, in: rect, weight: runs[run].font.weight.value, color: color, into: &list)
+                        _SymbolPainter.paint(glyph, in: rect, weight: runs[run].font.weight.value, color: color, into: &runList)
                     }
                     continue
                 }
                 if let gradient = own ?? inheritedGradient, colors.indices.contains(run) ? colors[run] == nil : true {
-                    list.append(.drawTextGradient(fragment.text, font, origin: origin, gradient))
+                    runList.append(.drawTextGradient(fragment.text, font, origin: origin, gradient))
                 } else {
-                    list.append(.drawText(fragment.text, font, origin: origin, color))
+                    runList.append(.drawText(fragment.text, font, origin: origin, color))
                 }
                 if parts.indices.contains(run) {
                     let modifiers = parts[run].modifiers
@@ -1124,16 +1140,50 @@ package final class TextNode: LeafNode<Text>, _HoverTracking, _PointerStyled, _I
                         let metrics = environment.platformProfile.textDecorationMetrics(for: runs[run].font)
                         if let underline {
                             paintDecoration(underline, centre: origin.y + metrics.underlineOffset, thickness: metrics.thickness,
-                                            from: origin.x, to: origin.x + fragment.width, textColor: color, context: context, into: &list)
+                                            from: origin.x, to: origin.x + fragment.width, textColor: color, context: context, into: &runList)
                         }
                         if let strikethrough {
                             paintDecoration(strikethrough, centre: origin.y - metrics.xHeight / 2, thickness: metrics.thickness,
-                                            from: origin.x, to: origin.x + fragment.width, textColor: color, context: context, into: &list)
+                                            from: origin.x, to: origin.x + fragment.width, textColor: color, context: context, into: &runList)
                         }
                     }
                 }
             }
+            if renderer != nil, !lineRuns.isEmpty {
+                rendererLines.append(rendererLine(lineRuns, line: line, lineX: lineX - bounds.minX))
+            }
         }
+        if let renderer {
+            // The renderer draws the runs: its context records in the text's space.
+            let recorder = _GraphicsRecorder(environment: environment, textEngine: runtime.textEngine, scale: context.scale)
+            recorder.node = self
+            var graphics = GraphicsContext(recorder: recorder)
+            graphics.concatenate(base)
+            let truncated = layout.lines.last.map { $0.range.upperBound < joinedString.endIndex } ?? false
+            renderer.draw(layout: Text.Layout(lines: rendererLines, isTruncated: truncated), in: &graphics)
+            list.commands.append(contentsOf: recorder.list.commands)
+        }
+    }
+
+    /// A fragment as a text renderer's run: what it paints, its bounds in the text's space (the
+    /// run's font's ascent and descent about the baseline) and its text's custom attributes.
+    private func rendererRun(_ fragment: TextLayout.Fragment, commands: [DisplayCommand], line: TextLayout.Line, lineX: CGFloat,
+                             runs: [StyledRun], parts: [Text.Part], base: CGAffineTransform) -> Text.Layout.Run {
+        let index = min(max(fragment.run, 0), max(runs.count - 1, 0))
+        let font = runs.indices.contains(index) ? runs[index].font : resolvedFont
+        let metrics = runtime.layoutText(fragment.text, font: font, width: nil)
+        let ascent = metrics.firstBaseline
+        let bounds = Text.Layout.TypographicBounds(origin: CGPoint(x: lineX + fragment.x, y: line.baseline), width: fragment.width,
+                                                   ascent: ascent, descent: max(0, metrics.size.height - ascent))
+        return Text.Layout.Run(commands: commands, base: base, attributes: parts.indices.contains(index) ? parts[index].modifiers.customAttributes : [],
+                               typographicBounds: bounds)
+    }
+
+    private func rendererLine(_ runs: [Text.Layout.Run], line: TextLayout.Line, lineX: CGFloat) -> Text.Layout.Line {
+        let ascent = runs.map(\.typographicBounds.ascent).max() ?? 0
+        let descent = runs.map(\.typographicBounds.descent).max() ?? 0
+        return Text.Layout.Line(runs: runs, typographicBounds: Text.Layout.TypographicBounds(origin: CGPoint(x: lineX, y: line.baseline), width: line.inkWidth,
+                                                                                            ascent: ascent, descent: descent))
     }
 
     /// Draws one underline or strikethrough: the line snaps to whole device pixels (its top
