@@ -27,6 +27,9 @@ enum SpeechHost {
         var usable = !!R && typeof R.available === 'function' && ('processLocally' in R.prototype)
           && !!(window.AudioContext && window.AudioWorkletNode && window.MediaStreamAudioDestinationNode);
         if (!usable) { done('unavailable'); return; }
+        // `done` answers once, whichever of the paths below gets there first.
+        var answer = done, answered = false;
+        done = function (a) { if (answered) return; answered = true; answer(a); };
         var ask = function () { return R.available({ langs: [lang], processLocally: true }); };
         // Each answer is logged at info level (the speech probe prints these lines), so a run
         // that ends unavailable shows which step said so.
@@ -56,14 +59,43 @@ enum SpeechHost {
             return new Promise(function (resolve) { setTimeout(resolve, 1000); }).then(function () { return first(retries - 1); });
           });
         };
-        first(20).then(function (a) {
-          if (a === 'available') { done('available'); return; }
-          if (a === 'unavailable' || !install || typeof R.install !== 'function') { done(a === 'unavailable' ? 'unavailable' : 'downloadable'); return; }
+        var installNow = function () {
           R.install({ langs: [lang], processLocally: true }).then(function (ok) {
             note('install', ok);
             if (ok === false) { done('unavailable'); return; }
             wait(600, 20);
-          }, function (e) { note('install failed', e); done('unavailable'); });
+          }, function (e) {
+            note('install failed', e);
+            if (e && e.name === 'NotAllowedError') { afterGesture(); return; }
+            done('unavailable');
+          });
+        };
+        // While the pack reads "downloadable", Chrome installs it only inside a user gesture
+        // (main's browser job, Nov 17 and 18: the speech probe's first page load was refused
+        // with NotAllowedError and read restricted; the next load installed it). Refused that
+        // way, authorization waits for the page's next tap or key, as Apple's prompt waits for
+        // the person, and installs then; meanwhile it asks again for twenty seconds in case
+        // the pack Chrome is still registering turns available on its own.
+        var afterGesture = function () {
+          var armed = true;
+          var disarm = function () { armed = false; window.removeEventListener('pointerdown', go, true); window.removeEventListener('keydown', go, true); };
+          var go = function () { if (!armed) return; disarm(); note('gesture', 'install'); installNow(); };
+          window.addEventListener('pointerdown', go, true);
+          window.addEventListener('keydown', go, true);
+          var poll = function (left) {
+            if (!armed || left <= 0) return;
+            ask().then(function (a) {
+              if (!armed) return;
+              if (a === 'available') { disarm(); note('wait', a); done('available'); return; }
+              setTimeout(function () { poll(left - 1); }, 1000);
+            }, function () {});
+          };
+          poll(20);
+        };
+        first(20).then(function (a) {
+          if (a === 'available') { done('available'); return; }
+          if (a === 'unavailable' || !install || typeof R.install !== 'function') { done(a === 'unavailable' ? 'unavailable' : 'downloadable'); return; }
+          installNow();
         }, function (e) { note('first failed', e); done('unavailable'); });
         """
         return try? make.throws.new("lang", "install", "done", body)
