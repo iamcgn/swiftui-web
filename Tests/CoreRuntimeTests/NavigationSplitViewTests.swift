@@ -57,7 +57,7 @@ import SwiftUIWebHeadless
             List { Text("Apple"); Text("Banana") }
         } detail: {
             Text("Detail")
-        }.colorScheme(.dark))
+        }.environment(\.colorScheme, .dark))
         let painted = commands(r)
         #expect(painted.contains { $0.hasPrefix("fillRRect(0, 0, 144, 300) r=0 #282828") } && painted.contains { $0.hasPrefix("fillRect(144, 0, 0.5, 300) #000000") }, "\(painted.prefix(3))")
         #expect(!painted.contains { $0.contains("#FBFBFB") || $0.contains("#C9C9C9") })
