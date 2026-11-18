@@ -142,7 +142,7 @@ public enum DispatchPredicate: Sendable {
 /// the page's one thread, so there is nothing a check could tell apart: it always passes.
 public func dispatchPrecondition(condition: @autoclosure () -> DispatchPredicate) {}
 
-public final class DispatchQueue: @unchecked Sendable {
+public final class DispatchQueue: Hashable, @unchecked Sendable {
     public struct Attributes: OptionSet, Sendable {
         public let rawValue: Int
         public init(rawValue: Int) { self.rawValue = rawValue }
@@ -166,6 +166,10 @@ public final class DispatchQueue: @unchecked Sendable {
     }
 
     public enum AutoreleaseFrequency: Sendable { case inherit, workItem, never }
+
+    // Equal by identity, as a queue (a dispatch object) is: packages key their stores by one.
+    public static func == (lhs: DispatchQueue, rhs: DispatchQueue) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 
     /// Runs `work` with this queue as the current one.
     private func run<T>(_ work: () throws -> T) rethrows -> T {

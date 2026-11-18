@@ -82,7 +82,7 @@ public final class FileManager: _WebObjectBase, @unchecked Sendable {
     }
     public func moveItem(at source: URL, to destination: URL) throws {
         try copyItem(at: source, to: destination)
-        _MemoryFiles.remove(source)
+        _MemoryFiles.remove(source, reporting: .rename)
     }
     /// The path forms, as SwiftyBeaver rotates its log files.
     public func copyItem(atPath srcPath: String, toPath dstPath: String) throws {

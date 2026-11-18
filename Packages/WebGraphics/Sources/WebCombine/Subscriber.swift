@@ -127,6 +127,53 @@ extension Publisher {
     public func subscribe<S: Subscriber>(_ subscriber: S) where S.Input == Output, S.Failure == Failure {
         receive(subscriber: subscriber)
     }
+
+    /// Attaches the subject to this publisher: it is sent every value and the completion, until
+    /// the returned cancellable is cancelled or released. As Combine does, the subject is given
+    /// the subscription first (`send(subscription:)`), and it asks for the values.
+    public func subscribe<S: Subject>(_ subject: S) -> AnyCancellable where S.Output == Output, S.Failure == Failure {
+        nonisolated(unsafe) let subject = subject
+        let link = _SubjectLink()
+        receive(subscriber: AnySubscriber<Output, Failure>(
+            receiveSubscription: { subscription in
+                guard link.attach(subscription) else { return }
+                subject.send(subscription: subscription)
+            },
+            receiveValue: { value in
+                guard !link.isCancelled else { return .none }
+                subject.send(value)
+                return .none
+            },
+            receiveCompletion: { completion in
+                guard !link.isCancelled else { return }
+                subject.send(completion: completion)
+            }))
+        return AnyCancellable { link.cancel() }
+    }
+}
+
+/// The subscription between a publisher and a subject it feeds: cancelling it before the
+/// subscription arrives cancels that subscription when it does.
+final class _SubjectLink: @unchecked Sendable {
+    private var subscription: (any Subscription)?
+    private(set) var isCancelled = false
+
+    /// Keeps the subscription; false (after cancelling it) when the link was already cancelled.
+    func attach(_ subscription: any Subscription) -> Bool {
+        guard !isCancelled else {
+            subscription.cancel()
+            return false
+        }
+        self.subscription = subscription
+        return true
+    }
+
+    func cancel() {
+        guard !isCancelled else { return }
+        isCancelled = true
+        subscription?.cancel()
+        subscription = nil
+    }
 }
 
 /// What a subscription does with a value its subscriber hasn't asked for.
