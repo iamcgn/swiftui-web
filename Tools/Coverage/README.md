@@ -32,6 +32,10 @@ dkhamsing/open-source-ios-apps, plus Apple's two published SwiftUI samples) and 
 decision 0021 as controls: they build unmodified in `Apps/`, so they should build here too, and
 when they do not, the sweep's heuristics are wrong, not the package.
 
+Each clone checks out its git submodules at their recorded commits, as Xcode would, so a package
+kept in a submodule (Harbour's PortainerKit) is built rather than missing; a submodule that can't
+be fetched stays empty.
+
 `sweep.py` turns each clone into targets with no Xcode:
 
 - every local Swift package (read with `swift package dump-package`) becomes one target per

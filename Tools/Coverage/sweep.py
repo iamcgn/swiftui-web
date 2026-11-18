@@ -142,7 +142,30 @@ def clone(repo, dest, ref=None):
     else:
         raise RuntimeError(f"fetch {repo} failed: {r.stderr.strip()}")
     sh(["git", "checkout", "-q", "FETCH_HEAD"], cwd=dest)
+    init_submodules(dest)
     return sh(["git", "rev-parse", "HEAD"], cwd=dest).stdout.strip()
+
+
+# Submodules on GitHub, fetched over https whatever form .gitmodules gives (ssh needs a key).
+SUBMODULE_URLS = ["-c", "url.https://github.com/.insteadOf=git@github.com:",
+                  "-c", "url.https://github.com/.insteadOf=ssh://git@github.com/"]
+
+
+def init_submodules(dest):
+    """Check out the clone's submodules at their recorded commits, as Xcode and SwiftPM see them.
+
+    An app that keeps a package in a submodule (Harbour's Modules/PortainerKit) otherwise builds
+    without it, and every use of the package counts as an error. A submodule that can't be
+    fetched (private, gone) stays empty, which is what the sweep saw before."""
+    if not (dest / ".gitmodules").exists():
+        return
+    base = ["git", *SUBMODULE_URLS, "submodule", "update", "--init", "--recursive"]
+    r = sh(base + ["--depth", "1"], cwd=dest, check=False, timeout=900)
+    if r.returncode != 0:
+        # A recorded commit that isn't a branch tip may need the whole history.
+        r = sh(base, cwd=dest, check=False, timeout=1800)
+    if r.returncode != 0:
+        print(f"submodules of {dest.name}: {(r.stderr or r.stdout).strip().splitlines()[-1:]}")
 
 
 def is_manifest(name: str) -> bool:
