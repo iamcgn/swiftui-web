@@ -22,16 +22,8 @@ package final class _ObjectSubscription {
     }
 }
 
-/// A binding-producing wrapper for an observed object's properties (`$model.property`).
-@dynamicMemberLookup
-public struct _ObservedObjectWrapper<ObjectType: ObservableObject> {
-    package let object: ObjectType
-
-    public subscript<Subject>(dynamicMember keyPath: ReferenceWritableKeyPath<ObjectType, Subject>) -> Binding<Subject> {
-        let object = self.object
-        return Binding(get: { object[keyPath: keyPath] }, set: { object[keyPath: keyPath] = $0 })
-    }
-}
+/// The wrapper `$model` gives for an observed object, by its earlier name.
+public typealias _ObservedObjectWrapper<ObjectType: ObservableObject> = ObservedObject<ObjectType>.Wrapper
 
 // MARK: - StateObject
 
@@ -50,7 +42,7 @@ public struct StateObject<ObjectType: ObservableObject>: DynamicProperty {
     public var wrappedValue: ObjectType { box?.object ?? make() }
 
     /// A projection of the state object that creates bindings to its properties.
-    public var projectedValue: _ObservedObjectWrapper<ObjectType> { _ObservedObjectWrapper(object: wrappedValue) }
+    public var projectedValue: ObservedObject<ObjectType>.Wrapper { ObservedObject<ObjectType>.Wrapper(object: wrappedValue) }
 
     @MainActor
     public mutating func _install(in node: ViewNode, slot: inout AnyObject?) {
@@ -87,7 +79,7 @@ public struct ObservedObject<ObjectType: ObservableObject>: DynamicProperty {
     public init(initialValue: ObjectType) { self.wrappedValue = initialValue }
 
     /// A projection of the observed object that creates bindings to its properties.
-    public var projectedValue: _ObservedObjectWrapper<ObjectType> { _ObservedObjectWrapper(object: wrappedValue) }
+    public var projectedValue: ObservedObject<ObjectType>.Wrapper { ObservedObject<ObjectType>.Wrapper(object: wrappedValue) }
 
     @MainActor
     public mutating func _install(in node: ViewNode, slot: inout AnyObject?) {
@@ -98,8 +90,20 @@ public struct ObservedObject<ObjectType: ObservableObject>: DynamicProperty {
 }
 
 extension ObservedObject {
-    /// The wrapper type Apple exposes for `$object`.
-    public typealias Wrapper = _ObservedObjectWrapper<ObjectType>
+    /// A binding-producing wrapper for an observed object's properties (`$model.property`).
+    /// Nested, as Apple's is, so a library can extend it (`extension ObservedObject.Wrapper`,
+    /// the Composable Architecture's store bindings).
+    @dynamicMemberLookup
+    public struct Wrapper {
+        package let object: ObjectType
+
+        package init(object: ObjectType) { self.object = object }
+
+        public subscript<Subject>(dynamicMember keyPath: ReferenceWritableKeyPath<ObjectType, Subject>) -> Binding<Subject> {
+            let object = self.object
+            return Binding(get: { object[keyPath: keyPath] }, set: { object[keyPath: keyPath] = $0 })
+        }
+    }
 }
 
 // MARK: - EnvironmentObject
@@ -121,7 +125,7 @@ public struct EnvironmentObject<ObjectType: ObservableObject>: DynamicProperty {
     }
 
     /// A projection that creates bindings to the environment object's properties.
-    public var projectedValue: _ObservedObjectWrapper<ObjectType> { _ObservedObjectWrapper(object: wrappedValue) }
+    public var projectedValue: ObservedObject<ObjectType>.Wrapper { ObservedObject<ObjectType>.Wrapper(object: wrappedValue) }
 
     @MainActor
     public mutating func _install(in node: ViewNode, slot: inout AnyObject?) {

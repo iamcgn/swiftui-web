@@ -419,21 +419,30 @@ extension Publisher {
             }
         }
     }
-    public func handleEvents(receiveSubscription: (@MainActor () -> Void)? = nil, receiveOutput: (@MainActor (Output) -> Void)? = nil,
+    /// Runs the closures as the subscription's events happen, then passes each one on. The
+    /// subscription handed to `receiveSubscription` cancels this one; the closure publishers
+    /// deliver without counting demand, so `receiveRequest` hears one `.unlimited`, as a
+    /// `sink`'s request would be.
+    public func handleEvents(receiveSubscription: (@MainActor (any Subscription) -> Void)? = nil,
+                             receiveOutput: (@MainActor (Output) -> Void)? = nil,
                              receiveCompletion: (@MainActor (Subscribers.Completion<Failure>) -> Void)? = nil,
-                             receiveCancel: (@MainActor () -> Void)? = nil, receiveRequest: (@MainActor (Any) -> Void)? = nil) -> _Pipe<Output, Failure> {
-        _Pipe { receive, complete in
-            MainActor.assumeIsolated { receiveSubscription?() }
-            let upstream = self._subscribeOnMain({ receiveOutput?($0); receive($0) }, { receiveCompletion?($0); complete($0) })
-            return AnyCancellable { MainActor.assumeIsolated { receiveCancel?() }; upstream.cancel() }
-        }
+                             receiveCancel: (@MainActor () -> Void)? = nil,
+                             receiveRequest: (@MainActor (Subscribers.Demand) -> Void)? = nil) -> Publishers.HandleEvents<Self> {
+        Publishers.HandleEvents(upstream: self, receiveSubscription: receiveSubscription, receiveOutput: receiveOutput,
+                                receiveCompletion: receiveCompletion, receiveCancel: receiveCancel, receiveRequest: receiveRequest)
     }
     public func print(_ prefix: String = "", to stream: Any? = nil) -> _Pipe<Output, Failure> {
         let label = prefix.isEmpty ? "" : prefix + ": "
-        return handleEvents(receiveSubscription: { Swift.print("\(label)receive subscription") },
-                            receiveOutput: { Swift.print("\(label)receive value: (\($0))") },
-                            receiveCompletion: { Swift.print("\(label)receive \($0)") },
-                            receiveCancel: { Swift.print("\(label)receive cancel") })
+        let events = handleEvents(receiveSubscription: { _ in Swift.print("\(label)receive subscription") },
+                                  receiveOutput: { Swift.print("\(label)receive value: (\($0))") },
+                                  receiveCompletion: { Swift.print("\(label)receive \($0)") },
+                                  receiveCancel: { Swift.print("\(label)receive cancel") })
+        return _Pipe(policy: _demandPolicy) { receive, complete in events._subscribeOnMain(receive, complete) }
+    }
+    /// Passes the values on until `other` publishes one, then finishes (`other` ending without a
+    /// value changes nothing).
+    public func prefix<P: Publisher>(untilOutputFrom other: P) -> Publishers.PrefixUntilOutput<Self, P> {
+        Publishers.PrefixUntilOutput(upstream: self, other: other)
     }
 
     /// The values as an asynchronous sequence (`for await value in publisher.values`).

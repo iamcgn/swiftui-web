@@ -177,6 +177,11 @@ def excluded(rel: Path, extra):
     parts = rel.parts[:-1]
     if any(EXCLUDE_DIR.match(p) for p in parts):
         return True
+    return excluded_by_entry(rel, extra)
+
+
+def excluded_by_entry(rel: Path, extra):
+    """Whether the corpus entry's own `exclude` list leaves the path out."""
     return any(str(rel).startswith(e.rstrip("/") + "/") or str(rel) == e for e in extra)
 
 
@@ -584,16 +589,20 @@ def describe_app(entry, root: Path, work: Path = None):
     targets.extend(remote)
     notes.extend(remote_notes)
     # The app target: every Swift file outside the local packages and the excluded folders.
-    app_files = []
+    # `project_files` also holds the files in folders whose names only suggest another target
+    # (`Intents`, `Preview Content`): an app target whose project lists them compiles them.
+    app_files, project_files = [], []
     for f in sorted(root.rglob("*.swift")):
         rel = f.relative_to(root)
         if is_manifest(rel.name):
             continue
-        if excluded(rel, extra) or any(rel.is_relative_to(d) for d in pkg_dirs if str(d) != "."):
+        if excluded_by_entry(rel, extra) or any(rel.is_relative_to(d) for d in pkg_dirs if str(d) != "."):
             continue
         if Path(".") in pkg_dirs and any(rel.is_relative_to(Path(t["source_root"])) for t in targets if not t.get("remote")):
             continue
-        app_files.append(str(rel))
+        project_files.append(str(rel))
+        if not excluded(rel, extra):
+            app_files.append(str(rel))
     # The iOS app target's own files, when its Xcode project says which they are: a repository
     # with a macOS app, extensions or a watch app beside it shares some folders and declares its
     # own copy of other types in each, which redeclare one another in one module.
@@ -605,11 +614,13 @@ def describe_app(entry, root: Path, work: Path = None):
     except Exception as e:  # an unreadable project leaves the folder-based guess
         app_target = None
         notes.append(f"Xcode project not read ({type(e).__name__}: {str(e)[:120]})")
-    sub_apps = []  # (target name, project folder, files) of the repository's other iOS apps
+    sub_apps = []  # (target name, project folder, files, conditions) of the repository's other iOS apps
     other_bases = []  # the folders of the repository's other apps' projects
+    conditions = []  # the app target's Debug compilation conditions (`TARGET_APP`)
     if app_target:
-        name, members, base = app_target
-        kept = [f for f in app_files if f in members or not Path(f).is_relative_to(base)]
+        name, members, base, conditions = app_target
+        guessed = set(app_files)
+        kept = [f for f in project_files if f in members or (f in guessed and not Path(f).is_relative_to(base))]
         # A repository of several apps, each in its own project folder (SimpleSwiftUI's four,
         # SwiftUIExperiments' forty-five): each other iOS app is built as a module of its own,
         # from the files its target compiles, since in one module their types redeclare one another.
@@ -628,11 +639,11 @@ def describe_app(entry, root: Path, work: Path = None):
             if ios:  # another platform's app (SimpleSwiftUI's macOS SimpleNotes) is left out
                 # Every file its target compiles, shared ones included: a file two apps list is
                 # built in each app's module (issue 236).
-                files = [f for f in app_files if f in ios[1]]
+                files = [f for f in project_files if f in ios[1]]
                 if files:
-                    sub_apps.append((ios[0], other_base, files))
+                    sub_apps.append((ios[0], other_base, files, ios[3]))
         if other_bases:
-            claimed = {f for _, _, files in sub_apps for f in files}
+            claimed = {f for _, _, files, _ in sub_apps for f in files}
             kept = [f for f in kept if f in members or (f not in claimed and not any(Path(f).is_relative_to(b) for b in other_bases))]
             left = len(other_bases) - len(sub_apps)
             notes.append(f"{len(sub_apps)} more iOS apps in their own project folders, each built as its own module"
@@ -640,7 +651,12 @@ def describe_app(entry, root: Path, work: Path = None):
         if kept:
             if len(kept) < len(app_files):
                 notes.append(f"app target {name}: {len(kept)} of {len(app_files)} Swift files outside the packages")
+            listed = len(set(kept) - set(app_files))
+            if listed:
+                notes.append(f"app target {name}: {listed} Swift files its project compiles from folders named for other targets")
             app_files = kept
+        else:
+            conditions = []
     # One @main: the SwiftUI App (or the UIKit delegate) of the iOS app, the others' files left out.
     mains = [f for f in app_files if MAIN.search((root / f).read_text(errors="replace"))]
     if len(mains) > 1:
@@ -667,18 +683,19 @@ def describe_app(entry, root: Path, work: Path = None):
         targets.append({
             "module": "Sweep" + re.sub(r"\W", "", entry["name"]), "source_root": ".", "files": app_files,
             "deps": sorted({t["module"] for t in targets if not t["executable"] and not t.get("macro")}), "third_party": [],
-            "mode": xcode_language_mode(root), "settings": [], "resources": [], "models": models,
+            "mode": xcode_language_mode(root), "settings": [f".define({json.dumps(c)})" for c in conditions],
+            "resources": [], "models": models,
             "catalogs": catalogs, "symbol_extensions": bool(catalogs) and xcode_asset_symbol_extensions(root),
             "executable": True, "app": True,
         })
-        sub_bases = [b for _, b, _ in sub_apps]
+        sub_bases = [b for _, b, _, _ in sub_apps]
         if sub_bases:
             main = targets[-1]
             main["models"] = [m for m in main["models"] if not any(Path(m).is_relative_to(b) for b in sub_bases)]
             main["catalogs"] = [c for c in main["catalogs"] if not any(Path(c).is_relative_to(b) for b in sub_bases)]
             main["symbol_extensions"] = bool(main["catalogs"]) and main["symbol_extensions"]
         used = {t["module"] for t in targets}
-        for sub_name, sub_base, files in sub_apps:
+        for sub_name, sub_base, files, sub_conditions in sub_apps:
             module = "Sweep" + re.sub(r"\W", "", entry["name"]) + "_" + (re.sub(r"\W", "", sub_name) or "App")
             while module in used:
                 module += "_"
@@ -687,7 +704,8 @@ def describe_app(entry, root: Path, work: Path = None):
             targets.append({
                 "module": module, "source_root": ".", "files": files,
                 "deps": sorted({t["module"] for t in targets if not t["executable"] and not t.get("macro")}),
-                "third_party": [], "mode": xcode_language_mode(root / sub_base), "settings": [], "resources": [],
+                "third_party": [], "mode": xcode_language_mode(root / sub_base),
+                "settings": [f".define({json.dumps(c)})" for c in sub_conditions], "resources": [],
                 "models": [m for m in models if Path(m).is_relative_to(sub_base)],
                 "catalogs": sub_catalogs, "symbol_extensions": bool(sub_catalogs) and xcode_asset_symbol_extensions(root / sub_base),
                 "executable": True, "app": True,
