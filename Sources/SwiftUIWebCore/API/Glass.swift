@@ -100,38 +100,51 @@ public struct GlassEffectContainer<Content: View>: View {
     public var body: some View { content }
 }
 
-/// A button style that draws the button on glass.
+/// A button style that draws the button on glass. Apple's is a primitive style (an app returns
+/// it as `some PrimitiveButtonStyle`); its body is a button drawn bordered.
 public struct GlassButtonStyle {
     package let glass: Glass
     @preconcurrency nonisolated public init() { glass = .regular }
     @preconcurrency nonisolated public init(_ glass: Glass) { self.glass = glass }
 }
 
-extension GlassButtonStyle: ButtonStyle {
+extension GlassButtonStyle: PrimitiveButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
-        _PlatformButtonBody(configuration: configuration, kind: .bordered)
+        Button(role: configuration.role, action: configuration.trigger) { configuration.label }
+            .buttonStyle(_GlassBodyStyle(kind: .bordered))
     }
 }
 
-/// A button style that draws the button on glass tinted with the accent colour.
+/// A button style that draws the button on glass tinted with the accent colour: a primitive
+/// style, as Apple's is.
 public struct GlassProminentButtonStyle {
     @preconcurrency nonisolated public init() {}
 }
 
-extension GlassProminentButtonStyle: ButtonStyle {
+extension GlassProminentButtonStyle: PrimitiveButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
-        _PlatformButtonBody(configuration: configuration, kind: .prominent)
+        Button(role: configuration.role, action: configuration.trigger) { configuration.label }
+            .buttonStyle(_GlassBodyStyle(kind: .prominent))
     }
 }
 
-extension ButtonStyle where Self == GlassButtonStyle {
+/// The look inside a glass style's button (setting it clears the primitive style, so the inner
+/// button draws rather than restyling itself).
+struct _GlassBodyStyle: ButtonStyle {
+    let kind: _PlatformButtonBody.Kind
+    func makeBody(configuration: Configuration) -> some View {
+        _PlatformButtonBody(configuration: configuration, kind: kind)
+    }
+}
+
+extension PrimitiveButtonStyle where Self == GlassButtonStyle {
     /// A button style that draws the button on glass.
     public static var glass: GlassButtonStyle { GlassButtonStyle() }
     /// A button style that draws the button on the given glass.
     public static func glass(_ glass: Glass) -> GlassButtonStyle { GlassButtonStyle(glass) }
 }
 
-extension ButtonStyle where Self == GlassProminentButtonStyle {
+extension PrimitiveButtonStyle where Self == GlassProminentButtonStyle {
     /// A button style that draws the button on prominent glass.
     public static var glassProminent: GlassProminentButtonStyle { GlassProminentButtonStyle() }
 }

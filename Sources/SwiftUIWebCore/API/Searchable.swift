@@ -339,6 +339,30 @@ extension View {
                                      tokens: _SearchTokens.make(tokens, token: token)))
     }
 
+    nonisolated public func searchable<C, T: View>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, placement: SearchFieldPlacement = .automatic,
+                                                   prompt: LocalizedStringKey, @ViewBuilder token: @escaping (C.Element) -> T) -> some View
+    where C: RandomAccessCollection & RangeReplaceableCollection, C.Element: Identifiable {
+        modifier(_SearchableModifier(text: text, prompt: Text(prompt).resolvedString, placement: placement, isPresented: nil,
+                                     tokens: _SearchTokens.make(tokens, token: token)))
+    }
+
+    /// Tokens, suggested tokens and a presentation binding.
+    nonisolated public func searchable<C, T: View>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, isPresented: Binding<Bool>,
+                                                   placement: SearchFieldPlacement = .automatic,
+                                                   prompt: Text? = nil, @ViewBuilder token: @escaping (C.Element) -> T) -> some View
+    where C: RandomAccessCollection & RangeReplaceableCollection, C.Element: Identifiable {
+        modifier(_SearchableModifier(text: text, prompt: prompt?.resolvedString, placement: placement, isPresented: isPresented,
+                                     tokens: _SearchTokens.make(tokens, token: token)))
+    }
+
+    nonisolated public func searchable<C, T: View>(text: Binding<String>, tokens: Binding<C>, suggestedTokens: Binding<C>, isPresented: Binding<Bool>,
+                                                   placement: SearchFieldPlacement = .automatic,
+                                                   prompt: LocalizedStringKey, @ViewBuilder token: @escaping (C.Element) -> T) -> some View
+    where C: RandomAccessCollection & RangeReplaceableCollection, C.Element: Identifiable {
+        modifier(_SearchableModifier(text: text, prompt: Text(prompt).resolvedString, placement: placement, isPresented: isPresented,
+                                     tokens: _SearchTokens.make(tokens, token: token)))
+    }
+
     /// The suggestions the enclosing search shows while it is presented: in place of the content
     /// on iOS, in a menu under the field on macOS. Rows with `searchCompletion` fill the field.
     nonisolated public func searchSuggestions<S: View>(@ViewBuilder _ suggestions: () -> S) -> some View {

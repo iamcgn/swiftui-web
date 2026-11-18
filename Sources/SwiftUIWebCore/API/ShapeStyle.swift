@@ -75,6 +75,12 @@ public struct Material: ShapeStyle, Hashable, Sendable {
     public static let thickMaterial = Material(thickness: .thick)
     public static let ultraThickMaterial = Material(thickness: .ultraThick)
     public static let bar = Material(thickness: .bar)
+    // Apple's own spellings on the type (`Material.regular`).
+    public static let ultraThin = Material(thickness: .ultraThin)
+    public static let thin = Material(thickness: .thin)
+    public static let regular = Material(thickness: .regular)
+    public static let thick = Material(thickness: .thick)
+    public static let ultraThick = Material(thickness: .ultraThick)
 
     package var tintAlpha: Double {
         switch thickness {

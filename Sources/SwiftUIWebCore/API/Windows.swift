@@ -64,3 +64,27 @@ extension EnvironmentValues {
         set { self[WindowIdentityKey.self] = newValue }
     }
 }
+
+/// A button that opens the app's settings window, as `openSettings` does (macOS).
+public struct SettingsLink<Label: View>: View {
+    nonisolated(unsafe) let label: Label
+    @Environment(\.openSettings) private var openSettings
+
+    /// A link with a custom label.
+    nonisolated public init(@ViewBuilder label: () -> Label) { self.label = label() }
+
+    public var body: some View {
+        Button(action: { openSettings() }) { label }
+    }
+}
+
+/// The settings link's standard label: "Settings…" with the gear.
+public struct DefaultSettingsLinkLabel: View {
+    nonisolated public init() {}
+    public var body: some View { SwiftUIWebCore.Label("Settings…", systemImage: "gear") }
+}
+
+extension SettingsLink where Label == DefaultSettingsLinkLabel {
+    /// A link with the standard label.
+    nonisolated public init() { self.init { DefaultSettingsLinkLabel() } }
+}
