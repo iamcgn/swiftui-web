@@ -326,11 +326,14 @@ package final class NavigationSplitViewNode: LayoutNode<_NavigationSplitViewHost
     override package func paint(into list: inout DisplayList, context: PaintContext) {
         if let panel = sidebarFrame {
             // The column's fill and, on macOS 27, the half-point line along its trailing edge
-            // (inside the area after it: the detail starts at the column's edge).
-            list.append(.fillRRect(context.absoluteRect(panel), cornerRadius: PlatformMetrics.sidebarCornerRadius, PlatformMetrics.sidebarPanelColor))
+            // (inside the area after it: the detail starts at the column's edge), each in the
+            // appearance's own shade.
+            let dark = environment.colorScheme == .dark
+            list.append(.fillRRect(context.absoluteRect(panel), cornerRadius: PlatformMetrics.sidebarCornerRadius,
+                                   dark ? PlatformMetrics.sidebarPanelColorDark : PlatformMetrics.sidebarPanelColor))
             if PlatformMetrics.sidebarDividerThickness > 0 {
                 let line = CGRect(x: panel.maxX, y: panel.minY, width: PlatformMetrics.sidebarDividerThickness, height: panel.height)
-                list.append(.fillRect(context.absoluteRect(line), PlatformMetrics.sidebarDividerColor))
+                list.append(.fillRect(context.absoluteRect(line), dark ? PlatformMetrics.sidebarDividerColorDark : PlatformMetrics.sidebarDividerColor))
             }
             for node in sidebar.layoutChildren { node.paint(into: &list, context: context.child(at: node.presentedFrame)) }
         }

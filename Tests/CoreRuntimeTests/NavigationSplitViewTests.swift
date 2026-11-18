@@ -50,6 +50,19 @@ import SwiftUIWebHeadless
         #expect(!painted.contains { $0.contains("#F0F0F0") })
     }
 
+    @Test func darkSidebarColumn() {
+        // The sidebar column's fill and its line follow the dark appearance (PomPadDo's sidebar
+        // stayed white beside a dark detail).
+        let r = runtime(NavigationSplitView {
+            List { Text("Apple"); Text("Banana") }
+        } detail: {
+            Text("Detail")
+        }.colorScheme(.dark))
+        let painted = commands(r)
+        #expect(painted.contains { $0.hasPrefix("fillRRect(0, 0, 144, 300) r=0 #282828") } && painted.contains { $0.hasPrefix("fillRect(144, 0, 0.5, 300) #000000") }, "\(painted.prefix(3))")
+        #expect(!painted.contains { $0.contains("#FBFBFB") || $0.contains("#C9C9C9") })
+    }
+
     @Test func threeColumnsAndWidths() {
         let r = runtime(NavigationSplitView {
             VStack { Text("Menu")._probe("menu") }.navigationSplitViewColumnWidth(min: 100, ideal: 120, max: 200)._probe("sidebar")

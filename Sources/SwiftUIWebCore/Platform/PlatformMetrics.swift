@@ -142,8 +142,10 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var listRowVerticalInset: CGFloat = 4
     package var listRowMinimumHeight: CGFloat = 24
     package var listSidebarRowHeight: CGFloat = 32
-    package var listSidebarBackground = Color(red: 240.0 / 255, green: 240.0 / 255, blue: 240.0 / 255)
-    package var listSidebarForeground = Color(red: 0, green: 0, blue: 0, opacity: 0.7)
+    // A sidebar list's ground and row ink follow the appearance: the light ones measured, the dark
+    // ones the sidebar column's dark fill and the light ink's white mirror (dark unverified).
+    package var listSidebarBackground = Color(storage: .dynamic(light: RGBA(r: 240, g: 240, b: 240), dark: RGBA(r: 40, g: 40, b: 40)))
+    package var listSidebarForeground = Color(storage: .dynamic(light: RGBA(r: 0, g: 0, b: 0, a: 0.7), dark: RGBA(r: 255, g: 255, b: 255, a: 0.7)))
     package var listSectionHeaderPadding: CGFloat = 6
     package var listSectionSpacing: CGFloat = 20
     package var listSeparatorThickness: CGFloat = 1
@@ -646,6 +648,8 @@ package final class PlatformMetricsTable: @unchecked Sendable {
     package var sidebarCornerRadius: CGFloat = 0
     package var sidebarPanelColor = RGBA(red: 251.0 / 255, green: 251.0 / 255, blue: 251.0 / 255, alpha: 1)   // the sidebar's fill (dark unverified)
     package var sidebarDividerColor = RGBA(red: 201.0 / 255, green: 201.0 / 255, blue: 201.0 / 255, alpha: 1)  // the half-point line after the sidebar
+    package var sidebarPanelColorDark = RGBA(r: 40, g: 40, b: 40)       // the sidebar's fill in the dark appearance (unverified)
+    package var sidebarDividerColorDark = RGBA(r: 0, g: 0, b: 0)        // its line in the dark appearance (unverified)
     package var sidebarDividerThickness: CGFloat = 0.5
     package var splitDividerAlpha = 25.0 / 255                    // the 1 pt divider after the content column; black, unverified hue
 

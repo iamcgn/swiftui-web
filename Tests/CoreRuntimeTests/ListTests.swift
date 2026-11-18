@@ -81,6 +81,12 @@ import SwiftUIWebHeadless
         let sidebar = runtime(List { Text("Apple")._probe("a") }.listStyle(.sidebar))
         #expect(sidebar.probeFrames["a"]?.origin == CGPoint(x: 16, y: 10 + (32 - 18.5) / 2))
         #expect(sidebar.render(scale: 2).commands.first?.description == "fillRect(0, 0, 320, 200) #F0F0F0")
+        // In the dark appearance the sidebar ground and its row ink turn dark and light (SimpleToDo's
+        // `.listStyle(.sidebar)` painted a light ground under white text).
+        let darkSidebar = runtime(List { Text("Apple")._probe("a") }.listStyle(.sidebar).colorScheme(.dark))
+        let darkCommands = darkSidebar.render(scale: 2).commands.map(\.description)
+        #expect(darkCommands.first == "fillRect(0, 0, 320, 200) #282828")
+        #expect(darkCommands.contains { $0.hasPrefix("drawText(\"Apple\"") && $0.contains("#FFFFFF@0.7") }, "\(darkCommands)")
     }
 
     @Test func pressesSelectRows() {
