@@ -117,9 +117,10 @@ package enum _OSLogRecords {
 
     /// The wall clock, in seconds since 1970.
     package static func now() -> Double {
-        var ts = timespec()
-        clock_gettime(CLOCK_REALTIME, &ts)
-        return Double(ts.tv_sec) + Double(ts.tv_nsec) / 1e9
+        // `CLOCK_REALTIME` is a macro over a structure's address, which Swift can't import.
+        var tv = timeval()
+        gettimeofday(&tv, nil)
+        return Double(tv.tv_sec) + Double(tv.tv_usec) / 1e6
     }
 }
 
