@@ -41,7 +41,10 @@ when they do not, the sweep's heuristics are wrong, not the package.
   When the Xcode project has an iOS application target (`xcodeproj.py` reads `project.pbxproj`),
   the files in that project's folder are only the ones the target compiles: its Sources phase, its
   synchronised folders less their exceptions, and the frameworks it builds, so a macOS app, a
-  share extension or files no target lists do not redeclare the iOS app's types;
+  share extension or files no target lists do not redeclare the iOS app's types. In a repository
+  of several apps, each with its own project folder (SimpleSwiftUI, SwiftUIExperiments), every
+  other iOS app is built as a module of its own from the files its target compiles, and another
+  platform's app folder is left out, so no app's types redeclare another's;
 - every third-party package the app pins (its `Package.resolved`, Xcode's or a local package's)
   is cloned at the pinned revision and built from source the same way, as a real build would:
   the targets the app's code reaches, macro targets included (built for the host against
