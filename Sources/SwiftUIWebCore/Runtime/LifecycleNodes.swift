@@ -176,7 +176,76 @@ package final class ContinueActivityHandlerNode<Content: View>: TypedNode<Modifi
     override package var nodeDescription: String { "OnContinueUserActivity" }
 }
 
+/// `userActivity`: one activity per mounted view, filled in and made current while active.
+@MainActor
+package final class UserActivityNode<Content: View>: TypedNode<ModifiedContent<Content, _UserActivityModifier>> {
+    package private(set) var child: TypedNode<Content>!
+    package private(set) var activity: NSUserActivity?
+    package private(set) var isCurrent = false
+
+    init(_ context: _NodeContext<ModifiedContent<Content, _UserActivityModifier>>) {
+        super.init(view: context.view, parent: context.parent, runtime: context.runtime, environment: context.environment)
+        child = Content._makeNode(_NodeContext(view: context.view.content, parent: self, environment: context.environment))
+        runtime.advertisedActivities.append(WeakNode(node: self))
+        advertise()
+    }
+
+    override package func update(view: ModifiedContent<Content, _UserActivityModifier>, environment: EnvironmentValues, force: Bool) {
+        self.view = view
+        self.environment = environment
+        clearNeedsUpdate()
+        child.update(view: view.content, environment: environment, force: force)
+        advertise()
+    }
+
+    /// The activity, filled in by the view's closure and current while active; resigned otherwise.
+    private func advertise() {
+        let modifier = view.modifier
+        guard modifier.isActive else {
+            if isCurrent { activity?.resignCurrent() }
+            isCurrent = false
+            return
+        }
+        if activity == nil || activity?.activityType != modifier.activityType {
+            activity?.invalidate()
+            activity = NSUserActivity(activityType: modifier.activityType)
+        }
+        guard let activity else { return }
+        modifier.update(activity)
+        activity.becomeCurrent()
+        isCurrent = true
+    }
+
+    override package func unmount() {
+        activity?.invalidate()
+        isCurrent = false
+        runtime.advertisedActivities.removeAll { $0.node === self || $0.node == nil }
+        super.unmount()
+    }
+
+    override package var structuralChildren: [ViewNode] { [child] }
+    override package var layoutChildren: [ViewNode] { child.layoutChildren }
+    override package var nodeDescription: String { "UserActivity" }
+}
+
+@MainActor package protocol _ActivityAdvertising: AnyObject {
+    var activity: NSUserActivity? { get }
+    var isCurrent: Bool { get }
+}
+extension UserActivityNode: _ActivityAdvertising {}
+
 extension Runtime {
+    /// The current activity of the type a mounted `userActivity` view advertises, innermost last.
+    public func currentUserActivity(ofType activityType: String) -> NSUserActivity? {
+        var current: NSUserActivity?
+        for entry in advertisedActivities {
+            guard let node = entry.node as? any _ActivityAdvertising, node.isCurrent,
+                  let activity = node.activity, activity.activityType == activityType else { continue }
+            current = activity
+        }
+        return current
+    }
+
     /// Delivers a URL to every mounted `onOpenURL` handler, outermost first.
     public func openURL(_ url: URL) {
         for entry in openURLHandlers { (entry.node as? any _OpenURLHandling)?.handle(url) }

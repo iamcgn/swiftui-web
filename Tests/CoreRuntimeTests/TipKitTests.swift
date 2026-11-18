@@ -48,6 +48,23 @@ private struct UrgentTip: Tip {
     var options: [Option] { IgnoresDisplayFrequency(true) }
 }
 
+/// A style that draws the configuration's own parts, as Harbour's draws its tips without a
+/// close button.
+private struct PartsTipViewStyle: TipViewStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        VStack(alignment: .leading) {
+            HStack {
+                configuration.image?.font(.callout)
+                configuration.title?.font(.callout)
+            }
+            configuration.message?.font(.footnote)
+            ForEach(configuration.actions) { action in
+                Text("action \(action.id)")
+            }
+        }
+    }
+}
+
 @Suite(.serialized) @MainActor
 struct TipKitTests {
     let defaults: UserDefaults
@@ -167,6 +184,18 @@ struct TipKitTests {
         #expect(await iterator.next() == .invalidated(.actionPerformed))
         await tip.resetEligibility()
         #expect(await iterator.next() == .available)
+    }
+
+    @Test func aStyleDrawsTheConfigurationsTitleMessageAndActions() throws {
+        try Tips.configure([.displayFrequency(.immediate)])
+        let labels = render(TipView(FavoriteTip()).tipViewStyle(PartsTipViewStyle())).semanticsTree().map(\.label)
+        #expect(labels.contains("Save as favorite"))
+        #expect(labels.contains("Tap the heart to keep this recipe."))
+        ShareTip.didViewRecipe.donate()
+        ShareTip.didViewRecipe.donate()
+        let shared = render(TipView(ShareTip()).tipViewStyle(PartsTipViewStyle())).semanticsTree().map(\.label)
+        #expect(shared.contains("action share"))
+        #expect(shared.contains("action later"))
     }
 
     @Test func aPopoverTipPresentsFromItsView() throws {

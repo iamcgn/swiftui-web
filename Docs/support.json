@@ -1116,7 +1116,7 @@
         {
           "api": "onAppear / onDisappear / task(priority:) / task(id:priority:)",
           "status": "partial",
-          "notes": "Actions run through the scheduler after the update that inserts or removes the view; tasks start on appear, cancel on disappear and restart on an id change; no onReceive or scene-phase actions; onReceive over Combine-free publishers (Just, subjects, objectWillChange, $published, Timer.publish, NotificationCenter.publisher), scenePhase from the page's visibility and focus, onOpenURL from the host's URL changes, onContinueUserActivity, children appearing before parents (2026-10-04)",
+          "notes": "Actions run through the scheduler after the update that inserts or removes the view; tasks start on appear, cancel on disappear and restart on an id change; no onReceive or scene-phase actions; onReceive over Combine-free publishers (Just, subjects, objectWillChange, $published, Timer.publish, NotificationCenter.publisher), scenePhase from the page's visibility and focus, onOpenURL from the host's URL changes, onContinueUserActivity, userActivity(_:isActive:_:) and userActivity(_:element:_:) keeping a current activity the view fills in while active (Runtime.currentUserActivity(ofType:); NSUserActivity keeps its search, Handoff and prediction flags, keywords, persistent and target content identifiers and a typed payload in its user info, 2026-11-18, Harbour), children appearing before parents (2026-10-04)",
           "fixtures": [
             "lifecycle/appear"
           ]
@@ -2738,7 +2738,7 @@
         {
           "api": "Tip / TipView / popoverTip / Tips.configure / Tips.Rule / Tips.Parameter / Tips.Event / TipViewStyle (TipKit)",
           "status": "partial",
-          "notes": "pf-small-frameworks (2026-11-13): tips show once the app calls Tips.configure and their rules hold: #Rule over a @Parameter value or an event's donations. TipView draws the tip inline (image, title, message, a close button and the tip's actions) and popoverTip presents it from a view; closing invalidates the tip for good. Display counts, display durations and the display frequency (immediate, hourly, daily, weekly, monthly, so a new tip waits its turn) hold tips back as on iOS, statusUpdates and shouldDisplayUpdates follow a tip, and the testing modes override the rules. Parameters, donations and each tip's displays persist in the user defaults, so a reload keeps them. Tip view styles, backgrounds, corner radius and image size apply. Not done: syncing tips through CloudKit, the datastore location option (always the user defaults), and the exact look of Apple's tip and its arrow",
+          "notes": "pf-small-frameworks (2026-11-13): tips show once the app calls Tips.configure and their rules hold: #Rule over a @Parameter value or an event's donations. TipView draws the tip inline (image, title, message, a close button and the tip's actions) and popoverTip presents it from a view; closing invalidates the tip for good. Display counts, display durations and the display frequency (immediate, hourly, daily, weekly, monthly, so a new tip waits its turn) hold tips back as on iOS, statusUpdates and shouldDisplayUpdates follow a tip, and the testing modes override the rules. Parameters, donations and each tip's displays persist in the user defaults, so a reload keeps them. Tip view styles, backgrounds, corner radius and image size apply. Not done: syncing tips through CloudKit, the datastore location option (always the user defaults), and the exact look of Apple's tip and its arrow A TipViewStyle draws the configuration's title, message, image and actions, and `import TipKit` re-exports SwiftUI as Apple's does (2026-11-18, Harbour).",
           "noFixture": "Nothing to draw beyond the views CoreRuntimeTests render: they configure TipKit, show tips and check the rules, counts and persistence"
         },
         {
@@ -2788,6 +2788,12 @@
           "status": "partial",
           "notes": "pf-small-frameworks (2026-11-15): a document from a file or data, its pages, version and information, pages inserted, removed and exchanged, the data written back, page bounds, labels, text and thumbnails fitted on white. A file UIGraphicsPDFRenderer wrote here draws as recorded; another PDF is read for its page count and sizes (inherited media boxes included) and its pages draw blank. Not done: PDFView, rasterising another PDF's pages, compressed object streams (no pages found), passwords (every file opens unlocked), annotations, outlines and search",
           "noFixture": "Nothing to draw beyond a thumbnail: PDFKitTests open written and hand-made files"
+        },
+        {
+          "api": "CSSearchableIndex / CSSearchableItem / CSSearchableItemAttributeSet / CSSearchableItemActionType / CSQueryContinuationActionType (CoreSpotlight)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-18): a page has no system search, so an index keeps what the app indexes for as long as the page runs: items replaced by identifier, deleted by identifier, by domain (with its subdomains) or all at once, batches that record the client state, in completion and async forms. Nothing reaches a search, so no item or query continuation arrives; the activity types and user info keys are Apple's strings. NSUserActivity.contentAttributeSet holds the attributes an activity gives search (Harbour).",
+          "noFixture": "Nothing to draw: SpotlightActivityTests index, delete and batch"
         },
         {
           "api": "Product / Transaction / AppStore / SKPaymentQueue / ProductView / StoreView / SubscriptionStoreView (StoreKit) / SKProductDiscount / SKPaymentDiscount / SKStorefront / SKPaymentQueueDelegate / Storefront / SKDownload",
