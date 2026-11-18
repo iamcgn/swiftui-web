@@ -59,6 +59,12 @@ app_page() {   # app_page <dir> <Product> <name shown while loading>
   mkdir -p "$APP"
   cp -R "$ROOT/Apps/.build/wasm/plugins/PackageToJS/outputs/Package" "$APP/$ABUNDLE"
   local AWASM="$APP/$ABUNDLE/$2.wasm" ABYTES
+  # A page whose module browsers refuse is a broken app: leave it out, as a failed build is.
+  if ! python3 -I "$ROOT/scripts/check-wasm-imports.py" "$AWASM"; then
+    echo "::warning::build-landing: $2's module uses an import encoding browsers refuse; /apps/$1/ is left out"
+    rm -rf "$APP"
+    return
+  fi
   ABYTES=$(stat -f%z "$AWASM" 2>/dev/null || stat -c%s "$AWASM")
   sed -e "s|./.build/wasm/plugins/PackageToJS/outputs/Package/|./$ABUNDLE/|g" -e "s|data-wasm-bytes=\"\"|data-wasm-bytes=\"$ABYTES\"|" \
     -e "s|data-wasm=\"\"|data-wasm=\"$2.wasm\"|" -e "s|data-app=\"\"|data-app=\"$3\"|" -e "s|<title>App — SwiftUIWeb</title>|<title>$3 — SwiftUIWeb</title>|" \
@@ -76,8 +82,11 @@ app_build() {  # app_build <dir> <Product> <name shown while loading> [sdk]
     app_page "$1" "$2" "$3"
   elif [[ -z "$BUILD_FLAG" ]] && env ${SDK_ENV[@]+"${SDK_ENV[@]}"} "$ROOT/scripts/build-wasm.sh" Apps --debug --product "$2"; then
     local W="$ROOT/Apps/.build/wasm/plugins/PackageToJS/outputs/Package/$2.wasm"
+    # Every feature but the compact import section: with it, wasm-opt writes the imports in an
+    # encoding Chrome refuses by default ("Invalid import kind 127"; issue #238).
     if command -v wasm-opt >/dev/null; then
-      wasm-opt --all-features --strip-debug --strip-dwarf "$W" -o "$W.stripped" && mv "$W.stripped" "$W" || rm -f "$W.stripped"
+      wasm-opt --all-features --disable-compact-imports --strip-debug --strip-dwarf "$W" -o "$W.stripped" \
+        && python3 -I "$ROOT/scripts/check-wasm-imports.py" "$W.stripped" && mv "$W.stripped" "$W" || rm -f "$W.stripped"
     fi
     app_page "$1" "$2" "$3"
     echo "build-landing: $2 is a debug build (its release build failed)"
