@@ -8,9 +8,24 @@
 # one where no Foundation is loaded), so `override var description` matched two and reading it
 # was ambiguous. Swift sees the runtime's as __description and __debugDescription; the
 # Objective-C selectors are unchanged.
+#
+# The runtime's header marks -performSelector: and its two withObject: forms as returning
+# `id _Nullable`, so Swift saw `Unmanaged<AnyObject>?` and `perform(_:).takeUnretainedValue()`,
+# as Apple's SDK lets it be written, did not compile. Apple's header leaves that return's
+# nullability unspecified, so Swift sees `Unmanaged<AnyObject>!`; these notes say the same.
 Name: ObjectiveC
 Protocols:
 - Name: NSObject
+  Methods:
+  - Selector: "performSelector:"
+    MethodKind: Instance
+    NullabilityOfRet: U
+  - Selector: "performSelector:withObject:"
+    MethodKind: Instance
+    NullabilityOfRet: U
+  - Selector: "performSelector:withObject:withObject:"
+    MethodKind: Instance
+    NullabilityOfRet: U
   Properties:
   - Name: description
     PropertyKind: Instance
