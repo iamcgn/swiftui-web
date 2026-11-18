@@ -73,4 +73,32 @@ struct Greeting: PreviewModifier {
         _PreviewRegistry.registered = []
     }
 }
+
+/// A modifier made from a closure that is not Sendable and keeps what it made in a static
+/// property, as swift-dependencies' preview trait does: possible because a `PreviewModifier` is
+/// main-actor isolated, and so are the traits an extension of `PreviewTrait` declares.
+private struct Configured: PreviewModifier {
+    static var lastValue: Int?
+    let value: Int
+    init(_ configure: (inout Int) throws -> Void) {
+        var value = 0
+        try? configure(&value)
+        self.value = value
+        Self.lastValue = value
+    }
+    func body(content: Content, context: Void) -> some View { content }
+}
+
+extension PreviewTrait where T == Preview.ViewTraits {
+    fileprivate static func configured(_ configure: (inout Int) throws -> Void) -> PreviewTrait {
+        .modifier(Configured(configure))
+    }
+}
+
+@Suite @MainActor struct PreviewTraitIsolationTests {
+    @Test func anExtensionMakesAModifierFromAClosure() {
+        let preview = _Preview(name: "Configured", traits: [.configured { $0 = 7 }], file: "x.swift", line: 1) { Text("Configured") }
+        #expect(Configured.lastValue == 7 && preview.fixedSize == nil)
+    }
+}
 #endif
