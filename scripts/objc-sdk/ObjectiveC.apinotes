@@ -13,6 +13,9 @@
 # `id _Nullable`, so Swift saw `Unmanaged<AnyObject>?` and `perform(_:).takeUnretainedValue()`,
 # as Apple's SDK lets it be written, did not compile. Apple's header leaves that return's
 # nullability unspecified, so Swift sees `Unmanaged<AnyObject>!`; these notes say the same.
+# A method's notes that give a nullability treat every parameter they leave out as nonnull, so
+# each parameter is listed too, unspecified as in Apple's header (`Selector!`, `Any!`): without
+# that, passing an optional object to `perform(_:with:)` no longer compiled.
 Name: ObjectiveC
 Protocols:
 - Name: NSObject
@@ -20,12 +23,15 @@ Protocols:
   - Selector: "performSelector:"
     MethodKind: Instance
     NullabilityOfRet: U
+    Nullability: [U]
   - Selector: "performSelector:withObject:"
     MethodKind: Instance
     NullabilityOfRet: U
+    Nullability: [U, U]
   - Selector: "performSelector:withObject:withObject:"
     MethodKind: Instance
     NullabilityOfRet: U
+    Nullability: [U, U, U]
   Properties:
   - Name: description
     PropertyKind: Instance
