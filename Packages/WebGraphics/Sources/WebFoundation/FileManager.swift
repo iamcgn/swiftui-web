@@ -80,9 +80,13 @@ public final class FileManager: _WebObjectBase, @unchecked Sendable {
         guard let data = _MemoryFiles.read(source) else { throw _FileError.noSuchFile(source) }
         _MemoryFiles.write(data, to: destination)
     }
+    /// Moves the file: its watchers hear a rename and go on watching it at `destination`.
     public func moveItem(at source: URL, to destination: URL) throws {
-        try copyItem(at: source, to: destination)
+        guard let data = _MemoryFiles.read(source) else { throw _FileError.noSuchFile(source) }
+        guard source.absoluteString != destination.absoluteString else { return }
+        _MemoryFiles.write(data, to: destination, reporting: nil)
         _MemoryFiles.remove(source, reporting: .rename)
+        _FileWatches.move(source, to: destination)
     }
     /// The path forms, as SwiftyBeaver rotates its log files.
     public func copyItem(atPath srcPath: String, toPath dstPath: String) throws {

@@ -40,12 +40,20 @@ const field = (line, name) => { const m = line.match(new RegExp(name + '=(\\[[^\
 const sep = url.includes('?') ? '&' : '?';
 
 // The pack: the first run installs it through the app's requestAuthorization; wait for it.
+// Chrome installs a "downloadable" pack only inside a user gesture, and the host then waits
+// for the page's next tap, so each run taps the window's empty top-right corner once its first
+// frame is up and every three seconds until the line settles, as a person would.
+const tap = () => page.mouse.click(page.viewportSize().width - 4, 4);
 const run = async (query, settledWhen, timeoutMs) => {
   await page.goto(url + sep + query, { waitUntil: 'commit', timeout: 180000 });
   await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 180000 });
   const deadline = Date.now() + timeoutMs;
-  let line = '';
-  while (Date.now() < deadline) { line = await speechLine(); if (settledWhen(line)) return line; await page.waitForTimeout(250); }
+  let line = '', tapped = 0;
+  while (Date.now() < deadline) {
+    line = await speechLine(); if (settledWhen(line)) return line;
+    if (!/auth=/.test(line) && Date.now() - tapped > 3000) { await tap(); tapped = Date.now(); }
+    await page.waitForTimeout(250);
+  }
   return line;
 };
 const hasFinal = (line) => / final=/.test(line) || / error=/.test(line) || / cancelled/.test(line) || /available=false/.test(line) || /auth=(denied|restricted)/.test(line);
