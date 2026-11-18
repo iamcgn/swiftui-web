@@ -7,8 +7,10 @@ so the sweep takes the iOS app's own files when the project says which they are:
 Sources build phase, the files of the folders it synchronises (Xcode 16's folder references, less
 their membership exceptions, plus files other targets' folders lend it), and the same for the
 frameworks and static libraries it depends on. Extensions it embeds are left out, and so are files
-in the project's folder that no target compiles (Xcode does not build them either). Files outside
-the project's folder (another project's app, in a repository of several) are the sweep's to keep.
+in the project's folder that no target compiles (Xcode does not build them either), and files the
+project builds only for other platforms (a platform filter of macOS alone). Files outside the
+project's folder (another project's app, in a repository of several) are the sweep's to keep. The
+target's active compilation conditions (`TARGET_APP`) are read too, for the app module's defines.
 
 The format is an old-style (OpenStep) property list; `parse` reads it into dictionaries, lists
 and strings.
@@ -74,6 +76,12 @@ def parse(text):
 FRAMEWORK_TYPES = {"com.apple.product-type.framework", "com.apple.product-type.library.static",
                    "com.apple.product-type.library.dynamic"}
 IOS_HINT = re.compile(r"ios|iphone|mobile|ipad", re.I)
+CONDITION = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def builds_for_ios(filters):
+    """Whether a file with these platform filters (none: every platform) is built for iOS."""
+    return not filters or any(f in ("ios", "iphoneos") for f in filters)
 OTHER_PLATFORM_HINT = re.compile(r"mac|watch|tv|vision|catalyst", re.I)
 
 
@@ -125,6 +133,28 @@ class Project:
                     values.append(v if isinstance(v, str) else " ".join(v))
         return " ".join(values)
 
+    def setting_in(self, config_list, key, name="Debug"):
+        """`key` in the configuration called `name` of a configuration list (the first one when
+        none has that name), as words; None when it isn't set there."""
+        configs = [self.obj(c) for c in self.obj(config_list).get("buildConfigurations", [])]
+        config = next((c for c in configs if c.get("name") == name), configs[0] if configs else {})
+        v = config.get("buildSettings", {}).get(key)
+        if v is None:
+            return None
+        return v.split() if isinstance(v, str) else [w for item in v for w in item.split()]
+
+    def compilation_conditions(self, target):
+        """The conditions a Debug build of the target defines: its own, with the project's where it
+        inherits them (or sets none)."""
+        own = self.setting_in(target.get("buildConfigurationList"), "SWIFT_ACTIVE_COMPILATION_CONDITIONS")
+        project = self.setting_in(self.project.get("buildConfigurationList"), "SWIFT_ACTIVE_COMPILATION_CONDITIONS") or []
+        words = project if own is None else [w for x in own for w in (project if x == "$(inherited)" else [x])]
+        out = []
+        for w in words:
+            if CONDITION.match(w) and w not in out:
+                out.append(w)
+        return out
+
     def targets(self):
         return [(tid, self.obj(tid)) for tid in self.project.get("targets", [])
                 if self.obj(tid).get("isa") == "PBXNativeTarget"]
@@ -147,8 +177,12 @@ class Project:
             if self.obj(phase).get("isa") != "PBXSourcesBuildPhase":
                 continue
             for bid in self.obj(phase).get("files", []):
-                ref = self.obj(bid).get("fileRef")
+                build_file = self.obj(bid)
+                ref = build_file.get("fileRef")
                 if not ref:
+                    continue
+                filters = build_file.get("platformFilters") or ([build_file["platformFilter"]] if build_file.get("platformFilter") else [])
+                if not builds_for_ios(filters):
                     continue
                 kind = self.obj(ref).get("isa")
                 if kind == "PBXFileSystemSynchronizedRootGroup":
@@ -167,17 +201,21 @@ class Project:
             folder = self.path_of(gid)
             if folder is None:
                 continue
-            listed = set()
+            listed, other_platforms = set(), set()
             for eid in group.get("exceptions", []):
                 exception = self.obj(eid)
                 if exception.get("target") == tid:
                     listed.update(exception.get("membershipExceptions", []))
+                    filters = exception.get("platformFiltersByRelativePath", {})
+                    other_platforms.update(f for f, platforms in filters.items() if not builds_for_ios(platforms))
             if gid in owned:
                 for p in (self.root / folder).rglob("*.swift"):
-                    if p.relative_to(self.root / folder).as_posix() not in listed:
+                    rel = p.relative_to(self.root / folder).as_posix()
+                    if rel not in listed and rel not in other_platforms:
                         files.add(p.relative_to(self.root))
             else:
-                files.update(folder / f for f in listed if f.endswith(".swift") and (self.root / folder / f).is_file())
+                files.update(folder / f for f in listed
+                             if f.endswith(".swift") and f not in other_platforms and (self.root / folder / f).is_file())
         return files
 
     def dependencies(self, tid):
@@ -190,9 +228,10 @@ class Project:
 
 
 def app_target_files(root: Path, pbx_files, ios_only=False):
-    """The iOS app target's name, its Swift files (and those of the frameworks it builds) and the
-    folder holding its project, from the project whose application is likeliest the iOS app; None
-    when no project says (or, with `ios_only`, when none builds an iOS application)."""
+    """The iOS app target's name, its Swift files (and those of the frameworks it builds), the
+    folder holding its project and its Debug compilation conditions, from the project whose
+    application is likeliest the iOS app; None when no project says (or, with `ios_only`, when
+    none builds an iOS application)."""
     candidates = []
     for pbx in pbx_files:
         try:
@@ -227,4 +266,5 @@ def app_target_files(root: Path, pbx_files, ios_only=False):
         todo.extend(project.dependencies(t))
     if not files:
         return None
-    return project.obj(tid).get("name", ""), {f.as_posix() for f in files}, project.base
+    return (project.obj(tid).get("name", ""), {f.as_posix() for f in files}, project.base,
+            project.compilation_conditions(project.obj(tid)))

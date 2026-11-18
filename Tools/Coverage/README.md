@@ -45,7 +45,12 @@ be fetched stays empty.
   When the Xcode project has an iOS application target (`xcodeproj.py` reads `project.pbxproj`),
   the files in that project's folder are only the ones the target compiles: its Sources phase, its
   synchronised folders less their exceptions, and the frameworks it builds, so a macOS app, a
-  share extension or files no target lists do not redeclare the iOS app's types. In a repository
+  share extension or files no target lists do not redeclare the iOS app's types. The project's
+  list wins over the folder names: a file the target compiles from a folder named for another
+  target (Harbour's `Intents`, EhPanda's `Tools`, a widget folder sharing files with the app,
+  `Preview Content`) is built, and a file filtered to other platforms only (Harbour's
+  `ContentView+ViewForMacOS.swift`) is not. The target's Debug `SWIFT_ACTIVE_COMPILATION_CONDITIONS`
+  (`TARGET_APP`) are the app module's defines. In a repository
   of several apps, each with its own project folder (SimpleSwiftUI, SwiftUIExperiments), every
   other iOS app is built as a module of its own from the files its target compiles, and another
   platform's app folder is left out, so no app's types redeclare another's;
