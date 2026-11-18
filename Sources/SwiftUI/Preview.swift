@@ -35,6 +35,10 @@ public struct Preview {
 }
 
 /// Options a preview declares, for the kind of preview `T` (`Preview.ViewTraits` for a view).
+/// Main-actor isolated, as Apple's is: so are the traits an extension declares, which may then
+/// make a `PreviewModifier` (main-actor isolated too) from a value that is not Sendable, as
+/// swift-dependencies' `.dependencies { }` makes one from its closure.
+@MainActor
 public struct PreviewTrait<T>: Sendable {
     package enum Kind: Sendable {
         case sizeThatFits
@@ -43,11 +47,11 @@ public struct PreviewTrait<T>: Sendable {
         case modifier(_PreviewModifierBox)
         case device(String)
     }
-    package let kind: Kind
-    package init(_ kind: Kind) { self.kind = kind }
+    nonisolated package let kind: Kind
+    nonisolated package init(_ kind: Kind) { self.kind = kind }
 
     /// The fixed layout the traits ask for, if any.
-    public var fixedSize: CGSize? {
+    nonisolated public var fixedSize: CGSize? {
         if case .fixed(let width, let height) = kind { return CGSize(width: width, height: height) }
         return nil
     }

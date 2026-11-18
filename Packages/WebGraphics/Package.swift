@@ -39,9 +39,12 @@ let package = Package(
     targets: [
         .target(
             name: "WebFoundation",
-            dependencies: ["WebDecimalDivision"],
+            dependencies: ["WebDecimalDivision", .target(name: "WebObjCBlocks", condition: .when(platforms: [.wasi]))],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
+        // The trampolines of `imp_implementationWithBlock` with the Objective-C runtime on wasm
+        // (WebFoundation's BlockImplementations.swift); C, as a trampoline's type is a C function's.
+        .target(name: "WebObjCBlocks"),
         // FoundationEssentials' `Decimal /` under a name WebFoundation's own `Decimal /` calls,
         // emitted into the app that divides (decision 0006, 2026-11-15).
         .target(
