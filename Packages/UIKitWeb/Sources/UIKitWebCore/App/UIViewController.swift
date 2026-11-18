@@ -218,9 +218,10 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
 
     // swift-navigation's UIKitNavigationShim adds these three to UIViewController on Apple's
     // platforms, in an Objective-C category whose header needs <TargetConditionals.h> and
-    // <UIKit/UIKit.h> and so is empty here; its swizzled viewDidAppear(_:) and
-    // viewDidDisappear(_:) run the work, as endAppearanceTransition() does here. Its UIKit
-    // bindings (UIKitNavigation, in EhPanda and CriticalMaps) present and dismiss through them.
+    // <UIKit/UIKit.h> and so is empty here; its swizzled viewDidAppear(_:),
+    // viewDidDisappear(_:) and didMove(toParent:) run the work, as endAppearanceTransition()
+    // and didMove(toParent:) do here. Its UIKit bindings (UIKitNavigation, in EhPanda and
+    // CriticalMaps) present and dismiss through them.
 
     /// Whether the view has appeared once.
     public var _UIKitNavigation_hasViewAppeared = false
@@ -253,6 +254,15 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
         }
     }
 
+    /// A controller that leaves its parent (popped off a navigation stack, or taken out of
+    /// any container) is gone as surely as a dismissed one, so its dismiss work runs then too,
+    /// once, as the shim's swizzled didMove(toParent:) does.
+    private func runRemovalDismissWork() {
+        guard let work = _UIKitNavigation_onDismiss else { return }
+        work()
+        Task { @MainActor [weak self] in self?._UIKitNavigation_onDismiss = nil }
+    }
+
     func completeAppearanceIfPending() {
         guard pendingAppearance else { return }
         pendingAppearance = false
@@ -282,7 +292,7 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
 
     open func willMove(toParent parent: UIViewController?) {}
     open func didMove(toParent parent: UIViewController?) {
-        if parent != nil { completeAppearanceIfPending() }
+        if parent != nil { completeAppearanceIfPending() } else { runRemovalDismissWork() }
     }
 
     open var shouldAutomaticallyForwardAppearanceMethods: Bool { true }
