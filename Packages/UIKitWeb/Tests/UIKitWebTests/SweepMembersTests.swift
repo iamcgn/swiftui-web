@@ -1,6 +1,7 @@
 // UIKit members the sweep's apps call (Mlem, GistHub, OscarWeather, Clendar, swift-navigation):
 // font traits, a scroll view's tracking, keyboard input modes, repeated animations inside a
-// block, the navigation bar's shadow and background images, a window scene's geometry.
+// block, the navigation bar's shadow and background images, a window scene's geometry, and a
+// shake handled up the responder chain (Harbour's window).
 import Testing
 import UIKit
 @testable import UIKitWebCore
@@ -94,4 +95,45 @@ import UIKit
         #expect(scene.effectiveGeometry.interfaceOrientation == scene.interfaceOrientation)
         #expect(!scene.effectiveGeometry.isInteractivelyResizing)
     }
+
+    final class ShakeListener: UIViewController {
+        var heard: [UIEvent.EventSubtype] = []
+        override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+            heard.append(motion)
+            super.motionEnded(motion, with: event)
+        }
+    }
+
+    @Test func aShakeTravelsUpTheResponderChain() {
+        let listener = ShakeListener()
+        let child = UIView()
+        listener.view.addSubview(child)
+        child.motionEnded(.motionShake, with: nil)
+        child.motionBegan(.remoteControlPlay, with: nil)
+        #expect(listener.heard == [.motionShake])
+        #expect(UIEvent.EventSubtype.motionShake.rawValue == 1 && UIEvent.EventSubtype.remoteControlEndSeekingForward.rawValue == 109)
+    }
+
+    #if canImport(ObjectiveC)
+    @Test func anOverrideFromAnExtensionHearsTheShake() {
+        let view = ExtensionShakeView()
+        let responder: UIResponder = view
+        responder.motionEnded(.motionShake, with: nil)
+        #expect(view.heardInExtension == [.motionShake])
+    }
+    #endif
 }
+
+#if canImport(ObjectiveC)
+/// Harbour overrides `motionEnded(_:with:)` in an extension of `UIWindow`, which Swift allows
+/// only for `@objc` methods; called through `UIResponder`, the override still runs.
+final class ExtensionShakeView: UIView {
+    var heardInExtension: [UIEvent.EventSubtype] = []
+}
+
+extension ExtensionShakeView {
+    override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+        heardInExtension.append(motion)
+    }
+}
+#endif

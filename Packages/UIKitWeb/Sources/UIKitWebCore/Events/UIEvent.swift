@@ -12,6 +12,30 @@ open class UIEvent: UIResponderBase {
         case touches = 0, motion, remoteControl, presses, scroll = 10, hover, transform
     }
 
+    /// What a motion or remote-control event is: a shake, or a media key (Harbour's
+    /// `motionEnded(_:with:)` checks for `.motionShake`). A page hears neither, so the scene
+    /// sends no such events and an event made here is `.none`.
+    /// `@objc` with the runtime, so the motion methods that take it are `@objc` too and an app
+    /// can override them from an extension (Harbour's `extension UIWindow { override func
+    /// motionEnded(_:with:) }`), as UIKit's Objective-C methods allow.
+    #if canImport(ObjectiveC)
+    @objc public enum EventSubtype: Int, Sendable {
+        case none = 0
+        case motionShake = 1
+        case remoteControlPlay = 100, remoteControlPause, remoteControlStop, remoteControlTogglePlayPause,
+             remoteControlNextTrack, remoteControlPreviousTrack, remoteControlBeginSeekingBackward,
+             remoteControlEndSeekingBackward, remoteControlBeginSeekingForward, remoteControlEndSeekingForward
+    }
+    #else
+    public enum EventSubtype: Int, Sendable {
+        case none = 0
+        case motionShake = 1
+        case remoteControlPlay = 100, remoteControlPause, remoteControlStop, remoteControlTogglePlayPause,
+             remoteControlNextTrack, remoteControlPreviousTrack, remoteControlBeginSeekingBackward,
+             remoteControlEndSeekingBackward, remoteControlBeginSeekingForward, remoteControlEndSeekingForward
+    }
+    #endif
+
     public let type: EventType
     public internal(set) var timestamp: Double
     var touches: Set<UITouch> = []
@@ -21,6 +45,9 @@ open class UIEvent: UIResponderBase {
         self.timestamp = timestamp
         super.init()
     }
+
+    /// The motion or remote-control kind of the event (`.none` for touches and presses).
+    open var subtype: EventSubtype { .none }
 
     open var allTouches: Set<UITouch>? { touches }
 
