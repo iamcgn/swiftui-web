@@ -168,6 +168,14 @@ open class UIResponder: UIResponderBase {
     open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) { next?.touchesEnded(touches, with: event) }
     open func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) { next?.touchesCancelled(touches, with: event) }
 
+    // MARK: Motion and remote control (the default forwards to the next responder; a page is
+    // told of no shake or media key, so these run only when an app calls them)
+
+    open func motionBegan(_ motion: UIEvent.EventSubtype, with event: UIEvent?) { next?.motionBegan(motion, with: event) }
+    open func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) { next?.motionEnded(motion, with: event) }
+    open func motionCancelled(_ motion: UIEvent.EventSubtype, with event: UIEvent?) { next?.motionCancelled(motion, with: event) }
+    open func remoteControlReceived(with event: UIEvent?) { next?.remoteControlReceived(with: event) }
+
     // MARK: Keys (Events/Keyboard.swift)
 
     /// The key commands this responder handles; the chain is searched from the first responder up.
