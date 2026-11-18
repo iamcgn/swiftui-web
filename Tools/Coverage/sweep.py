@@ -35,7 +35,7 @@ OURS = {
     "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices", "SystemConfiguration",
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit",
     "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit", "Symbols", "Compression", "zlib", "Translation", "_Translation_SwiftUI", "JavaScriptCore",
-    "CoreText", "CloudKit", "Accelerate", "PDFKit",
+    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight",
 }
 # `Builtin` is the compiler's own module (swift-collections imports it with the BuiltinModule
 # feature); `XCTest` ships in the wasm SDK, and packages import it on wasm where Apple's platforms
@@ -573,7 +573,7 @@ def describe_app(entry, root: Path, work: Path = None):
             # SwiftPM's to read, not a source of the module (BackyardBirds' data package).
             files = [f for f in files if not (Path(f).parent == Path(p["dir"]) and is_manifest(Path(f).name))]
             targets.append({
-                "module": t["name"], "source_root": str(src), "files": files,
+                "module": t["name"], "source_root": str(src), "files": files, "package_dir": p["dir"],
                 "deps": sorted(set(deps) - {t["name"]}), "third_party": sorted(set(third)),
                 "mode": language_mode_of_package(dump, t), "settings": swift_settings(t, traits),
                 "resources": [r.get("path") for r in t.get("resources") or [] if r.get("path")],
@@ -889,6 +889,7 @@ WEB_PRODUCTS = [
     ("JavaScriptCore", "SwiftUIWeb"),
     ("CloudKit", "SwiftUIWeb"),
     ("PDFKit", "SwiftUIWeb"),
+    ("CoreSpotlight", "SwiftUIWeb"),
     ("UIKit", "UIKitWeb"),
     ("Foundation", "Shadows"),
     ("Combine", "Shadows"),
@@ -953,11 +954,16 @@ PACKAGE_NAME_FLAG = '.unsafeFlags(["-package-name", {}])'
 
 
 def package_name_of(target, app):
-    """The package a target came from, as SwiftPM would name it: a pinned package's identity, or
-    the app (its own targets and local packages share one name)."""
+    """The package a target came from, as SwiftPM would name it: a pinned package's identity, a
+    local package's folder, or the app for its own targets. A local package is a package of its
+    own, so an app file's `@retroactive` conformance to one of its types holds (Harbour's
+    PortainerKit) and its `package` declarations stay inside it."""
     if target.get("remote"):
         return target["remote"].split("@")[0]
-    return "app-" + (target.get("base") or app["name"])
+    name = "app-" + (target.get("base") or app["name"])
+    if target.get("package_dir") not in (None, "", "."):  # a root package is the app's own
+        name += "/" + str(target["package_dir"])
+    return name
 
 
 IMPLICIT_FOUNDATION = '.unsafeFlags(["-Xfrontend", "-import-module", "-Xfrontend", "Foundation"], .when(platforms: [.wasi]))'

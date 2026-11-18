@@ -54,7 +54,44 @@ extension _OnContinueUserActivityModifier: ViewModifier {
     }
 }
 
+/// `userActivity`: advertises an activity of the type while the view is mounted and active.
+public struct _UserActivityModifier {
+    package let activityType: String
+    package let isActive: Bool
+    package let update: @MainActor (NSUserActivity) -> Void
+    package init(activityType: String, isActive: Bool, update: @escaping @MainActor (NSUserActivity) -> Void) {
+        self.activityType = activityType
+        self.isActive = isActive
+        self.update = update
+    }
+}
+
+extension _UserActivityModifier: ViewModifier {
+    public typealias Body = Never
+    public static func _makeNode<Content: View>(_ context: _NodeContext<ModifiedContent<Content, Self>>) -> TypedNode<ModifiedContent<Content, Self>> {
+        UserActivityNode(context)
+    }
+}
+
 extension View {
+    /// Advertises a user activity of the type while the view is mounted and `isActive`: the view
+    /// keeps one activity, has `update` fill it in each time the view updates, and makes it
+    /// current (`Runtime.currentUserActivity(ofType:)`). A page has no Handoff or search to send
+    /// it to; it is what a scene would save and continue.
+    nonisolated public func userActivity(_ activityType: String, isActive: Bool = true,
+                                         _ update: @escaping @MainActor (NSUserActivity) -> Void) -> some View {
+        modifier(_UserActivityModifier(activityType: activityType, isActive: isActive, update: update))
+    }
+
+    /// Advertises a user activity of the type for the element while it is not nil.
+    nonisolated public func userActivity<P>(_ activityType: String, element: P?,
+                                            _ update: @escaping @MainActor (P, NSUserActivity) -> Void) -> some View {
+        nonisolated(unsafe) let element = element
+        return modifier(_UserActivityModifier(activityType: activityType, isActive: element != nil) { activity in
+            if let element { update(element, activity) }
+        })
+    }
+
     /// Registers a handler to invoke when the view receives a URL for the scene or window the
     /// view is in (the host's URL changes, `Runtime.openURL`).
     nonisolated public func onOpenURL(perform action: @escaping @MainActor (URL) -> Void) -> some View {
