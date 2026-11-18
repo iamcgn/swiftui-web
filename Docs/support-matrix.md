@@ -12,10 +12,10 @@ Generated from `Docs/support.json` (last edited 2026-11-16) by `scripts/gen-prog
 
 | Framework | Rows | full | partial | approximate | stub | missing |
 |---|---|---|---|---|---|---|
-| SwiftUI | 190 | 43 | 130 | 6 | 10 | 1 |
+| SwiftUI | 191 | 43 | 131 | 6 | 10 | 1 |
 | UIKit | 69 | 22 | 43 | 4 | 0 | 0 |
 | Interop | 61 | 8 | 53 | 0 | 0 | 0 |
-| **All** | **320** | 73 | 226 | 10 | 10 | 1 |
+| **All** | **321** | 73 | 227 | 10 | 10 | 1 |
 
 ## App lifecycle
 
