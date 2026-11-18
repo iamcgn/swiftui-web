@@ -335,3 +335,20 @@ public enum UNError: Error, CustomStringConvertible {
     case notAuthorized
     public var description: String { "notifications are not authorized" }
 }
+
+// MARK: - Identity
+
+// Apple's notification objects are NSObjects, equal and hashed by identity: an app keeps the
+// responses it has yet to handle in a `Set` (Harbour's app state).
+extension UNNotificationRequest: Hashable {
+    public static func == (lhs: UNNotificationRequest, rhs: UNNotificationRequest) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+}
+extension UNNotification: Hashable {
+    public static func == (lhs: UNNotification, rhs: UNNotification) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+}
+extension UNNotificationResponse: Hashable {
+    public static func == (lhs: UNNotificationResponse, rhs: UNNotificationResponse) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+}

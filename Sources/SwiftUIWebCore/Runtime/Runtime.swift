@@ -150,6 +150,7 @@ public final class Runtime {
     /// The mounted `onOpenURL` and `onContinueUserActivity` handlers, in tree order.
     package var openURLHandlers: [WeakNode] = []
     package var activityHandlers: [WeakNode] = []
+    package var advertisedActivities: [WeakNode] = []
     /// Completion callbacks claimed from transactions, waiting for the next layout to start
     /// their animation's clock.
     package var pendingAnimationCompletions: [_AnimationCompletion] = []

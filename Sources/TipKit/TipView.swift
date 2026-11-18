@@ -10,6 +10,12 @@ public struct TipViewStyleConfiguration {
     let actionHandler: (Tips.Action) -> Void
     let arrowEdge: Edge?
 
+    /// The tip's title, message, image and actions, for a style that draws them itself.
+    public var title: Text? { tip.title }
+    public var message: Text? { tip.message }
+    public var image: Image? { tip.image }
+    public var actions: [Tips.Action] { tip.actions }
+
     /// Runs the action: its own closure, then the view's handler.
     public func perform(_ action: Tips.Action) {
         action.handler()

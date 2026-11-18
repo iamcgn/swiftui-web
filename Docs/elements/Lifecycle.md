@@ -16,6 +16,7 @@ Apple docs: [onAppear(perform:)](https://developer.apple.com/documentation/swift
 | `scenePhase` environment, `ScenePhase` | implemented: `active` while the page is visible and its window focused, `inactive` while visible without focus, `background` while hidden (the canvas host's `visibilitychange`, `focus` and `blur`; `Runtime.hostIsVisible` / `hostIsFocused`) |
 | `onOpenURL(perform:)` | implemented: every mounted handler runs, outermost first, for the URLs the host hands the runtime (`Runtime.openURL`, `handleOpenURL`): the page's URL at launch when it carries a fragment, and every `hashchange` or `popstate` after |
 | `onContinueUserActivity(_:perform:)`, `NSUserActivity` | implemented: handlers of the activity's type run for `Runtime.continueUserActivity`; no web host produces activities (wasm's `NSUserActivity` is a stand-in) |
+| `userActivity(_:isActive:_:)`, `userActivity(_:element:_:)` | implemented: the view keeps one activity, its closure fills it in on each update while active, and `Runtime.currentUserActivity(ofType:)` returns it; nothing hands it to Handoff or search. The stand-in keeps the search, Handoff and prediction flags, keywords, identifiers and a typed payload written into its user info |
 | Appear order | children's `onAppear` run before their parents' (a node enqueues its action after creating its children) |
 
 ## Behaviour
