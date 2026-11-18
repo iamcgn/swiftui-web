@@ -386,6 +386,12 @@ extension View {
         environment(\._submitLabel, submitLabel)
     }
 
+    /// Prevents submit actions this view triggers from reaching `onSubmit` handlers above it
+    /// while `isBlocking` holds.
+    nonisolated public func submitScope(_ isBlocking: Bool = true) -> some View {
+        transformEnvironment(\.submitAction) { if isBlocking { $0 = nil } }
+    }
+
     /// Sets the text content type for this view, which the system uses to offer suggestions
     /// while the user enters text (the input element's `autocomplete`).
     nonisolated public func textContentType(_ textContentType: UITextContentType?) -> some View {

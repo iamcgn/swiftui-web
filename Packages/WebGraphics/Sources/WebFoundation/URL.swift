@@ -352,4 +352,19 @@ public struct URL: Hashable, Sendable, Codable, CustomStringConvertible, CustomD
         try container.encodeIfPresent(baseURL, forKey: .base)
     }
 }
+
+extension URL {
+    /// The URL as `URL.FormatStyle`'s default shows it: the scheme, host, port (left out for
+    /// HTTP and HTTPS) and path, without the user, password, query or fragment. A URL with no
+    /// host shows whole.
+    public func formatted() -> String {
+        guard let host = parts.host, !host.isEmpty else { return absoluteString }
+        var out = ""
+        if let scheme = parts.scheme { out += scheme + "://" }
+        out += host
+        if let port = parts.port, parts.scheme != "http" && parts.scheme != "https" { out += ":\(port)" }
+        out += _URLParts.percentDecoded(parts.path)
+        return out
+    }
+}
 #endif

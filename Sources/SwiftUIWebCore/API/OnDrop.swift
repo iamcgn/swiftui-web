@@ -341,6 +341,66 @@ extension NSItemProvider {
         completionHandler(.failure(_ItemProviderError(description: "No item loads as \(T.self).")))
         return progress
     }
+
+    /// The item of a type conforming to `contentType` as a file: a file the item already is
+    /// (in place), or its bytes written to a new file in the temporary directory.
+    private func _file(conformingTo contentType: UTType, inPlace: Bool) -> (URL?, Bool, (any Error)?) {
+        guard let identifier = _identifier(conformingTo: contentType) else {
+            return (nil, false, _ItemProviderError(description: "No item conforms to \(contentType.identifier)."))
+        }
+        var item: Any?
+        loadItem(forTypeIdentifier: identifier) { loaded, _ in item = loaded }
+        if let url = item as? URL, url.isFileURL || url.scheme == "memory" {
+            if inPlace { return (url, true, nil) }
+            let copy = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
+            do {
+                try Data(contentsOf: url).write(to: copy)
+                return (copy, false, nil)
+            } catch {
+                return (nil, false, error)
+            }
+        }
+        guard let data = _data(forTypeIdentifier: identifier) else {
+            return (nil, false, _ItemProviderError(description: "The \(identifier) item has no bytes."))
+        }
+        let name = "\(UUID().uuidString).\(UTType(_declared: identifier).preferredFilenameExtension ?? "data")"
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        do {
+            try data.write(to: file)
+            return (file, false, nil)
+        } catch {
+            return (nil, false, error)
+        }
+    }
+
+    /// Writes the item to a temporary file and hands its URL to the handler, which runs at once.
+    @discardableResult
+    public func loadFileRepresentation(forTypeIdentifier typeIdentifier: String,
+                                       completionHandler: @escaping (URL?, (any Error)?) -> Void) -> Progress {
+        let progress = Progress(totalUnitCount: 1)
+        let (url, _, error) = _file(conformingTo: UTType(_declared: typeIdentifier), inPlace: false)
+        progress.completedUnitCount = 1
+        completionHandler(url, error)
+        return progress
+    }
+
+    /// The item's file, in place when it is one (the handler's `Bool`), otherwise a temporary copy.
+    @discardableResult
+    public func loadFileRepresentation(for contentType: UTType, openInPlace: Bool = false,
+                                       completionHandler: @escaping (URL?, Bool, (any Error)?) -> Void) -> Progress {
+        let progress = Progress(totalUnitCount: 1)
+        let (url, inPlace, error) = _file(conformingTo: contentType, inPlace: openInPlace)
+        progress.completedUnitCount = 1
+        completionHandler(url, inPlace, error)
+        return progress
+    }
+
+    /// The item's own file when it is one, opened in place; otherwise a temporary copy.
+    @discardableResult
+    public func loadInPlaceFileRepresentation(forTypeIdentifier typeIdentifier: String,
+                                              completionHandler: @escaping (URL?, Bool, (any Error)?) -> Void) -> Progress {
+        loadFileRepresentation(for: UTType(_declared: typeIdentifier), openInPlace: true, completionHandler: completionHandler)
+    }
 }
 #endif
 

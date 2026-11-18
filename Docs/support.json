@@ -817,9 +817,9 @@
           ]
         },
         {
-          "api": "toolbar / ToolbarItem / ToolbarItemGroup / ToolbarItemPlacement / toolbar(_:for:)",
+          "api": "toolbar / ToolbarItem / ToolbarItemGroup / ToolbarItemPlacement / toolbar(_:for:) / toolbar(removing:)",
           "status": "partial",
-          "notes": "Items collected on the runtime; hosts that paint window chrome draw a 52 pt bar (measured on a macOS window) with the title and 36 pt capsule platters, leading/principal/trailing by placement; toolbarBackground fills the window, navigation and tab bars (or hides their grounds), toolbarRole(.editor) leads with the title, toolbarTitleDisplayMode maps to the iOS title mode, toolbar(id:) customisation through showsByDefault, the runtime and a bar menu, sheet toolbars in a bar across the sheet (2026-10-11); on iOS the items are the nearest NavigationStack's bar pills and there is no window bar (2026-10-12, ios/sheet/nav); no real NSToolbar natively (ix-appkit). Goldens hold the content alone since the bar is window chrome (Docs/elements/Toolbar.md)",
+          "notes": "Items collected on the runtime; hosts that paint window chrome draw a 52 pt bar (measured on a macOS window) with the title and 36 pt capsule platters, leading/principal/trailing by placement; toolbarBackground fills the window, navigation and tab bars (or hides their grounds), toolbarRole(.editor) leads with the title, toolbarTitleDisplayMode maps to the iOS title mode, toolbar(id:) customisation through showsByDefault, the runtime and a bar menu, sheet toolbars in a bar across the sheet (2026-10-11); on iOS the items are the nearest NavigationStack's bar pills and there is no window bar (2026-10-12, ios/sheet/nav); no real NSToolbar natively (ix-appkit). Goldens hold the content alone since the bar is window chrome (Docs/elements/Toolbar.md); toolbar(removing:) takes the split view's sidebar toggle or the title out of the bar (2026-11-18)",
           "fixtures": [
             "toolbar/basic"
           ]
@@ -827,7 +827,7 @@
         {
           "api": "searchable (text, isPresented, tokens, prompt) / isSearching / dismissSearch / searchSuggestions / searchCompletion / searchScopes / searchPresentationToolbarBehavior",
           "status": "partial",
-          "notes": "macOS: a search field at the trailing end of the window toolbar when the host paints chrome (a magnifier, token tags and a plain text field in a 36 pt capsule), an approximate scope row under the bar and a suggestion menu under the field while presented. iOS 26: the field in a 46 pt capsule at the bottom of the navigation stack; presented (the field's focus or an isPresented binding), the bar hides, a cancel circle appears, suggestions replace the content as an accent-coloured plain list and an active scope bar takes a 44 pt band at the top; tokens as grey tags; completions set the query or add a token; isSearching follows the presentation; suggestedTokens, searchToolbarBehavior(.minimize) and navigationBarDrawer accepted (Docs/elements/Toolbar.md, 2026-10-04)",
+          "notes": "macOS: a search field at the trailing end of the window toolbar when the host paints chrome (a magnifier, token tags and a plain text field in a 36 pt capsule), an approximate scope row under the bar and a suggestion menu under the field while presented. iOS 26: the field in a 46 pt capsule at the bottom of the navigation stack; presented (the field's focus or an isPresented binding), the bar hides, a cancel circle appears, suggestions replace the content as an accent-coloured plain list and an active scope bar takes a 44 pt band at the top; tokens as grey tags; completions set the query or add a token; isSearching follows the presentation; suggestedTokens, searchToolbarBehavior(.minimize) and navigationBarDrawer accepted (Docs/elements/Toolbar.md, 2026-10-04); the suggestedTokens forms, with or without isPresented, take the tokens and show suggestions through searchSuggestions (2026-11-18)",
           "fixtures": [
             "toolbar/searchable",
             "ios/search/basic",
@@ -847,9 +847,9 @@
           ]
         },
         {
-          "api": "Window management: WindowGroup (id, title, for: value), Window, Settings, MenuBarExtra, DocumentGroup / FileDocument, openWindow, dismissWindow, openSettings, defaultSize, defaultPosition, windowResizability, windowStyle, commands (CommandMenu, CommandGroup)",
+          "api": "Window management: WindowGroup (id, title, for: value), Window, Settings, MenuBarExtra, DocumentGroup / FileDocument, openWindow, dismissWindow, openSettings, defaultSize, defaultPosition, windowResizability, windowStyle, commands (CommandMenu, CommandGroup) / SettingsLink",
           "status": "partial",
-          "notes": "Scenes register as window descriptors; secondary windows open as floating, non-modal windows inside the host (title bar with traffic lights, cascaded, content-sized or defaultSize, at defaultPosition, without a bar for hiddenTitleBar), dragged by their bar and resized by their grip unless contentSize, the pressed window taking Tab; commands' shortcuts work everywhere and the native host builds its menu bar from them; DocumentGroup documents open and save through the host's panels (file input and downloads in the browser); open windows are restored at the next launch (ids, simple values); MenuBarExtra is recorded, not shown; no separate browser windows (Docs/elements/Windows.md) Native host (2026-10-12): window presentations open as real NSWindows (resizable, closing dismisses, the front one topmost); Tools/Host opens .swiftuiweb bundles by double click (scripts/build-host-app.sh).",
+          "notes": "Scenes register as window descriptors; secondary windows open as floating, non-modal windows inside the host (title bar with traffic lights, cascaded, content-sized or defaultSize, at defaultPosition, without a bar for hiddenTitleBar), dragged by their bar and resized by their grip unless contentSize, the pressed window taking Tab; commands' shortcuts work everywhere and the native host builds its menu bar from them; DocumentGroup documents open and save through the host's panels (file input and downloads in the browser); open windows are restored at the next launch (ids, simple values); MenuBarExtra is recorded, not shown; no separate browser windows (Docs/elements/Windows.md) Native host (2026-10-12): window presentations open as real NSWindows (resizable, closing dismisses, the front one topmost); Tools/Host opens .swiftuiweb bundles by double click (scripts/build-host-app.sh); SettingsLink is a button that runs openSettings (2026-11-18)",
           "noFixture": "Windows open as runtime presentations the gallery cannot host; WindowTests and Examples/Windows exercise them."
         },
         {
@@ -859,10 +859,16 @@
           "noFixture": "ContentShapeTests.shortcutsAreTheShapes: each shortcut’s path is the shape’s."
         },
         {
-          "api": "Button(_:systemImage:action:) / (_:systemImage:role:action:) / (_:image:action:)",
+          "api": "Button(_:systemImage:action:) / (_:systemImage:role:action:) / (_:image:action:) / (role:action:)",
           "status": "full",
-          "notes": "The iOS 17 label forms over Label(_:systemImage:) and Label(_:image:) (decision 0021, 2026-10-12)",
+          "notes": "The iOS 17 label forms over Label(_:systemImage:) and Label(_:image:) (decision 0021, 2026-10-12); Button(role:action:) (iOS 26) shows the role's system mark: an xmark for close, a checkmark for confirm, read as Close and Done (2026-11-18)",
           "noFixture": "AppAPIGapsTests; the label itself is label/basic."
+        },
+        {
+          "api": "Liquid Glass: glassEffect / GlassEffectContainer / buttonStyle(.glass, .glass(_:), .glassProminent) / Material (ultraThin through ultraThick, bar)",
+          "status": "partial",
+          "notes": "Glass draws as a tinted material in its shape; the glass button styles are primitive styles, as Apple's are, drawing their button bordered or prominent; Material's own spellings (Material.regular) beside the ShapeStyle ones (2026-11-18)",
+          "noFixture": "EverydayAPITests and HarbourSwiftUIGapsTests; the drawn button is button/basic."
         }
       ]
     },
@@ -1071,9 +1077,9 @@
           ]
         },
         {
-          "api": "onSubmit(_:) / onSubmit(of:_:) / SubmitTriggers",
+          "api": "onSubmit(_:) / onSubmit(of:_:) / SubmitTriggers / submitScope(_:)",
           "status": "partial",
-          "notes": "Return in a text field runs the action; triggers ignored",
+          "notes": "Return in a text field runs the action; triggers ignored; submitScope keeps a field's submit from the actions above it while blocking (2026-11-18)",
           "fixtures": [
             "textfield/steps"
           ]
@@ -1335,7 +1341,7 @@
         {
           "api": "contentTransition / ContentTransition (identity, opacity, interpolate, numericText, symbolEffect)",
           "status": "partial",
-          "notes": "Text crossfades from its old content to the new one over the update's animation; numericText rolls the texts vertically (whole text, not per digit); interpolate and symbolEffect are crossfades; images snap (Docs/elements/Animator.md)",
+          "notes": "Text crossfades from its old content to the new one over the update's animation; numericText rolls the texts vertically (whole text, not per digit); interpolate and symbolEffect are crossfades; images snap (Docs/elements/Animator.md); numericText(value:) rolls as numericText() does (2026-11-18)",
           "noFixture": "A content transition is motion between two stills; ContentTransitionTests hold its frames on the headless clock."
         },
         {
@@ -2245,9 +2251,9 @@
           "noFixture": "TextEncodingTests holds the core to Foundation on macOS; WasmFoundationTests the public forms."
         },
         {
-          "api": "URL (international host names) / URLComponents / URLQueryItem",
+          "api": "URL (international host names) / URLComponents / URLQueryItem / URL.formatted()",
           "status": "partial",
-          "notes": "URLComponents gives each component's range in its string (rangeOfScheme through rangeOfFragment, an IPv6 host with its brackets; 2026-11-06). Hosts are Punycoded and lower-cased (RFC 3492; Cherokee folds to capitals; UTS #46 compatibility mapping and normalisation are not carried), URLComponents reads and writes every component decoded and percent-encoded with Foundation's allowed sets, queryItems split and compose as Foundation's (`+` kept, `&`, `=`, `#` encoded), url(relativeTo:), appending(queryItems:), a string with stray characters repaired as URLComponents(string:) repairs it (2026-10-09)",
+          "notes": "URLComponents gives each component's range in its string (rangeOfScheme through rangeOfFragment, an IPv6 host with its brackets; 2026-11-06). Hosts are Punycoded and lower-cased (RFC 3492; Cherokee folds to capitals; UTS #46 compatibility mapping and normalisation are not carried), URLComponents reads and writes every component decoded and percent-encoded with Foundation's allowed sets, queryItems split and compose as Foundation's (`+` kept, `&`, `=`, `#` encoded), url(relativeTo:), appending(queryItems:), a string with stray characters repaired as URLComponents(string:) repairs it (2026-10-09); formatted() gives URL.FormatStyle's default form: scheme, host, a port outside HTTP and HTTPS, and path (2026-11-18)",
           "noFixture": "PunycodeTests and URLComponentsCoreTests hold the cores to Foundation on macOS; WasmFoundationTests the public type; URLComponentsRangeTests the ranges on every platform."
         },
         {
@@ -2487,7 +2493,7 @@
         {
           "api": "URLSession / URLRequest / HTTPURLResponse / URLError / URLSessionConfiguration",
           "status": "partial",
-          "notes": "decision 0021, pf-urlsession (2026-10-13): data(for:), data(from:), upload, download(from:) and the dataTask forms over the browser's fetch (AbortController for cancel and the timeout, the browser's redirects and cache); an HTTP error status is a response with its status, headers, mime type and bytes, a transport failure, CORS refusal, timeout or cancellation a URLError with Foundation's code — never confused. Core tested against a fake host (URLSessionCoreTests), the browser host against local fixtures in CI (Examples/Launches: 200, 404, a CORS-refused second server, a cancel). Not done: streaming, delegates, background sessions, cookies beyond the browser's (WebSocket tasks: their own row)",
+          "notes": "decision 0021, pf-urlsession (2026-10-13): data(for:), data(from:), upload, download(from:) and the dataTask forms over the browser's fetch (AbortController for cancel and the timeout, the browser's redirects and cache); an HTTP error status is a response with its status, headers, mime type and bytes, a transport failure, CORS refusal, timeout or cancellation a URLError with Foundation's code — never confused. Core tested against a fake host (URLSessionCoreTests), the browser host against local fixtures in CI (Examples/Launches: 200, 404, a CORS-refused second server, a cancel). Not done: streaming, delegates, background sessions, cookies beyond the browser's (WebSocket tasks: their own row); allowsConstrainedNetworkAccess, allowsExpensiveNetworkAccess and shouldUseExtendedBackgroundIdleMode are recorded (2026-11-18)",
           "noFixture": "No pixels: URLSessionCoreTests, WasmFoundationTests and the Launches probe against local fixtures"
         },
         {
