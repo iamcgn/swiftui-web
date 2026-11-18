@@ -3,6 +3,9 @@
 // and unmodified app sources depend on it.
 @_exported import UIKitWebCore
 @_exported import Observation
+// Apple's UIKit brings UserNotifications with it: an app delegate that imports only UIKit sets
+// `UNUserNotificationCenter.current().delegate` (Harbour's).
+@_exported import UserNotifications
 #if canImport(CoreGraphics) && !os(WASI)
 @_exported import Foundation
 @_exported import CoreGraphics

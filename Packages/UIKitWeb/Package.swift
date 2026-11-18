@@ -8,6 +8,8 @@ import PackageDescription
 // Module layout:
 //   UIKit          thin re-export so apps can `import UIKit` unchanged; `UIApplicationDelegate.main()`
 //   UIKitSubmodules  the clang module map that gives `import UIKit.UIImage` its submodules (wasm)
+//   UserNotifications  the notification centre over the browser's Notification API, which UIKit
+//                  re-exports as Apple's does (UserNotificationsHost: its host hook)
 //   UIKitWebCore   the view and layer trees, responders and touches, controls, view controllers,
 //                  the window, screen and application, and the scene the substrate hosts drive
 //   UIKitFixtureKit, UIKitFixtures   the fidelity loop's fixture API and fixtures (tests only)
@@ -17,6 +19,12 @@ let package = Package(
     products: [
         .library(name: "UIKit", targets: ["UIKit"]),
         .library(name: "UIKitWebCore", targets: ["UIKitWebCore"]),
+        // UserNotifications (decision 0021), here because Apple's UIKit re-exports it: an app
+        // delegate names `UNUserNotificationCenter` with only `import UIKit` (Harbour's). Its host
+        // hook is a module of its own, so the browser host installs it without linking the
+        // framework into an app that posts no notifications (decision 0006).
+        .library(name: "UserNotifications", targets: ["UserNotifications"]),
+        .library(name: "UserNotificationsHost", targets: ["UserNotificationsHost"]),
         // The fidelity loop's pieces, for the fixture gallery (Examples/Gallery).
         .library(name: "UIKitFixtureKit", targets: ["UIKitFixtureKit"]),
         .library(name: "UIKitFixtures", targets: ["UIKitFixtures"]),
@@ -30,6 +38,7 @@ let package = Package(
             name: "UIKit",
             dependencies: [
                 "UIKitWebCore",
+                "UserNotifications",
                 .product(name: "WebFoundation", package: "WebGraphics"),
                 .product(name: "WebGraphicsCanvas", package: "WebGraphics"),
                 .product(name: "WebGraphicsNative", package: "WebGraphics"),
@@ -44,6 +53,9 @@ let package = Package(
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(name: "UIKitSubmodules"),
+        .target(name: "UserNotificationsHost", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "UserNotifications", dependencies: ["UserNotificationsHost", .product(name: "WebFoundation", package: "WebGraphics")],
+                swiftSettings: [.treatAllWarnings(as: .error)]),
         // UIKit's option sets as C declares them, which UIKitWebCore imports with the Objective-C
         // runtime only, so `@objc` delegate methods can take and return them.
         .systemLibrary(name: "UIKitWebCTypes"),
