@@ -222,6 +222,24 @@ public struct GraphicsContext {
         if needsGroup { recorder.list.append(.endGroup) }
     }
 
+    /// Appends commands recorded in another space, `base` mapping the context's untransformed
+    /// space into it (a text run's glyphs for a text renderer): drawn through the context's
+    /// transform, opacity and clips.
+    @MainActor package func _appendRecorded(_ commands: [DisplayCommand], from base: CGAffineTransform, bounds: CGRect) {
+        guard opacity > 0, !commands.isEmpty else { return }
+        let delta = base.inverted().concatenating(transform)
+        withState(bounds: bounds.applying(transform)) { list in
+            if delta == .identity {
+                list.commands.append(contentsOf: commands)
+            } else {
+                list.append(.save)
+                list.append(.concat(delta))
+                list.commands.append(contentsOf: commands)
+                list.append(.restore)
+            }
+        }
+    }
+
     /// Fills a path with the given shading.
     @MainActor public func fill(_ path: Path, with shading: Shading, style: FillStyle = FillStyle()) {
         guard opacity > 0 else { return }

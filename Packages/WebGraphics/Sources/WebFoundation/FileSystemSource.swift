@@ -3,7 +3,8 @@
 // are the in-memory store (`_MemoryFiles`, Data.swift), which no descriptor of the system's
 // reaches, so `open` with `O_EVTONLY` gives a watch descriptor of this module for a file or
 // directory in the store (and -1 for a missing one, as Darwin's does), and a source made from it
-// reports the store's writes, removals and moves of that path. Any other `open` is the system's.
+// reports the store's writes, removals and moves of the file. Like a descriptor, a watch follows
+// its file when it moves and ends when it's deleted. Any other `open` is the system's.
 #if os(WASI)
 import WASILibc
 
@@ -147,18 +148,40 @@ enum _FileWatches {
     }
 
     /// Reports a change to the file at `url` (and a change inside a directory to the directory).
-    static func report(_ url: URL, _ event: DispatchSource.FileSystemEvent) {
+    /// The file's own watchers hear `event`, or nothing when it is nil.
+    static func report(_ url: URL, _ event: DispatchSource.FileSystemEvent?) {
         guard !sources.isEmpty else { return }
         let key = url.absoluteString
         let parent = url.deletingLastPathComponent().absoluteString
         for source in Array(sources.values) {
             guard let watched = paths[source.handle] else { continue }
             if watched == key {
-                source.record(event)
+                if let event { source.record(event) }
             } else if watched == parent || watched == key + "/" {
                 source.record(.write)
             }
         }
+    }
+
+    /// A watch descriptor follows its file, not its path, as a descriptor follows the file it
+    /// was opened on: after a move the descriptors of the moved file watch it at `destination`,
+    /// and those of the file the move replaced there hear it deleted and watch nothing more.
+    static func move(_ source: URL, to destination: URL) {
+        let from = source.absoluteString, to = destination.absoluteString
+        guard from != to else { return }
+        let replaced = paths.filter { $0.value == to }.map(\.key)
+        for descriptor in replaced {
+            for watcher in sources.values where watcher.handle == descriptor { watcher.record(.delete) }
+            paths[descriptor] = nil
+        }
+        for (descriptor, path) in paths where path == from { paths[descriptor] = to }
+    }
+
+    /// The descriptors of a deleted file watch nothing more: a file later written at its path
+    /// is another file.
+    static func deleted(_ url: URL) {
+        let key = url.absoluteString
+        for (descriptor, path) in paths where path == key { paths[descriptor] = nil }
     }
 }
 #endif

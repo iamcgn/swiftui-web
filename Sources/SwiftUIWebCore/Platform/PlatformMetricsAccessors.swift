@@ -544,6 +544,8 @@ extension PlatformMetrics {
     package static var sidebarCornerRadius: CGFloat { current.sidebarCornerRadius }
     package static var sidebarPanelColor: RGBA { current.sidebarPanelColor }
     package static var sidebarDividerColor: RGBA { current.sidebarDividerColor }
+    package static var sidebarPanelColorDark: RGBA { current.sidebarPanelColorDark }
+    package static var sidebarDividerColorDark: RGBA { current.sidebarDividerColorDark }
     package static var sidebarDividerThickness: CGFloat { current.sidebarDividerThickness }
     package static var splitDividerAlpha: Double { current.splitDividerAlpha }
     package static var unavailableSpacing: CGFloat { current.unavailableSpacing }

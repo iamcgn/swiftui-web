@@ -193,13 +193,16 @@ public enum _MemoryFiles {
         files[key] = data
         return data
     }
-    public static func write(_ data: Data, to url: URL) {
+    public static func write(_ data: Data, to url: URL) { write(data, to: url, reporting: .write) }
+    /// Writes the file, reporting `event` to its watchers (nil for a move onto it, whose
+    /// watchers hear of it from the move).
+    static func write(_ data: Data, to url: URL, reporting event: DispatchSource.FileSystemEvent?) {
         files[url.absoluteString] = data
         dates[url.absoluteString] = Date()
         if creationDates[url.absoluteString] == nil { creationDates[url.absoluteString] = dates[url.absoluteString] }
         if url.isFileURL { createDirectory(url.deletingLastPathComponent()) }
         if isDurable(url) { _hostStore?.save(url.path, data.base64EncodedString()) }
-        _FileWatches.report(url, .write)
+        _FileWatches.report(url, event)
     }
     public static func remove(_ url: URL) { remove(url, reporting: .delete) }
     /// Removes the file, reporting `event` to its watchers (`.rename` for a move).
@@ -210,6 +213,7 @@ public enum _MemoryFiles {
         directories.remove(directoryKey(url))
         if isDurable(url) { _hostStore?.save(url.path, nil) }
         _FileWatches.report(url, event)
+        if event == .delete { _FileWatches.deleted(url) }
     }
     public static func exists(_ url: URL) -> Bool {
         files[url.absoluteString] != nil || (isDurable(url) && _hostStore?.list().contains(url.path) == true)
