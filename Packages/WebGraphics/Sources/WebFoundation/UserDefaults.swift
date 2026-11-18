@@ -87,9 +87,14 @@ public final class UserDefaults: _WebObjectBase, @unchecked Sendable {
     // MARK: Writing
 
     public func set(_ value: Any?, forKey key: String) {
+        // Observers added for the key (`addObserver(_:forKeyPath:…)`) hear of the set, as
+        // Foundation's user defaults report a set of an observed key.
+        let observed = _KeyPathObservers.isObserved(self, key: key)
+        if observed { _KeyPathObservers.report(self, key: key, prior: true) }
         load()
         if let value, let stored = _Value(value) { values[key] = stored } else { values[key] = nil }
         save()
+        if observed { _KeyPathObservers.report(self, key: key, prior: false) }
     }
     public func set(_ value: Int, forKey key: String) { set(value as Any, forKey: key) }
     public func set(_ value: Double, forKey key: String) { set(value as Any, forKey: key) }

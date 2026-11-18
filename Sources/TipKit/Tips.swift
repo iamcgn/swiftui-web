@@ -4,8 +4,9 @@
 // the app's user defaults (the browser's storage for the page), so a closed tip stays closed after
 // a reload. The datastore's location and CloudKit sync are accepted; a page keeps its datastore in
 // that one place and syncs nothing.
+// Apple's TipKit re-exports SwiftUI: a style in a file importing only TipKit draws with VStack.
 @_exported import WebFoundation
-import SwiftUI
+@_exported import SwiftUI
 
 /// TipKit's namespace: configuration, parameters, events, rules and options.
 public enum Tips {
