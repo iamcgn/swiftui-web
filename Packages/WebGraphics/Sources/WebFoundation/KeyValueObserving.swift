@@ -180,16 +180,157 @@ extension _KeyValueCodingAndObserving {
         _KeyValueObservers.report(self, keyPath: keyPath, prior: false)
     }
 
-    /// Reports to every observation of this object that the value for `key` is about to change.
+    /// Reports to every observation of this object that the value for `key` is about to change,
+    /// and to the observers added for `key`.
     public func willChangeValue(forKey key: String) {
         _KeyValueObservers.report(self, keyPath: nil, prior: true)
+        _KeyPathObservers.report(self, key: key, prior: true)
     }
 
-    /// Reports to every observation of this object that the value for `key` changed.
+    /// Reports to every observation of this object that the value for `key` changed, and to the
+    /// observers added for `key`.
     public func didChangeValue(forKey key: String) {
         _KeyValueObservers.report(self, keyPath: nil, prior: false)
+        _KeyPathObservers.report(self, key: key, prior: false)
+    }
+
+    /// Has `observer` sent `observeValue(forKeyPath:of:change:context:)` when this object's value
+    /// for `keyPath` changes: a change reported with `willChangeValue(forKey:)` and
+    /// `didChangeValue(forKey:)`, or one of `UserDefaults`' sets. The observer is held weakly,
+    /// and `context` is handed back as it was given.
+    public func addObserver(_ observer: NSObject, forKeyPath keyPath: String,
+                            options: NSKeyValueObservingOptions = [], context: UnsafeMutableRawPointer?) {
+        _KeyPathObservers.add(self, observer: observer, key: keyPath, options: options, context: context)
+        if options.contains(.initial) {
+            _KeyPathObservers.send(to: observer, key: keyPath, of: self, options: options, context: context,
+                                   old: nil, new: _KeyPathObservers.value(of: self, forKey: keyPath), prior: false)
+        }
+    }
+
+    /// Stops sending `observer` changes to `keyPath`, every registration of it.
+    public func removeObserver(_ observer: NSObject, forKeyPath keyPath: String) {
+        _KeyPathObservers.remove(self, observer: observer, key: keyPath, context: nil, anyContext: true)
+    }
+
+    /// Stops sending `observer` changes to `keyPath` for the registration with `context`.
+    public func removeObserver(_ observer: NSObject, forKeyPath keyPath: String, context: UnsafeMutableRawPointer?) {
+        _KeyPathObservers.remove(self, observer: observer, key: keyPath, context: context, anyContext: false)
     }
 }
 
 extension NSObject: _KeyValueCodingAndObserving {}
+
+// MARK: - Observers by key (`addObserver(_:forKeyPath:options:context:)`)
+
+/// An object that can give its value for a key, for a change's `.old` and `.new` entries
+/// (`UserDefaults`, its stored values). Any other object's change carries neither.
+protocol _KeyValueReading: AnyObject {
+    func _observedValue(forKey key: String) -> Any?
+}
+
+/// The observers added to each object by key, and the old values held between a change's two
+/// reports.
+enum _KeyPathObservers {
+    private struct Entry {
+        weak var observer: NSObject?
+        let key: String
+        let options: NSKeyValueObservingOptions
+        let context: UnsafeMutableRawPointer?
+    }
+    nonisolated(unsafe) private static var byObject: [ObjectIdentifier: [Entry]] = [:]
+    /// A value held between a change's two reports (a box, as the value itself may be nil).
+    private struct OldValue { let value: Any? }
+    nonisolated(unsafe) private static var oldValues: [ObjectIdentifier: [String: OldValue]] = [:]
+
+    static func add(_ object: AnyObject, observer: NSObject, key: String,
+                    options: NSKeyValueObservingOptions, context: UnsafeMutableRawPointer?) {
+        byObject[ObjectIdentifier(object), default: []].append(Entry(observer: observer, key: key, options: options, context: context))
+    }
+
+    static func remove(_ object: AnyObject, observer: NSObject, key: String,
+                       context: UnsafeMutableRawPointer?, anyContext: Bool) {
+        let id = ObjectIdentifier(object)
+        guard var list = byObject[id] else { return }
+        list.removeAll { entry in
+            entry.observer == nil || (entry.observer === observer && entry.key == key && (anyContext || entry.context == context))
+        }
+        byObject[id] = list.isEmpty ? nil : list
+    }
+
+    /// Whether any live observer watches `key` of `object`.
+    static func isObserved(_ object: AnyObject, key: String) -> Bool {
+        byObject[ObjectIdentifier(object)]?.contains { $0.key == key && $0.observer != nil } ?? false
+    }
+
+    static func value(of object: AnyObject, forKey key: String) -> Any? {
+        (object as? any _KeyValueReading)?._observedValue(forKey: key)
+    }
+
+    /// Sends the change to every observer of `key`: before it (`prior`), to those that asked for
+    /// `.prior`, keeping the old value; after it, to all, with the old and new values they asked for.
+    static func report(_ object: AnyObject, key: String, prior: Bool) {
+        let id = ObjectIdentifier(object)
+        guard let list = byObject[id], list.contains(where: { $0.key == key }) else { return }
+        let entries = list.filter { $0.key == key && $0.observer != nil }
+        if prior {
+            let old = value(of: object, forKey: key)
+            oldValues[id, default: [:]][key] = OldValue(value: old)
+            for entry in entries where entry.options.contains(.prior) {
+                guard let observer = entry.observer else { continue }
+                send(to: observer, key: key, of: object, options: entry.options, context: entry.context, old: old, new: nil, prior: true)
+            }
+        } else {
+            let old = oldValues[id]?.removeValue(forKey: key)?.value
+            if oldValues[id]?.isEmpty == true { oldValues[id] = nil }
+            let new = value(of: object, forKey: key)
+            for entry in entries {
+                guard let observer = entry.observer else { continue }
+                send(to: observer, key: key, of: object, options: entry.options, context: entry.context, old: old, new: new, prior: false)
+            }
+        }
+    }
+
+    /// The change dictionary as Foundation's: the kind, `.old` and `.new` when asked for (`NSNull`
+    /// for a missing value), and the prior flag on the report before the change.
+    static func send(to observer: NSObject, key: String, of object: AnyObject, options: NSKeyValueObservingOptions,
+                     context: UnsafeMutableRawPointer?, old: Any?, new: Any?, prior: Bool) {
+        var change: [NSKeyValueChangeKey: Any] = [.kindKey: NSKeyValueChange.setting.rawValue]
+        if options.contains(.old) { change[.oldKey] = old ?? NSNull() }
+        if options.contains(.new) && !prior { change[.newKey] = new ?? NSNull() }
+        if prior { change[.notificationIsPriorKey] = true }
+        observer.observeValue(forKeyPath: key, of: object, change: change, context: context)
+    }
+}
+
+#if canImport(ObjectiveC)
+extension NSObject {
+    /// Called when a value this object observes by key changes (`addObserver(_:forKeyPath:…)`);
+    /// subclasses override it. It does nothing here, as Foundation's raises for an observer that
+    /// doesn't.
+    @objc open func observeValue(forKeyPath keyPath: String?, of object: Any?,
+                                 change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {}
+}
+
+/// The change keys cross an `@objc` member as strings, as Foundation's string-backed keys do.
+extension NSKeyValueChangeKey: _ObjectiveCBridgeable {
+    public typealias _ObjectiveCType = NSString
+    public func _bridgeToObjectiveC() -> NSString { NSString(string: rawValue) }
+    public static func _forceBridgeFromObjectiveC(_ source: NSString, result: inout NSKeyValueChangeKey?) {
+        result = NSKeyValueChangeKey(source.string)
+    }
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSString, result: inout NSKeyValueChangeKey?) -> Bool {
+        result = NSKeyValueChangeKey(source.string)
+        return true
+    }
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSString?) -> NSKeyValueChangeKey {
+        NSKeyValueChangeKey(source?.string ?? "")
+    }
+}
+#else
+extension UserDefaults: _KeyValueCodingAndObserving {}
+#endif
+
+extension UserDefaults: _KeyValueReading {
+    func _observedValue(forKey key: String) -> Any? { object(forKey: key) }
+}
 #endif

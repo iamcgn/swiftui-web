@@ -213,6 +213,11 @@ open class NSObject: NSObjectProtocol, Hashable, CustomStringConvertible {
     open class func perform(_ aSelector: Selector!) -> Unmanaged<AnyObject>! { nil }
     open class func perform(_ aSelector: Selector!, with object: Any!) -> Unmanaged<AnyObject>! { nil }
     open class func perform(_ aSelector: Selector!, with object1: Any!, with object2: Any!) -> Unmanaged<AnyObject>! { nil }
+
+    /// Called when a value this object observes by key changes (`addObserver(_:forKeyPath:…)`,
+    /// KeyValueObserving.swift); subclasses override it.
+    open func observeValue(forKeyPath keyPath: String?, of object: Any?,
+                           change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {}
 }
 #endif
 
