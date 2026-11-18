@@ -126,7 +126,7 @@ let package = Package(
         .target(name: "OSSubmodules"),
         .target(
             name: "OSLog",
-            dependencies: ["os"],
+            dependencies: ["os", "Foundation"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

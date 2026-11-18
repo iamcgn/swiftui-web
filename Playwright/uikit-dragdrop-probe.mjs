@@ -50,8 +50,8 @@ await page.mouse.move(sourceX + 6, sourceY, { steps: 2 });
 await page.waitForTimeout(50);
 check('a press on the card makes the canvas draggable', await page.evaluate(() => document.querySelector('canvas').draggable));
 await page.mouse.move(targetX, targetY, { steps: 4 });
-await page.waitForTimeout(100);
-check('the well turns green while the drag is over it', await wellIsGreen());
+// Polled, not read after a fixed wait: under load the scene can paint after 100 ms.
+check('the well turns green while the drag is over it', await until(wellIsGreen));
 // (Chromium starts its own drag from the draggable canvas, so the scene paints no preview of
 // its own here; the pointer-driven preview is covered by HostedDragDropTests natively.)
 await page.mouse.up();
