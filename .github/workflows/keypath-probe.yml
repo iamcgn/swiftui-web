@@ -1,0 +1,21 @@
+# Scratch probe for the CriticalMaps TCA key path errors; runs only on pushes to its own files.
+name: Key path probe
+on:
+  push:
+    branches: ['claude/tca-keypath-probe']
+    paths: ['Tools/KeyPathProbe/**', '.github/workflows/keypath-probe.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    container: swift:6.3.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build each variant
+        run: |
+          cd Tools/KeyPathProbe
+          for t in Local6 Ours5 Ours6; do
+            echo "=== $t"
+            swift build --target $t 2>&1 | grep -E "error:|warning:.*(key path|isolated)|Compiling $t|Build complete" || true
+          done
