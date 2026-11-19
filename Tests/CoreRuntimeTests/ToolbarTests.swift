@@ -202,5 +202,25 @@ import SwiftUIWebHeadless
         #expect(action.height == 36 && action.minY == panel.minY + 8 && panel.height == 112, "\(action) in \(panel)")
         #expect(sheet.toolbarFrame == nil)
     }
+
+    @Test func zoomSourceItemsStayInTheBar() {
+        let runtime = runtime(ZoomSourceToolbar())
+        #expect(runtime.toolbarItems.map(\.placement) == [.primaryAction, .automatic])
+        let semantics = runtime.semanticsTree()
+        #expect(semantics.contains { $0.label == "Action" } && semantics.contains { $0.label == "One" })
+    }
+}
+
+/// Toolbar items marked as zoom transition sources, as iOS 26 apps mark their bar buttons.
+private struct ZoomSourceToolbar: View {
+    @Namespace private var namespace
+    var body: some View {
+        Color.red.toolbar {
+            ToolbarItem(placement: .primaryAction) { Button("Action") {} }
+                .matchedTransitionSource(id: "action", in: namespace)
+            ToolbarItemGroup { Button("One") {} }
+                .matchedTransitionSource(id: 1, in: namespace)
+        }
+    }
 }
 #endif
