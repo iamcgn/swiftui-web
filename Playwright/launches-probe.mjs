@@ -53,6 +53,17 @@ const firstFrame = async (load) => {
     process.exit(1);
   }
 };
+// The browser's online state, as the page sees it. The app reports a failed fetch while
+// `navigator.onLine` is false as -1009 (notConnectedToInternet), as iOS does with no network,
+// and the CORS refusal as -1004 otherwise. A macOS runner's Chrome has gone offline for a
+// moment (Nov 19, main e24cbbd: load 2's CORS case -1009): so each load records its
+// online state and every change, and a -1009 counts only when the page did see itself offline.
+await page.addInitScript(() => {
+  window.__onlineLog = [navigator.onLine ? 'online' : 'offline'];
+  addEventListener('online', () => window.__onlineLog.push('online'));
+  addEventListener('offline', () => window.__onlineLog.push('offline'));
+});
+const notes = [];
 const networkLine = (t) => { const start = t.findIndex(x => x.startsWith('network: ')); if (start < 0) return ''; const parts = []; for (let i = start; i < t.length && t[i] !== 'Record again'; i++) parts.push(t[i]); return parts.join(' '); };
 const texts = () => page.evaluate(() => window.__swiftuiwebDebug.displayList().filter(c => c.startsWith('drawText')).map(c => c.match(/"([^"]*)"/)[1]));
 for (let load = 1; load <= 3; load++) {
@@ -78,7 +89,11 @@ for (let load = 1; load <= 3; load++) {
   const network = await settledNetwork();
   const expectedNetwork = 'network: ok 200 Chad/TCD application/json | missing 404 body' + (url.includes('cross=') ? ' | cors -1004' : '') + ' | cancel -999'
     + (url.includes('slow=') ? ' | timeout -1001 | inflight -999 | completions 1' : '');
-  if (network !== expectedNetwork) problems.push(`load ${load}: network "${network}", expected "${expectedNetwork}"`);
+  const onlineLog = await page.evaluate(() => (window.__onlineLog || []).join(' → '));
+  const wentOffline = /offline/.test(onlineLog);
+  const offlineNetwork = expectedNetwork.replace(' | cors -1004', ' | cors -1009');
+  if (wentOffline && network === offlineNetwork) notes.push(`load ${load}: the browser went offline (${onlineLog}), so the CORS case was -1009, as an iPhone with no network reports it`);
+  else if (network !== expectedNetwork) problems.push(`load ${load}: network "${network}", expected "${expectedNetwork}" (online state: ${onlineLog || 'unread'})`);
 }
 // The keyboard notifications (uk-app-delegate-adaptor), read as the Countries handler reads
 // them. Desktop Chromium has no on-screen keyboard, so this is the host→scene→notification
@@ -102,6 +117,7 @@ await page.waitForTimeout(300);
 if (await keyboardLine() !== 'keyboard: 0') problems.push(`keyboard without a focused input: "${await keyboardLine()}", expected "keyboard: 0"`);
 const stored = await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('swiftuiweb.')).sort());
 if (!stored.includes('swiftuiweb.defaults.standard') || !stored.includes('swiftuiweb.files/Documents/launches.json') || !stored.includes('swiftuiweb.swiftdata.launches')) problems.push('localStorage keys: ' + stored.join(', '));
+for (const note of notes) console.log('note: ' + note);
 console.log(problems.length ? problems.join('\n') : 'launches OK: three loads counted, on file and settled; keyboard notifications on synthetic viewport readings (no phone keyboard here)');
 await browser.close();
 process.exit(problems.length ? 1 : 0);
