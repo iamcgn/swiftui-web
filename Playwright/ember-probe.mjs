@@ -177,7 +177,11 @@ for (let i = 0; i < 10; i++) {
     // take past a fixed wait (the feed after it was dark when one look at 800 ms missed it).
     for (let i = 0; i < 20 && !coverDark; i++) { await page.waitForTimeout(200); coverDark = await mostlyDark(195, 600); }
     await shot('1b-dark-cover');
-    console.log(`dark picked with ${rowsAtDark} story rows painted, ${topStoriesWaited} Top request(s) held until now`);
+    // Whether the hold was exercised: a green run says something about the order only when the
+    // Top request was actually held at the pick (and no rows were painted yet).
+    const ordering = topStoriesWaited > 0 && rowsAtDark === 0 ? 'exercised (the feed landed after Dark)' : 'NOT exercised (no Top request was held at the pick)';
+    console.log(`dark picked with ${rowsAtDark} story rows painted, ${topStoriesWaited} Top request(s) held until now: ordering ${ordering}`);
+    report.notes.push(`the feed-after-Dark ordering was ${ordering}`);
     releaseTopStories();
   }
   if (button === 'Start Reading') break;
