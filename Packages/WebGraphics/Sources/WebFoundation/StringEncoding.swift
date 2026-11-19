@@ -235,9 +235,10 @@ extension String {
     /// ambiguous, as in KeychainAccess's `guard let data = value.data(using: .utf8,
     /// allowLossyConversion: false)`. Disfavoured, so that such a call picks ours above, while a
     /// context that wants FoundationEssentials' `Data` still gets it, from FoundationEssentials'
-    /// own conversion: its `StringProtocol` form, which this one does not shadow. (Encoding here
-    /// would link this module's encoding tables into every app that converts a string so.)
-    @_disfavoredOverload
+    /// own conversion: its `StringProtocol` form, which this one does not shadow. Emitted only
+    /// into the code that calls it, as a copy kept in this module would link FoundationEssentials'
+    /// `Data` into every app (about 950 KB brotli on Counter).
+    @_disfavoredOverload @_alwaysEmitIntoClient
     public func data(using encoding: Encoding, allowLossyConversion: Bool = false) -> FoundationEssentials.Data? {
         Substring(self).data(using: encoding, allowLossyConversion: allowLossyConversion)
     }
