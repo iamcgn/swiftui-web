@@ -138,6 +138,14 @@ const finish = async () => {
 process.on('uncaughtException', async (e) => { problems.push('uncaught: ' + e.message); if (currentFlow) flow(currentFlow, 'failed', e.message); await finish(); });
 process.on('unhandledRejection', async (e) => { problems.push('unhandled: ' + (e && e.message || e)); if (currentFlow) flow(currentFlow, 'failed', String(e && e.message || e)); await finish(); });
 
+// The Top feed's id list is held until Dark has been picked and the cover has turned dark, so
+// the feed's first page always lands after the pick: the order that leaves the feed light now
+// and then when the live API answers late (PRs 65, 90, 144, 271). Both orders must paint dark;
+// this makes the rarer one the order every run checks.
+let releaseTopStories;
+const topStoriesHeld = new Promise(resolve => { releaseTopStories = resolve; });
+let topStoriesWaited = 0;
+await page.route(/hacker-news\.firebaseio\.com\/v0\/topstories\.json/, async route => { topStoriesWaited++; await topStoriesHeld; await route.continue(); });
 begin('launch');
 await page.goto(url, { waitUntil: 'commit', timeout: 180000 });
 await loaded();
@@ -169,9 +177,12 @@ for (let i = 0; i < 10; i++) {
     // take past a fixed wait (the feed after it was dark when one look at 800 ms missed it).
     for (let i = 0; i < 20 && !coverDark; i++) { await page.waitForTimeout(200); coverDark = await mostlyDark(195, 600); }
     await shot('1b-dark-cover');
+    console.log(`dark picked with ${rowsAtDark} story rows painted, ${topStoriesWaited} Top request(s) held until now`);
+    releaseTopStories();
   }
   if (button === 'Start Reading') break;
 }
+releaseTopStories();
 shown = await settle(t => !t.includes('Welcome to Ember') && !t.includes('Start Reading') && t.includes('Top'));
 expect(steps === 7, `the onboarding took ${steps} taps, not 7`);
 expect(!shown.includes('Continue') && shown.includes('Top') && shown.includes('New'), 'the feed did not appear after "Start Reading": ' + JSON.stringify(shown.slice(0, 20)));
