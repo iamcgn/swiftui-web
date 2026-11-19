@@ -28,6 +28,7 @@ public typealias _ObservedObjectWrapper<ObjectType: ObservableObject> = Observed
 // MARK: - StateObject
 
 /// A property wrapper that instantiates an observable object once per view identity.
+@MainActor @preconcurrency
 @propertyWrapper
 public struct StateObject<ObjectType: ObservableObject>: DynamicProperty {
     package let make: () -> ObjectType
@@ -69,7 +70,11 @@ package final class _StateObjectBox<ObjectType: ObservableObject> {
 // MARK: - ObservedObject
 
 /// A property wrapper that subscribes to an observable object and invalidates a view when the
-/// observable object changes.
+/// observable object changes. Main-actor isolated, as Apple's is: a Swift 5 type that holds one
+/// (swift-perception's back-ported `Bindable`) is inferred main-actor isolated too, so a library's
+/// extension of that type can form key paths to main-actor members (the Composable
+/// Architecture's `Perception.Bindable.scope`).
+@MainActor @preconcurrency
 @propertyWrapper
 public struct ObservedObject<ObjectType: ObservableObject>: DynamicProperty {
     /// The underlying value referenced by the observed object.
@@ -110,6 +115,7 @@ extension ObservedObject {
 
 /// A property wrapper that reads an observable object supplied by an ancestor with
 /// `environmentObject(_:)` and invalidates the view when it changes.
+@MainActor @preconcurrency
 @propertyWrapper
 public struct EnvironmentObject<ObjectType: ObservableObject>: DynamicProperty {
     package var object: ObjectType?

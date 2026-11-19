@@ -13,7 +13,9 @@ import WebCombine
 import ObjectiveC
 #endif
 
-/// A property wrapper type that you use to create a UIKit app delegate.
+/// A property wrapper type that you use to create a UIKit app delegate. Main-actor isolated, as
+/// Apple's is.
+@MainActor @preconcurrency
 @propertyWrapper
 public struct UIApplicationDelegateAdaptor<DelegateType: UIApplicationDelegate>: DynamicProperty {
     /// The underlying app delegate.
@@ -21,8 +23,6 @@ public struct UIApplicationDelegateAdaptor<DelegateType: UIApplicationDelegate>:
 
     /// Creates a UIKit app delegate of the type (once per process; later wrappers of the same
     /// type get the same instance).
-    /// An `App` value is made on the main actor (Apple's wrapper is `@MainActor` too).
-    @MainActor
     public init(_ delegateType: DelegateType.Type = DelegateType.self) {
         wrappedValue = _UIApplicationDelegateRegistry.delegate(of: delegateType)
     }
