@@ -3,10 +3,13 @@
 // interpolations with the privacy, format and alignment options Apple's take; every value is
 // written out, whatever its privacy, because the console a page logs to is the developer's own
 // (Apple's redact private values only in logs read off the device). `os_log` takes the older
-// format strings, with the arguments put in place of `%@`, `%d` and the like.
+// format strings, with the arguments put in place of `%@`, `%d` and the like. The page keeps its
+// newest messages too, for the OSLog module's `OSLogStore` to read back (a debug screen that
+// lists the app's own logs).
 // `OSAllocatedUnfairLock` guards state with a closure as Apple's does; the wasm target runs one
 // thread, so it orders nothing and needs no lock of its own.
 #if os(WASI)
+import WASILibc
 
 // MARK: Levels and logs
 
@@ -74,11 +77,50 @@ public final class OSLog: @unchecked Sendable {
     /// Whether messages of the given level are written: all of them, unless the log is disabled.
     public func isEnabled(type: OSLogType) -> Bool { enabled }
 
-    func write(_ text: String, type: OSLogType) {
+    func write(_ text: String, type: OSLogType, format: String? = nil) {
         guard enabled else { return }
         let prefix = category.isEmpty ? "" : "[\(category)] "
         let level = type == .default || type == .info ? "" : "\(type.label): "
         print(prefix + level + text)
+        _OSLogRecords.append(_OSLogRecord(subsystem: subsystem, category: category, type: type, message: text,
+                                          format: format ?? text, time: _OSLogRecords.now()))
+    }
+}
+
+// MARK: The page's log
+
+/// A message as the page's log keeps it, for the OSLog module's `OSLogStore` to read back.
+package struct _OSLogRecord: Sendable {
+    package let subsystem: String
+    package let category: String
+    package let type: OSLogType
+    package let message: String
+    /// The format string an `os_log` call gave, or the message itself.
+    package let format: String
+    /// Seconds since 1970.
+    package let time: Double
+}
+
+/// The page's newest messages, oldest first: the last `limit` written, as a device keeps its
+/// recent logs.
+package enum _OSLogRecords {
+    package static let limit = 5_000
+    nonisolated(unsafe) private static var stored: [_OSLogRecord] = []
+
+    package static var records: ArraySlice<_OSLogRecord> { stored.suffix(limit) }
+
+    static func append(_ record: _OSLogRecord) {
+        stored.append(record)
+        // Trimmed a quarter at a time, so a full log doesn't shift on every message.
+        if stored.count > limit + limit / 4 { stored.removeFirst(stored.count - limit) }
+    }
+
+    /// The wall clock, in seconds since 1970.
+    package static func now() -> Double {
+        // `CLOCK_REALTIME` is a macro over a structure's address, which Swift can't import.
+        var tv = timeval()
+        gettimeofday(&tv, nil)
+        return Double(tv.tv_sec) + Double(tv.tv_usec) / 1e6
     }
 }
 
@@ -108,14 +150,14 @@ public struct Logger: @unchecked Sendable {
 
 /// The older function, with a format string whose `%` specifiers the arguments fill in order.
 public func os_log(_ message: StaticString, dso: UnsafeRawPointer? = nil, log: OSLog = .default, type: OSLogType = .default, _ args: CVarArg...) {
-    log.write(_osLogFormat("\(message)", args), type: type)
+    log.write(_osLogFormat("\(message)", args), type: type, format: "\(message)")
 }
 
 /// The older function with the type first, as packages write it (`os_log(.fault, dso:, log:,
 /// "%@", message)`); disfavoured, so a bare literal still reads as the interpolated message.
 @_disfavoredOverload
 public func os_log(_ type: OSLogType, dso: UnsafeRawPointer? = nil, log: OSLog = .default, _ message: StaticString, _ args: CVarArg...) {
-    log.write(_osLogFormat("\(message)", args), type: type)
+    log.write(_osLogFormat("\(message)", args), type: type, format: "\(message)")
 }
 
 /// The older function, with an interpolated message.

@@ -2359,6 +2359,12 @@
           "noFixture": "Not a screen; WasmDarwinSurfaceTests."
         },
         {
+          "api": "OSLogStore (scope:, local()) / OSLogPosition / getEntries(with:at:matching:) / OSLogEntry / OSLogEntryLog (level, subsystem, category, formatString)",
+          "status": "partial",
+          "notes": "On wasm the store reads back what the page itself wrote through `Logger` and `os_log` (its newest 5,000 messages, either scope, the page being one process): from a date or an interval before the newest entry, oldest first or reversed with `.reverse`, matching a predicate on subsystem, category, composedMessage, level or date when the app has the CoreData trait that brings NSPredicate; levels map as Apple's store reports them (notice for the default type); no log archives or signposts (2026-11-18)",
+          "noFixture": "Not a screen; checked by compiling Harbour's debug log screen in the coverage sweep."
+        },
+        {
           "api": "observe(_:options:changeHandler:) / NSKeyValueObservation / NSKeyValueObservedChange / willChangeValue / didChangeValue",
           "status": "partial",
           "notes": "On wasm there is no runtime to swap setters, so a change reports when an observable object (wasm's Progress, any @Observable class) sets the property, on the next main-actor turn, or when the object calls willChangeValue/didChangeValue (for: a key path, or forKey:, which reaches all of its observations); .initial, .prior, .old and .new fill the change; observations stop when invalidated or released; a plain `@objc dynamic` property reports nothing (2026-11-03)",
