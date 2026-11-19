@@ -15,7 +15,8 @@
 // where Linux's Foundation keeps them), `FoundationXML` (XMLParser, likewise) and
 // `UniformTypeIdentifiers` (`UTType`), `CommonCrypto` (the C digest and HMAC functions over
 // SwiftUIWeb's CryptoKit), `Compression` and `zlib` (the coders over WebFoundationFormats' formats),
-// `CoreText` (the font manager's registration calls), `Symbols` (the symbol effect types), `Accelerate` (vImage's buffers and box filter)
+// `CoreText` (the font manager's registration calls), `Symbols` (the symbol effect types), `Accelerate` (vImage's buffers and box filter),
+// `XCTest` (`XCTFail` and the test observation names that libraries use outside tests)
 // are here for the same reason as the rest, and so is
 // `CoreData` (WebCoreData; the app's models go through SwiftUIWeb's CoreDataModel plugin). With
 // `CoreGraphics` importable on wasm, SwiftUIWeb's own sources test for Apple's with
@@ -62,6 +63,7 @@ let package = Package(
         .library(name: "Accelerate", targets: ["Accelerate"]),
         .library(name: "CoreText", targets: ["CoreText"]),
         .library(name: "Symbols", targets: ["Symbols"]),
+        .library(name: "XCTest", targets: ["XCTest"]),
     ],
     // `CoreData` (decision 0024): `import Foundation` re-exports WebCoreData too, as Apple's
     // declares `NSPredicate`, `NSSortDescriptor` and `NSExpression`. Enable it with SwiftUIWeb's.
@@ -104,6 +106,11 @@ let package = Package(
         .target(
             name: "Security",
             dependencies: ["CoreFoundation", .product(name: "WebFoundation", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            // A page runs no test, so this XCTest only reports failures and keeps observers (wasm only).
+            name: "XCTest",
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

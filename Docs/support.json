@@ -2802,6 +2802,12 @@
           "noFixture": "Nothing to draw: WebFoundationFormatsTests hold the filter to its definition for every edge style, and on macOS to Apple's vImage byte for byte"
         },
         {
+          "api": "XCTFail / XCTestCase / XCTestObservation / XCTestObservationCenter (XCTest, outside tests)",
+          "status": "stub",
+          "notes": "pf-small-frameworks (2026-11-19), for Point-Free's libraries (xctest-dynamic-overlay before 1.0, swift-dependencies), which import XCTest on wasm outside tests: the wasm SDK's XCTest can't be read beside SwiftUIWeb's Foundation, so the XCTest shadow names what they use. A page runs no test case, so XCTFail prints its message on the console and an added observer is never called. Not done: running tests in a page, assertions (XCTAssert…), expectations and suites.",
+          "noFixture": "Nothing to draw: the coverage sweep compiles the libraries against it (Mlem's XCTestDynamicOverlay, CriticalMaps' Dependencies)"
+        },
+        {
           "api": "AudioServicesPlaySystemSound / AudioServicesPlayAlertSound / SystemSoundID (AudioToolbox)",
           "status": "stub",
           "notes": "pf-small-frameworks (2026-11-09): a page has no system sound set and no vibration, so system sounds (and kSystemSoundID_Vibrate) play silently; the completion forms call their block at once. Not done: any sound (an app's own audio plays through AVAudioPlayer)",
