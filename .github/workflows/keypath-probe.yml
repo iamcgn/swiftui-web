@@ -15,7 +15,7 @@ jobs:
       - name: Build each variant
         run: |
           cd Tools/KeyPathProbe
-          for t in Local6 Ours5 Ours6; do
+          for t in PercLocal TCALocal PercOurs TCAOurs; do
             echo "=== $t"
             swift build --target $t 2>&1 | grep -E "error:|warning:.*(key path|isolated)|Compiling $t|Build complete" || true
           done

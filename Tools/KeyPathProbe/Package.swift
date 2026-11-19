@@ -12,5 +12,10 @@ let package = Package(
                 swiftSettings: [.swiftLanguageMode(.v5)]),
         .target(name: "Ours6", dependencies: [.product(name: "SwiftUI", package: "swiftui-web")]),
         .target(name: "Local6"),
+        .target(name: "PercOurs", dependencies: [.product(name: "SwiftUI", package: "swiftui-web")],
+                swiftSettings: [.swiftLanguageMode(.v5)]),
+        .target(name: "TCAOurs", dependencies: ["PercOurs", .product(name: "SwiftUI", package: "swiftui-web")]),
+        .target(name: "PercLocal", swiftSettings: [.swiftLanguageMode(.v5)]),
+        .target(name: "TCALocal", dependencies: ["PercLocal"]),
     ]
 )
