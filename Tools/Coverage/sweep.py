@@ -173,6 +173,18 @@ def is_manifest(name: str) -> bool:
     return name == "Package.swift" or name.startswith("Package@swift")
 
 
+def in_target_exclude(rel: Path, excludes):
+    """Whether SwiftPM leaves a file out of a target: a hidden file or folder on its path, or a
+    path under one of the target's `exclude` entries (each relative to the target's folder; a bare
+    file name, as some manifests write, also matches that file anywhere in the target)."""
+    if any(part.startswith(".") for part in rel.parts):
+        return True
+    for e in excludes:
+        if rel == e or e in rel.parents or (len(e.parts) == 1 and rel.name == e.name):
+            return True
+    return False
+
+
 def excluded(rel: Path, extra):
     parts = rel.parts[:-1]
     if any(EXCLUDE_DIR.match(p) for p in parts):
@@ -571,9 +583,12 @@ def describe_app(entry, root: Path, work: Path = None):
                     deps.extend(remote_names_by_product[name])
                 elif name:
                     third.append(name)
+            # SwiftPM builds every Swift file under the target's folder but hidden ones and the
+            # target's own `exclude` paths, so the app-level folder filter stays out of it: a
+            # source folder may be named like one it skips (MlemMiddleware's `Snapshot` models).
+            target_excludes = [Path(e) for e in t.get("exclude", [])]
             files = [str(f.relative_to(root)) for f in files_under(root / src, ".swift")
-                     if not any(EXCLUDE_DIR.match(x) for x in f.relative_to(root / src).parts[:-1])]
-            files = [f for f in files if Path(f).name not in t.get("exclude", [])]
+                     if not in_target_exclude(f.relative_to(root / src), target_excludes)]
             # A target at the package's own folder (`path: "."`) holds its manifest, which is
             # SwiftPM's to read, not a source of the module (BackyardBirds' data package).
             files = [f for f in files if not (Path(f).parent == Path(p["dir"]) and is_manifest(Path(f).name))]
