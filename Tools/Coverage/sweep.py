@@ -35,13 +35,14 @@ OURS = {
     "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices", "SystemConfiguration",
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit",
     "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit", "Symbols", "Compression", "zlib", "Translation", "_Translation_SwiftUI", "JavaScriptCore",
-    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight",
+    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "XCTest",
 }
 # `Builtin` is the compiler's own module (swift-collections imports it with the BuiltinModule
-# feature); `XCTest` ships in the wasm SDK, and packages import it on wasm where Apple's platforms
-# look it up at run time (swift-dependencies' test observer, xctest-dynamic-overlay's `XCTFail`).
+# feature). `XCTest` is the shadow's (Packages/Shadows): the wasm SDK's own can't be read beside
+# SwiftUIWeb's Foundation, and packages import it on wasm where Apple's platforms look it up at
+# run time (swift-dependencies' test observer, xctest-dynamic-overlay's `XCTFail`).
 STDLIB = {"Swift", "_Concurrency", "_StringProcessing", "Observation", "Synchronization", "RegexBuilder", "WASILibc",
-          "Builtin", "XCTest"}
+          "Builtin"}
 # swift-syntax, which the sweep package depends on itself: a package's macro targets import it.
 SYNTAX_PACKAGE = "https://github.com/swiftlang/swift-syntax.git"
 SYNTAX = {"SwiftSyntax", "SwiftSyntaxMacros", "SwiftCompilerPlugin", "SwiftSyntaxBuilder", "SwiftDiagnostics",
@@ -969,6 +970,7 @@ WEB_PRODUCTS = [
     ("zlib", "Shadows"),
     ("CoreText", "Shadows"),
     ("Accelerate", "Shadows"),
+    ("XCTest", "Shadows"),
 ]
 
 
