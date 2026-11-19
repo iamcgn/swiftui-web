@@ -13,7 +13,7 @@ extension StreamDelegate {
     public func stream(_ aStream: Stream, handle eventCode: Stream.Event) {}
 }
 
-open class Stream: @unchecked Sendable {
+open class Stream: _WebObjectBase, @unchecked Sendable {
     public enum Status: UInt, Sendable {
         case notOpen, opening, open, reading, writing, atEnd, closed, error
     }
@@ -41,7 +41,7 @@ open class Stream: @unchecked Sendable {
     public internal(set) var streamError: (any Error)?
     var properties: [PropertyKey: Any] = [:]
 
-    public init() {}
+    public override init() {}
 
     open func open() {
         guard streamStatus == .notOpen else { return }

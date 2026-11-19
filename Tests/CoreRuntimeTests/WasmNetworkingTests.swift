@@ -76,6 +76,9 @@ import WebFoundation
     @Test func delegatedDownloadsAndStreamedUploads() {
         final class Delegate: NSObject, URLSessionDownloadDelegate, URLSessionDataDelegate {
             var events: [String] = []
+            func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
+                events.append("created")
+            }
             func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64,
                             totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
                 events.append("wrote \(totalBytesWritten)")
@@ -102,16 +105,16 @@ import WebFoundation
         let delegate = Delegate()
         let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: .main)
         session.downloadTask(with: URL(string: "https://files.example/hello")!).resume()
-        #expect(delegate.events == ["wrote 5", "file hello", "complete 0"])
+        #expect(delegate.events == ["created", "wrote 5", "file hello", "complete 0"])
 
         delegate.events = []
         session.uploadTask(withStreamedRequest: URLRequest(url: URL(string: "https://api.example/stream")!)).resume()
-        #expect(delegate.events == ["stream", "sent 8", "data hello", "complete 0"])
+        #expect(delegate.events == ["created", "stream", "sent 8", "data hello", "complete 0"])
         #expect(echo.sent.last?.body == Array("streamed".utf8) && echo.sent.last?.method == "POST")
 
         delegate.events = []
         session.uploadTask(with: URLRequest(url: URL(string: "https://api.example/up")!), from: Data("abc".utf8)).resume()
-        #expect(delegate.events == ["sent 3", "data hello", "complete 0"])
+        #expect(delegate.events == ["created", "sent 3", "data hello", "complete 0"])
     }
 
     @Test func boundStreamsCarryWritesToTheirInput() {
