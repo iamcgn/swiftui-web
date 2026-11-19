@@ -56,11 +56,14 @@ public func CMTimeMakeWithSeconds(_ seconds: Double, preferredTimescale: Int32) 
 public func CMTimeGetSeconds(_ time: CMTime) -> Double { time.seconds }
 
 /// An item a player plays: a URL, and the asset it was made from.
+@Observable
 public final class AVPlayerItem: @unchecked Sendable {
     public let url: URL
     public let asset: AVAsset
-    /// Where the item was last sought to (the host's element plays from there).
+    /// Where the item was last sought to: `VideoPlayer` moves the host's element there.
     private var position: Double?
+    /// How many seeks the item has had, so a second seek to the same time moves the element too.
+    package private(set) var seeks = 0
     public init(url: URL) {
         self.url = url
         asset = AVURLAsset(url: url)
@@ -75,15 +78,20 @@ public final class AVPlayerItem: @unchecked Sendable {
 
     /// The item's time: where it was last sought to (the host does not report its playhead yet).
     public func currentTime() -> CMTime { CMTime(seconds: position ?? 0) }
-    /// Moves the item to `time`; the handler, if any, hears that the seek finished.
+    /// Moves the item to `time`: `VideoPlayer`'s element moves there on its next render. The
+    /// handler, if any, hears afterwards, on the main actor, that the seek was made.
     public func seek(to time: CMTime, completionHandler: (@Sendable (Bool) -> Void)? = nil) {
         seek(to: time, toleranceBefore: .positiveInfinity, toleranceAfter: .positiveInfinity, completionHandler: completionHandler)
     }
     /// Moves the item to `time` (the browser seeks to the exact time whatever the tolerances).
     public func seek(to time: CMTime, toleranceBefore: CMTime, toleranceAfter: CMTime, completionHandler: (@Sendable (Bool) -> Void)? = nil) {
-        guard time.isValid else { completionHandler?(false); return }
+        guard time.isValid else {
+            if let completionHandler { Task { @MainActor in completionHandler(false) } }
+            return
+        }
         position = time.seconds
-        completionHandler?(true)
+        seeks += 1
+        if let completionHandler { Task { @MainActor in completionHandler(true) } }
     }
     /// Ends seeks not yet finished (each seek here finishes at once).
     public func cancelPendingSeeks() {}
@@ -126,14 +134,14 @@ public class AVPlayer {
     public func currentTime() -> CMTime { currentItem?.currentTime() ?? .zero }
     public func seek(to time: CMTime) { currentItem?.seek(to: time) }
     public func seek(to time: CMTime, completionHandler: @escaping @Sendable (Bool) -> Void) {
-        guard let currentItem else { completionHandler(false); return }
+        guard let currentItem else { Task { @MainActor in completionHandler(false) }; return }
         currentItem.seek(to: time, completionHandler: completionHandler)
     }
     public func seek(to time: CMTime, toleranceBefore: CMTime, toleranceAfter: CMTime) {
         currentItem?.seek(to: time, toleranceBefore: toleranceBefore, toleranceAfter: toleranceAfter)
     }
     public func seek(to time: CMTime, toleranceBefore: CMTime, toleranceAfter: CMTime, completionHandler: @escaping @Sendable (Bool) -> Void) {
-        guard let currentItem else { completionHandler(false); return }
+        guard let currentItem else { Task { @MainActor in completionHandler(false) }; return }
         currentItem.seek(to: time, toleranceBefore: toleranceBefore, toleranceAfter: toleranceAfter, completionHandler: completionHandler)
     }
     public func seek(to date: Date) {}

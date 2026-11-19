@@ -1270,9 +1270,11 @@ public final class CanvasSceneHost {
     /// Writes what changed of an element's state: the source, play/pause, the attributes.
     private func applyHostElementState(_ element: JSObject, from previous: HostElement.Kind, to kind: HostElement.Kind, fresh: Bool) {
         switch (previous, kind) {
-        case (.video(let oldURL, let wasPlaying, let wasMuted, let didLoop, let hadControls, let oldRate),
-              .video(let url, let playing, let muted, let loops, let controls, let rate)):
+        case (.video(let oldURL, let wasPlaying, let wasMuted, let didLoop, let hadControls, let oldRate, _, let oldSeeks),
+              .video(let url, let playing, let muted, let loops, let controls, let rate, let seek, let seeks)):
             if fresh || oldURL != url { element.src = .string(url) }
+            // A seek moves the playhead (before the movie loads, where it starts).
+            if seeks > 0, fresh || oldSeeks != seeks || oldURL != url { element.currentTime = .number(seek) }
             if fresh || wasMuted != muted { element.muted = .boolean(muted) }
             if fresh || didLoop != loops { element.loop = .boolean(loops) }
             if fresh || hadControls != controls { element.controls = .boolean(controls) }

@@ -25,7 +25,8 @@ public struct VideoPlayer<VideoOverlay: View>: View {
             _PlayGlyph()
             if let player, let item = player.currentItem {
                 _HostElementAnchor(kind: .video(url: item.url.absoluteString, playing: player.rate != 0, muted: player.isMuted, loops: player.loops,
-                                                controls: player.showsControls, rate: Double(player.rate)), identity: ObjectIdentifier(player))
+                                                controls: player.showsControls, rate: Double(player.rate),
+                                                seek: item.currentTime().seconds, seeks: item.seeks), identity: ObjectIdentifier(player))
             }
             overlay
         }
