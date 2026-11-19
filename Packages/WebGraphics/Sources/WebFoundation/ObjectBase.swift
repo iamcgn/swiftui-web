@@ -9,6 +9,15 @@
 #if canImport(ObjectiveC)
 public typealias _WebObjectBase = NSObject
 #else
-open class _WebObjectBase { public init() {} }
+open class _WebObjectBase {
+    public init() {}
+
+    // Sending a message by selector, as `NSObject` answers without the runtime: no method is
+    // registered under a selector, so code that checks first takes its branch for a missing
+    // one (swift-sharing asks a `UserDefaults` whether it responds to `_identifier`).
+    open func responds(to aSelector: Selector!) -> Bool { false }
+    open func perform(_ aSelector: Selector!) -> Unmanaged<AnyObject>! { nil }
+    open func perform(_ aSelector: Selector!, with object: Any!) -> Unmanaged<AnyObject>! { nil }
+}
 #endif
 #endif
