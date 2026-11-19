@@ -350,6 +350,23 @@ extension ViewNode {
         return 1 - transition.factor(at: runtime.animationClock)
     }
 
+    /// The opacity and scale that symbol effect transitions on this node and its ancestors give
+    /// a symbol image inside them now (1 and 1 when none).
+    package var presentedSymbolTransition: (opacity: Double, scale: CGFloat) {
+        var opacity = 1.0
+        var scale: CGFloat = 1
+        var current: ViewNode? = self
+        while let node = current {
+            if let transition = node.presentation?.transition, transition.effects.symbols {
+                let remaining = 1 - transition.factor(at: runtime.animationClock)
+                opacity *= remaining
+                scale *= CGFloat(remaining)
+            }
+            current = node.parent
+        }
+        return (opacity, scale)
+    }
+
     /// The scale a transition applies while painting this node (1 when none).
     package var presentedTransitionScale: CGFloat {
         guard let transition = presentation?.transition, transition.effects.scale != 1 else { return 1 }

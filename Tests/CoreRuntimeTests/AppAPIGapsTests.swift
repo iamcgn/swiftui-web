@@ -90,11 +90,12 @@ import WebCombine
     }
 
     // Harbour's search bar: its clear button comes and goes with `.transition(.symbolEffect)`.
-    @Test func symbolEffectTransitionsScaleAndFade() {
+    // The transition is for the symbols inside the view; the view itself does not fade or scale.
+    @Test func symbolEffectTransitionsAreForSymbols() {
         for transition in [AnyTransition.symbolEffect, .symbolEffect(.appear.byLayer, options: .speed(2)), .symbolEffect(.disappear.down)] {
             for insertion in [true, false] {
                 let effects = transition.effects(insertion: insertion)
-                #expect(effects.fades && effects.scale == 0, "\(insertion)")
+                #expect(effects.symbols && !effects.fades && effects.scale == 1 && !effects.isIdentity, "\(insertion)")
             }
         }
         let runtime = Runtime()
@@ -102,6 +103,7 @@ import WebCombine
         runtime.layout(in: CGSize(width: 300, height: 100))
         #expect(texts(runtime) == ["Clear"])
     }
+
 
     // Deprecated API in a deprecated context: no warnings (the package treats them as errors).
     @available(*, deprecated)
