@@ -1,3 +1,5 @@
+import WebFoundation   // LocalizedStringResource
+
 /// A control for selecting from a set of mutually exclusive values.
 ///
 /// macOS geometry measured in `Docs/elements/Picker.md`: the default style is a pop-up button

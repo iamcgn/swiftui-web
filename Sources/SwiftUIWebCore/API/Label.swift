@@ -1,3 +1,5 @@
+import WebFoundation   // LocalizedStringResource
+
 /// A standard label for user interface items, consisting of an icon with a title.
 ///
 /// The icon is centred on the title's cap height (half the environment font's cap height above
