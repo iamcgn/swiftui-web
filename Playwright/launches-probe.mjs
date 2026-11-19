@@ -56,12 +56,25 @@ const firstFrame = async (load) => {
 // The browser's online state, as the page sees it. The app reports a failed fetch while
 // `navigator.onLine` is false as -1009 (notConnectedToInternet), as iOS does with no network,
 // and the CORS refusal as -1004 otherwise. A macOS runner's Chrome has gone offline for a
-// moment (Nov 19, main e24cbbd: load 2's CORS case -1009): so each load records its
-// online state and every change, and a -1009 counts only when the page did see itself offline.
+// moment (Nov 19, main e24cbbd: load 2's CORS case -1009). So the page's `fetch` is wrapped to
+// record, for each rejected request, its URL and `navigator.onLine` at the rejection (before
+// the app's own handler reads it), and every online/offline event with its time. A -1009 on
+// the CORS case counts only when that request's own rejection saw the browser offline.
 await page.addInitScript(() => {
-  window.__onlineLog = [navigator.onLine ? 'online' : 'offline'];
-  addEventListener('online', () => window.__onlineLog.push('online'));
-  addEventListener('offline', () => window.__onlineLog.push('offline'));
+  const t0 = performance.now();
+  const at = () => Math.round(performance.now() - t0);
+  window.__onlineLog = [`${navigator.onLine ? 'online' : 'offline'}@0`];
+  addEventListener('online', () => window.__onlineLog.push(`online@${at()}`));
+  addEventListener('offline', () => window.__onlineLog.push(`offline@${at()}`));
+  window.__rejections = [];
+  const original = window.fetch;
+  window.fetch = function (input, init) {
+    const url = typeof input === 'string' ? input : (input && input.url) || String(input);
+    return original.call(window, input, init).catch(error => {
+      window.__rejections.push({ url, onLine: navigator.onLine, at: at(), name: error && error.name });
+      throw error;
+    });
+  };
 });
 const notes = [];
 const networkLine = (t) => { const start = t.findIndex(x => x.startsWith('network: ')); if (start < 0) return ''; const parts = []; for (let i = start; i < t.length && t[i] !== 'Record again'; i++) parts.push(t[i]); return parts.join(' '); };
@@ -90,10 +103,11 @@ for (let load = 1; load <= 3; load++) {
   const expectedNetwork = 'network: ok 200 Chad/TCD application/json | missing 404 body' + (url.includes('cross=') ? ' | cors -1004' : '') + ' | cancel -999'
     + (url.includes('slow=') ? ' | timeout -1001 | inflight -999 | completions 1' : '');
   const onlineLog = await page.evaluate(() => (window.__onlineLog || []).join(' → '));
-  const wentOffline = /offline/.test(onlineLog);
+  const corsRejections = await page.evaluate((cors) => (window.__rejections || []).filter(r => r.url === cors), deliberate.cors);
+  const corsOffline = corsRejections.length > 0 && corsRejections.every(r => r.onLine === false);
   const offlineNetwork = expectedNetwork.replace(' | cors -1004', ' | cors -1009');
-  if (wentOffline && network === offlineNetwork) notes.push(`load ${load}: the browser went offline (${onlineLog}), so the CORS case was -1009, as an iPhone with no network reports it`);
-  else if (network !== expectedNetwork) problems.push(`load ${load}: network "${network}", expected "${expectedNetwork}" (online state: ${onlineLog || 'unread'})`);
+  if (corsOffline && network === offlineNetwork) notes.push(`load ${load}: navigator.onLine was false when the CORS request was rejected (at ${corsRejections.map(r => r.at + ' ms').join(', ')}; online events ${onlineLog}), and the app reported -1009 for it`);
+  else if (network !== expectedNetwork) problems.push(`load ${load}: network "${network}", expected "${expectedNetwork}" (online events ${onlineLog || 'unread'}; CORS rejections ${JSON.stringify(corsRejections)})`);
 }
 // The keyboard notifications (uk-app-delegate-adaptor), read as the Countries handler reads
 // them. Desktop Chromium has no on-screen keyboard, so this is the host→scene→notification
