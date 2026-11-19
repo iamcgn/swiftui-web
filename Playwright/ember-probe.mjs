@@ -138,6 +138,14 @@ const finish = async () => {
 process.on('uncaughtException', async (e) => { problems.push('uncaught: ' + e.message); if (currentFlow) flow(currentFlow, 'failed', e.message); await finish(); });
 process.on('unhandledRejection', async (e) => { problems.push('unhandled: ' + (e && e.message || e)); if (currentFlow) flow(currentFlow, 'failed', String(e && e.message || e)); await finish(); });
 
+// The Top feed's id list is held until Dark has been picked and the cover has turned dark, so
+// the feed's first page always lands after the pick: the order that leaves the feed light now
+// and then when the live API answers late (PRs 65, 90, 144, 271). Both orders must paint dark;
+// this makes the rarer one the order every run checks.
+let releaseTopStories;
+const topStoriesHeld = new Promise(resolve => { releaseTopStories = resolve; });
+let topStoriesWaited = 0;
+await page.route(/hacker-news\.firebaseio\.com\/v0\/topstories\.json/, async route => { topStoriesWaited++; await topStoriesHeld; await route.continue(); });
 begin('launch');
 await page.goto(url, { waitUntil: 'commit', timeout: 180000 });
 await loaded();
@@ -148,6 +156,9 @@ await shot('1-onboarding');
 begin('onboarding');
 let steps = 0;
 let coverDark = false;
+// How many story rows the feed behind the cover had painted when Dark was picked (the feed's
+// first page can land before or after the pick: one order may be what leaves it light).
+let rowsAtDark = -1;
 for (let i = 0; i < 10; i++) {
   const t = await texts();
   const button = t.includes('Start Reading') ? 'Start Reading' : t.includes('Continue') ? 'Continue' : null;
@@ -160,14 +171,22 @@ for (let i = 0; i < 10; i++) {
     // `overrideUserInterfaceStyle` on the scene's windows; the cover follows the window).
     await settle(t => t.includes('Choose your look'), 20);
     await idle();
+    rowsAtDark = rows(await texts()).length;
     await tapText('Dark', 0, -20);
     // Polled: the scheme change repaints the cover on a later frame, which a busy runner can
     // take past a fixed wait (the feed after it was dark when one look at 800 ms missed it).
     for (let i = 0; i < 20 && !coverDark; i++) { await page.waitForTimeout(200); coverDark = await mostlyDark(195, 600); }
     await shot('1b-dark-cover');
+    // Whether the hold was exercised: a green run says something about the order only when the
+    // Top request was actually held at the pick (and no rows were painted yet).
+    const ordering = topStoriesWaited > 0 && rowsAtDark === 0 ? 'exercised (the feed landed after Dark)' : 'NOT exercised (no Top request was held at the pick)';
+    console.log(`dark picked with ${rowsAtDark} story rows painted, ${topStoriesWaited} Top request(s) held until now: ordering ${ordering}`);
+    report.notes.push(`the feed-after-Dark ordering was ${ordering}`);
+    releaseTopStories();
   }
   if (button === 'Start Reading') break;
 }
+releaseTopStories();
 shown = await settle(t => !t.includes('Welcome to Ember') && !t.includes('Start Reading') && t.includes('Top'));
 expect(steps === 7, `the onboarding took ${steps} taps, not 7`);
 expect(!shown.includes('Continue') && shown.includes('Top') && shown.includes('New'), 'the feed did not appear after "Start Reading": ' + JSON.stringify(shown.slice(0, 20)));
@@ -181,8 +200,18 @@ await settle(t => rows(t).length >= 3, 100);
 let feedDark = false, feedLooks = 0;
 for (; feedLooks < 20 && !feedDark; feedLooks++) { if (feedLooks) await page.waitForTimeout(200); feedDark = await mostlyDark(195, 560); }
 if (feedDark && feedLooks > 1) report.notes.push(`the feed painted dark on look ${feedLooks} (about ${(feedLooks - 1) * 200} ms after its rows appeared)`);
-if (!feedDark) await shot('2-feed-not-dark');
-expect(feedDark, 'the feed is not dark after Dark was picked in the onboarding (4 s after its rows appeared)');
+// A light feed says what it painted, as the screenshot can't be read from the log: the 15
+// samples' colours, the first fills in the display list (the window's and the list's
+// backgrounds), and whether the feed had rows when Dark was picked.
+let darkDetail = '';
+if (!feedDark) {
+  await shot('2-feed-not-dark');
+  const samples = [];
+  for (const dy of [-30, 0, 30]) for (const dx of [-120, -60, 0, 60, 120]) samples.push((await pixel(195 + dx, 560 + dy)).join('.'));
+  const fills = await page.evaluate(() => window.__swiftuiwebDebug.displayList().filter(c => /^fill(Rect|RRect|Path)/.test(c)).slice(0, 8).map(c => c.slice(0, 120)));
+  darkDetail = `; rows when Dark was picked: ${rowsAtDark}; samples ${samples.join(' ')}; first fills ${JSON.stringify(fills)}`;
+}
+expect(feedDark, 'the feed is not dark after Dark was picked in the onboarding (4 s after its rows appeared)' + darkDetail);
 
 begin('feed');
 shown = await settle(t => rows(t).length >= 5, 100);
