@@ -34,6 +34,7 @@ let package = Package(
         .executable(name: "Pompaddo", targets: ["Pompaddo"]),
         .executable(name: "SimpleScores", targets: ["SimpleScores"]),
         .executable(name: "SimpleToDo", targets: ["SimpleToDo"]),
+        .executable(name: "DelegateProbe", targets: ["DelegateProbe"]),
     ],
     dependencies: [
         .package(name: "SwiftUIWeb", path: "..", traits: ["FoundationFormats", "DecimalFormatting"]),
@@ -45,6 +46,8 @@ let package = Package(
     targets: [
         // MARK: unixzii/SwiftUI-2048 — one Xcode target (SWIFT_VERSION 5.0), a UIKit app delegate
         // hosting the SwiftUI game.
+        .executableTarget(name: "DelegateProbe", dependencies: swiftUI + host, path: "probes/DelegateProbe",
+                          swiftSettings: [.swiftLanguageMode(.v5)], linkerSettings: stack),
         .executableTarget(
             name: "SwiftUI2048",
             dependencies: swiftUI + [uiKit] + host,
