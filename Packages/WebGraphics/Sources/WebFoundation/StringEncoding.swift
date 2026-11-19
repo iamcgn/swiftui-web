@@ -230,6 +230,16 @@ extension String {
         guard let core = encoding._core, let bytes = _TextEncoding.encode(self, as: core, lossy: allowLossyConversion) else { return nil }
         return Data(bytes)
     }
+    /// FoundationEssentials' own form, with its signature, so that it shadows that one. The two
+    /// differed only in their `Data`, which left a call with nothing to pick the result type
+    /// ambiguous, as in KeychainAccess's `guard let data = value.data(using: .utf8,
+    /// allowLossyConversion: false)`. Disfavoured, so that such a call picks ours above, while a
+    /// context that wants FoundationEssentials' `Data` still gets it.
+    @_disfavoredOverload
+    public func data(using encoding: Encoding, allowLossyConversion: Bool = false) -> FoundationEssentials.Data? {
+        guard let core = encoding._core, let bytes = _TextEncoding.encode(self, as: core, lossy: allowLossyConversion) else { return nil }
+        return FoundationEssentials.Data(bytes)
+    }
     /// The form without the lossy flag. FoundationEssentials' `data(using:allowLossyConversion:)`
     /// answers its own `Data`, so the two never shadow each other and `s.data(using: .utf8)`
     /// with nothing to pick the result type was ambiguous; a call that leaves out the flag picks
