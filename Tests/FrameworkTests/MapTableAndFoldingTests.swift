@@ -12,6 +12,14 @@ private final class Token: NSObject {
     override var hash: Int { id }
 }
 
+#if canImport(Darwin)
+// Foundation's `dictionaryRepresentation()` copies each key into an `NSDictionary`, so keys
+// must be copyable there, as `NSUUID` and `NSString` keys are.
+extension Token: NSCopying {
+    func copy(with zone: NSZone? = nil) -> Any { self }
+}
+#endif
+
 private final class Box: NSObject {
     let value: String
     init(_ value: String) { self.value = value }
