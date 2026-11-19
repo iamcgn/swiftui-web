@@ -149,8 +149,11 @@ extension Publisher {
     public func filter(_ isIncluded: @escaping @MainActor (Output) -> Bool) -> _Pipe<Output, Failure> {
         _Pipe(policy: _demandPolicy) { receive, complete in self._subscribeOnMain({ if isIncluded($0) { receive($0) } }, complete) }
     }
-    public func removeDuplicates(by predicate: @escaping @MainActor (Output, Output) -> Bool) -> _Pipe<Output, Failure> {
-        _Pipe { receive, complete in
+    /// Apple's takes a plain closure, which TCA's `ViewStore` hands it from nonisolated code; it
+    /// runs on the main actor with the rest of the pipe.
+    public func removeDuplicates(by predicate: @escaping (Output, Output) -> Bool) -> _Pipe<Output, Failure> {
+        nonisolated(unsafe) let predicate = predicate
+        return _Pipe { receive, complete in
             let last = _State<Output?>(nil)
             return self._subscribeOnMain({ value in
                 if let previous = last.value, predicate(previous, value) { return }

@@ -206,7 +206,7 @@ let package = Package(
         ),
         .target(
             name: "UniformTypeIdentifiers",
-            dependencies: [.product(name: "WebGraphics", package: "WebGraphics")],
+            dependencies: ["Foundation", .product(name: "WebGraphics", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

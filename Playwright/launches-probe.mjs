@@ -53,6 +53,30 @@ const firstFrame = async (load) => {
     process.exit(1);
   }
 };
+// The browser's online state, as the page sees it. The app reports a failed fetch while
+// `navigator.onLine` is false as -1009 (notConnectedToInternet), as iOS does with no network,
+// and the CORS refusal as -1004 otherwise. A macOS runner's Chrome has gone offline for a
+// moment (Nov 19, main e24cbbd: load 2's CORS case -1009). So the page's `fetch` is wrapped to
+// record, for each rejected request, its URL and `navigator.onLine` at the rejection (before
+// the app's own handler reads it), and every online/offline event with its time. A -1009 on
+// the CORS case counts only when that request's own rejection saw the browser offline.
+await page.addInitScript(() => {
+  const t0 = performance.now();
+  const at = () => Math.round(performance.now() - t0);
+  window.__onlineLog = [`${navigator.onLine ? 'online' : 'offline'}@0`];
+  addEventListener('online', () => window.__onlineLog.push(`online@${at()}`));
+  addEventListener('offline', () => window.__onlineLog.push(`offline@${at()}`));
+  window.__rejections = [];
+  const original = window.fetch;
+  window.fetch = function (input, init) {
+    const url = typeof input === 'string' ? input : (input && input.url) || String(input);
+    return original.call(window, input, init).catch(error => {
+      window.__rejections.push({ url, onLine: navigator.onLine, at: at(), name: error && error.name });
+      throw error;
+    });
+  };
+});
+const notes = [];
 const networkLine = (t) => { const start = t.findIndex(x => x.startsWith('network: ')); if (start < 0) return ''; const parts = []; for (let i = start; i < t.length && t[i] !== 'Record again'; i++) parts.push(t[i]); return parts.join(' '); };
 const texts = () => page.evaluate(() => window.__swiftuiwebDebug.displayList().filter(c => c.startsWith('drawText')).map(c => c.match(/"([^"]*)"/)[1]));
 for (let load = 1; load <= 3; load++) {
@@ -78,7 +102,12 @@ for (let load = 1; load <= 3; load++) {
   const network = await settledNetwork();
   const expectedNetwork = 'network: ok 200 Chad/TCD application/json | missing 404 body' + (url.includes('cross=') ? ' | cors -1004' : '') + ' | cancel -999'
     + (url.includes('slow=') ? ' | timeout -1001 | inflight -999 | completions 1' : '');
-  if (network !== expectedNetwork) problems.push(`load ${load}: network "${network}", expected "${expectedNetwork}"`);
+  const onlineLog = await page.evaluate(() => (window.__onlineLog || []).join(' → '));
+  const corsRejections = await page.evaluate((cors) => (window.__rejections || []).filter(r => r.url === cors), deliberate.cors);
+  const corsOffline = corsRejections.length > 0 && corsRejections.every(r => r.onLine === false);
+  const offlineNetwork = expectedNetwork.replace(' | cors -1004', ' | cors -1009');
+  if (corsOffline && network === offlineNetwork) notes.push(`load ${load}: navigator.onLine was false when the CORS request was rejected (at ${corsRejections.map(r => r.at + ' ms').join(', ')}; online events ${onlineLog}), and the app reported -1009 for it`);
+  else if (network !== expectedNetwork) problems.push(`load ${load}: network "${network}", expected "${expectedNetwork}" (online events ${onlineLog || 'unread'}; CORS rejections ${JSON.stringify(corsRejections)})`);
 }
 // The keyboard notifications (uk-app-delegate-adaptor), read as the Countries handler reads
 // them. Desktop Chromium has no on-screen keyboard, so this is the host→scene→notification
@@ -102,6 +131,7 @@ await page.waitForTimeout(300);
 if (await keyboardLine() !== 'keyboard: 0') problems.push(`keyboard without a focused input: "${await keyboardLine()}", expected "keyboard: 0"`);
 const stored = await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('swiftuiweb.')).sort());
 if (!stored.includes('swiftuiweb.defaults.standard') || !stored.includes('swiftuiweb.files/Documents/launches.json') || !stored.includes('swiftuiweb.swiftdata.launches')) problems.push('localStorage keys: ' + stored.join(', '));
+for (const note of notes) console.log('note: ' + note);
 console.log(problems.length ? problems.join('\n') : 'launches OK: three loads counted, on file and settled; keyboard notifications on synthetic viewport readings (no phone keyboard here)');
 await browser.close();
 process.exit(problems.length ? 1 : 0);
