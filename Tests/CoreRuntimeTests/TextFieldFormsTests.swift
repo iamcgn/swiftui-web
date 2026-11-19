@@ -139,4 +139,13 @@ private struct CallbackForm: View {
         #expect(inputs[1].inputMode == nil && inputs[1].inputType == "text" && inputs[1].autocomplete == nil && inputs[1].enterKeyHint == nil && inputs[1].autocorrect)
         #expect(inputs[2].isMultiline && inputs[2].submitsOnReturn && inputs[2].paintsCaret)
     }
+
+    @Test func alphabetKeyboardIsTheASCIIKeyboard() {
+        #expect(UIKeyboardType.alphabet == .asciiCapable)
+        let runtime = Runtime()
+        runtime.mount(TextField("Code", text: .constant("")).keyboardType(.alphabet))
+        runtime.layout(in: size)
+        let input = runtime.semanticsTree().compactMap(\.textInput).first
+        #expect(input?.inputMode == nil && input?.inputType == "text")
+    }
 }

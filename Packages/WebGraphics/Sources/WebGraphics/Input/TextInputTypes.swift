@@ -6,6 +6,9 @@
 public enum UIKeyboardType: Int, Sendable {
     case `default` = 0, asciiCapable, numbersAndPunctuation, URL, numberPad, phonePad, namePhonePad, emailAddress, decimalPad, twitter, webSearch, asciiCapableNumberPad
 
+    /// The older name of `asciiCapable`.
+    public static var alphabet: UIKeyboardType { .asciiCapable }
+
     /// The input element's `inputmode`, nil for the default keyboard.
     public var inputMode: String? {
         switch self {
