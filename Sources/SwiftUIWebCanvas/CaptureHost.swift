@@ -146,6 +146,22 @@ enum CaptureHost {
             };
             r.stop();
           },
+          movieInfo: function (url, done) {
+            var v = document.createElement('video'), settled = false;
+            v.muted = true; v.preload = 'metadata';
+            var finish = function (d, w, h, a) {
+              if (settled) return;
+              settled = true; clearTimeout(timer); v.removeAttribute('src'); v.load(); done(d, w, h, a);
+            };
+            var fail = function () { finish(-1, 0, 0, -1); };
+            var timer = setTimeout(fail, 20000);
+            v.addEventListener('error', fail);
+            v.addEventListener('loadedmetadata', function () {
+              var d = v.duration, a = v.audioTracks ? +(v.audioTracks.length > 0) : 'mozHasAudio' in v ? +v.mozHasAudio : -1;
+              finish(d === Infinity ? -2 : isFinite(d) ? d : -3, v.videoWidth, v.videoHeight, a);
+            }, { once: true });
+            v.src = url;
+          },
           movieFrame: function (url, t, mw, mh, done) {
             var v = document.createElement('video'), settled = false;
             v.muted = true; v.playsInline = true; v.preload = 'auto'; v.crossOrigin = 'anonymous';
@@ -196,6 +212,20 @@ enum CaptureHost {
             }
             retained.append(report)
             _ = js.movieFrame!(url, seconds, maxWidth, maxHeight, report)
+        }
+        // What a movie holds, for AVAsset's loading: its length, its picture's size, its sound.
+        _AVFrameHost.info = { url, done in
+            let report = JSClosure { (arguments: [JSValue]) -> JSValue in
+                let duration = arguments[0].number ?? -1, audio = arguments[3].number ?? -1
+                let info = duration == -1 ? nil
+                    : _AVMovieInfo(duration: duration == -2 ? .infinity : duration < 0 ? .nan : duration,
+                                   width: Int(arguments[1].number ?? 0), height: Int(arguments[2].number ?? 0),
+                                   hasAudio: audio < 0 ? nil : audio > 0)
+                MainActor.assumeIsolated { done(info) }
+                return .undefined
+            }
+            retained.append(report)
+            _ = js.movieInfo!(url, report)
         }
         guard js.supported!().boolean == true else { return }
         // There may be a camera until the browser has said.

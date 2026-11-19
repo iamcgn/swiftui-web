@@ -13,6 +13,9 @@ import FoundationNetworking   // Linux keeps URLRequest here
 #endif
 
 #if !os(WASI)
+/// What a seek's completion handler heard.
+private final class Finished: @unchecked Sendable { var value: Bool? }
+
 @Suite @MainActor struct FrameworksTests {
     private func render<V: View>(_ view: V, size: CGSize = CGSize(width: 320, height: 240)) -> Runtime {
         let runtime = Runtime()
@@ -29,8 +32,8 @@ import FoundationNetworking   // Linux keeps URLRequest here
         let elements = runtime.hostElements()
         #expect(elements.count == 1)
         #expect(elements[0].frame == CGRect(x: 16, y: 16, width: 288, height: 208) && elements[0].visibleFrame == elements[0].frame)
-        if case .video(let url, let playing, let muted, let loops, let controls, let rate) = elements[0].kind {
-            #expect(url.hasSuffix("/clip.mp4") && !playing && !muted && !loops && controls && rate == 0)
+        if case .video(let url, let playing, let muted, let loops, let controls, let rate, _, let seeks) = elements[0].kind {
+            #expect(url.hasSuffix("/clip.mp4") && !playing && !muted && !loops && controls && rate == 0 && seeks == 0)
         } else {
             Issue.record("expected a video element")
         }
@@ -42,11 +45,39 @@ import FoundationNetworking   // Linux keeps URLRequest here
         player.isMuted = true
         runtime.layout(in: CGSize(width: 320, height: 240))
         _ = runtime.render(scale: 2)
-        if case .video(_, let playing, let muted, _, _, let rate) = runtime.hostElements()[0].kind {
+        if case .video(_, let playing, let muted, _, _, let rate, _, _) = runtime.hostElements()[0].kind {
             #expect(playing && muted && rate == 1)
         }
         player.pause()
         #expect(player.timeControlStatus == .paused && player.currentTime() == .zero)
+    }
+
+    @Test func seekingAnItemMovesTheVideoElement() async {
+        let item = AVPlayerItem(url: URL(fileURLWithPath: "/clip.mp4"))
+        let player: AVQueuePlayer = .init(playerItem: item)
+        let runtime = render(VideoPlayer(player: player))
+        let finished = Finished()
+        item.seek(to: CMTime(seconds: 5, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero) { done in
+            finished.value = done
+        }
+        // The handler hears later, as Apple's does, never from within the call.
+        #expect(finished.value == nil)
+        runtime.layout(in: CGSize(width: 320, height: 240))
+        _ = runtime.render(scale: 2)
+        if case .video(_, _, _, _, _, _, let seek, let seeks) = runtime.hostElements()[0].kind {
+            #expect(seek == 5 && seeks == 1)
+        } else {
+            Issue.record("expected a video element")
+        }
+        // A second seek to the same time is a new seek for the element.
+        player.seek(to: CMTime(seconds: 5, preferredTimescale: 600))
+        runtime.layout(in: CGSize(width: 320, height: 240))
+        _ = runtime.render(scale: 2)
+        if case .video(_, _, _, _, _, _, _, let seeks) = runtime.hostElements()[0].kind {
+            #expect(seeks == 2)
+        }
+        for _ in 0..<100 where finished.value == nil { await Task.yield() }
+        #expect(finished.value == true)
     }
 
     @Test func webViewReportsItsPage() {

@@ -614,11 +614,12 @@ def describe_app(entry, root: Path, work: Path = None):
     except Exception as e:  # an unreadable project leaves the folder-based guess
         app_target = None
         notes.append(f"Xcode project not read ({type(e).__name__}: {str(e)[:120]})")
-    sub_apps = []  # (target name, project folder, files, conditions) of the repository's other iOS apps
+    sub_apps = []  # (target name, project folder, files, conditions, regex literals) of the repository's other iOS apps
     other_bases = []  # the folders of the repository's other apps' projects
     conditions = []  # the app target's Debug compilation conditions (`TARGET_APP`)
+    regex = None  # whether the app target's Debug build parses bare-slash regex literals (None: no target read)
     if app_target:
-        name, members, base, conditions = app_target
+        name, members, base, conditions, regex = app_target
         guessed = set(app_files)
         kept = [f for f in project_files if f in members or (f in guessed and not Path(f).is_relative_to(base))]
         # A repository of several apps, each in its own project folder (SimpleSwiftUI's four,
@@ -641,9 +642,9 @@ def describe_app(entry, root: Path, work: Path = None):
                 # built in each app's module (issue 236).
                 files = [f for f in project_files if f in ios[1]]
                 if files:
-                    sub_apps.append((ios[0], other_base, files, ios[3]))
+                    sub_apps.append((ios[0], other_base, files, ios[3], ios[4]))
         if other_bases:
-            claimed = {f for _, _, files, _ in sub_apps for f in files}
+            claimed = {f for _, _, files, _, _ in sub_apps for f in files}
             kept = [f for f in kept if f in members or (f not in claimed and not any(Path(f).is_relative_to(b) for b in other_bases))]
             left = len(other_bases) - len(sub_apps)
             notes.append(f"{len(sub_apps)} more iOS apps in their own project folders, each built as its own module"
@@ -657,6 +658,7 @@ def describe_app(entry, root: Path, work: Path = None):
             app_files = kept
         else:
             conditions = []
+            regex = None
     # One @main: the SwiftUI App (or the UIKit delegate) of the iOS app, the others' files left out.
     mains = [f for f in app_files if MAIN.search((root / f).read_text(errors="replace"))]
     if len(mains) > 1:
@@ -683,19 +685,19 @@ def describe_app(entry, root: Path, work: Path = None):
         targets.append({
             "module": "Sweep" + re.sub(r"\W", "", entry["name"]), "source_root": ".", "files": app_files,
             "deps": sorted({t["module"] for t in targets if not t["executable"] and not t.get("macro")}), "third_party": [],
-            "mode": xcode_language_mode(root), "settings": [f".define({json.dumps(c)})" for c in conditions],
+            "mode": xcode_language_mode(root), "settings": xcode_settings(root, conditions, regex),
             "resources": [], "models": models,
             "catalogs": catalogs, "symbol_extensions": bool(catalogs) and xcode_asset_symbol_extensions(root),
             "executable": True, "app": True,
         })
-        sub_bases = [b for _, b, _, _ in sub_apps]
+        sub_bases = [b for _, b, _, _, _ in sub_apps]
         if sub_bases:
             main = targets[-1]
             main["models"] = [m for m in main["models"] if not any(Path(m).is_relative_to(b) for b in sub_bases)]
             main["catalogs"] = [c for c in main["catalogs"] if not any(Path(c).is_relative_to(b) for b in sub_bases)]
             main["symbol_extensions"] = bool(main["catalogs"]) and main["symbol_extensions"]
         used = {t["module"] for t in targets}
-        for sub_name, sub_base, files, sub_conditions in sub_apps:
+        for sub_name, sub_base, files, sub_conditions, sub_regex in sub_apps:
             module = "Sweep" + re.sub(r"\W", "", entry["name"]) + "_" + (re.sub(r"\W", "", sub_name) or "App")
             while module in used:
                 module += "_"
@@ -705,7 +707,7 @@ def describe_app(entry, root: Path, work: Path = None):
                 "module": module, "source_root": ".", "files": files,
                 "deps": sorted({t["module"] for t in targets if not t["executable"] and not t.get("macro")}),
                 "third_party": [], "mode": xcode_language_mode(root / sub_base),
-                "settings": [f".define({json.dumps(c)})" for c in sub_conditions], "resources": [],
+                "settings": xcode_settings(root / sub_base, sub_conditions, sub_regex), "resources": [],
                 "models": [m for m in models if Path(m).is_relative_to(sub_base)],
                 "catalogs": sub_catalogs, "symbol_extensions": bool(sub_catalogs) and xcode_asset_symbol_extensions(root / sub_base),
                 "executable": True, "app": True,
@@ -785,6 +787,28 @@ def xcode_asset_symbol_extensions(root: Path):
         if setting.search(pbx.read_text(errors="replace")):
             return True
     return any(setting.search(yml.read_text(errors="replace")) for yml in list(root.glob("project.yml")) + list(root.glob("*.yml")))
+
+
+def xcode_regex_literals(root: Path):
+    """Whether an app with no Xcode target the sweep could read (an XcodeGen `project.yml`)
+    builds with bare `/.../` regex literals: Xcode's "Enable Bare Slash Regex Literals"
+    (`SWIFT_ENABLE_BARE_SLASH_REGEX`) is on unless the spec turns it off."""
+    off = re.compile(r"SWIFT_ENABLE_BARE_SLASH_REGEX\s*:\s*[\"']?NO")
+    return not any(off.search(yml.read_text(errors="replace")) for yml in list(root.glob("project.yml")) + list(root.glob("*.yml")))
+
+
+def xcode_settings(root: Path, conditions, regex=None):
+    """The Swift settings an Xcode app target builds with: its compilation conditions, and in
+    Swift 5 mode the bare-slash regex literals Xcode turns on (Swift 6 always has them), so a
+    Swift 5 app target parses `/[a-z]*/` (Mlem's sign-up and onboarding checks) where a plain
+    Swift 5 compile reads a comment or a division. `regex` is the target's own Debug setting
+    (`Project.regex_literals`), None when no target was read."""
+    settings = [f".define({json.dumps(c)})" for c in conditions]
+    if regex is None:
+        regex = xcode_regex_literals(root)
+    if xcode_language_mode(root) == "v5" and regex:
+        settings.append('.enableUpcomingFeature("BareSlashRegexLiterals")')
+    return settings
 
 
 def xcode_language_mode(root: Path):

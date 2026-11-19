@@ -190,8 +190,10 @@ public protocol HostedScene: AnyObject {
 /// camera preview).
 public struct HostElement: Equatable, Sendable {
     public enum Kind: Equatable, Sendable {
-        /// A video: its source, whether it should be playing, muted or looping, with controls.
-        case video(url: String, playing: Bool, muted: Bool, loops: Bool, controls: Bool, rate: Double)
+        /// A video: its source, whether it should be playing, muted or looping, with controls,
+        /// and the last time it was sought to with how many seeks there have been (the host
+        /// moves its playhead when the count changes).
+        case video(url: String, playing: Bool, muted: Bool, loops: Bool, controls: Bool, rate: Double, seek: Double, seeks: Int)
         /// A web page by URL or inline HTML.
         case web(url: String?, html: String?)
         /// A camera's live picture (`AVCaptureVideoPreviewLayer`): the capture session's stream,
