@@ -68,6 +68,12 @@ extension View {
     ) -> some View { self }
 }
 
+extension ToolbarContent {
+    /// Identifies this toolbar item as the source of a zoom transition with `id` in `namespace`.
+    /// Like the view modifier, the runtime's pushes and sheets keep their platform animation.
+    nonisolated public func matchedTransitionSource(id: some Hashable, in namespace: Namespace.ID) -> some ToolbarContent { self }
+}
+
 // MARK: - Presentation sizing
 
 /// How a sheet sizes itself where the platform lets it choose (iPad, Mac, visionOS).
