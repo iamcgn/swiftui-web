@@ -83,6 +83,26 @@ public enum _AVFrameHost {
     /// frame, or nil when the movie could not be loaded or the frame could not be read.
     nonisolated(unsafe) public static var frame: ((_ url: String, _ seconds: Double, _ maxWidth: Int, _ maxHeight: Int,
                                                    _ done: @escaping @MainActor (_AVFrame?) -> Void) -> Void)?
+    /// Reads what the movie at `url` holds, for AVAsset's `load(_:)` and `loadTracks(withMediaType:)`.
+    /// `done` comes later, never from within the call: the movie's facts, or nil when it could not
+    /// be loaded.
+    nonisolated(unsafe) public static var info: ((_ url: String, _ done: @escaping @MainActor (_AVMovieInfo?) -> Void) -> Void)?
+}
+
+/// What the host read of a movie: its length in seconds (NaN when the browser could not tell,
+/// infinity for a live stream), its picture's size (0 by 0 for sound alone), and whether it has
+/// sound (nil when the browser does not say).
+public struct _AVMovieInfo: Sendable {
+    public var duration: Double
+    public var width: Int
+    public var height: Int
+    public var hasAudio: Bool?
+    public init(duration: Double, width: Int, height: Int, hasAudio: Bool?) {
+        self.duration = duration
+        self.width = width
+        self.height = height
+        self.hasAudio = hasAudio
+    }
 }
 
 /// A frame the host read: its size, its pixels as RGBA bytes, and the time it was shown at.
