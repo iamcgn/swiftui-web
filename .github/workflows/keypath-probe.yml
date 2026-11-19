@@ -19,3 +19,19 @@ jobs:
             echo "=== $t"
             swift build --target $t 2>&1 | grep -E "error:|warning:.*(key path|isolated)|Compiling $t|Build complete" || true
           done
+  tca-source:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Print the TCA lines CriticalMaps' sweep errors point at
+        run: |
+          git clone -q --depth 1 https://github.com/criticalmaps/criticalmaps-ios cm
+          find cm -name Package.resolved | xargs grep -h -A8 '"swift-composable-architecture"' | head -12
+          rev=$(find cm -name Package.resolved | xargs grep -h -A8 '"swift-composable-architecture"' | grep -m1 '"revision"' | grep -oE '[0-9a-f]{40}')
+          echo "TCA revision $rev"
+          git clone -q https://github.com/pointfreeco/swift-composable-architecture tca && git -C tca checkout -q "$rev"
+          s=tca/Sources/ComposableArchitecture
+          echo "=== Deprecations 520-575"; sed -n '520,575p' $s/Internal/Deprecations.swift
+          echo "=== Store+Observation 640-700"; sed -n '640,700p' $s/Observation/Store+Observation.swift
+          echo "=== NavigationStack+Observation 140-185"; sed -n '140,185p' $s/Observation/NavigationStack+Observation.swift
+          echo "=== Store subscripts"; grep -n "subscript" $s/Observation/Store+Observation.swift | head -20
+          echo "=== ViewStore removeDuplicates"; grep -n "removeDuplicates isDuplicate" $s/*.swift $s/*/*.swift | head
