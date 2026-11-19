@@ -199,8 +199,15 @@ import SwiftUIWebHeadless
     // `symbolEffect` scales and fades the symbol images in the view, each about its own centre;
     // the text beside the symbol (and a view with no symbol) stays as it is until it leaves.
     @Test func symbolEffectTransitionsMoveOnlyTheSymbols() {
+        func measured<V: View>(_ view: V) -> Runtime {
+            let runtime = Runtime()
+            runtime.textEngine = MonospaceTextEngine()
+            runtime.mount(view)
+            runtime.layout(in: CGSize(width: 320, height: 200))
+            return runtime
+        }
         let model = Model()
-        let r = runtime(ClearButton(model: model, symbol: true))
+        let r = measured(ClearButton(model: model, symbol: true))
         #expect(!commands(r).contains { $0.hasPrefix("beginGroup(") })
         withAnimation(.linear(duration: 1)) { model.show = false }
         relayout(r)
@@ -223,7 +230,7 @@ import SwiftUIWebHeadless
         #expect(commands(r).contains("beginGroup(opacity: 0.25)"))
         // With no symbol inside, nothing fades or scales.
         let plain = Model()
-        let p = runtime(ClearButton(model: plain, symbol: false))
+        let p = measured(ClearButton(model: plain, symbol: false))
         withAnimation(.linear(duration: 1)) { plain.show = false }
         relayout(p)
         p.advanceAnimations(elapsed: 0.5)
