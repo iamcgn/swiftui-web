@@ -260,7 +260,12 @@ extension ImageNode {
         guard let symbol else { return }
         let bounds = absoluteBounds(context)
         guard bounds.width > 0, bounds.height > 0 else { return }
-        let effects = symbolEffectPresentation()
+        var effects = symbolEffectPresentation()
+        // A symbol effect transition around this image scales it about its centre and fades it.
+        let transition = presentedSymbolTransition
+        guard transition.opacity > 0 else { return }
+        effects.opacity *= transition.opacity
+        if transition.scale != 1 { effects.transform = effects.transform.concatenating(CGAffineTransform(scaleX: transition.scale, y: transition.scale)) }
         if effects.opacity < 1 { list.append(.beginGroup(opacity: effects.opacity)) }
         defer { if effects.opacity < 1 { list.append(.endGroup) } }
         if effects.transform != .identity {

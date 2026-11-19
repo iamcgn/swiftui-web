@@ -179,5 +179,63 @@ import SwiftUIWebHeadless
         f.advanceAnimations(elapsed: 0.25)
         #expect(commands(f).contains("beginGroup(opacity: 0.75)"))
     }
+
+    struct ClearButton: View {
+        let model: Model
+        let symbol: Bool
+        var body: some View {
+            VStack {
+                if model.show {
+                    HStack {
+                        if symbol { Image(systemName: "xmark") }
+                        Text("Clear")
+                    }
+                    .transition(.symbolEffect)
+                }
+            }
+        }
+    }
+
+    // `symbolEffect` scales and fades the symbol images in the view, each about its own centre;
+    // the text beside the symbol (and a view with no symbol) stays as it is until it leaves.
+    @Test func symbolEffectTransitionsMoveOnlyTheSymbols() {
+        func measured<V: View>(_ view: V) -> Runtime {
+            let runtime = Runtime()
+            runtime.textEngine = MonospaceTextEngine()
+            runtime.mount(view)
+            runtime.layout(in: CGSize(width: 320, height: 200))
+            return runtime
+        }
+        let model = Model()
+        let r = measured(ClearButton(model: model, symbol: true))
+        #expect(!commands(r).contains { $0.hasPrefix("beginGroup(") })
+        withAnimation(.linear(duration: 1)) { model.show = false }
+        relayout(r)
+        r.advanceAnimations(elapsed: 0.5)
+        var painted = commands(r)
+        #expect(painted.filter { $0.hasPrefix("beginGroup(") } == ["beginGroup(opacity: 0.5)"], "\(painted)")
+        #expect(painted.filter { $0.hasPrefix("concat(") }.count == 1 && painted.contains { $0.hasPrefix("concat(0.5, 0, 0, 0.5") }, "\(painted)")
+        // The group and the scale close before the text draws.
+        let text = painted.firstIndex { $0.hasPrefix("drawText(\"Clear") } ?? -1
+        let close = painted.lastIndex { $0 == "endGroup" } ?? .max
+        #expect(close < text, "\(painted)")
+        r.advanceAnimations(elapsed: 0.5)
+        #expect(!commands(r).contains { $0.hasPrefix("drawText(\"Clear") } && !r.isAnimating)
+        // Inserted, the symbol grows in from nothing.
+        withAnimation(.linear(duration: 1)) { model.show = true }
+        relayout(r)
+        painted = commands(r)
+        #expect(painted.contains { $0.hasPrefix("drawText(\"Clear") } && !painted.contains { $0.hasPrefix("beginGroup(") && $0 != "beginGroup(opacity: 0.0)" })
+        r.advanceAnimations(elapsed: 0.25)
+        #expect(commands(r).contains("beginGroup(opacity: 0.25)"))
+        // With no symbol inside, nothing fades or scales.
+        let plain = Model()
+        let p = measured(ClearButton(model: plain, symbol: false))
+        withAnimation(.linear(duration: 1)) { plain.show = false }
+        relayout(p)
+        p.advanceAnimations(elapsed: 0.5)
+        painted = commands(p)
+        #expect(!painted.contains { $0.hasPrefix("beginGroup(") || $0.hasPrefix("concat(") } && painted.contains { $0.hasPrefix("drawText(\"Clear") }, "\(painted)")
+    }
 }
 #endif

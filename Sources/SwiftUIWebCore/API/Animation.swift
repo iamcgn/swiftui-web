@@ -262,6 +262,8 @@ public struct AnyTransition: Sendable {
         case scale(CGFloat, UnitPoint)
         case combined(Kind, Kind)
         case asymmetric(insertion: Kind, removal: Kind)
+        /// Symbol images inside the view scale and fade; the other views are not changed.
+        case symbolEffect
     }
 
     package let kind: Kind
@@ -330,6 +332,16 @@ public struct AnyTransition: Sendable {
             : inserted
     }
 
+    /// The symbol images inside the view appear and disappear with the appear and disappear
+    /// symbol effects (iOS 17); the other views in it are not changed by the transition. A
+    /// symbol is drawn as one layer here, so it scales up from nothing about its centre as it
+    /// fades in, and down as it fades out, whichever transition effect is named.
+    public static var symbolEffect: AnyTransition { AnyTransition(kind: .symbolEffect) }
+    /// The symbol effect transition with an appear or disappear effect and its options.
+    public static func symbolEffect<T: TransitionSymbolEffect>(_ effect: T, options: SymbolEffectOptions = .default) -> AnyTransition {
+        symbolEffect
+    }
+
     /// Returns a transition defined between an active modifier and an identity modifier
     /// (accepted: transitions paint as fades, moves and scales, decision 0021; the modifiers
     /// are not applied, the view appears and disappears with the identity transition).
@@ -344,7 +356,10 @@ public struct AnyTransition: Sendable {
         /// The scale at the removed end (1 = none), about `scaleAnchor`.
         package var scale: CGFloat = 1
         package var scaleAnchor: UnitPoint = .center
-        package var isIdentity: Bool { !fades && fraction == .zero && points == .zero && scale == 1 }
+        /// Whether the symbol images inside the view scale to nothing and fade at the removed end
+        /// (`symbolEffect`), each about its own centre; the view itself is not changed by it.
+        package var symbols = false
+        package var isIdentity: Bool { !fades && fraction == .zero && points == .zero && scale == 1 && !symbols }
     }
 
     package func effects(insertion: Bool) -> Effects {
@@ -370,6 +385,8 @@ public struct AnyTransition: Sendable {
                 add(a); add(b)
             case .asymmetric(let insertionKind, let removalKind):
                 add(insertion ? insertionKind : removalKind)
+            case .symbolEffect:
+                effects.symbols = true
             }
         }
         add(kind)
