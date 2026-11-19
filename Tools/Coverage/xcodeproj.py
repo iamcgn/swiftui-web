@@ -155,6 +155,16 @@ class Project:
                 out.append(w)
         return out
 
+    def regex_literals(self, target):
+        """Whether a Debug build of the target parses bare `/.../` regex literals: its own
+        `SWIFT_ENABLE_BARE_SLASH_REGEX`, else the project's where it inherits or sets none, else
+        Xcode's default, which is on."""
+        own = self.setting_in(target.get("buildConfigurationList"), "SWIFT_ENABLE_BARE_SLASH_REGEX")
+        project = self.setting_in(self.project.get("buildConfigurationList"), "SWIFT_ENABLE_BARE_SLASH_REGEX")
+        words = project if own is None else [w for x in own for w in ((project or []) if x == "$(inherited)" else [x])]
+        words = [w.strip('"').upper() for w in words or []]
+        return not words or words[-1] != "NO"
+
     def targets(self):
         return [(tid, self.obj(tid)) for tid in self.project.get("targets", [])
                 if self.obj(tid).get("isa") == "PBXNativeTarget"]
@@ -229,7 +239,8 @@ class Project:
 
 def app_target_files(root: Path, pbx_files, ios_only=False):
     """The iOS app target's name, its Swift files (and those of the frameworks it builds), the
-    folder holding its project and its Debug compilation conditions, from the project whose
+    folder holding its project, its Debug compilation conditions and whether its Debug build
+    parses bare-slash regex literals, from the project whose
     application is likeliest the iOS app; None when no project says (or, with `ios_only`, when
     none builds an iOS application)."""
     candidates = []
@@ -267,4 +278,4 @@ def app_target_files(root: Path, pbx_files, ios_only=False):
     if not files:
         return None
     return (project.obj(tid).get("name", ""), {f.as_posix() for f in files}, project.base,
-            project.compilation_conditions(project.obj(tid)))
+            project.compilation_conditions(project.obj(tid)), project.regex_literals(project.obj(tid)))
