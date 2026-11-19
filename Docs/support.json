@@ -2790,6 +2790,12 @@
           "noFixture": "Nothing to draw: CoreRuntimeTests drive the generator through a stand-in video and check the order, sizes, times, failures and cancelling"
         },
         {
+          "api": "AVAsset.load(.duration / .tracks / .isPlayable) / loadTracks(withMediaType:) / AVAssetTrack / AVPlayerItem.seek(to:toleranceBefore:toleranceAfter:) / currentTime() / AVQueuePlayer(playerItem:) / CMTime.timescale (AVFoundation)",
+          "status": "partial",
+          "notes": "pf-small-frameworks (2026-11-19), for Mlem's video view: the browser loads the asset's metadata in a hidden video element once per asset, giving its length (.invalid when the browser cannot tell, .indefinite for a live stream), a video track at the picture's size and an audio track for its sound; a browser that does not report sound (Chrome without its audio tracks list) is taken to have some, so sound controls show. A movie that fails to load, or no host, throws AVError.fileFormatNotRecognized. An item keeps where it was sought to and the player's currentTime() reads it; CMTimes compare by seconds, whatever their timescales. Not done: the host does not report the playhead back yet, so currentTime() is the last seek, not where playback is; tolerances are kept but the browser seeks exactly.",
+          "noFixture": "Nothing to draw: CoreRuntimeTests load assets through a stand-in metadata read and check the length, tracks, one read per asset, failures, seeks and the queue player"
+        },
+        {
           "api": "vImage_Buffer / vImageBuffer_Init / vImageBoxConvolve_ARGB8888 / vImageBoxConvolve_Planar8 and the kvImage flags and errors (Accelerate)",
           "status": "partial",
           "notes": "pf-small-frameworks (2026-11-14), for Kingfisher's blur processor: the box filter over 8-bit pixels with each edge style (extend, background colour, truncated kernel, copy in place), regions of interest and kvImageLeaveAlphaUnchanged, rounded as vImage rounds (the macOS tests compare the bytes with Apple's). Not done: the rest of vImage and vDSP, BLAS and LAPACK.",
