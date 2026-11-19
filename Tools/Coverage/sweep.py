@@ -683,7 +683,7 @@ def describe_app(entry, root: Path, work: Path = None):
         targets.append({
             "module": "Sweep" + re.sub(r"\W", "", entry["name"]), "source_root": ".", "files": app_files,
             "deps": sorted({t["module"] for t in targets if not t["executable"] and not t.get("macro")}), "third_party": [],
-            "mode": xcode_language_mode(root), "settings": [f".define({json.dumps(c)})" for c in conditions],
+            "mode": xcode_language_mode(root), "settings": xcode_settings(root, conditions),
             "resources": [], "models": models,
             "catalogs": catalogs, "symbol_extensions": bool(catalogs) and xcode_asset_symbol_extensions(root),
             "executable": True, "app": True,
@@ -705,7 +705,7 @@ def describe_app(entry, root: Path, work: Path = None):
                 "module": module, "source_root": ".", "files": files,
                 "deps": sorted({t["module"] for t in targets if not t["executable"] and not t.get("macro")}),
                 "third_party": [], "mode": xcode_language_mode(root / sub_base),
-                "settings": [f".define({json.dumps(c)})" for c in sub_conditions], "resources": [],
+                "settings": xcode_settings(root / sub_base, sub_conditions), "resources": [],
                 "models": [m for m in models if Path(m).is_relative_to(sub_base)],
                 "catalogs": sub_catalogs, "symbol_extensions": bool(sub_catalogs) and xcode_asset_symbol_extensions(root / sub_base),
                 "executable": True, "app": True,
@@ -785,6 +785,29 @@ def xcode_asset_symbol_extensions(root: Path):
         if setting.search(pbx.read_text(errors="replace")):
             return True
     return any(setting.search(yml.read_text(errors="replace")) for yml in list(root.glob("project.yml")) + list(root.glob("*.yml")))
+
+
+def xcode_regex_literals(root: Path):
+    """Whether the app's Xcode project builds with bare `/.../` regex literals: Xcode's
+    "Enable Bare Slash Regex Literals" (`SWIFT_ENABLE_BARE_SLASH_REGEX`) is on unless the project
+    turns it off, so a Swift 5 app target parses `/[a-z]*/` (Mlem's sign-up and onboarding checks)
+    where a plain Swift 5 compile reads a comment or a division."""
+    off = re.compile(r"SWIFT_ENABLE_BARE_SLASH_REGEX\s*[=:]\s*\"?NO")
+    for pbx in root.rglob("project.pbxproj"):
+        if any(EXCLUDE_DIR.match(p) for p in pbx.relative_to(root).parts[:-2]):
+            continue
+        if off.search(pbx.read_text(errors="replace")):
+            return False
+    return not any(off.search(yml.read_text(errors="replace")) for yml in list(root.glob("project.yml")) + list(root.glob("*.yml")))
+
+
+def xcode_settings(root: Path, conditions):
+    """The Swift settings an Xcode app target builds with: its compilation conditions, and in
+    Swift 5 mode the bare-slash regex literals Xcode turns on (Swift 6 always has them)."""
+    settings = [f".define({json.dumps(c)})" for c in conditions]
+    if xcode_language_mode(root) == "v5" and xcode_regex_literals(root):
+        settings.append('.enableUpcomingFeature("BareSlashRegexLiterals")')
+    return settings
 
 
 def xcode_language_mode(root: Path):
