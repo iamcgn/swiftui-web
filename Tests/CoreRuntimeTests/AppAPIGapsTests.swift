@@ -89,6 +89,20 @@ import WebCombine
         #expect(texts(runtime) == ["Subtitle"])
     }
 
+    // Harbour's search bar: its clear button comes and goes with `.transition(.symbolEffect)`.
+    @Test func symbolEffectTransitionsScaleAndFade() {
+        for transition in [AnyTransition.symbolEffect, .symbolEffect(.appear.byLayer, options: .speed(2)), .symbolEffect(.disappear.down)] {
+            for insertion in [true, false] {
+                let effects = transition.effects(insertion: insertion)
+                #expect(effects.fades && effects.scale == 0, "\(insertion)")
+            }
+        }
+        let runtime = Runtime()
+        runtime.mount(Text("Clear").transition(.symbolEffect))
+        runtime.layout(in: CGSize(width: 300, height: 100))
+        #expect(texts(runtime) == ["Clear"])
+    }
+
     // Deprecated API in a deprecated context: no warnings (the package treats them as errors).
     @available(*, deprecated)
     @Test func deprecatedFormsMapOntoTheCurrentAPI() {

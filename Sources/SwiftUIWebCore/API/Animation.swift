@@ -330,6 +330,15 @@ public struct AnyTransition: Sendable {
             : inserted
     }
 
+    /// Symbols appear and disappear with the appear and disappear symbol effects (iOS 17). The
+    /// symbol is drawn as one layer here, so it scales up from nothing as it fades in, and down
+    /// as it fades out, whichever transition effect is named.
+    public static var symbolEffect: AnyTransition { AnyTransition.scale.combined(with: .opacity) }
+    /// The symbol effect transition with an appear or disappear effect and its options.
+    public static func symbolEffect<T: TransitionSymbolEffect>(_ effect: T, options: SymbolEffectOptions = .default) -> AnyTransition {
+        symbolEffect
+    }
+
     /// Returns a transition defined between an active modifier and an identity modifier
     /// (accepted: transitions paint as fades, moves and scales, decision 0021; the modifiers
     /// are not applied, the view appears and disappears with the identity transition).
