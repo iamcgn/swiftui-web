@@ -148,6 +148,9 @@ await shot('1-onboarding');
 begin('onboarding');
 let steps = 0;
 let coverDark = false;
+// How many story rows the feed behind the cover had painted when Dark was picked (the feed's
+// first page can land before or after the pick: one order may be what leaves it light).
+let rowsAtDark = -1;
 for (let i = 0; i < 10; i++) {
   const t = await texts();
   const button = t.includes('Start Reading') ? 'Start Reading' : t.includes('Continue') ? 'Continue' : null;
@@ -160,6 +163,7 @@ for (let i = 0; i < 10; i++) {
     // `overrideUserInterfaceStyle` on the scene's windows; the cover follows the window).
     await settle(t => t.includes('Choose your look'), 20);
     await idle();
+    rowsAtDark = rows(await texts()).length;
     await tapText('Dark', 0, -20);
     // Polled: the scheme change repaints the cover on a later frame, which a busy runner can
     // take past a fixed wait (the feed after it was dark when one look at 800 ms missed it).
@@ -181,8 +185,18 @@ await settle(t => rows(t).length >= 3, 100);
 let feedDark = false, feedLooks = 0;
 for (; feedLooks < 20 && !feedDark; feedLooks++) { if (feedLooks) await page.waitForTimeout(200); feedDark = await mostlyDark(195, 560); }
 if (feedDark && feedLooks > 1) report.notes.push(`the feed painted dark on look ${feedLooks} (about ${(feedLooks - 1) * 200} ms after its rows appeared)`);
-if (!feedDark) await shot('2-feed-not-dark');
-expect(feedDark, 'the feed is not dark after Dark was picked in the onboarding (4 s after its rows appeared)');
+// A light feed says what it painted, as the screenshot can't be read from the log: the 15
+// samples' colours, the first fills in the display list (the window's and the list's
+// backgrounds), and whether the feed had rows when Dark was picked.
+let darkDetail = '';
+if (!feedDark) {
+  await shot('2-feed-not-dark');
+  const samples = [];
+  for (const dy of [-30, 0, 30]) for (const dx of [-120, -60, 0, 60, 120]) samples.push((await pixel(195 + dx, 560 + dy)).join('.'));
+  const fills = await page.evaluate(() => window.__swiftuiwebDebug.displayList().filter(c => /^fill(Rect|RRect|Path)/.test(c)).slice(0, 8).map(c => c.slice(0, 120)));
+  darkDetail = `; rows when Dark was picked: ${rowsAtDark}; samples ${samples.join(' ')}; first fills ${JSON.stringify(fills)}`;
+}
+expect(feedDark, 'the feed is not dark after Dark was picked in the onboarding (4 s after its rows appeared)' + darkDetail);
 
 begin('feed');
 shown = await settle(t => rows(t).length >= 5, 100);
