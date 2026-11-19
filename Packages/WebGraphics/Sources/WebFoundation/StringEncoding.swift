@@ -234,11 +234,12 @@ extension String {
     /// differed only in their `Data`, which left a call with nothing to pick the result type
     /// ambiguous, as in KeychainAccess's `guard let data = value.data(using: .utf8,
     /// allowLossyConversion: false)`. Disfavoured, so that such a call picks ours above, while a
-    /// context that wants FoundationEssentials' `Data` still gets it.
+    /// context that wants FoundationEssentials' `Data` still gets it, from FoundationEssentials'
+    /// own conversion: its `StringProtocol` form, which this one does not shadow. (Encoding here
+    /// would link this module's encoding tables into every app that converts a string so.)
     @_disfavoredOverload
     public func data(using encoding: Encoding, allowLossyConversion: Bool = false) -> FoundationEssentials.Data? {
-        guard let core = encoding._core, let bytes = _TextEncoding.encode(self, as: core, lossy: allowLossyConversion) else { return nil }
-        return FoundationEssentials.Data(bytes)
+        Substring(self).data(using: encoding, allowLossyConversion: allowLossyConversion)
     }
     /// The form without the lossy flag. FoundationEssentials' `data(using:allowLossyConversion:)`
     /// answers its own `Data`, so the two never shadow each other and `s.data(using: .utf8)`
