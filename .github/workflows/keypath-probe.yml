@@ -34,4 +34,10 @@ jobs:
           echo "=== Store+Observation 640-700"; sed -n '640,700p' $s/Observation/Store+Observation.swift
           echo "=== NavigationStack+Observation 140-185"; sed -n '140,185p' $s/Observation/NavigationStack+Observation.swift
           echo "=== Store subscripts"; grep -n "subscript" $s/Observation/Store+Observation.swift | head -20
+          echo "=== extension headers"; grep -n "^extension\|^@MainActor\|^#if\|^  #if\|^@available" $s/Observation/Store+Observation.swift $s/Observation/NavigationStack+Observation.swift
+          echo "=== Store subscript 870-900"; sed -n '870,900p' $s/Observation/Store+Observation.swift
+          prev=$(find cm -name Package.resolved | xargs grep -h -A8 '"swift-perception"' | grep -m1 '"revision"' | grep -oE '[0-9a-f]{40}')
+          echo "Perception revision $prev"
+          git clone -q https://github.com/pointfreeco/swift-perception per && git -C per checkout -q "$prev"
+          for f in $(grep -rl "struct Bindable" per/Sources); do echo "=== $f"; grep -n -B12 -A3 "struct Bindable" $f; grep -n "subscript\|^#if\|^  #if\|canImport" $f; done
           echo "=== ViewStore removeDuplicates"; grep -n "removeDuplicates isDuplicate" $s/*.swift $s/*/*.swift | head
