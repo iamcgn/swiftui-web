@@ -68,6 +68,15 @@ page.on('console', m => {
   if (/net::ERR_FAILED|Failed to load resource/.test(text) && !/firebaseio|algolia/.test(text)) { report.favicons_refused++; return; }
   // A site refusing to be framed is the site's choice (the reader sheet's Open link is the way out).
   if (/Refused to (display|frame) |X-Frame-Options|frame-ancestors|allow-scripts and allow-same-origin/.test(text)) return;
+  // A framed article's own Content-Security-Policy refusing its own tracker ("Refused to connect to
+  // '<url>'") is that site's, even when the message carries no source: the quoted URL is another
+  // origin and a site is framed. The app's own feeds (firebaseio, algolia) still fail the run.
+  const refused = text.match(/^Refused to connect to '([^']+)'/);
+  if (refused && framesAnotherSite() && !/firebaseio|algolia/.test(refused[1])) {
+    let origin = '';
+    try { origin = new URL(refused[1]).origin; } catch {}
+    if (origin && origin !== appOrigin) { report.framed_site_errors.push('console: ' + text.slice(0, 200)); return; }
+  }
   // A framed article's own script logging an error (its stack, or the message's source, names
   // only other origins) is that site's, as for page errors above.
   const source = m.location()?.url || '';
