@@ -5,9 +5,9 @@
 /// plus 21, 24 pt tall), `.radioGroup` and `.inline` a column of 16 pt radio circles with
 /// body-font labels; the label sits 8 pt before the control in the body font.
 public struct Picker<Label: View, SelectionValue: Hashable, Content: View>: View {
-    package let label: Label
-    package let selection: Binding<SelectionValue>
-    package let content: Content
+    nonisolated(unsafe) package let label: Label
+    nonisolated(unsafe) package let selection: Binding<SelectionValue>
+    nonisolated(unsafe) package let content: Content
     /// `Picker(sources:)`: whether the sources disagree, read in `body` so a change to any
     /// source re-evaluates it; then no option is selected and the pop-up shows no value.
     package var mixed: _MixedCheck?
@@ -21,8 +21,9 @@ public struct Picker<Label: View, SelectionValue: Hashable, Content: View>: View
         package init(_ isMixed: @escaping @MainActor () -> Bool) { self.isMixed = isMixed }
     }
 
-    /// Creates a picker that displays a custom label.
-    public init(selection: Binding<SelectionValue>, @ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
+    /// Creates a picker that displays a custom label (nonisolated, as Apple's is, so an app's own
+    /// `nonisolated` convenience initializer can call it).
+    nonisolated public init(selection: Binding<SelectionValue>, @ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
         self.label = label()
         self.selection = selection
         self.content = content()
@@ -55,6 +56,25 @@ public struct Picker<Label: View, SelectionValue: Hashable, Content: View>: View
         } else {
             _PickerHost(label: labelsHidden ? nil : AnyView(label), content: AnyView(content), selected: selected, select: select, style: style._kind)
         }
+    }
+}
+
+extension Picker where Label == SwiftUIWebCore.Label<Text, Image> {
+    /// Creates a picker whose label is a title from a localized string key and a system symbol.
+    nonisolated public init(_ titleKey: LocalizedStringKey, systemImage: String, selection: Binding<SelectionValue>, @ViewBuilder content: () -> Content) {
+        self.init(selection: selection, content: content) { SwiftUIWebCore.Label(titleKey, systemImage: systemImage) }
+    }
+
+    /// Creates a picker whose label is a title from a string and a system symbol.
+    @_disfavoredOverload
+    nonisolated public init<S: StringProtocol>(_ title: S, systemImage: String, selection: Binding<SelectionValue>, @ViewBuilder content: () -> Content) {
+        self.init(selection: selection, content: content) { SwiftUIWebCore.Label(title, systemImage: systemImage) }
+    }
+
+    /// Creates a picker whose label is a title from a localized string resource and a system symbol.
+    @_disfavoredOverload
+    nonisolated public init(_ titleResource: LocalizedStringResource, systemImage: String, selection: Binding<SelectionValue>, @ViewBuilder content: () -> Content) {
+        self.init(selection: selection, content: content) { SwiftUIWebCore.Label(titleResource, systemImage: systemImage) }
     }
 }
 

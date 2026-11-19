@@ -31,6 +31,41 @@ public let kCFAllocatorDefault: CFAllocator! = CFAllocator()
 /// The result code for success.
 public let noErr: OSStatus = 0
 
+/// A Core Foundation string encoding (`CFStringBuiltInEncodings`' raw values), and the
+/// conversions between it, Foundation's `String.Encoding` raw values and IANA charset names
+/// (OpenGraph reads a page's `charset` this way) for the encodings strings convert through here.
+public typealias CFStringEncoding = UInt32
+public let kCFStringEncodingInvalidId: CFStringEncoding = 0xFFFF_FFFF
+
+/// (CF encoding, Foundation encoding, IANA name) for each encoding carried.
+private let _cfEncodings: [(CFStringEncoding, UInt, String)] = [
+    (0x0800_0100, 4, "utf-8"), (0x0600, 1, "us-ascii"), (0x0201, 5, "iso-8859-1"), (0x0500, 12, "windows-1252"),
+    (0x0100, 10, "utf-16"), (0x1000_0100, 0x9000_0100, "utf-16be"), (0x1400_0100, 0x9400_0100, "utf-16le"),
+    (0x0C00_0100, 0x8C00_0100, "utf-32"), (0x1800_0100, 0x9800_0100, "utf-32be"), (0x1C00_0100, 0x9C00_0100, "utf-32le"),
+]
+private let _ianaAliases: [String: String] = ["utf8": "utf-8", "ascii": "us-ascii", "latin1": "iso-8859-1", "iso_8859-1": "iso-8859-1",
+                                              "cp1252": "windows-1252", "utf16": "utf-16", "utf32": "utf-32"]
+
+/// The encoding an IANA charset name (`"UTF-8"`, `"iso-8859-1"`) names, ignoring case;
+/// `kCFStringEncodingInvalidId` for a name it does not know.
+public func CFStringConvertIANACharSetNameToEncoding(_ theString: CFString!) -> CFStringEncoding {
+    let name = theString.lowercased()
+    let canonical = _ianaAliases[name] ?? name
+    return _cfEncodings.first { $0.2 == canonical }?.0 ?? kCFStringEncodingInvalidId
+}
+/// The IANA charset name of an encoding, nil for one it does not know.
+public func CFStringConvertEncodingToIANACharSetName(_ encoding: CFStringEncoding) -> CFString! {
+    _cfEncodings.first { $0.0 == encoding }?.2
+}
+/// The `String.Encoding` raw value of a CF encoding (`kCFStringEncodingInvalidId` for one it does not know).
+public func CFStringConvertEncodingToNSStringEncoding(_ encoding: CFStringEncoding) -> UInt {
+    _cfEncodings.first { $0.0 == encoding }?.1 ?? UInt(kCFStringEncodingInvalidId)
+}
+/// The CF encoding of a `String.Encoding` raw value (`kCFStringEncodingInvalidId` for one it does not know).
+public func CFStringConvertNSStringEncodingToEncoding(_ encoding: UInt) -> CFStringEncoding {
+    _cfEncodings.first { $0.1 == encoding }?.0 ?? kCFStringEncodingInvalidId
+}
+
 /// A `CFError`'s domain, code and user info (a `CFError` is an `NSError`).
 public typealias CFErrorDomain = CFString
 public func CFErrorGetDomain(_ err: CFError!) -> CFErrorDomain! { err.domain }

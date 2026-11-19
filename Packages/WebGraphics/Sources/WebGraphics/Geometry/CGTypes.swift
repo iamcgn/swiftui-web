@@ -217,6 +217,24 @@ extension CGRect {
         }
     }
 }
+
+// CoreGraphics' rectangle functions that Swift still calls by their C names
+// (`rects.reduce(.null, CGRectUnion)`, LemmyMarkdownUI's table bounds).
+public func CGRectUnion(_ r1: CGRect, _ r2: CGRect) -> CGRect { r1.union(r2) }
+public func CGRectIntersection(_ r1: CGRect, _ r2: CGRect) -> CGRect { r1.intersection(r2) }
+public func CGRectIntersectsRect(_ rect1: CGRect, _ rect2: CGRect) -> Bool { rect1.intersects(rect2) }
+public func CGRectContainsPoint(_ rect: CGRect, _ point: CGPoint) -> Bool { rect.contains(point) }
+public func CGRectContainsRect(_ rect1: CGRect, _ rect2: CGRect) -> Bool { rect1.contains(rect2) }
+public func CGRectInset(_ rect: CGRect, _ dx: CGFloat, _ dy: CGFloat) -> CGRect { rect.insetBy(dx: dx, dy: dy) }
+public func CGRectOffset(_ rect: CGRect, _ dx: CGFloat, _ dy: CGFloat) -> CGRect { rect.offsetBy(dx: dx, dy: dy) }
+public func CGRectStandardize(_ rect: CGRect) -> CGRect { rect.standardized }
+public func CGRectIntegral(_ rect: CGRect) -> CGRect { rect.integral }
+public func CGRectIsEmpty(_ rect: CGRect) -> Bool { rect.isEmpty }
+public func CGRectIsNull(_ rect: CGRect) -> Bool { rect.isNull }
+public func CGRectIsInfinite(_ rect: CGRect) -> Bool { rect.isInfinite }
+public func CGRectEqualToRect(_ rect1: CGRect, _ rect2: CGRect) -> Bool { rect1 == rect2 }
+public func CGPointEqualToPoint(_ point1: CGPoint, _ point2: CGPoint) -> Bool { point1 == point2 }
+public func CGSizeEqualToSize(_ size1: CGSize, _ size2: CGSize) -> Bool { size1 == size2 }
 #endif
 
 public struct CGAffineTransform: Equatable, Hashable, Sendable {

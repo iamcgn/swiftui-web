@@ -59,6 +59,19 @@ extension Label where Title == Text, Icon == Image {
     nonisolated public init<S: StringProtocol>(_ title: S, systemImage name: String) {
         self.init(title: { Text(title) }, icon: { Image(systemName: name) })
     }
+
+    /// Creates a label with a system symbol image and a title from a localized string resource
+    /// (Mlem's `Label(_:icon:)` passes one on): the resource's string, as `Text(_:)` gives it.
+    @_disfavoredOverload
+    nonisolated public init(_ titleResource: LocalizedStringResource, systemImage name: String) {
+        self.init(title: { Text(titleResource) }, icon: { Image(systemName: name) })
+    }
+
+    /// Creates a label with an icon image and a title from a localized string resource.
+    @_disfavoredOverload
+    nonisolated public init(_ titleResource: LocalizedStringResource, image name: String) {
+        self.init(title: { Text(titleResource) }, icon: { Image(name) })
+    }
 }
 
 // MARK: - Styles

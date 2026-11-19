@@ -10,7 +10,7 @@
 // called from script). Without a browser (the native builds) there is no engine, and making a
 // context gives nil.
 #if os(WASI)
-import WebFoundation
+@_exported import WebFoundation   // as Apple's JavaScriptCore brings Foundation (HighlightSwift imports only it)
 import JavaScriptKit
 #else
 import Foundation

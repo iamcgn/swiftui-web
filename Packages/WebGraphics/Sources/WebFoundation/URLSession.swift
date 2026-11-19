@@ -272,6 +272,15 @@ public final class HTTPURLResponse: URLResponse, @unchecked Sendable {
 }
 
 /// An error that occurs during URL loading.
+/// Matches a URL error's code against any error, as Foundation's `~=` for error codes does
+/// (`if case URLError.cancelled = error as NSError`, Mlem's REST client): a `URLError` with that
+/// code, or an `NSError` in `NSURLErrorDomain` with it.
+public func ~= (code: URLError.Code, error: any Error) -> Bool {
+    if let error = error as? URLError { return error.code == code }
+    if let error = error as? NSError { return error.domain == NSURLErrorDomain && error.code == code.rawValue }
+    return false
+}
+
 public struct URLError: Error, Hashable, @unchecked Sendable, CustomStringConvertible, LocalizedError {
     public struct Code: RawRepresentable, Hashable, Sendable {
         public let rawValue: Int
