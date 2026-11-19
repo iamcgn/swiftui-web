@@ -175,14 +175,11 @@ def is_manifest(name: str) -> bool:
 
 def in_target_exclude(rel: Path, excludes):
     """Whether SwiftPM leaves a file out of a target: a hidden file or folder on its path, or a
-    path under one of the target's `exclude` entries (each relative to the target's folder; a bare
-    file name, as some manifests write, also matches that file anywhere in the target)."""
+    path at or under one of the target's `exclude` entries, each relative to the target's folder
+    (`"Helper.swift"` leaves out the target's own `Helper.swift`, not `Snapshot/Helper.swift`)."""
     if any(part.startswith(".") for part in rel.parts):
         return True
-    for e in excludes:
-        if rel == e or e in rel.parents or (len(e.parts) == 1 and rel.name == e.name):
-            return True
-    return False
+    return any(rel == e or e in rel.parents for e in excludes)
 
 
 def excluded(rel: Path, extra):
