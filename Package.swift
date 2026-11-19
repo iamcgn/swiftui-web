@@ -35,7 +35,6 @@ let package = Package(
         // The build plugin that writes an app's asset symbols (`ImageResource.logo`,
         // `ColorResource.accent`) from its `.xcassets`, as Xcode does.
         .plugin(name: "AssetSymbols", targets: ["AssetSymbols"]),
-        .library(name: "UserNotifications", targets: ["UserNotifications"]),
         .library(name: "CryptoKit", targets: ["CryptoKit"]),
         .library(name: "CoreHaptics", targets: ["CoreHaptics"]),
         .library(name: "WebCoreImage", targets: ["WebCoreImage"]),
@@ -146,8 +145,8 @@ let package = Package(
         // The AssetSymbols plugin's tool: `.xcassets` to `ImageResource` and `ColorResource` symbols (host only).
         .executableTarget(name: "AssetSymbolsGen", swiftSettings: [.treatAllWarnings(as: .error)]),
         .plugin(name: "AssetSymbols", capability: .buildTool(), dependencies: ["AssetSymbolsGen"]),
-        .target(name: "UserNotificationsHost", swiftSettings: [.treatAllWarnings(as: .error)]),
-        .target(name: "UserNotifications", dependencies: ["UserNotificationsHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // UserNotifications and its host hook live in UIKitWeb, whose UIKit re-exports them as Apple's
+        // does (Harbour's app delegate names UNUserNotificationCenter with only `import UIKit`).
         // Hashes, HMAC and symmetric keys; haptics on hardware without an engine; the app's calls
         // to its widgets (none on the web). Pure Swift values over WebFoundation.
         .target(name: "CryptoKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -289,7 +288,7 @@ let package = Package(
                 // 0021, 0022): Web Audio, the microphone, the on-device recogniser fed the app's
                 // buffers, the Notification API, geolocation, localStorage for SwiftData's stores.
                 // Each is a module of its own, so no framework is linked into every app (0006).
-                "AVFAudioHost", "AVCaptureHost", "SpeechRecognitionHost", "UserNotificationsHost", "CoreLocationHost", "CoreMotionHost", "SwiftDataHost", "AuthenticationServicesHost", "TranslationHost",
+                "AVFAudioHost", "AVCaptureHost", "SpeechRecognitionHost", .product(name: "UserNotificationsHost", package: "UIKitWeb"), "CoreLocationHost", "CoreMotionHost", "SwiftDataHost", "AuthenticationServicesHost", "TranslationHost",
                 // The on-screen keyboard's frame from the visual viewport into UIKitScene (KeyboardHost.swift).
                 .product(name: "UIKitWebCore", package: "UIKitWeb"),
                 .product(name: "WebGraphicsCanvas", package: "WebGraphics"),
@@ -315,7 +314,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", .product(name: "UserNotifications", package: "UIKitWeb"), "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // JavaScriptCore on its own: under Node (the wasm tests) against its real engine; natively,

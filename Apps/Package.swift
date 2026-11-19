@@ -192,7 +192,7 @@ let package = Package(
             dependencies: swiftUI + [uiKit] + host + [
                 "CloudStorage", "SwiftDataTransferrable",
                 .product(name: "SwiftData", package: "SwiftUIWeb"),
-                .product(name: "UserNotifications", package: "SwiftUIWeb"),
+                .product(name: "UserNotifications", package: "UIKitWeb"),
                 .product(name: "WidgetKit", package: "SwiftUIWeb"),
                 .product(name: "StoreKit", package: "SwiftUIWeb"),
                 .product(name: "Charts", package: "SwiftUIWeb"),

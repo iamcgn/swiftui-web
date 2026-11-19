@@ -886,7 +886,7 @@ WEB_PRODUCTS = [
     ("AVKit", "SwiftUIWeb"),
     ("Speech", "SwiftUIWeb"),
     ("SwiftData", "SwiftUIWeb"),
-    ("UserNotifications", "SwiftUIWeb"),
+    ("UserNotifications", "UIKitWeb"),
     ("CryptoKit", "SwiftUIWeb"),
     ("CoreHaptics", "SwiftUIWeb"),
     ("WidgetKit", "SwiftUIWeb"),
