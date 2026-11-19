@@ -71,15 +71,17 @@ page.on('console', m => {
   // A framed article's own Content-Security-Policy refusing its own tracker ("Refused to connect to
   // '<url>'") is that site's, even when the message carries no source: the quoted URL is another
   // origin and a site is framed. The app's own feeds (firebaseio, algolia) still fail the run.
+  // A message whose source names the app (or one of its blob: workers) stays the app's.
+  const source = m.location()?.url || '';
+  const fromApp = source.startsWith(appOrigin) || source.startsWith('blob:');
   const refused = text.match(/^Refused to connect to '([^']+)'/);
-  if (refused && framesAnotherSite() && !/firebaseio|algolia/.test(refused[1])) {
+  if (refused && !fromApp && framesAnotherSite() && !/firebaseio|algolia/.test(refused[1])) {
     let origin = '';
     try { origin = new URL(refused[1]).origin; } catch {}
     if (origin && origin !== appOrigin) { report.framed_site_errors.push('console: ' + text.slice(0, 200)); return; }
   }
   // A framed article's own script logging an error (its stack, or the message's source, names
   // only other origins) is that site's, as for page errors above.
-  const source = m.location()?.url || '';
   if ((/\n\s+at /.test(text) && isFramedSiteError(text)) || (source && !source.startsWith(appOrigin) && !source.startsWith('blob:') && isFramedSiteError(source))) {
     report.framed_site_errors.push('console: ' + text.slice(0, 200)); return;
   }
