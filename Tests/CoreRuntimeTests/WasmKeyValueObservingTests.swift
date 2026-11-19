@@ -16,6 +16,28 @@ private final class Player: NSObject {
     }
 }
 
+private final class SendableKeyObserver: NSObject, Sendable {
+    let didChange: @Sendable () -> Void
+    init(didChange: @escaping @Sendable () -> Void) {
+        self.didChange = didChange
+        super.init()
+    }
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?,
+                               change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
+        didChange()
+    }
+}
+
+private final class SendableCounter: @unchecked Sendable {
+    var count = 0
+    func bump() { count += 1 }
+}
+
+private struct StoreKeyID: Hashable {
+    let key: String
+    let store: UserDefaults
+}
+
 @Suite(.serialized) @MainActor struct WasmKeyValueObservingTests {
     @Test func handMadeReportsCarryOptions() {
         let player = Player()
@@ -84,6 +106,23 @@ private final class Player: NSObject {
         defaults.removeObserver(observer, forKeyPath: "count")
         defaults.set(3, forKey: "count")
         #expect(observer.seen.count == 4)
+    }
+
+    // swift-sharing's own shapes: a `Sendable` observer class, a key that names its store, and a
+    // check by selector before asking the store for its suite.
+    @Test func appStorageShapes() throws {
+        let defaults = try #require(UserDefaults(suiteName: "kvo.\(Int.random(in: 0..<1_000_000))"))
+        let heard = SendableCounter()
+        let observer = SendableKeyObserver { heard.bump() }
+        defaults.addObserver(observer, forKeyPath: "flag", context: nil)
+        defaults.set(true, forKey: "flag")
+        #expect(heard.count == 1)
+        defaults.removeObserver(observer, forKeyPath: "flag")
+
+        let ids: Set<StoreKeyID> = [StoreKeyID(key: "flag", store: defaults), StoreKeyID(key: "flag", store: defaults),
+                                    StoreKeyID(key: "flag", store: .standard)]
+        #expect(ids.count == 2)
+        #expect(!defaults.responds(to: Selector(("_identifier"))))
     }
 
     @Test func anObserverByKeyHearsAHandMadeReportAndInitialValue() throws {

@@ -184,8 +184,10 @@ public protocol NSObjectProtocol: AnyObject {
 }
 
 /// The root class of most Objective-C class hierarchies, without the runtime: identity
-/// equality and hashing, overridable, as apps subclass it for delegates.
-open class NSObject: NSObjectProtocol, Hashable, CustomStringConvertible {
+/// equality and hashing, overridable, as apps subclass it for delegates. It is `Sendable`, as
+/// the compiler lets a `Sendable` class inherit from the runtime's `NSObject` alone and would
+/// otherwise refuse `final class Observer: NSObject, Sendable` (swift-sharing's AppStorageKey).
+open class NSObject: NSObjectProtocol, Hashable, CustomStringConvertible, @unchecked Sendable {
     public init() {}
     open func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? NSObject else { return false }
