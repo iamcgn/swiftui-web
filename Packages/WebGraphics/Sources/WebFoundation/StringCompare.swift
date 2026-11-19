@@ -1,6 +1,7 @@
 // The NSString comparisons and normalizations on wasm, where FoundationEssentials keeps them
 // internal: `compare(_:options:range:locale:)`, the case-insensitive and localized forms,
-// `replacingCharacters(in:with:)`, `components(separatedBy:)` with a character set, and the
+// `folding(options:locale:)`, `replacingCharacters(in:with:)`, `components(separatedBy:)` with a
+// character set, and the
 // canonical normalization forms (`precomposedStringWithCanonicalMapping`, NFC, and
 // `decomposedStringWithCanonicalMapping`, NFD) through the standard library's own tables.
 // Case folding is Unicode's full folding ("ß" matches "SS"), as Foundation's. The localized
@@ -116,6 +117,14 @@ extension StringProtocol {
     /// The Finder's order: localized, with numbers compared by value ("File 2" < "File 10").
     public func localizedStandardCompare<T: StringProtocol>(_ string: T) -> ComparisonResult {
         _StringCompare.localizedCompare(String(self), String(string), options: .numeric)
+    }
+
+    /// The string with the distinctions `options` ignores taken out, as comparisons with those
+    /// options see it: case folded with `.caseInsensitive`, accents and other combining marks
+    /// dropped with `.diacriticInsensitive` ("Él" to "El"). The result is precomposed.
+    public func folding(options: String.CompareOptions = [], locale: Locale?) -> String {
+        guard options.contains(.caseInsensitive) || options.contains(.diacriticInsensitive) else { return String(self) }
+        return _StringCompare.precomposed(String(String.UnicodeScalarView(_StringCompare.keys(String(self), options: options))))
     }
 
     /// The string with the characters in `range` replaced.
