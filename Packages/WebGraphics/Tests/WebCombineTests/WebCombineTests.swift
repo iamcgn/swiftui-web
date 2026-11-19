@@ -16,6 +16,12 @@ import FoundationNetworking
 #endif
 @testable import WebCombine
 
+/// TCA's `ViewStore` passes `removeDuplicates(by:)` a plain, non-Sendable closure from
+/// nonisolated code, as Apple's signature allows.
+private func removingDuplicates<P: Publisher>(_ upstream: P, by isDuplicate: @escaping (P.Output, P.Output) -> Bool) -> _Pipe<P.Output, P.Failure> {
+    upstream.removeDuplicates(by: isDuplicate)
+}
+
 @MainActor @Suite(.serialized) struct WebCombineTests {
     enum Failure: Error, Equatable { case bad }
 
@@ -115,6 +121,13 @@ import FoundationNetworking
         subject.send(completion: .finished)
         #expect(out == ["20", "40", "60"] && done)
         c.cancel()
+
+        var sizes: [Int] = []
+        let sized = PassthroughSubject<Int, Never>()
+        let d = removingDuplicates(sized, by: { abs($0) == abs($1) }).sink { sizes.append($0) }
+        for n in [1, -1, 2, -2, -2, 3] { sized.send(n) }
+        #expect(sizes == [1, 2, 3])
+        d.cancel()
 
         var firsts: [Int] = []
         var firstDone = false
