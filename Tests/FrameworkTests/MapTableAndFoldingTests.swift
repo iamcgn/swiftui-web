@@ -35,6 +35,26 @@ private final class Box: NSObject {
     }
 
     #if os(WASI) || canImport(Darwin)
+    @Test func foldingWidthAndTurkish() {
+        #expect("ａ".folding(options: .widthInsensitive, locale: nil) == "a")
+        #expect("ＡＢＣ１".folding(options: .widthInsensitive, locale: nil) == "ABC1")
+        #expect("Ａ".folding(options: [.widthInsensitive, .caseInsensitive], locale: nil) == "a")
+        #expect("I".folding(options: .caseInsensitive, locale: Locale(identifier: "tr_TR")) == "\u{131}")
+        #expect("\u{130}".folding(options: .caseInsensitive, locale: Locale(identifier: "tr")) == "i")
+        #expect("I".folding(options: .caseInsensitive, locale: Locale(identifier: "en_US")) == "i")
+        #expect("I".folding(options: .diacriticInsensitive, locale: Locale(identifier: "tr_TR")) == "I")
+    }
+    #endif
+
+    #if os(WASI)
+    @Test func foldingHalfwidthKana() {
+        #expect("ｶﾞｷﾞ".folding(options: .widthInsensitive, locale: nil) == "ガギ")
+        #expect("ｱｲｳ".folding(options: .widthInsensitive, locale: nil) == "アイウ")
+        #expect("ｶﾞ".compare("ガ", options: .widthInsensitive) == .orderedSame)
+    }
+    #endif
+
+    #if os(WASI) || canImport(Darwin)
     @Test func strongTable() {
         let table = NSMapTable<Token, Box>.strongToStrongObjects()
         table.setObject(Box("one"), forKey: Token(1))

@@ -38,7 +38,12 @@ public enum _StringCompare {
     }
 
     /// The scalars a comparison runs over.
-    static func keys(_ string: String, options: String.CompareOptions) -> [Unicode.Scalar] {
+    static func keys(_ input: String, options: String.CompareOptions, turkic: Bool = false) -> [Unicode.Scalar] {
+        var string = options.contains(.widthInsensitive) ? widthFolded(input) : input
+        // Turkish and Azeri fold dotless "I" to "ı" and dotted "İ" to "i".
+        if turkic && options.contains(.caseInsensitive) {
+            string = String(String.UnicodeScalarView(string.unicodeScalars.map { $0 == "I" ? "\u{131}" : $0 == "\u{130}" ? "i" : $0 }))
+        }
         var scalars: [Unicode.Scalar] = []
         let decomposes = options.contains(.diacriticInsensitive)
         if options.contains(.literal) && !decomposes {
@@ -53,6 +58,38 @@ public enum _StringCompare {
         for scalar in scalars { folded += scalar.properties._caseFolded.unicodeScalars }
         // A folded scalar can compose with its neighbours again.
         return decomposes ? folded : Array(String(String.UnicodeScalarView(folded))._nfc)
+    }
+
+    /// Halfwidth katakana, each as its fullwidth form (U+FF61 to U+FF9F); the two halfwidth
+    /// sound marks become the combining ones, which compose with the kana before them.
+    private static let halfwidthKatakana: [UInt16] = [
+        0x3002, 0x300C, 0x300D, 0x3001, 0x30FB, 0x30F2, 0x30A1, 0x30A3, 0x30A5, 0x30A7, 0x30A9, 0x30E3, 0x30E5,
+        0x30E7, 0x30C3, 0x30FC, 0x30A2, 0x30A4, 0x30A6, 0x30A8, 0x30AA, 0x30AB, 0x30AD, 0x30AF, 0x30B1, 0x30B3,
+        0x30B5, 0x30B7, 0x30B9, 0x30BB, 0x30BD, 0x30BF, 0x30C1, 0x30C4, 0x30C6, 0x30C8, 0x30CA, 0x30CB, 0x30CC,
+        0x30CD, 0x30CE, 0x30CF, 0x30D2, 0x30D5, 0x30D8, 0x30DB, 0x30DE, 0x30DF, 0x30E0, 0x30E1, 0x30E2, 0x30E4,
+        0x30E6, 0x30E8, 0x30E9, 0x30EA, 0x30EB, 0x30EC, 0x30ED, 0x30EF, 0x30F3, 0x3099, 0x309A,
+    ]
+    /// The fullwidth signs U+FFE0 to U+FFE6 as their ordinary forms.
+    private static let fullwidthSigns: [UInt16] = [0xA2, 0xA3, 0xAC, 0xAF, 0xA6, 0xA5, 0x20A9]
+
+    /// The string with its width variants as their ordinary forms, as `.widthInsensitive`
+    /// compares them: fullwidth ASCII and signs and the ideographic space narrowed, halfwidth
+    /// katakana widened ("ｶﾞ" to "ガ").
+    static func widthFolded(_ string: String) -> String {
+        var result = String.UnicodeScalarView()
+        for scalar in string.unicodeScalars {
+            let value = scalar.value
+            let mapped: UInt32
+            switch value {
+            case 0xFF01...0xFF5E: mapped = value - 0xFEE0
+            case 0x3000: mapped = 0x20
+            case 0xFF61...0xFF9F: mapped = UInt32(halfwidthKatakana[Int(value - 0xFF61)])
+            case 0xFFE0...0xFFE6: mapped = UInt32(fullwidthSigns[Int(value - 0xFFE0)])
+            default: mapped = value
+            }
+            result.append(Unicode.Scalar(mapped) ?? scalar)
+        }
+        return String(result)
     }
 
     static func swappedCase(_ string: String) -> String {
@@ -120,11 +157,18 @@ extension StringProtocol {
     }
 
     /// The string with the distinctions `options` ignores taken out, as comparisons with those
-    /// options see it: case folded with `.caseInsensitive`, accents and other combining marks
-    /// dropped with `.diacriticInsensitive` ("Él" to "El"). The result is precomposed.
+    /// options see it: case folded with `.caseInsensitive` (in Turkish and Azeri, "I" to "ı"),
+    /// accents and other combining marks dropped with `.diacriticInsensitive` ("Él" to "El"),
+    /// and width variants made ordinary with `.widthInsensitive` ("ａ" to "a"). The result is
+    /// precomposed.
     public func folding(options: String.CompareOptions = [], locale: Locale?) -> String {
-        guard options.contains(.caseInsensitive) || options.contains(.diacriticInsensitive) else { return String(self) }
-        return _StringCompare.precomposed(String(String.UnicodeScalarView(_StringCompare.keys(String(self), options: options))))
+        let text = String(self)
+        let folds: String.CompareOptions = [.caseInsensitive, .diacriticInsensitive, .widthInsensitive]
+        guard !options.isDisjoint(with: folds) else { return text }
+        let language = locale?.identifier.split(whereSeparator: { $0 == "_" || $0 == "-" }).first
+        let turkic = language == "tr" || language == "az"
+        if options.isDisjoint(with: [.caseInsensitive, .diacriticInsensitive]) { return _StringCompare.precomposed(_StringCompare.widthFolded(text)) }
+        return _StringCompare.precomposed(String(String.UnicodeScalarView(_StringCompare.keys(text, options: options, turkic: turkic))))
     }
 
     /// The string with the characters in `range` replaced.
