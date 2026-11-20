@@ -443,14 +443,29 @@ func pathsMatch(_ ours: String, _ apple: String, tolerance: Double = 1e-3, sourc
             let list = runtime.render(scale: 1)
             return DisplayListDecoder.decode(DisplayListEncoder.encode(list, font: DisplayListEncoder.cssFont)).first { $0.hasPrefix("fillPath") || $0.hasPrefix("fillRRect") } ?? ""
         }
+        /// The same commands with coordinates equal to 1e-6 (the shape is drawn in its own frame and
+        /// moved, which leaves float noise in the last digits).
+        func close(_ a: String, _ b: String, sourceLocation: SourceLocation = #_sourceLocation) {
+            let split = { (s: String) in s.split(whereSeparator: { $0 == " " || $0 == "," }) }
+            let x = split(a), y = split(b)
+            #expect(x.count == y.count, "\(a)\n≠\n\(b)", sourceLocation: sourceLocation)
+            for (p, q) in zip(x, y) {
+                let n = String(p.drop(while: \.isLetter)), m = String(q.drop(while: \.isLetter))
+                if let u = Double(n), let v = Double(m), p.filter(\.isLetter) == q.filter(\.isLetter) {
+                    #expect(abs(u - v) <= 1e-6, "\(a)\n≠\n\(b)", sourceLocation: sourceLocation)
+                } else {
+                    #expect(p == q, "\(a)\n≠\n\(b)", sourceLocation: sourceLocation)
+                }
+            }
+        }
         let container = UnevenRoundedRectangle(cornerRadii: .init(topLeading: 30, bottomLeading: 10, bottomTrailing: 20, topTrailing: 12))
         let inner = CGRect(x: 10, y: 10, width: 60, height: 60)
         let each = path(ConcentricRectangle().fill(Color.red).padding(10).frame(width: 80, height: 80).containerShape(container))
-        #expect(each == path(Path(roundedRect: inner, cornerRadii: .init(topLeading: 20, bottomLeading: 0, bottomTrailing: 10, topTrailing: 2), style: .continuous).fill(Color.red)))
+        close(each, path(Path(roundedRect: inner, cornerRadii: .init(topLeading: 20, bottomLeading: 0, bottomTrailing: 10, topTrailing: 2), style: .continuous).fill(Color.red)))
         let uniform = path(ConcentricRectangle(corners: .concentric, isUniform: true).fill(Color.red).padding(10).frame(width: 80, height: 80).containerShape(container))
         #expect(uniform == path(Path(roundedRect: inner, cornerRadii: .init(topLeading: 20, bottomLeading: 20, bottomTrailing: 20, topTrailing: 20), style: .continuous).fill(Color.red)))
         let floored = path(ConcentricRectangle(corners: .concentric(minimum: 8)).fill(Color.red).padding(10).frame(width: 80, height: 80).containerShape(container))
-        #expect(floored == path(Path(roundedRect: inner, cornerRadii: .init(topLeading: 20, bottomLeading: 8, bottomTrailing: 10, topTrailing: 8), style: .continuous).fill(Color.red)))
+        close(floored, path(Path(roundedRect: inner, cornerRadii: .init(topLeading: 20, bottomLeading: 8, bottomTrailing: 10, topTrailing: 8), style: .continuous).fill(Color.red)))
     }
 
     /// The separator role draws a bare hierarchical level at the primary level when no foreground
