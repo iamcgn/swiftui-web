@@ -108,6 +108,21 @@ import WebFoundation
         #expect(text == "four")
     }
 
+    /// Hears only that a task was made.
+    final class Creations: NSObject, URLSessionWebSocketDelegate, @unchecked Sendable {
+        var made: [Int] = []
+        func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) { made.append(task.taskIdentifier) }
+    }
+
+    @Test func everyFactoryTellsTheDelegateItMadeATask() {
+        let creations = Creations()
+        let session = URLSession(configuration: .default, delegate: creations, delegateQueue: nil)
+        let url = URL(string: "wss://relay.example/stream")!
+        let tasks = [session.webSocketTask(with: url), session.webSocketTask(with: url, protocols: ["chat"]),
+                     session.webSocketTask(with: URLRequest(url: url))]
+        #expect(creations.made == tasks.map(\.taskIdentifier))
+    }
+
     @Test func anAppCloseEndsTheTask() {
         let host = Host(); host.install(); defer { _WebSocketHost.open = nil }
         let listener = Listener()

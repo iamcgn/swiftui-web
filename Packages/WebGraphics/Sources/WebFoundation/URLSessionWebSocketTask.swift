@@ -333,7 +333,9 @@ extension URLSession {
     private func webSocketTask(with request: URLRequest, protocols: [String]) -> URLSessionWebSocketTask {
         let identifier = nextTaskIdentifier
         nextTaskIdentifier += 1
-        return URLSessionWebSocketTask(identifier: identifier, request: request, protocols: protocols, session: self)
+        let task = URLSessionWebSocketTask(identifier: identifier, request: request, protocols: protocols, session: self)
+        _tellCreated(task)
+        return task
     }
 }
 #endif
