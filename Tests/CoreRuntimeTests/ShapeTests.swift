@@ -89,6 +89,21 @@ func pathsMatch(_ ours: String, _ apple: String, tolerance: Double = 1e-3, sourc
                    "30 40 m 30 57.07 l 30 63.6726 30 66.9739 28.8763 70.5276 c 27.4641 74.4076 24.4076 77.4641 20.5276 78.8763 c 17.7 80 15.6 80 15 80 c 15 80 l 14.4 80 12.3 80 9.47241 78.8763 c 5.59236 77.4641 2.5359 74.4076 1.12367 70.5276 c 0 66.9739 0 63.6726 0 57.07 c 0 22.93 l 0 16.3274 0 13.0261 1.12367 9.47241 c 2.5359 5.59236 5.59236 2.5359 9.47241 1.12367 c 12.3 0 14.4 0 15 0 c 15 0 l 15.6 0 17.7 0 20.5276 1.12367 c 24.4076 2.5359 27.4641 5.59236 28.8763 9.47241 c 30 13.0261 30 16.3274 30 22.93 c h")
     }
 
+    @Test func concentricRectangleFallsBackToFixedAndMinimumRadii() {
+        // Outside a container shape a concentric corner takes its minimum and a fixed one its radius.
+        let mixed = ConcentricRectangle(topLeadingCorner: .fixed(5), topTrailingCorner: .concentric(minimum: 20),
+                                        bottomLeadingCorner: .fixed(10), bottomTrailingCorner: .concentric(minimum: .fixed(15)))
+        #expect(mixed.path(in: rect).description
+                == UnevenRoundedRectangle(cornerRadii: .init(topLeading: 5, bottomLeading: 10, bottomTrailing: 15, topTrailing: 20)).path(in: rect).description)
+        let uniform: ConcentricRectangle = .rect(corners: .concentric(), isUniform: true)
+        #expect(uniform.isUniform && uniform.corners.allSatisfy { $0 == .concentric })
+        #expect(uniform.path(in: rect).description == UnevenRoundedRectangle(cornerRadii: .init()).path(in: rect).description)
+        let largest = ConcentricRectangle(corners: .fixed(12), isUniform: true)
+        #expect(largest.path(in: rect).description
+                == UnevenRoundedRectangle(cornerRadii: .init(topLeading: 12, bottomLeading: 12, bottomTrailing: 12, topTrailing: 12)).path(in: rect).description)
+        #expect(ConcentricRectangle().corners == Array(repeating: .concentric, count: 4))
+    }
+
     @Test func unevenCorners() {
         pathsMatch(UnevenRoundedRectangle(cornerRadii: .init(topLeading: 5, bottomLeading: 10, bottomTrailing: 15, topTrailing: 20), style: .circular).path(in: rect).description,
                    "100 32.5 m 100 45 l 100 53.2843 93.2843 60 85 60 c 10 60 l 4.47715 60 0 55.5228 0 50 c 0 5 l 0 2.23858 2.23858 0 5 0 c 80 0 l 91.0457 0 100 8.95431 100 20 c h")

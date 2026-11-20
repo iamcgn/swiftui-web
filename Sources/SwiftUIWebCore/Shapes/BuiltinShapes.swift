@@ -133,6 +133,69 @@ extension UnevenRoundedRectangle: InsettableShape, _InsetPathProviding {
     }
 }
 
+// MARK: - ConcentricRectangle
+
+/// A rectangle whose corners are concentric with its container's (`containerShape`): each
+/// concentric corner takes the container's radius less the view's distance from it, and a fixed
+/// corner keeps its radius. With every corner concentric (minimum 0) inside a container shape it
+/// is the container's shape inset, as `ContainerRelativeShape` draws it; otherwise a concentric
+/// corner takes its minimum (decision 0021: unmeasured; the container's numeric radius is not
+/// tracked for mixed corners). `isUniform` gives every corner the largest radius.
+@frozen
+public struct ConcentricRectangle: Sendable {
+    public var topLeadingCorner: Edge.Corner.Style
+    public var topTrailingCorner: Edge.Corner.Style
+    public var bottomLeadingCorner: Edge.Corner.Style
+    public var bottomTrailingCorner: Edge.Corner.Style
+    public var isUniform: Bool
+
+    /// A rectangle with every corner concentric with its container's.
+    nonisolated public init() { self.init(corners: .concentric, isUniform: false) }
+
+    nonisolated public init(corners: Edge.Corner.Style = .concentric, isUniform: Bool = false) {
+        self.init(topLeadingCorner: corners, topTrailingCorner: corners, bottomLeadingCorner: corners,
+                  bottomTrailingCorner: corners, isUniform: isUniform)
+    }
+
+    nonisolated public init(topLeadingCorner: Edge.Corner.Style = .concentric, topTrailingCorner: Edge.Corner.Style = .concentric,
+                            bottomLeadingCorner: Edge.Corner.Style = .concentric, bottomTrailingCorner: Edge.Corner.Style = .concentric) {
+        self.init(topLeadingCorner: topLeadingCorner, topTrailingCorner: topTrailingCorner, bottomLeadingCorner: bottomLeadingCorner,
+                  bottomTrailingCorner: bottomTrailingCorner, isUniform: false)
+    }
+
+    nonisolated init(topLeadingCorner: Edge.Corner.Style, topTrailingCorner: Edge.Corner.Style, bottomLeadingCorner: Edge.Corner.Style,
+                     bottomTrailingCorner: Edge.Corner.Style, isUniform: Bool) {
+        self.topLeadingCorner = topLeadingCorner
+        self.topTrailingCorner = topTrailingCorner
+        self.bottomLeadingCorner = bottomLeadingCorner
+        self.bottomTrailingCorner = bottomTrailingCorner
+        self.isUniform = isUniform
+    }
+
+    nonisolated package var corners: [Edge.Corner.Style] { [topLeadingCorner, topTrailingCorner, bottomLeadingCorner, bottomTrailingCorner] }
+
+    /// The radii a concentric corner falls back to, inset by `amount`.
+    nonisolated func radii(insetBy amount: CGFloat) -> RectangleCornerRadii {
+        var r = corners.map { max(0, $0.fallbackRadius - amount) }
+        if isUniform, let largest = r.max() { r = Array(repeating: largest, count: 4) }
+        return RectangleCornerRadii(topLeading: r[0], bottomLeading: r[2], bottomTrailing: r[3], topTrailing: r[1])
+    }
+}
+
+extension ConcentricRectangle: InsettableShape, _InsetPathProviding {
+    nonisolated public func path(in rect: CGRect) -> Path { _insetPath(in: rect, by: 0) }
+
+    nonisolated public func _insetPath(in rect: CGRect, by amount: CGFloat) -> Path {
+        if ContainerRelativeShape._resolution != nil, corners.allSatisfy({ $0 == .concentric }) {
+            return ContainerRelativeShape()._insetPath(in: rect, by: amount)
+        }
+        return Path(roundedRect: rect.insetBy(dx: amount, dy: amount), cornerRadii: radii(insetBy: amount), style: .continuous)
+    }
+
+    nonisolated public func inset(by amount: CGFloat) -> _InsetShape<ConcentricRectangle> { _InsetShape(shape: self, amount: amount) }
+    public typealias AnimatableData = EmptyAnimatableData
+}
+
 // MARK: - Circle, Ellipse, Capsule
 
 /// A circle centered on the frame of the view containing it.
