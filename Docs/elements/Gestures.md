@@ -95,9 +95,11 @@ UIKitWeb's `HostedGestureRecognizerDriver` puts the recognizer on a stand-in vie
 place in the window and feeds it one touch per press, as the touch router does: the delegate's
 `shouldReceive`, then began, moved and ended or cancelled, with failure requirements and
 arbitration. A touch's `location(in:)` the stand-in is in the view's space. Each action calls
-`handleUIGestureRecognizerAction(_:context:)`; the context's converter gives the location, a
-pan's translation and velocity in `.local` or `.global` (a named space is measured as the
-view's own, as the drag gesture's are). While the recognizer has begun the SwiftUI gesture is
+`handleUIGestureRecognizerAction(_:context:)`; the context (coordinator and converter, as
+Apple's) has a converter giving `localLocation`, `localTranslation`, `localVelocity`, the
+location and a pan's translation and velocity in `.local` or `.global`, and
+`convert(globalPoint:to:)` (a named space is measured as the view's own, as the drag gesture's
+are). While the recognizer has begun the SwiftUI gesture is
 active, so it holds the press as a recognised drag does. `GestureRecognizerRepresentableTests`
 cover the spaces, the coordinator as delegate and the recognizer kept across updates. First
 user: Mlem's QuickSwipes `PanGesture`.

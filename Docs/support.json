@@ -1506,7 +1506,7 @@
         {
           "api": "UIGestureRecognizerRepresentable / View.gesture(_:) with one",
           "status": "partial",
-          "notes": "makeCoordinator(converter:), then makeUIGestureRecognizer once for the view's life, updateUIGestureRecognizer on every update, handleUIGestureRecognizerAction for each action; the recognizer sits on a stand-in view where the SwiftUI view is and sees the view's presses as one touch, with the coordinator as delegate (shouldReceive, shouldBegin), failure requirements and arbitration as the touch router applies them; the context's converter gives the location, location(ofTouch:), a pan's translation and velocity in .local or .global (a named space as the view's own); while the recognizer has begun the SwiftUI gesture holds the press.",
+          "notes": "makeCoordinator(converter:), then makeUIGestureRecognizer once for the view's life, updateUIGestureRecognizer on every update, handleUIGestureRecognizerAction for each action; the recognizer sits on a stand-in view where the SwiftUI view is and sees the view's presses as one touch, with the coordinator as delegate (shouldReceive, shouldBegin), failure requirements and arbitration as the touch router applies them; the context's converter gives localLocation, localTranslation, localVelocity, location / translation / velocity in .local or .global, and convert(globalPoint:to:) (a named space as the view's own); while the recognizer has begun the SwiftUI gesture holds the press.",
           "noFixture": "A recognizer has no resting picture; GestureRecognizerRepresentableTests drive it with presses (Mlem's QuickSwipes)."
         },
         {

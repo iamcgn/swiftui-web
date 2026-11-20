@@ -39,10 +39,15 @@ private struct Pan: UIGestureRecognizerRepresentable {
     func updateUIGestureRecognizer(_ recognizer: UIPanGestureRecognizer, context: Context) { log.updated += 1 }
 
     func handleUIGestureRecognizerAction(_ recognizer: UIPanGestureRecognizer, context: Context) {
-        let local = context.converter.location(in: .local)
+        let local = context.converter.localLocation
         let global = context.converter.location(in: .global)
-        let translation = context.converter.translation(in: .local) ?? .zero
-        log.events.append("\(recognizer.state.rawValue) \(Int(local.x)),\(Int(local.y)) \(Int(global.x)) t\(Int(translation.x))")
+        let translation = context.converter.localTranslation ?? .zero
+        // Apple's other spellings agree: a global point converted back, the space-taking forms.
+        let back = context.converter.convert(globalPoint: global)
+        let agrees = back == local && context.converter.convert(globalPoint: global, to: .global) == global
+            && context.converter.translation(in: .local) == context.converter.localTranslation
+            && context.converter.velocity(in: .global) == context.converter.localVelocity
+        log.events.append("\(recognizer.state.rawValue) \(Int(local.x)),\(Int(local.y)) \(Int(global.x)) t\(Int(translation.x))\(agrees ? "" : " disagree")")
     }
 }
 

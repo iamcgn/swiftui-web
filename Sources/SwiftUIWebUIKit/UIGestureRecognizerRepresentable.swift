@@ -42,14 +42,12 @@ extension UIGestureRecognizerRepresentable where Coordinator == Void {
     public func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator { () }
 }
 
-/// What a representable's methods are given: its coordinator, the environment and a converter
-/// for the recognizer's points.
+/// What a representable's methods are given: its coordinator and a converter for the
+/// recognizer's points.
 @MainActor @preconcurrency
 public struct UIGestureRecognizerRepresentableContext<Representable: UIGestureRecognizerRepresentable> {
     /// The representable's coordinator.
     public let coordinator: Representable.Coordinator
-    /// The current environment.
-    public let environment: EnvironmentValues
     /// Converts the recognizer's points into SwiftUI coordinate spaces.
     public let converter: UIGestureRecognizerRepresentableCoordinateSpaceConverter
 }
@@ -61,31 +59,40 @@ public struct UIGestureRecognizerRepresentableContext<Representable: UIGestureRe
 public struct UIGestureRecognizerRepresentableCoordinateSpaceConverter {
     let frame: _HostedRecognizerFrame
 
-    private func convert(_ point: CGPoint, to space: CoordinateSpace) -> CGPoint {
-        guard !space.isGlobal else { return point }
-        let origin = frame.driver?.frame.origin ?? .zero
-        return CGPoint(x: point.x - origin.x, y: point.y - origin.y)
-    }
+    private var recognizer: UIGestureRecognizer? { frame.driver?.recognizer }
+    private var pan: UIPanGestureRecognizer? { recognizer as? UIPanGestureRecognizer }
 
-    /// The recognizer's location (its touches' centre) in `coordinateSpace`.
-    public func location(in coordinateSpace: some CoordinateSpaceProtocol = .local) -> CGPoint {
-        convert(frame.driver?.recognizer.location(in: nil) ?? .zero, to: coordinateSpace.coordinateSpace)
-    }
+    /// The recognizer's location (its touches' centre) in the view's space.
+    public var localLocation: CGPoint { location(in: .local) }
 
-    /// The location of the recognizer's touch at `touchIndex` in `coordinateSpace`.
-    public func location(ofTouch touchIndex: Int, in coordinateSpace: some CoordinateSpaceProtocol = .local) -> CGPoint {
-        convert(frame.driver?.recognizer.location(ofTouch: touchIndex, in: nil) ?? .zero, to: coordinateSpace.coordinateSpace)
+    /// A pan's translation in the view's space (nil for a recognizer with none).
+    public var localTranslation: CGPoint? { translation(in: .local) }
+
+    /// A pan's velocity in the view's space, in points per second (nil for a recognizer with none).
+    public var localVelocity: CGPoint? { velocity(in: .local) }
+
+    /// The recognizer's location in `coordinateSpace`.
+    public func location(in coordinateSpace: some CoordinateSpaceProtocol) -> CGPoint {
+        convert(globalPoint: recognizer?.location(in: nil) ?? .zero, to: coordinateSpace)
     }
 
     /// A pan's translation (nil for other recognizers). A translation has no origin, so it is
     /// the same in every space here, where spaces differ only by an offset.
-    public func translation(in coordinateSpace: some CoordinateSpaceProtocol = .local) -> CGPoint? {
-        (frame.driver?.recognizer as? UIPanGestureRecognizer)?.translation(in: nil)
+    public func translation(in coordinateSpace: some CoordinateSpaceProtocol) -> CGPoint? {
+        pan?.translation(in: nil)
     }
 
-    /// A pan's velocity in points per second (nil for other recognizers).
-    public func velocity(in coordinateSpace: some CoordinateSpaceProtocol = .local) -> CGPoint? {
-        (frame.driver?.recognizer as? UIPanGestureRecognizer)?.velocity(in: nil)
+    /// A pan's velocity in points per second (nil for other recognizers), the same in every
+    /// space for the same reason.
+    public func velocity(in coordinateSpace: some CoordinateSpaceProtocol) -> CGPoint? {
+        pan?.velocity(in: nil)
+    }
+
+    /// A point in the window's space in `coordinateSpace`.
+    public func convert(globalPoint: CGPoint, to coordinateSpace: some CoordinateSpaceProtocol = .local) -> CGPoint {
+        guard !coordinateSpace.coordinateSpace.isGlobal else { return globalPoint }
+        let origin = frame.driver?.frame.origin ?? .zero
+        return CGPoint(x: globalPoint.x - origin.x, y: globalPoint.y - origin.y)
     }
 }
 
@@ -108,7 +115,6 @@ extension View {
 struct _UIGestureRecognizerRepresentableModifier<Representable: UIGestureRecognizerRepresentable>: ViewModifier {
     let representable: Representable
     @State private var box = _HostedRecognizerBox()
-    @Environment(\.self) private var environment
 
     func body(content: Content) -> some View {
         let host: _HostedRecognizer<Representable>
@@ -119,7 +125,6 @@ struct _UIGestureRecognizerRepresentableModifier<Representable: UIGestureRecogni
             box.host = host
         }
         host.representable = representable
-        host.environment = environment
         return content.gesture(_HostedRecognizerGesture(host: host))
     }
 }
@@ -135,7 +140,6 @@ final class _HostedRecognizerBox: @unchecked Sendable {
 @MainActor
 final class _HostedRecognizer<Representable: UIGestureRecognizerRepresentable> {
     var representable: Representable?
-    var environment = EnvironmentValues()
     let frame = _HostedRecognizerFrame()
     private var coordinator: Representable.Coordinator?
     private var recognizer: Representable.UIGestureRecognizerType?
@@ -145,8 +149,7 @@ final class _HostedRecognizer<Representable: UIGestureRecognizerRepresentable> {
     var driver: HostedGestureRecognizerDriver? { frame.driver }
 
     private func context(_ coordinator: Representable.Coordinator) -> Representable.Context {
-        Representable.Context(coordinator: coordinator, environment: environment,
-                              converter: UIGestureRecognizerRepresentableCoordinateSpaceConverter(frame: frame))
+        Representable.Context(coordinator: coordinator, converter: UIGestureRecognizerRepresentableCoordinateSpaceConverter(frame: frame))
     }
 
     /// Makes the coordinator and recognizer the first time, then updates the recognizer.
