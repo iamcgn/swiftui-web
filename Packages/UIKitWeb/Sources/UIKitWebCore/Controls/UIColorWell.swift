@@ -35,7 +35,7 @@ open class UIColorWell: UIControl {
         guard side > 0 else { return }
         let origin = CGPoint(x: (bounds.width - side) / 2, y: (bounds.height - side) / 2)
         let disc = context.absoluteRect(CGRect(origin: origin, size: CGSize(width: side, height: side)))
-        let empty = UIColor(light: RGBA(r: 120, g: 120, b: 128, a: 0.2), dark: RGBA(r: 120, g: 120, b: 128, a: 0.36))
+        let empty = UIColor(_light: RGBA(r: 120, g: 120, b: 128, a: 0.2), _dark: RGBA(r: 120, g: 120, b: 128, a: 0.36))
         list.append(.fillRRect(disc, cornerRadius: side / 2, (selectedColor ?? empty).rgba(for: style)))
     }
 
