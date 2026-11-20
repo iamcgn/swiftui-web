@@ -93,6 +93,10 @@ public final class UITouch: UIResponderBase {
     /// Locations in the window's coordinates.
     var windowLocation: CGPoint
     var previousWindowLocation: CGPoint
+    /// For a touch another framework feeds to a view outside any window (a SwiftUI view's
+    /// `UIGestureRecognizerRepresentable`, `HostedGestureRecognizerDriver`): where that view sits
+    /// in the window, so `location(in:)` it gives the point in its own space.
+    var detachedViewOrigin: CGPoint?
 
     init(at location: CGPoint, in window: UIWindow?, view: UIView?, type: TouchType, timestamp: Double) {
         windowLocation = location
@@ -106,13 +110,22 @@ public final class UITouch: UIResponderBase {
 
     /// The touch's location in a view's coordinates (nil: the window).
     public func location(in view: UIView?) -> CGPoint {
-        guard let view, let window else { return windowLocation }
+        guard let view else { return windowLocation }
+        guard let window else { return detachedLocation(windowLocation, in: view) }
         return window.convert(windowLocation, to: view)
     }
 
     public func previousLocation(in view: UIView?) -> CGPoint {
-        guard let view, let window else { return previousWindowLocation }
+        guard let view else { return previousWindowLocation }
+        guard let window else { return detachedLocation(previousWindowLocation, in: view) }
         return window.convert(previousWindowLocation, to: view)
+    }
+
+    /// A window point in a view outside any window: relative to the touch's view's place in
+    /// the window when it has one (and `view` is that view), the point unchanged otherwise.
+    private func detachedLocation(_ point: CGPoint, in view: UIView) -> CGPoint {
+        guard let origin = detachedViewOrigin, view === self.view else { return point }
+        return CGPoint(x: point.x - origin.x, y: point.y - origin.y)
     }
 }
 

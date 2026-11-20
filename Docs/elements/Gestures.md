@@ -85,6 +85,23 @@ style gesture events and two CDP touches. `PinchGestureTests` cover the threshol
 anchors, cancellation, the older gestures, the deepest target, simultaneous ancestors sharing
 pinches and presses with an inner button, the four masks and the transactions.
 
+## UIKit recognizers on SwiftUI views (2026-11-20)
+
+`UIGestureRecognizerRepresentable` (iOS 18) and `View.gesture(_:)` taking one
+(Sources/SwiftUIWebUIKit/UIGestureRecognizerRepresentable.swift). The coordinator is made
+first (`makeCoordinator(converter:)`), then the recognizer, once for the view's life; every
+update calls `updateUIGestureRecognizer(_:context:)`. A SwiftUI view has no UIView here, so
+UIKitWeb's `HostedGestureRecognizerDriver` puts the recognizer on a stand-in view at the view's
+place in the window and feeds it one touch per press, as the touch router does: the delegate's
+`shouldReceive`, then began, moved and ended or cancelled, with failure requirements and
+arbitration. A touch's `location(in:)` the stand-in is in the view's space. Each action calls
+`handleUIGestureRecognizerAction(_:context:)`; the context's converter gives the location, a
+pan's translation and velocity in `.local` or `.global` (a named space is measured as the
+view's own, as the drag gesture's are). While the recognizer has begun the SwiftUI gesture is
+active, so it holds the press as a recognised drag does. `GestureRecognizerRepresentableTests`
+cover the spaces, the coordinator as delegate and the recognizer kept across updates. First
+user: Mlem's QuickSwipes `PanGesture`.
+
 ## Not yet covered
 
 Touch drags competing with scroll views (a touch pan belongs to the scroll view), pinches
