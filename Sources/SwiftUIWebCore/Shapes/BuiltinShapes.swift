@@ -281,7 +281,16 @@ public struct ContainerRelativeShape: Sendable {
     /// The container shape in force while a node resolves its paths (`_withContainerShape`).
     /// `radii` are the container's own corner radii where its shape has them (a rounded, uneven
     /// or capsule rectangle), which concentric corners follow.
-    nonisolated(unsafe) package static var _resolution: (path: (CGRect, CGFloat) -> Path, inset: CGFloat, radii: RectangleCornerRadii?)?
+    /// A struct rather than a tuple: the objc SDK's assertions build crashes in LoadableByAddress
+    /// on the setter of an optional tuple holding a closure and an optional `RectangleCornerRadii`.
+    nonisolated(unsafe) package static var _resolution: _ContainerResolution?
+}
+
+/// The container shape in force while a node resolves its paths.
+package struct _ContainerResolution {
+    package var path: (CGRect, CGFloat) -> Path
+    package var inset: CGFloat
+    package var radii: RectangleCornerRadii?
 }
 
 extension ContainerRelativeShape: InsettableShape, _InsetPathProviding {
@@ -359,7 +368,7 @@ extension EnvironmentValues {
 package func _withContainerShape<R>(for node: ViewNode, _ body: () -> R) -> R {
     guard let context = node.environment._containerShape else { return body() }
     let container = context.node?.frameInRoot ?? node.frameInRoot
-    ContainerRelativeShape._resolution = (context.path, context.inset(for: node.frameInRoot), context.radii(container))
+    ContainerRelativeShape._resolution = _ContainerResolution(path: context.path, inset: context.inset(for: node.frameInRoot), radii: context.radii(container))
     defer { ContainerRelativeShape._resolution = nil }
     return body()
 }
