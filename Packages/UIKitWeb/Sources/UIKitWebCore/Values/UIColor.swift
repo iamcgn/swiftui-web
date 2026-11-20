@@ -9,14 +9,14 @@ public final class UIColor: UIObjectBase, @unchecked Sendable {
     public let light: RGBA
     public let dark: RGBA
 
-    public init(light: RGBA, dark: RGBA) {
+    public init(_light: RGBA, _dark: RGBA) {
         self.light = light
         self.dark = dark
         super.init()
     }
 
     public convenience init(_ rgba: RGBA) {
-        self.init(light: rgba, dark: rgba)
+        self.init(_light: rgba, _dark: rgba)
     }
 
     public convenience init(red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
@@ -35,7 +35,7 @@ public final class UIColor: UIObjectBase, @unchecked Sendable {
     public convenience init(dynamicProvider: (UITraitCollection) -> UIColor) {
         let light = dynamicProvider(UITraitCollection(userInterfaceStyle: .light))
         let dark = dynamicProvider(UITraitCollection(userInterfaceStyle: .dark))
-        self.init(light: light.light, dark: dark.dark)
+        self.init(_light: light.light, _dark: dark.dark)
     }
 
     public convenience init(cgColor: CGColor) {
@@ -46,7 +46,7 @@ public final class UIColor: UIObjectBase, @unchecked Sendable {
     public convenience init?(named name: String) {
         let catalog = UIKitScene._catalog
         guard let light = catalog.color(named: name, scheme: .light, idiom: "iphone") else { return nil }
-        self.init(light: light, dark: catalog.color(named: name, scheme: .dark, idiom: "iphone") ?? light)
+        self.init(_light: light, _dark: catalog.color(named: name, scheme: .dark, idiom: "iphone") ?? light)
     }
 
     /// A colour set of the app's asset catalog by its generated symbol (`UIColor(resource: .accent)`);
@@ -55,7 +55,7 @@ public final class UIColor: UIObjectBase, @unchecked Sendable {
     public convenience init(resource: ColorResource) {
         let catalog = UIKitScene.shared.assetCatalog
         let light = catalog.color(named: resource._name, scheme: .light, idiom: "iphone") ?? RGBA(red: 0, green: 0, blue: 0, alpha: 0)
-        self.init(light: light, dark: catalog.color(named: resource._name, scheme: .dark, idiom: "iphone") ?? light)
+        self.init(_light: light, _dark: catalog.color(named: resource._name, scheme: .dark, idiom: "iphone") ?? light)
     }
 
 
@@ -107,8 +107,8 @@ public final class UIColor: UIObjectBase, @unchecked Sendable {
     public var cgColor: CGColor { light.cgColor }
 
     public func withAlphaComponent(_ alpha: CGFloat) -> UIColor {
-        UIColor(light: RGBA(red: light.red, green: light.green, blue: light.blue, alpha: alpha),
-                dark: RGBA(red: dark.red, green: dark.green, blue: dark.blue, alpha: alpha))
+        UIColor(_light: RGBA(red: light.red, green: light.green, blue: light.blue, alpha: alpha),
+                _dark: RGBA(red: dark.red, green: dark.green, blue: dark.blue, alpha: alpha))
     }
 
     /// The light value's components; false when the colour is not RGB (never, here).
@@ -157,46 +157,46 @@ public final class UIColor: UIObjectBase, @unchecked Sendable {
 
     // MARK: System colours (sampled from the Catalyst goldens; macOS 26's palette)
 
-    public static let systemRed = UIColor(light: RGBA(r: 255, g: 56, b: 60), dark: RGBA(r: 255, g: 66, b: 69))
-    public static let systemOrange = UIColor(light: RGBA(r: 255, g: 141, b: 40), dark: RGBA(r: 255, g: 146, b: 48))
-    public static let systemYellow = UIColor(light: RGBA(r: 255, g: 204, b: 0), dark: RGBA(r: 255, g: 214, b: 0))
-    public static let systemGreen = UIColor(light: RGBA(r: 52, g: 199, b: 89), dark: RGBA(r: 48, g: 209, b: 88))
-    public static let systemMint = UIColor(light: RGBA(r: 0, g: 200, b: 179), dark: RGBA(r: 0, g: 218, b: 195))
-    public static let systemTeal = UIColor(light: RGBA(r: 0, g: 195, b: 208), dark: RGBA(r: 0, g: 210, b: 224))
-    public static let systemCyan = UIColor(light: RGBA(r: 0, g: 192, b: 232), dark: RGBA(r: 60, g: 211, b: 254))
-    public static let systemBlue = UIColor(light: RGBA(r: 0, g: 136, b: 255), dark: RGBA(r: 0, g: 145, b: 255))
-    public static let systemIndigo = UIColor(light: RGBA(r: 97, g: 85, b: 245), dark: RGBA(r: 109, g: 124, b: 255))
-    public static let systemPurple = UIColor(light: RGBA(r: 203, g: 48, b: 224), dark: RGBA(r: 219, g: 52, b: 242))
-    public static let systemPink = UIColor(light: RGBA(r: 255, g: 45, b: 85), dark: RGBA(r: 255, g: 55, b: 95))
-    public static let systemBrown = UIColor(light: RGBA(r: 172, g: 127, b: 94), dark: RGBA(r: 183, g: 138, b: 102))
-    public static let systemGray = UIColor(light: RGBA(r: 142, g: 142, b: 147), dark: RGBA(r: 152, g: 152, b: 157))
-    public static let systemGray2 = UIColor(light: RGBA(r: 174, g: 174, b: 178), dark: RGBA(r: 99, g: 99, b: 102))
-    public static let systemGray3 = UIColor(light: RGBA(r: 199, g: 199, b: 204), dark: RGBA(r: 72, g: 72, b: 74))
-    public static let systemGray4 = UIColor(light: RGBA(r: 209, g: 209, b: 214), dark: RGBA(r: 58, g: 58, b: 60))
-    public static let systemGray5 = UIColor(light: RGBA(r: 229, g: 229, b: 234), dark: RGBA(r: 44, g: 44, b: 46))
-    public static let systemGray6 = UIColor(light: RGBA(r: 242, g: 242, b: 247), dark: RGBA(r: 28, g: 28, b: 30))
+    public static let systemRed = UIColor(_light: RGBA(r: 255, g: 56, b: 60), _dark: RGBA(r: 255, g: 66, b: 69))
+    public static let systemOrange = UIColor(_light: RGBA(r: 255, g: 141, b: 40), _dark: RGBA(r: 255, g: 146, b: 48))
+    public static let systemYellow = UIColor(_light: RGBA(r: 255, g: 204, b: 0), _dark: RGBA(r: 255, g: 214, b: 0))
+    public static let systemGreen = UIColor(_light: RGBA(r: 52, g: 199, b: 89), _dark: RGBA(r: 48, g: 209, b: 88))
+    public static let systemMint = UIColor(_light: RGBA(r: 0, g: 200, b: 179), _dark: RGBA(r: 0, g: 218, b: 195))
+    public static let systemTeal = UIColor(_light: RGBA(r: 0, g: 195, b: 208), _dark: RGBA(r: 0, g: 210, b: 224))
+    public static let systemCyan = UIColor(_light: RGBA(r: 0, g: 192, b: 232), _dark: RGBA(r: 60, g: 211, b: 254))
+    public static let systemBlue = UIColor(_light: RGBA(r: 0, g: 136, b: 255), _dark: RGBA(r: 0, g: 145, b: 255))
+    public static let systemIndigo = UIColor(_light: RGBA(r: 97, g: 85, b: 245), _dark: RGBA(r: 109, g: 124, b: 255))
+    public static let systemPurple = UIColor(_light: RGBA(r: 203, g: 48, b: 224), _dark: RGBA(r: 219, g: 52, b: 242))
+    public static let systemPink = UIColor(_light: RGBA(r: 255, g: 45, b: 85), _dark: RGBA(r: 255, g: 55, b: 95))
+    public static let systemBrown = UIColor(_light: RGBA(r: 172, g: 127, b: 94), _dark: RGBA(r: 183, g: 138, b: 102))
+    public static let systemGray = UIColor(_light: RGBA(r: 142, g: 142, b: 147), _dark: RGBA(r: 152, g: 152, b: 157))
+    public static let systemGray2 = UIColor(_light: RGBA(r: 174, g: 174, b: 178), _dark: RGBA(r: 99, g: 99, b: 102))
+    public static let systemGray3 = UIColor(_light: RGBA(r: 199, g: 199, b: 204), _dark: RGBA(r: 72, g: 72, b: 74))
+    public static let systemGray4 = UIColor(_light: RGBA(r: 209, g: 209, b: 214), _dark: RGBA(r: 58, g: 58, b: 60))
+    public static let systemGray5 = UIColor(_light: RGBA(r: 229, g: 229, b: 234), _dark: RGBA(r: 44, g: 44, b: 46))
+    public static let systemGray6 = UIColor(_light: RGBA(r: 242, g: 242, b: 247), _dark: RGBA(r: 28, g: 28, b: 30))
 
     /// The label colours keep the alphas the Catalyst goldens show (216/255 for the primary).
-    public static let label = UIColor(light: RGBA(r: 0, g: 0, b: 0, a: 1), dark: RGBA(r: 255, g: 255, b: 255, a: 1))
+    public static let label = UIColor(_light: RGBA(r: 0, g: 0, b: 0, a: 1), _dark: RGBA(r: 255, g: 255, b: 255, a: 1))
     /// (60, 60, 67) at 60 % and (235, 235, 245) at 60 %, as UIKit has them (133 grey over the
     /// grouped ground, 141 over black: uikit/table/grouped, uikit/dark/table).
-    public static let secondaryLabel = UIColor(light: RGBA(r: 60, g: 60, b: 67, a: 0.6), dark: RGBA(r: 235, g: 235, b: 245, a: 0.6))
-    public static let tertiaryLabel = UIColor(light: RGBA(r: 0, g: 0, b: 0, a: 0.26), dark: RGBA(r: 255, g: 255, b: 255, a: 0.25))
-    public static let quaternaryLabel = UIColor(light: RGBA(r: 0, g: 0, b: 0, a: 0.1), dark: RGBA(r: 255, g: 255, b: 255, a: 0.1))
-    public static let placeholderText = UIColor(light: RGBA(r: 189, g: 189, b: 190), dark: RGBA(r: 235, g: 235, b: 245, a: 0.3))
-    public static let link = UIColor(light: RGBA(r: 0, g: 104, b: 218), dark: RGBA(r: 65, g: 156, b: 255))
-    public static let separator = UIColor(light: RGBA(r: 0, g: 0, b: 0, a: 25.0 / 255), dark: RGBA(r: 255, g: 255, b: 255, a: 25.0 / 255))
-    public static let opaqueSeparator = UIColor(light: RGBA(r: 198, g: 198, b: 200), dark: RGBA(r: 56, g: 56, b: 58))
-    public static let systemBackground = UIColor(light: .white, dark: .black)
-    public static let secondarySystemBackground = UIColor(light: RGBA(r: 242, g: 242, b: 247), dark: RGBA(r: 28, g: 28, b: 30))
-    public static let tertiarySystemBackground = UIColor(light: .white, dark: RGBA(r: 44, g: 44, b: 46))
-    public static let systemGroupedBackground = UIColor(light: RGBA(r: 235, g: 236, b: 236), dark: .black)
-    public static let secondarySystemGroupedBackground = UIColor(light: .white, dark: RGBA(r: 28, g: 28, b: 30))
-    public static let tertiarySystemGroupedBackground = UIColor(light: RGBA(r: 242, g: 242, b: 247), dark: RGBA(r: 44, g: 44, b: 46))
-    public static let systemFill = UIColor(light: RGBA(r: 120, g: 120, b: 128, a: 0.2), dark: RGBA(r: 120, g: 120, b: 128, a: 0.36))
-    public static let secondarySystemFill = UIColor(light: RGBA(r: 120, g: 120, b: 128, a: 0.16), dark: RGBA(r: 120, g: 120, b: 128, a: 0.32))
-    public static let tertiarySystemFill = UIColor(light: RGBA(r: 118, g: 118, b: 128, a: 0.12), dark: RGBA(r: 118, g: 118, b: 128, a: 0.24))
-    public static let quaternarySystemFill = UIColor(light: RGBA(r: 116, g: 116, b: 128, a: 0.08), dark: RGBA(r: 118, g: 118, b: 128, a: 0.18))
+    public static let secondaryLabel = UIColor(_light: RGBA(r: 60, g: 60, b: 67, a: 0.6), _dark: RGBA(r: 235, g: 235, b: 245, a: 0.6))
+    public static let tertiaryLabel = UIColor(_light: RGBA(r: 0, g: 0, b: 0, a: 0.26), _dark: RGBA(r: 255, g: 255, b: 255, a: 0.25))
+    public static let quaternaryLabel = UIColor(_light: RGBA(r: 0, g: 0, b: 0, a: 0.1), _dark: RGBA(r: 255, g: 255, b: 255, a: 0.1))
+    public static let placeholderText = UIColor(_light: RGBA(r: 189, g: 189, b: 190), _dark: RGBA(r: 235, g: 235, b: 245, a: 0.3))
+    public static let link = UIColor(_light: RGBA(r: 0, g: 104, b: 218), _dark: RGBA(r: 65, g: 156, b: 255))
+    public static let separator = UIColor(_light: RGBA(r: 0, g: 0, b: 0, a: 25.0 / 255), _dark: RGBA(r: 255, g: 255, b: 255, a: 25.0 / 255))
+    public static let opaqueSeparator = UIColor(_light: RGBA(r: 198, g: 198, b: 200), _dark: RGBA(r: 56, g: 56, b: 58))
+    public static let systemBackground = UIColor(_light: .white, _dark: .black)
+    public static let secondarySystemBackground = UIColor(_light: RGBA(r: 242, g: 242, b: 247), _dark: RGBA(r: 28, g: 28, b: 30))
+    public static let tertiarySystemBackground = UIColor(_light: .white, _dark: RGBA(r: 44, g: 44, b: 46))
+    public static let systemGroupedBackground = UIColor(_light: RGBA(r: 235, g: 236, b: 236), _dark: .black)
+    public static let secondarySystemGroupedBackground = UIColor(_light: .white, _dark: RGBA(r: 28, g: 28, b: 30))
+    public static let tertiarySystemGroupedBackground = UIColor(_light: RGBA(r: 242, g: 242, b: 247), _dark: RGBA(r: 44, g: 44, b: 46))
+    public static let systemFill = UIColor(_light: RGBA(r: 120, g: 120, b: 128, a: 0.2), _dark: RGBA(r: 120, g: 120, b: 128, a: 0.36))
+    public static let secondarySystemFill = UIColor(_light: RGBA(r: 120, g: 120, b: 128, a: 0.16), _dark: RGBA(r: 120, g: 120, b: 128, a: 0.32))
+    public static let tertiarySystemFill = UIColor(_light: RGBA(r: 118, g: 118, b: 128, a: 0.12), _dark: RGBA(r: 118, g: 118, b: 128, a: 0.24))
+    public static let quaternarySystemFill = UIColor(_light: RGBA(r: 116, g: 116, b: 128, a: 0.08), _dark: RGBA(r: 118, g: 118, b: 128, a: 0.18))
     /// The default tint: the system blue.
     public static let tintColor = systemBlue
 }

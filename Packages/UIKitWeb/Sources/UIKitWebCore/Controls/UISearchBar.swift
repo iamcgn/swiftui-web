@@ -207,7 +207,7 @@ open class UISearchBar: UIView {
     }
 
     /// The prompt's colour: a dark slate (43, 62, 90) on the simulator (the dark look is unverified).
-    static let promptColor = UIColor(light: RGBA(r: 43, g: 62, b: 90), dark: RGBA(r: 200, g: 210, b: 230))
+    static let promptColor = UIColor(_light: RGBA(r: 43, g: 62, b: 90), _dark: RGBA(r: 200, g: 210, b: 230))
 
     /// The default style's band: a faint fill with 0.5 pt hairlines top and bottom; the prompt
     /// centred in its band above the field.
