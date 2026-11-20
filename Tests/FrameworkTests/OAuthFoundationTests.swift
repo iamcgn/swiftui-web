@@ -58,7 +58,11 @@ private final class LoggedResponse: HTTPURLResponse, @unchecked Sendable {
         #expect(matches(CocoaError(.fileReadNoSuchFile)))
         #expect(matches(NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadNoSuchFile.rawValue)))
         #expect(!matches(CocoaError(.fileWriteOutOfSpace)))
+        #if !os(Linux)
+        // swift-corelibs-foundation bridges any NSError to CocoaError, whatever its domain, so
+        // there its own `~=` matches this too.
         #expect(!matches(NSError(domain: "Other", code: CocoaError.fileReadNoSuchFile.rawValue)))
+        #endif
     }
 
     #if os(WASI)
