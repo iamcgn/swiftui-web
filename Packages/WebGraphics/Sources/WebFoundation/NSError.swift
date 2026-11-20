@@ -87,6 +87,47 @@ extension NSError {
     #endif
 }
 
+/// A specialized error that may be recoverable by presenting several potential recovery
+/// options to the user.
+public protocol RecoverableError: Error {
+    /// The titles of the options a user can choose from to recover, in the order offered.
+    var recoveryOptions: [String] { get }
+    /// Attempts the recovery option at `recoveryOptionIndex`, reporting whether it succeeded.
+    func attemptRecovery(optionIndex recoveryOptionIndex: Int, resultHandler handler: @escaping (_ recovered: Bool) -> Void)
+    /// Attempts the recovery option at `recoveryOptionIndex` and answers whether it succeeded.
+    func attemptRecovery(optionIndex recoveryOptionIndex: Int) -> Bool
+}
+
+extension RecoverableError {
+    /// Attempts recovery synchronously and hands the result to the handler, as Foundation does.
+    public func attemptRecovery(optionIndex recoveryOptionIndex: Int, resultHandler handler: @escaping (_ recovered: Bool) -> Void) {
+        handler(attemptRecovery(optionIndex: recoveryOptionIndex))
+    }
+}
+
+extension NSError {
+    /// The titles of the error's recovery options, from its user info.
+    public var localizedRecoveryOptions: [String]? { userInfo[NSLocalizedRecoveryOptionsErrorKey] as? [String] }
+    /// The object that attempts recovery for the error, from its user info.
+    public var recoveryAttempter: Any? { userInfo[NSRecoveryAttempterErrorKey] }
+    /// The help anchor for the error, from its user info.
+    public var helpAnchor: String? { userInfo[NSHelpAnchorErrorKey] as? String }
+
+    /// Attempts a recovery option for `error`, as Foundation's error recovery attempter does:
+    /// the error's own `RecoverableError` conformance, or that of the error's recovery
+    /// attempter. Answers false when neither can recover.
+    @discardableResult
+    public static func attemptRecovery(fromError error: Error, optionIndex recoveryOptionIndex: Int) -> Bool {
+        if let recoverable = error as? RecoverableError {
+            return recoverable.attemptRecovery(optionIndex: recoveryOptionIndex)
+        }
+        if let attempter = (error as? NSError)?.recoveryAttempter as? RecoverableError {
+            return attempter.attemptRecovery(optionIndex: recoveryOptionIndex)
+        }
+        return false
+    }
+}
+
 #if canImport(ObjectiveC)
 /// An error domain's name: `NSString` under the Objective-C runtime, as Foundation's is on Apple
 /// platforms (RevenueCat's obsoleted `ErrorDomain: NSErrorDomain`).
@@ -137,6 +178,8 @@ public let NSURLErrorFailingURLErrorKey = "NSErrorFailingURLKey"
 public let NSURLErrorFailingURLStringErrorKey = "NSErrorFailingURLStringKey"
 public let NSFilePathErrorKey = "NSFilePath"
 public let NSHelpAnchorErrorKey = "NSHelpAnchor"
+public let NSLocalizedRecoveryOptionsErrorKey = "NSLocalizedRecoveryOptions"
+public let NSRecoveryAttempterErrorKey = "NSRecoveryAttempter"
 public let NSDebugDescriptionErrorKey = "NSDebugDescription"
 public let NSLocalizedFailureErrorKey = "NSLocalizedFailure"
 

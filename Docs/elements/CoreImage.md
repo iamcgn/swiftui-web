@@ -1,10 +1,16 @@
 # Core Image (pf-core-image, 2026-11-05)
 
-SwiftUIWeb's `WebCoreImage` module gives apps and packages (Kingfisher's image filters first)
-Core Image's images, filters and contexts on the web and on Linux. Apps import it as
-`CoreImage`, the Shadows module that re-exports it on wasm with CoreGraphics's names; a root
+SwiftUIWeb's `WebCoreImage` module (in Packages/WebGraphics) gives apps and packages (Kingfisher's
+image filters first) Core Image's images, filters and contexts on the web and on Linux. Apps import
+it as `CoreImage`, the Shadows module that re-exports it on wasm with CoreGraphics's names; a root
 module named `CoreImage` would shadow Apple's, which AppKit imports, in every macOS build.
 Where CGImage is CoreGraphics's, on Apple platforms, `WebCoreImage` is empty.
+
+UIKit re-exports it too, as Apple's does (UIKit's headers import Core Image): a file with only
+`import UIKit` names `CIImage` and `CIFilter`, as Nuke's processors do. UIKit's side of the bridge
+lives in UIKitWeb's CoreImageBridges.swift: `CIColor(color:)`, `UIColor(ciColor:)`,
+`CIImage(image:)`, `UIImage(ciImage:)` and `UIImage.ciImage`, which is the recipe an image was
+made from and nil for an image made any other way.
 
 ## How it draws
 

@@ -9,10 +9,12 @@
 // kept and not injected, the cookie store holds the app's own cookies and never the page's
 // (the browser hides them from a page), and navigation inside the frame is not observed —
 // `didFinish` is reported for the load the view started, with the URL it was given.
+// Apple's WebKit re-exports Foundation, so a file that imports only WebKit names `NSObject`,
+// `URL`, `URLComponents` and `NSLog` (Umbrella's navigation delegate).
 #if os(WASI)
-import WebFoundation
+@_exported import WebFoundation
 #else
-import Foundation
+@_exported import Foundation
 #endif
 #if canImport(FoundationNetworking) && !os(WASI)
 import FoundationNetworking

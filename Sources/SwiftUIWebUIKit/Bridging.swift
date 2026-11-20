@@ -118,7 +118,7 @@ extension UIColor {
         var light = EnvironmentValues(), dark = EnvironmentValues()
         light.colorScheme = .light
         dark.colorScheme = .dark
-        self.init(light: color.resolve(in: light), dark: color.resolve(in: dark))
+        self.init(_light: color.resolve(in: light), _dark: color.resolve(in: dark))
     }
 }
 

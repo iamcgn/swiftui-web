@@ -102,7 +102,7 @@ open class UITextView: UIScrollView, HostTextInput, UITextInput {
         }
     }
     /// iOS 26's link colour in a text view (uikit/textview/looks: 0/136/255).
-    static let linkColor = UIColor(light: RGBA(r: 0, g: 136, b: 255), dark: RGBA(r: 10, g: 132, b: 255))
+    static let linkColor = UIColor(_light: RGBA(r: 0, g: 136, b: 255), _dark: RGBA(r: 10, g: 132, b: 255))
     /// The selection highlight and its handles (the highlight darkens the ground like a
     /// multiply: 194/210/231 over systemGray6, 204/221/238 over white).
     static let selectionColor = RGBA(r: 204, g: 221, b: 238)
