@@ -6,6 +6,19 @@ import SwiftUIWebCore
 import SwiftUIWebHeadless
 
 #if !os(WASI)
+/// Draws from a nonisolated helper, as OscarWeather's signature strip does: on Apple's platforms
+/// a graphics context's drawing, its environment and resolved text are not tied to the main actor.
+private enum OffMainDrawing {
+    static func draw(in context: GraphicsContext, size: CGSize) {
+        context.fill(Path(CGRect(x: 0, y: 0, width: 10, height: 10)), with: .color(.red))
+        context.stroke(Path(CGRect(x: 0, y: 0, width: size.width, height: size.height)), with: .color(.blue), style: StrokeStyle(lineWidth: 3))
+        guard context.environment.colorScheme == .light else { return }
+        let text = context.resolve(Text("Hi"))
+        context.draw(text, at: CGPoint(x: 50, y: 30), anchor: .center)
+        _ = text.measure(in: size)
+    }
+}
+
 @Suite @MainActor struct CanvasTests {
     static let system13 = ResolvedFont(family: "system", size: 13, weight: .regular, italic: false, textStyle: nil)
 
@@ -33,6 +46,15 @@ import SwiftUIWebHeadless
         // "Hi" (14 × 16) centred at (50, 50) → origin (43, 42) → baseline 55, in canvas space +(50, 20).
         #expect(commands.contains("drawText(\"Hi\" system 13 w400 at 93,75 #000000@0.85)"))
         #expect(commands.last == "restore")
+    }
+
+    @Test func drawsFromNonisolatedCode() {
+        let commands = render(Canvas { context, size in
+            OffMainDrawing.draw(in: context, size: size)
+        }.frame(width: 100, height: 60))
+        #expect(commands.contains { $0.hasPrefix("fillPath(5 elements) #FF383C") })
+        #expect(commands.contains { $0.hasPrefix("strokePath(5 elements) w=3") && $0.contains("#0088FF") })
+        #expect(commands.contains { $0.hasPrefix("drawText(\"Hi\"") })
     }
 
     @Test func transformsOpacityAndClipsApply() {
