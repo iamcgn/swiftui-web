@@ -5,6 +5,14 @@ import Testing
 import SwiftUI
 import MapKit
 
+// Temporary: marks each test's start and end on stderr, which isn't buffered, to find which one
+// crashes the Linux test process.
+private func _diag(_ text: String) {
+    #if os(Linux)
+    FileHandle.standardError.write(("DIAG " + text + "\n").data(using: .utf8)!)
+    #endif
+}
+
 #if !os(WASI)
 private final class Listener: MKLocalSearchCompleterDelegate {
     var failures: [MKError.Code] = []
@@ -100,6 +108,7 @@ private final class Listener: MKLocalSearchCompleterDelegate {
     /// CriticalMaps' "Open in Maps" for a ride's meeting point: Apple Maps' web link, with
     /// directions when a mode is asked for, and nothing to open for the current location alone.
     @Test func openingInMapsLinksToTheItem() {
+        _diag("openingInMapsLinksToTheItem begin"); defer { _diag("openingInMapsLinksToTheItem end") }
         let start = MKMapItem(coordinate: CLLocationCoordinate2D(latitude: 52.5, longitude: 13.25), name: "Start")
         let meeting = MKMapItem(coordinate: CLLocationCoordinate2D(latitude: 52.25, longitude: 13.5), name: "Mariannenplatz Berlin")
         let show = MKMapItem.mapsURL(for: [meeting], launchOptions: [:])

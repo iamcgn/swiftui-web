@@ -12,6 +12,14 @@ import FoundationNetworking
 import AudioToolbox
 #endif
 
+
+// Temporary: marks each test's start and end on stderr, which isn't buffered, to find which one
+// crashes the Linux test process.
+private func _diag(_ text: String) {
+    #if os(Linux)
+    FileHandle.standardError.write(("DIAG " + text + "\n").data(using: .utf8)!)
+    #endif
+}
 /// A response class an app defines, as an extension's `override open var` needs Foundation's
 /// to be open.
 private final class LoggedResponse: HTTPURLResponse, @unchecked Sendable {
@@ -20,6 +28,7 @@ private final class LoggedResponse: HTTPURLResponse, @unchecked Sendable {
 
 @Suite struct OAuthFoundationTests {
     @Test func responsesDescribeThemselvesAndAreOpen() throws {
+        _diag("responsesDescribeThemselvesAndAreOpen begin"); defer { _diag("responsesDescribeThemselvesAndAreOpen end") }
         let url = try #require(URL(string: "https://example.com/token"))
         #if os(WASI) && !canImport(ObjectiveC)
         let plain = URLResponse(url: url, mimeType: "text/plain", expectedContentLength: 4, textEncodingName: nil)
@@ -31,6 +40,7 @@ private final class LoggedResponse: HTTPURLResponse, @unchecked Sendable {
     }
 
     @Test func requestsNameTheirCachePolicyOnTheObject() throws {
+        _diag("requestsNameTheirCachePolicyOnTheObject begin"); defer { _diag("requestsNameTheirCachePolicyOnTheObject end") }
         let policy: NSURLRequest.CachePolicy = .reloadIgnoringLocalCacheData
         let url = try #require(URL(string: "https://example.com/authorize"))
         let request = URLRequest(url: url, cachePolicy: policy, timeoutInterval: 20)
@@ -38,6 +48,7 @@ private final class LoggedResponse: HTTPURLResponse, @unchecked Sendable {
     }
 
     @Test func errorsAreEqualByDomainCodeAndUserInfo() {
+        _diag("errorsAreEqualByDomainCodeAndUserInfo begin"); defer { _diag("errorsAreEqualByDomainCodeAndUserInfo end") }
         let first = NSError(domain: "OAuth2", code: 401, userInfo: [NSLocalizedDescriptionKey: "expired"])
         let same = NSError(domain: "OAuth2", code: 401, userInfo: [NSLocalizedDescriptionKey: "expired"])
         #expect(first.isEqual(same) && first.isEqual(first))
@@ -51,6 +62,7 @@ private final class LoggedResponse: HTTPURLResponse, @unchecked Sendable {
     /// Bodega's `catch CocoaError.fileReadNoSuchFile`: a code matches a Cocoa error with it, as
     /// an error or as an `NSError` in the Cocoa domain, and nothing else.
     @Test func cocoaErrorCodesMatchErrors() {
+        _diag("cocoaErrorCodesMatchErrors begin"); defer { _diag("cocoaErrorCodesMatchErrors end") }
         func matches(_ error: any Error) -> Bool {
             if case CocoaError.fileReadNoSuchFile = error { return true }
             return false
