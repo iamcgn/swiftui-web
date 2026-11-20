@@ -149,25 +149,49 @@ public final class MKMapItem: @unchecked Sendable {
             guard !item.isCurrentLocation, CLLocationCoordinate2DIsValid(coordinate) else { return nil }
             return "\(coordinate.latitude),\(coordinate.longitude)"
         }
-        var items: [URLQueryItem] = []
+        var items: [(String, String)] = []
         if let mode = launchOptions[MKLaunchOptionsDirectionsModeKey] as? String {
-            if mapItems.count > 1, let start = point(mapItems[0]) { items.append(URLQueryItem(name: "saddr", value: start)) }
+            if mapItems.count > 1, let start = point(mapItems[0]) { items.append(("saddr", start)) }
             guard let destination = point(last) else { return nil }
-            items.append(URLQueryItem(name: "daddr", value: destination))
+            items.append(("daddr", destination))
             let flags = [MKLaunchOptionsDirectionsModeDriving: "d", MKLaunchOptionsDirectionsModeWalking: "w",
                          MKLaunchOptionsDirectionsModeTransit: "r", MKLaunchOptionsDirectionsModeCycling: "c"]
-            if let flag = flags[mode] { items.append(URLQueryItem(name: "dirflg", value: flag)) }
+            if let flag = flags[mode] { items.append(("dirflg", flag)) }
         } else {
             guard let first = mapItems.first, let location = point(first) else { return nil }
-            items.append(URLQueryItem(name: "ll", value: location))
-            if let name = first.name { items.append(URLQueryItem(name: "q", value: name)) }
+            items.append(("ll", location))
+            if let name = first.name { items.append(("q", name)) }
         }
-        var components = URLComponents()
-        components.scheme = "https"
-        components.host = "maps.apple.com"
-        components.path = "/"
-        components.queryItems = items
-        return components.url
+        // Built by hand rather than with URLComponents, whose host and Unicode handling would
+        // link Unicode tables into every app that links MapKit.
+        var link = "https://maps.apple.com/"
+        for (index, item) in items.enumerated() {
+            link += index == 0 ? "?" : "&"
+            link += item.0
+            link += "="
+            link += queryEncoded(item.1)
+        }
+        return URL(string: link)
+    }
+
+    /// The value percent-encoded for a query, byte by byte: letters, digits and the punctuation
+    /// URLComponents leaves in a query value stay, except `&`, `=` and `+`, which separate items.
+    private static func queryEncoded(_ value: String) -> String {
+        let hex: [UInt8] = Array("0123456789ABCDEF".utf8)
+        let kept: [UInt8] = Array("-._~,:@/!$'()*;?".utf8)
+        var out: [UInt8] = []
+        for byte in value.utf8 {
+            let letter = (byte >= 0x61 && byte <= 0x7A) || (byte >= 0x41 && byte <= 0x5A)
+            let digit = byte >= 0x30 && byte <= 0x39
+            if letter || digit || kept.contains(byte) {
+                out.append(byte)
+            } else {
+                out.append(0x25)  // %
+                out.append(hex[Int(byte >> 4)])
+                out.append(hex[Int(byte & 0xF)])
+            }
+        }
+        return String(decoding: out, as: UTF8.self)
     }
 }
 
