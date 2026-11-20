@@ -260,55 +260,44 @@ public enum _WebNetworkStatus {
 // With the Objective-C runtime the protocols are Foundation's: `@objc`, every method optional but
 // a download's file, so a delegate answers only what it implements and code may ask whether it
 // does (Nuke's DataLoader forwards `(delegate as? URLSessionTaskDelegate)?.urlSession?(…)` to the
-// delegate it was handed). The session calls them through the forwarders below, which apply
-// Foundation's answer for a method the delegate leaves out.
+// delegate it was handed). An `@objc` method may take an `Error`, a `URL` or `Data` only where the
+// module named Foundation is loaded, so the protocols are the Foundation module's
+// (Packages/Shadows, URLSessionDelegates.swift). This module holds the delegate as an object and
+// calls it through `_URLSessionDelegateCalls`, which that module installs when a delegate is
+// handed to a session.
 
-/// What a session tells its delegate about the session itself.
-@objc public protocol URLSessionDelegate: NSObjectProtocol {
-    @objc optional func urlSession(_ session: URLSession, didBecomeInvalidWithError error: (any Error)?)
-    @objc optional func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge,
-                                   completionHandler: @escaping @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
+/// How the Foundation module calls a session's delegate: whether it plays each role, and each
+/// event, with Foundation's answer for a method the delegate leaves out.
+public protocol _URLSessionDelegateCalls: AnyObject, Sendable {
+    func isTaskDelegate(_ delegate: AnyObject) -> Bool
+    func isDataDelegate(_ delegate: AnyObject) -> Bool
+    func isDownloadDelegate(_ delegate: AnyObject) -> Bool
+    func isWebSocketDelegate(_ delegate: AnyObject) -> Bool
+    func invalid(_ delegate: AnyObject, _ session: URLSession)
+    func created(_ delegate: AnyObject, _ session: URLSession, _ task: URLSessionTask)
+    func complete(_ delegate: AnyObject, _ session: URLSession, _ task: URLSessionTask, _ error: (any Error)?)
+    func sent(_ delegate: AnyObject, _ session: URLSession, _ task: URLSessionTask, _ sent: Int64, expected: Int64)
+    func bodyStream(_ delegate: AnyObject, _ session: URLSession, _ task: URLSessionTask, _ handler: @escaping @Sendable (InputStream?) -> Void)
+    func response(_ delegate: AnyObject, _ session: URLSession, _ task: URLSessionDataTask, _ response: URLResponse,
+                  _ handler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void)
+    func data(_ delegate: AnyObject, _ session: URLSession, _ task: URLSessionDataTask, _ data: Data)
+    func wrote(_ delegate: AnyObject, _ session: URLSession, _ task: URLSessionDownloadTask, _ count: Int64)
+    func finished(_ delegate: AnyObject, _ session: URLSession, _ task: URLSessionDownloadTask, _ file: URL)
+    func opened(_ delegate: AnyObject, _ session: URLSession, _ task: URLSessionWebSocketTask, _ chosen: String?)
+    func closed(_ delegate: AnyObject, _ session: URLSession, _ task: URLSessionWebSocketTask,
+                _ code: URLSessionWebSocketTask.CloseCode, _ reason: Data?)
 }
 
-/// What a session tells its delegate about a task.
-@objc public protocol URLSessionTaskDelegate: URLSessionDelegate {
-    @objc optional func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask)
-    @objc optional func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge,
-                                   completionHandler: @escaping @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
-    @objc optional func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
-                                   newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void)
-    @objc optional func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64,
-                                   totalBytesExpectedToSend: Int64)
-    @objc optional func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping @Sendable (InputStream?) -> Void)
-    @objc optional func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics)
-    @objc optional func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?)
-    @objc optional func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask)
+extension URLSession {
+    /// The Foundation module's calls, installed before it hands a session a delegate.
+    nonisolated(unsafe) public static var _delegateCalls: (any _URLSessionDelegateCalls)?
 }
 
-/// What a session tells its delegate about a data task's response and data.
-@objc public protocol URLSessionDataDelegate: URLSessionTaskDelegate {
-    @objc optional func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
-                                   completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void)
-    @objc optional func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data)
-    @objc optional func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse,
-                                   completionHandler: @escaping @Sendable (CachedURLResponse?) -> Void)
-}
-
-/// What a session tells its delegate about a download task.
-@objc public protocol URLSessionDownloadDelegate: URLSessionTaskDelegate {
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL)
-    @objc optional func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64,
-                                   totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
-    @objc optional func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset fileOffset: Int64,
-                                   expectedTotalBytes: Int64)
-}
-
-/// What a session tells its delegate about a WebSocket task (URLSessionWebSocketTask.swift).
-@objc public protocol URLSessionWebSocketDelegate: URLSessionTaskDelegate {
-    @objc optional func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?)
-    @objc optional func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask,
-                                   didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?)
-}
+public typealias _SessionDelegate = AnyObject
+public typealias _TaskDelegate = AnyObject
+public typealias _DataDelegate = AnyObject
+public typealias _DownloadDelegate = AnyObject
+public typealias _WebSocketDelegate = AnyObject
 
 #else
 /// What a session tells its delegate about the session itself.
@@ -412,66 +401,100 @@ extension URLSessionWebSocketDelegate {
                            reason: Data?) {}
 }
 
+public typealias _SessionDelegate = any URLSessionDelegate
+public typealias _TaskDelegate = any URLSessionTaskDelegate
+public typealias _DataDelegate = any URLSessionDataDelegate
+public typealias _DownloadDelegate = any URLSessionDownloadDelegate
+public typealias _WebSocketDelegate = any URLSessionWebSocketDelegate
+
 #endif
 
-// The session's calls to its delegate, the same with or without the runtime: with it, a method
-// the delegate leaves out gets Foundation's answer.
+// The session's calls to its delegate. Without the runtime they are the Swift protocols' own
+// methods; with it they go through the Foundation module's calls, and a delegate that the module
+// never installed calls for (none can be handed over without it) hears nothing, with Foundation's
+// answer for what asks.
 extension URLSession {
     #if canImport(ObjectiveC)
-    func _tellInvalid(_ delegate: any URLSessionDelegate) { delegate.urlSession?(self, didBecomeInvalidWithError: nil) }
-    func _tellCreated(_ task: URLSessionTask) { (delegate as? any URLSessionTaskDelegate)?.urlSession?(self, didCreateTask: task) }
-    func _tellComplete(_ delegate: any URLSessionTaskDelegate, _ task: URLSessionTask, _ error: (any Error)?) {
-        delegate.urlSession?(self, task: task, didCompleteWithError: error)
+    func _asTask(_ delegate: _SessionDelegate?) -> _TaskDelegate? {
+        delegate.flatMap { Self._delegateCalls?.isTaskDelegate($0) == true ? $0 : nil }
     }
-    func _tellSent(_ delegate: any URLSessionTaskDelegate, _ task: URLSessionTask, _ sent: Int64, expected: Int64) {
-        delegate.urlSession?(self, task: task, didSendBodyData: sent, totalBytesSent: sent, totalBytesExpectedToSend: expected)
+    func _asData(_ delegate: _SessionDelegate?) -> _DataDelegate? {
+        delegate.flatMap { Self._delegateCalls?.isDataDelegate($0) == true ? $0 : nil }
     }
-    func _askBodyStream(_ delegate: any URLSessionTaskDelegate, _ task: URLSessionTask, _ handler: @escaping @Sendable (InputStream?) -> Void) {
-        if delegate.urlSession?(self, task: task, needNewBodyStream: handler) == nil { handler(nil) }
+    func _asDownload(_ delegate: _SessionDelegate?) -> _DownloadDelegate? {
+        delegate.flatMap { Self._delegateCalls?.isDownloadDelegate($0) == true ? $0 : nil }
     }
-    func _askResponse(_ delegate: any URLSessionDataDelegate, _ task: URLSessionDataTask, _ response: URLResponse,
+    func _asWebSocket(_ delegate: _SessionDelegate?) -> _WebSocketDelegate? {
+        delegate.flatMap { Self._delegateCalls?.isWebSocketDelegate($0) == true ? $0 : nil }
+    }
+    func _tellInvalid(_ delegate: _SessionDelegate) { Self._delegateCalls?.invalid(delegate, self) }
+    func _tellCreated(_ task: URLSessionTask) {
+        if let delegate = _asTask(_delegate) { Self._delegateCalls?.created(delegate, self, task) }
+    }
+    func _tellComplete(_ delegate: _TaskDelegate, _ task: URLSessionTask, _ error: (any Error)?) {
+        Self._delegateCalls?.complete(delegate, self, task, error)
+    }
+    func _tellSent(_ delegate: _TaskDelegate, _ task: URLSessionTask, _ sent: Int64, expected: Int64) {
+        Self._delegateCalls?.sent(delegate, self, task, sent, expected: expected)
+    }
+    func _askBodyStream(_ delegate: _TaskDelegate, _ task: URLSessionTask, _ handler: @escaping @Sendable (InputStream?) -> Void) {
+        guard let calls = Self._delegateCalls else { return handler(nil) }
+        calls.bodyStream(delegate, self, task, handler)
+    }
+    func _askResponse(_ delegate: _DataDelegate, _ task: URLSessionDataTask, _ response: URLResponse,
                       _ handler: @escaping @Sendable (ResponseDisposition) -> Void) {
-        if delegate.urlSession?(self, dataTask: task, didReceive: response, completionHandler: handler) == nil { handler(.allow) }
+        guard let calls = Self._delegateCalls else { return handler(.allow) }
+        calls.response(delegate, self, task, response, handler)
     }
-    func _tellData(_ delegate: any URLSessionDataDelegate, _ task: URLSessionDataTask, _ data: Data) {
-        delegate.urlSession?(self, dataTask: task, didReceive: data)
+    func _tellData(_ delegate: _DataDelegate, _ task: URLSessionDataTask, _ data: Data) {
+        Self._delegateCalls?.data(delegate, self, task, data)
     }
-    func _tellWrote(_ delegate: any URLSessionDownloadDelegate, _ task: URLSessionDownloadTask, _ count: Int64) {
-        delegate.urlSession?(self, downloadTask: task, didWriteData: count, totalBytesWritten: count, totalBytesExpectedToWrite: count)
+    func _tellWrote(_ delegate: _DownloadDelegate, _ task: URLSessionDownloadTask, _ count: Int64) {
+        Self._delegateCalls?.wrote(delegate, self, task, count)
     }
-    func _tellOpened(_ delegate: any URLSessionWebSocketDelegate, _ task: URLSessionWebSocketTask, _ chosen: String?) {
-        delegate.urlSession?(self, webSocketTask: task, didOpenWithProtocol: chosen)
+    func _tellFinished(_ delegate: _DownloadDelegate, _ task: URLSessionDownloadTask, _ file: URL) {
+        Self._delegateCalls?.finished(delegate, self, task, file)
     }
-    func _tellClosed(_ delegate: any URLSessionWebSocketDelegate, _ task: URLSessionWebSocketTask,
+    func _tellOpened(_ delegate: _WebSocketDelegate, _ task: URLSessionWebSocketTask, _ chosen: String?) {
+        Self._delegateCalls?.opened(delegate, self, task, chosen)
+    }
+    func _tellClosed(_ delegate: _WebSocketDelegate, _ task: URLSessionWebSocketTask,
                      _ code: URLSessionWebSocketTask.CloseCode, _ reason: Data?) {
-        delegate.urlSession?(self, webSocketTask: task, didCloseWith: code, reason: reason)
+        Self._delegateCalls?.closed(delegate, self, task, code, reason)
     }
     #else
-    func _tellInvalid(_ delegate: any URLSessionDelegate) { delegate.urlSession(self, didBecomeInvalidWithError: nil) }
-    func _tellCreated(_ task: URLSessionTask) { (delegate as? any URLSessionTaskDelegate)?.urlSession(self, didCreateTask: task) }
-    func _tellComplete(_ delegate: any URLSessionTaskDelegate, _ task: URLSessionTask, _ error: (any Error)?) {
+    func _asTask(_ delegate: _SessionDelegate?) -> _TaskDelegate? { delegate as? any URLSessionTaskDelegate }
+    func _asData(_ delegate: _SessionDelegate?) -> _DataDelegate? { delegate as? any URLSessionDataDelegate }
+    func _asDownload(_ delegate: _SessionDelegate?) -> _DownloadDelegate? { delegate as? any URLSessionDownloadDelegate }
+    func _asWebSocket(_ delegate: _SessionDelegate?) -> _WebSocketDelegate? { delegate as? any URLSessionWebSocketDelegate }
+    func _tellInvalid(_ delegate: _SessionDelegate) { delegate.urlSession(self, didBecomeInvalidWithError: nil) }
+    func _tellCreated(_ task: URLSessionTask) { _asTask(_delegate)?.urlSession(self, didCreateTask: task) }
+    func _tellComplete(_ delegate: _TaskDelegate, _ task: URLSessionTask, _ error: (any Error)?) {
         delegate.urlSession(self, task: task, didCompleteWithError: error)
     }
-    func _tellSent(_ delegate: any URLSessionTaskDelegate, _ task: URLSessionTask, _ sent: Int64, expected: Int64) {
+    func _tellSent(_ delegate: _TaskDelegate, _ task: URLSessionTask, _ sent: Int64, expected: Int64) {
         delegate.urlSession(self, task: task, didSendBodyData: sent, totalBytesSent: sent, totalBytesExpectedToSend: expected)
     }
-    func _askBodyStream(_ delegate: any URLSessionTaskDelegate, _ task: URLSessionTask, _ handler: @escaping @Sendable (InputStream?) -> Void) {
+    func _askBodyStream(_ delegate: _TaskDelegate, _ task: URLSessionTask, _ handler: @escaping @Sendable (InputStream?) -> Void) {
         delegate.urlSession(self, task: task, needNewBodyStream: handler)
     }
-    func _askResponse(_ delegate: any URLSessionDataDelegate, _ task: URLSessionDataTask, _ response: URLResponse,
+    func _askResponse(_ delegate: _DataDelegate, _ task: URLSessionDataTask, _ response: URLResponse,
                       _ handler: @escaping @Sendable (ResponseDisposition) -> Void) {
         delegate.urlSession(self, dataTask: task, didReceive: response, completionHandler: handler)
     }
-    func _tellData(_ delegate: any URLSessionDataDelegate, _ task: URLSessionDataTask, _ data: Data) {
+    func _tellData(_ delegate: _DataDelegate, _ task: URLSessionDataTask, _ data: Data) {
         delegate.urlSession(self, dataTask: task, didReceive: data)
     }
-    func _tellWrote(_ delegate: any URLSessionDownloadDelegate, _ task: URLSessionDownloadTask, _ count: Int64) {
+    func _tellWrote(_ delegate: _DownloadDelegate, _ task: URLSessionDownloadTask, _ count: Int64) {
         delegate.urlSession(self, downloadTask: task, didWriteData: count, totalBytesWritten: count, totalBytesExpectedToWrite: count)
     }
-    func _tellOpened(_ delegate: any URLSessionWebSocketDelegate, _ task: URLSessionWebSocketTask, _ chosen: String?) {
+    func _tellFinished(_ delegate: _DownloadDelegate, _ task: URLSessionDownloadTask, _ file: URL) {
+        delegate.urlSession(self, downloadTask: task, didFinishDownloadingTo: file)
+    }
+    func _tellOpened(_ delegate: _WebSocketDelegate, _ task: URLSessionWebSocketTask, _ chosen: String?) {
         delegate.urlSession(self, webSocketTask: task, didOpenWithProtocol: chosen)
     }
-    func _tellClosed(_ delegate: any URLSessionWebSocketDelegate, _ task: URLSessionWebSocketTask,
+    func _tellClosed(_ delegate: _WebSocketDelegate, _ task: URLSessionWebSocketTask,
                      _ code: URLSessionWebSocketTask.CloseCode, _ reason: Data?) {
         delegate.urlSession(self, webSocketTask: task, didCloseWith: code, reason: reason)
     }
@@ -513,13 +536,13 @@ extension URLSession {
     /// once the delegate returns, as Foundation removes it), then completion.
     func delegatedDownload(_ request: URLRequest, failure: URLError? = nil) -> URLSessionDownloadTask {
         delegated(request, as: URLSessionDownloadTask.init(identifier:request:start:), failure: failure) { [self] task, data, response, error in
-            guard let delegate = delegate as? any URLSessionTaskDelegate else { return }
-            if let data, response != nil, let downloads = delegate as? any URLSessionDownloadDelegate {
+            guard let delegate = _asTask(_delegate) else { return }
+            if let data, response != nil, let downloads = _asDownload(delegate) {
                 let count = Int64(data.count)
                 _tellWrote(downloads, task, count)
                 do {
                     let file = try Self.temporaryDownload(data)
-                    downloads.urlSession(self, downloadTask: task, didFinishDownloadingTo: file)
+                    _tellFinished(downloads, task, file)
                     try? FileManager.default.removeItem(at: file)
                 } catch {
                     _tellComplete(delegate, task, error)
@@ -533,7 +556,7 @@ extension URLSession {
     /// An upload that tells the delegate its body went out, then reports as a data task does.
     func delegatedUpload(_ request: URLRequest, bodyCount: Int, failure: URLError? = nil) -> URLSessionUploadTask {
         delegated(request, as: URLSessionUploadTask.init(identifier:request:start:), failure: failure) { [self] task, data, response, error in
-            if response != nil, let delegate = delegate as? any URLSessionTaskDelegate {
+            if response != nil, let delegate = _asTask(_delegate) {
                 let sent = Int64(bodyCount)
                 _tellSent(delegate, task, sent, expected: sent)
             }
@@ -546,14 +569,14 @@ extension URLSession {
         let counted = _Box(0)
         let uploading = Self.uploading(request, nil)
         return delegated(uploading, as: URLSessionUploadTask.init(identifier:request:start:), body: { [self] task in
-            guard let delegate = delegate as? any URLSessionTaskDelegate else { return nil }
+            guard let delegate = _asTask(_delegate) else { return nil }
             let stream = _Box<InputStream?>(nil)
             _askBodyStream(delegate, task) { stream.value = $0 }
             guard let body = stream.value.map(Self.readAll) else { return nil }
             counted.value = body.count
             return body
         }) { [self] task, data, response, error in
-            if response != nil, let delegate = delegate as? any URLSessionTaskDelegate {
+            if response != nil, let delegate = _asTask(_delegate) {
                 let sent = Int64(counted.value)
                 _tellSent(delegate, task, sent, expected: NSURLSessionTransferSizeUnknown)
             }
@@ -578,13 +601,13 @@ extension URLSession {
     /// Tells the delegate what a task received: the response (where the delegate may cancel),
     /// the data, then completion; or the failure.
     fileprivate func deliver(_ task: URLSessionDataTask, data: Data?, response: URLResponse?, error: (any Error)?) {
-        guard let delegate = delegate as? any URLSessionTaskDelegate else { return }
-        guard let response, let dataDelegate = delegate as? any URLSessionDataDelegate else {
+        guard let delegate = _asTask(_delegate) else { return }
+        guard let response, let dataDelegate = _asData(delegate) else {
             _tellComplete(delegate, task, error)
             return
         }
         _askResponse(dataDelegate, task, response) { [self] disposition in
-            guard let dataDelegate = self.delegate as? any URLSessionDataDelegate else { return }
+            guard let dataDelegate = self._asData(self._delegate) else { return }
             if disposition == .cancel {
                 let cancelled = URLError(.cancelled)
                 task.finished(response: response, error: cancelled)

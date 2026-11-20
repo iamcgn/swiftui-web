@@ -246,7 +246,7 @@ open class URLSessionWebSocketTask: URLSessionTask, @unchecked Sendable {
             response = HTTPURLResponse(url: url, statusCode: 101, httpVersion: "HTTP/1.1",
                                        headerFields: chosen.isEmpty ? [:] : ["Sec-WebSocket-Protocol": chosen])
         }
-        if let session, let delegate = session.delegate as? any URLSessionWebSocketDelegate {
+        if let session, let delegate = session._asWebSocket(session._delegate) {
             session._tellOpened(delegate, self, chosen.isEmpty ? nil : chosen)
         }
         let queued = waiting
@@ -277,7 +277,7 @@ open class URLSessionWebSocketTask: URLSessionTask, @unchecked Sendable {
         guard ending == nil else { return }
         closeCode = CloseCode(rawValue: code) ?? .invalid
         closeReason = reason.isEmpty ? nil : Data(reason.utf8)
-        if clean, let session, let delegate = session.delegate as? any URLSessionWebSocketDelegate {
+        if clean, let session, let delegate = session._asWebSocket(session._delegate) {
             session._tellClosed(delegate, self, closeCode, closeReason)
         }
         let error: Error?
@@ -307,7 +307,7 @@ open class URLSessionWebSocketTask: URLSessionTask, @unchecked Sendable {
         waiting = []
         for each in queued { each() }   // each fails with `ending`
         for receiver in waiters { receiver(.failure(failing)) }
-        if let session, let delegate = session.delegate as? any URLSessionTaskDelegate {
+        if let session, let delegate = session._asTask(session._delegate) {
             session._tellComplete(delegate, self, error)
         }
     }
