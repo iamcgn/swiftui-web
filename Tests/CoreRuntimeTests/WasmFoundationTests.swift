@@ -39,6 +39,10 @@ import WebCombine
         #expect(ascii == nil && latin == nil && shiftJIS == nil)
         let lossy: Data = text.data(using: .ascii, allowLossyConversion: true)!
         #expect(String(decoding: lossy, as: UTF8.self) == "caf? ? ?? ?")
+        // With the lossy flag and nothing to pick the result type, ours wins (KeychainAccess).
+        guard let strict = text.data(using: .utf8, allowLossyConversion: false) else { Issue.record("no UTF-8"); return }
+        let ours: Data = strict
+        #expect(ours == utf8)
         let cafe: Data? = "café".data(using: .isoLatin1), euro: Data? = "€".data(using: .windowsCP1252)
         #expect(cafe?.bytes == [0x63, 0x61, 0x66, 0xE9] && euro?.bytes == [0x80])
         #expect(String(data: Data([0xC3]), encoding: .utf8) == nil && String(data: Data([0x41, 0x42]), encoding: .ascii) == "AB")
@@ -520,6 +524,19 @@ import WebCombine
         #expect(Described().localizedDescription == "Nope." && Failure.bad.localizedDescription.hasPrefix("The operation couldn’t be completed."))
         #expect(NSError(domain: "D", code: 3).localizedDescription == "The operation couldn’t be completed. (D error 3.)")
         #expect(NSError(domain: "D", code: 3, userInfo: [NSLocalizedDescriptionKey: "Custom"]).localizedDescription == "Custom")
+        // Recovery options from the user info, and recovery through `RecoverableError`
+        // (Umbrella's `LocalizedNSError`).
+        struct Retry: RecoverableError {
+            var recoveryOptions: [String] { ["Retry", "Cancel"] }
+            func attemptRecovery(optionIndex: Int) -> Bool { optionIndex == 0 }
+        }
+        let offered = NSError(domain: "D", code: 4, userInfo: [NSLocalizedRecoveryOptionsErrorKey: ["Retry", "Cancel"], NSRecoveryAttempterErrorKey: Retry()])
+        #expect(offered.localizedRecoveryOptions == ["Retry", "Cancel"] && NSError(domain: "D", code: 3).localizedRecoveryOptions == nil)
+        #expect(NSError.attemptRecovery(fromError: offered, optionIndex: 0) && !NSError.attemptRecovery(fromError: offered, optionIndex: 1))
+        #expect(NSError.attemptRecovery(fromError: Retry(), optionIndex: 0) && !NSError.attemptRecovery(fromError: Failure.bad, optionIndex: 0))
+        var handled: Bool?
+        Retry().attemptRecovery(optionIndex: 0) { handled = $0 }
+        #expect(handled == true)
     }
 
     // The Node test runner cannot wait on the event loop ("async io not supported"), so the
