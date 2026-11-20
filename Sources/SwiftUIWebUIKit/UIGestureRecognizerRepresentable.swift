@@ -113,8 +113,13 @@ extension View {
 /// Keeps the recognizer for the view's life and hands the SwiftUI gesture system a gesture
 /// that forwards the view's presses to it.
 struct _UIGestureRecognizerRepresentableModifier<Representable: UIGestureRecognizerRepresentable>: ViewModifier {
-    let representable: Representable
+    nonisolated(unsafe) let representable: Representable
     @State private var box = _HostedRecognizerBox()
+
+    /// Made where `gesture(_:)` is, outside the main actor, as Apple's modifiers are.
+    nonisolated init(representable: Representable) {
+        self.representable = representable
+    }
 
     func body(content: Content) -> some View {
         let host: _HostedRecognizer<Representable>
