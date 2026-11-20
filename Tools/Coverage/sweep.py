@@ -562,7 +562,14 @@ def declared_pins(work: Path, root: Path, extra, packages, pins, notes, passes=2
                 continue  # Package.resolved pins one of that name
             reqs = [r for source in entry["by"] for r in entry["by"][source]]
             if not reqs:
-                continue  # only an earlier pick of a package asked for it
+                if key in picked:
+                    # Only an earlier pick asked for it: drop it, and what its own pick asked for.
+                    moved = True
+                    del picked[key]
+                    pins.pop(identity, None)
+                    for other in wanted.values():
+                        other["by"].pop(key, None)
+                continue
             revision = resolve_requirements(entry["repo"], reqs)
             if key in picked and picked[key] == revision:
                 continue
@@ -586,7 +593,7 @@ def declared_pins(work: Path, root: Path, extra, packages, pins, notes, passes=2
         entry = wanted[key]
         reqs = [r for source in entry["by"] for r in entry["by"][source]]
         if not reqs:
-            pins.pop(entry["identity"], None)  # nothing that's still picked asks for it
+            pins.pop(entry["identity"], None)  # left over when the passes ran out
             continue
         if revision:
             notes.append(f"package {entry['identity']}: no Package.resolved pin; {reqs} resolve to {revision[:12]}")
