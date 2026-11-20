@@ -17,6 +17,47 @@ extension NSSortDescriptor {
             // `compare` applies the order already; the descriptor applies `ascending` itself.
             return sortDescriptor.compare(forward ? a : b, forward ? b : a) == .orderedAscending
         }
+        _origin = AnyHashable(sortDescriptor)
+    }
+}
+
+extension SortDescriptor {
+    /// The descriptor that orders `Compared` values as `descriptor` does, or nil when the
+    /// descriptor names neither a key path into `Compared` nor a key.
+    public init?(_ descriptor: NSSortDescriptor, comparing: Compared.Type) {
+        if let origin = descriptor._origin as? SortDescriptor<Compared> {
+            self = origin
+            return
+        }
+        let keyPath = descriptor.keyPath as? PartialKeyPath<Compared>
+        guard keyPath != nil || descriptor.key != nil else { return nil }
+        self.init(_keyPath: keyPath, order: descriptor.ascending ? .forward : .reverse, comparison: AnyHashable(descriptor)) { a, b in
+            descriptor.compare(a, to: b) == .orderedAscending
+        }
+    }
+}
+
+extension FetchedResults where Result: NSManagedObject {
+    /// The request's sort descriptors as Foundation `SortDescriptor`s; setting them refetches.
+    public var sortDescriptors: [SortDescriptor<Result>] {
+        get { nsSortDescriptors.compactMap { SortDescriptor($0, comparing: Result.self) } }
+        nonmutating set { nsSortDescriptors = newValue.map { NSSortDescriptor($0) } }
+    }
+}
+
+extension SectionedFetchResults where Result: NSManagedObject {
+    /// The request's sort descriptors as Foundation `SortDescriptor`s; setting them refetches.
+    public var sortDescriptors: [SortDescriptor<Result>] {
+        get { nsSortDescriptors.compactMap { SortDescriptor($0, comparing: Result.self) } }
+        nonmutating set { nsSortDescriptors = newValue.map { NSSortDescriptor($0) } }
+    }
+}
+
+extension FetchRequest.Configuration where Result: NSManagedObject {
+    /// The configuration's sort descriptors as Foundation `SortDescriptor`s.
+    public var sortDescriptors: [SortDescriptor<Result>] {
+        get { nsSortDescriptors.compactMap { SortDescriptor($0, comparing: Result.self) } }
+        set { nsSortDescriptors = newValue.map { NSSortDescriptor($0) } }
     }
 }
 

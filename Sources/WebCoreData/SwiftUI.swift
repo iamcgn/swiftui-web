@@ -64,7 +64,11 @@ final class _FetchBox: WebCombine.ObservableObject, @unchecked Sendable {
     }
 
     func adopt<T>(_ request: NSFetchRequest<T>) {
-        let new = "\(request.entityName ?? "")|\(request.predicate?.predicateFormat ?? "")|\(request.sortDescriptors ?? [])"
+        // The descriptors by their key paths where they have them: a key path's key resolves
+        // through the model registry, which a first fetch may fill, so a descriptor's `key` can
+        // read differently before and after it, and an override set in between would be lost.
+        let sorts = (request.sortDescriptors ?? []).map { "\($0.keyPath.map { "\($0)" } ?? $0.key ?? "self") \($0.ascending)" }
+        let new = "\(request.entityName ?? "")|\(request.predicate?.predicateFormat ?? "")|\(sorts)"
         if signature != new {
             signature = new
             predicateOverride = nil
@@ -92,6 +96,9 @@ final class _FetchBox: WebCombine.ObservableObject, @unchecked Sendable {
     /// Fetches the request's results for the body about to be evaluated.
     func refresh<T>(_ request: NSFetchRequest<T>, in context: NSManagedObjectContext) {
         watch(context)
+        // The entity first: the fetch would name it, and a request whose name changed between
+        // two updates reads as a new one, which drops the overrides set through the results.
+        resolveEntity(request, in: context)
         adopt(request)
         snapshot = fetch(request, in: context)
     }
@@ -104,11 +111,17 @@ final class _FetchBox: WebCombine.ObservableObject, @unchecked Sendable {
         return snapshot as? [T] ?? []
     }
 
-    /// The request's results in the context, with the overrides applied.
-    func fetch<T>(_ request: NSFetchRequest<T>, in context: NSManagedObjectContext) -> [T] {
+    /// Names the entity of a request made with none (`@FetchRequest(sortDescriptors:)` on a
+    /// managed object class): the class's entity in the context's model.
+    private func resolveEntity<T>(_ request: NSFetchRequest<T>, in context: NSManagedObjectContext) {
         if request.entity == nil, request.entityName == nil, let type = T.self as? NSManagedObject.Type {
             request.entity = type._entity(in: context)
         }
+    }
+
+    /// The request's results in the context, with the overrides applied.
+    func fetch<T>(_ request: NSFetchRequest<T>, in context: NSManagedObjectContext) -> [T] {
+        resolveEntity(request, in: context)
         let saved = (request.predicate, request.sortDescriptors)
         request.predicate = predicate(request)
         request.sortDescriptors = sortDescriptors(request)
