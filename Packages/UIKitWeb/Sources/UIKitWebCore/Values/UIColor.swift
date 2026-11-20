@@ -9,7 +9,7 @@ public final class UIColor: UIObjectBase, @unchecked Sendable {
     public let light: RGBA
     public let dark: RGBA
 
-    public init(_light: RGBA, _dark: RGBA) {
+    public init(_light light: RGBA, _dark dark: RGBA) {
         self.light = light
         self.dark = dark
         super.init()
