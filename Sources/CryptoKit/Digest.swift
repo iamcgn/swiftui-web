@@ -1,8 +1,9 @@
 // CryptoKit on wasm and Linux (where Apple's is missing): the hash functions, HMAC and
 // symmetric keys apps use to fingerprint data, sign requests (OAuth's PKCE challenge, a webhook
-// signature) and derive identifiers, and ChaChaPoly to seal data. Pure Swift; the digests
-// and sealed boxes match Apple's byte for byte. Not here: AES, key agreement (Curve25519,
-// P256) and P256 signatures, HKDF, the Secure Enclave.
+// signature) and derive identifiers, ChaChaPoly to seal data, Ed25519 signatures, and P-256
+// key agreement with HKDF to decrypt push payloads. Pure Swift; the digests, sealed boxes and
+// keys match Apple's byte for byte. Not here: AES, Curve25519 key agreement, P-256 signatures,
+// the Secure Enclave.
 //
 // Inputs are any sequence of bytes (`Data`, `[UInt8]`, a slice, `Data(string.utf8)`), which
 // covers every `DataProtocol` value Apple's accepts.
