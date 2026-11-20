@@ -511,33 +511,87 @@ def project_dependencies(root: Path, extra):
     return out
 
 
-def declared_pins(work: Path, root: Path, extra, packages, pins, notes):
+def requirement_allows(version, req):
+    """Whether a release version satisfies an exact or range requirement."""
+    if req[0] == "exact":
+        return version == version_tuple(req[1])
+    if req[0] == "range":
+        lower, upper = version_tuple(req[1]), version_tuple(req[2]) if req[2] else None
+        return bool(lower) and version >= lower and (upper is None or version < upper)
+    return False
+
+
+def resolve_requirements(repo, reqs):
+    """The commit that every requirement on one package allows, as SwiftPM picks it: a branch or
+    revision when one is asked for (the first, the root's before its packages'), else the newest
+    release that every version requirement allows; None when nothing does."""
+    fixed = [r for r in reqs if r[0] in ("branch", "revision")]
+    if fixed:
+        return resolve_requirement(repo, fixed[0])
+    tags = remote_refs(repo)["tags"]
+    allowed = [v for v in tags if all(requirement_allows(v, r) for r in reqs)]
+    return tags[max(allowed)] if allowed else None
+
+
+def declared_pins(work: Path, root: Path, extra, packages, pins, notes, passes=20):
     """`pins` with every package the app's manifests and projects name but no Package.resolved
-    pins, resolved, and the packages those name in turn."""
+    pins, resolved, and the packages those name in turn. Each package takes a commit that all the
+    requirements on it allow: a requirement found later (a dependency's exact version under the
+    app's wider range) moves the pick, and the moved package's own requirements replace those of
+    its earlier pick, until no pick moves."""
     pins = dict(pins)
-    pinned_repos = {p["repo"].lower() for p in pins.values()}
-    todo = [d for p in packages for d in manifest_dependencies(p["dump"])] + project_dependencies(root, extra)
-    seen = set()
-    while todo:
-        identity, url, req = todo.pop(0)
-        repo = github_repo(url)
-        if not repo or repo.lower() in pinned_repos or repo.lower() in seen:
+    resolved_repos = {p["repo"].lower() for p in pins.values()}
+    wanted = {}  # repo (lower) -> {"identity", "url", "repo", "by": {source: [requirement]}}
+
+    def want(source, deps):
+        for identity, url, req in deps:
+            repo = github_repo(url)
+            if not repo or repo.lower() in resolved_repos:
+                continue
+            entry = wanted.setdefault(repo.lower(), {"identity": identity or repo.split("/")[1].lower().removesuffix(".git"),
+                                                       "url": url, "repo": repo, "by": {}})
+            entry["by"].setdefault(source, []).append(req)
+
+    want("", [d for p in packages for d in manifest_dependencies(p["dump"])] + project_dependencies(root, extra))
+    picked = {}  # repo (lower) -> commit or None
+    for _ in range(passes):
+        moved = False
+        for key, entry in list(wanted.items()):
+            identity = entry["identity"]
+            if identity in pins and key not in picked:
+                continue  # Package.resolved pins one of that name
+            reqs = [r for source in entry["by"] for r in entry["by"][source]]
+            if not reqs:
+                continue  # only an earlier pick of a package asked for it
+            revision = resolve_requirements(entry["repo"], reqs)
+            if key in picked and picked[key] == revision:
+                continue
+            moved = True
+            picked[key] = revision
+            for other in wanted.values():
+                other["by"].pop(key, None)  # what the earlier pick asked for no longer holds
+            if not revision:
+                pins.pop(identity, None)
+                continue
+            pins[identity] = {"url": entry["url"], "repo": entry["repo"], "revision": revision, "declared": reqs}
+            keys = fetch_packages(work, {identity: pins[identity]})
+            if identity in keys:
+                dump, _ = dump_package(work / PACKAGES_DIR / keys[identity])
+                want(key, manifest_dependencies(dump))
+        if not moved:
+            break
+    else:
+        notes.append(f"packages: no stable resolution after {passes} passes; the last picks are built")
+    for key, revision in picked.items():
+        entry = wanted[key]
+        reqs = [r for source in entry["by"] for r in entry["by"][source]]
+        if not reqs:
+            pins.pop(entry["identity"], None)  # nothing that's still picked asks for it
             continue
-        seen.add(repo.lower())
-        identity = identity or repo.split("/")[1].lower().removesuffix(".git")
-        if identity in pins:
-            continue
-        revision = resolve_requirement(repo, req)
-        if not revision:
-            notes.append(f"package {identity}: nothing in {repo} matches {req}, not built")
-            continue
-        pins[identity] = {"url": url, "repo": repo, "revision": revision, "declared": list(req)}
-        pinned_repos.add(repo.lower())
-        notes.append(f"package {identity}: no Package.resolved pin; {req} resolves to {revision[:12]}")
-        keys = fetch_packages(work, {identity: pins[identity]})
-        if identity in keys:
-            dump, _ = dump_package(work / PACKAGES_DIR / keys[identity])
-            todo.extend(manifest_dependencies(dump))
+        if revision:
+            notes.append(f"package {entry['identity']}: no Package.resolved pin; {reqs} resolve to {revision[:12]}")
+        else:
+            notes.append(f"package {entry['identity']}: nothing in {entry['repo']} satisfies all of {reqs}, not built")
     return pins
 
 

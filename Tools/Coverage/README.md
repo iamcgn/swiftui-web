@@ -66,8 +66,9 @@ be fetched stays empty.
   them are left out, and an import of one of those is taken out like a missing framework;
 - a package the app's manifests or Xcode project name but no `Package.resolved` pins (one kept
   out of git, or a local package asking for a branch) is resolved as Xcode would resolve it the
-  day the plan runs, a branch's head or the newest release tag in range, and so are the packages
-  it names in turn; the plan job resolves them once, so every shard builds the same revisions;
+  day the plan runs, a branch's head or the newest release tag that every requirement on that
+  package allows (the app's and its packages'), and so are the packages it names in turn; a
+  package no release satisfies is noted and not built; the plan job resolves them once, so every shard builds the same revisions;
 - every target passes `-package-name` with the package it came from (a pinned package's identity,
   or the app's), so `package` declarations stay inside their own package as they do in a real
   build, though the sweep puts every target into one generated package;
