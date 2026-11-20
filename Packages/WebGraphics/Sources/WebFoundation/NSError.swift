@@ -176,4 +176,13 @@ extension Error {
         return "The operation couldn’t be completed. (\(String(reflecting: type(of: self))) error \(_code).)"
     }
 }
+
+/// Matches a Cocoa error's code against any error, as Foundation's `~=` for error codes does
+/// (Bodega's `catch CocoaError.fileReadNoSuchFile`): a `CocoaError` with that code, or an
+/// `NSError` in `NSCocoaErrorDomain` with it.
+public func ~= (code: CocoaError.Code, error: any Error) -> Bool {
+    if let error = error as? CocoaError { return error.code == code }
+    if let error = error as? NSError { return error.domain == NSCocoaErrorDomain && error.code == code.rawValue }
+    return false
+}
 #endif

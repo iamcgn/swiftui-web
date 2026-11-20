@@ -48,6 +48,19 @@ private final class LoggedResponse: HTTPURLResponse, @unchecked Sendable {
         #expect(first.hash == same.hash)
     }
 
+    /// Bodega's `catch CocoaError.fileReadNoSuchFile`: a code matches a Cocoa error with it, as
+    /// an error or as an `NSError` in the Cocoa domain, and nothing else.
+    @Test func cocoaErrorCodesMatchErrors() {
+        func matches(_ error: any Error) -> Bool {
+            if case CocoaError.fileReadNoSuchFile = error { return true }
+            return false
+        }
+        #expect(matches(CocoaError(.fileReadNoSuchFile)))
+        #expect(matches(NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadNoSuchFile.rawValue)))
+        #expect(!matches(CocoaError(.fileWriteOutOfSpace)))
+        #expect(!matches(NSError(domain: "Other", code: CocoaError.fileReadNoSuchFile.rawValue)))
+    }
+
     #if os(WASI)
     /// IceCubes registers its sounds at launch and plays them by identifier.
     @Test func registeredSoundsGetTheirOwnIdentifiers() throws {
