@@ -177,6 +177,11 @@ extension URLSession {
     @objc public enum ResponseDisposition: Int, Sendable {
         case cancel = 0, allow = 1, becomeDownload = 2, becomeStream = 3
     }
+
+    /// How a delayed task goes on.
+    @objc public enum DelayedRequestDisposition: Int, Sendable {
+        case continueLoading = 0, useNewRequest = 1, cancel = 2
+    }
     #else
     /// How a delegate answers an authentication challenge.
     public enum AuthChallengeDisposition: Int, Sendable {
@@ -188,11 +193,6 @@ extension URLSession {
         case cancel = 0, allow = 1, becomeDownload = 2, becomeStream = 3
     }
 
-    /// How a delayed task goes on.
-    @objc public enum DelayedRequestDisposition: Int, Sendable {
-        case continueLoading = 0, useNewRequest = 1, cancel = 2
-    }
-    #else
     /// How a delayed task goes on.
     public enum DelayedRequestDisposition: Int, Sendable {
         case continueLoading = 0, useNewRequest = 1, cancel = 2
