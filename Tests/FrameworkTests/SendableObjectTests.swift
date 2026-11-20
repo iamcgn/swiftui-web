@@ -24,7 +24,12 @@ private final class ProgressDelegate: NSObject, Sendable {
         #expect(delegate.isEqual(delegate) && !delegate.isEqual(ProgressDelegate(label: "upload")))
         #if os(WASI) || canImport(ObjectiveC)
         // swift-corelibs-foundation's NSObject (Linux) has no `responds(to:)`.
-        #expect(delegate.responds(to: Selector(("cancel"))) == false)
+        #if canImport(ObjectiveC)
+        let cancel = NSSelectorFromString("cancel")  // Swift wants #selector for a written Selector
+        #else
+        let cancel: Selector = "cancel"
+        #endif
+        #expect(delegate.responds(to: cancel) == false)
         #endif
     }
 }
