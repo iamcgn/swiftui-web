@@ -521,24 +521,27 @@ def requirement_allows(version, req):
     return False
 
 
-def resolve_requirements(repo, reqs):
+def resolve_requirements(repo, reqs, excluded=()):
     """The commit that every requirement on one package allows, as SwiftPM picks it: a branch or
     revision when one is asked for (the first, the root's before its packages'), else the newest
-    release that every version requirement allows; None when nothing does."""
+    release, other than the `excluded` commits, that every version requirement allows; None when
+    nothing does."""
     fixed = [r for r in reqs if r[0] in ("branch", "revision")]
     if fixed:
         return resolve_requirement(repo, fixed[0])
     tags = remote_refs(repo)["tags"]
-    allowed = [v for v in tags if all(requirement_allows(v, r) for r in reqs)]
+    allowed = [v for v in tags if tags[v] not in excluded and all(requirement_allows(v, r) for r in reqs)]
     return tags[max(allowed)] if allowed else None
 
 
-def declared_pins(work: Path, root: Path, extra, packages, pins, notes, passes=20):
+def declared_pins(work: Path, root: Path, extra, packages, pins, notes, passes=20, backtracks=8):
     """`pins` with every package the app's manifests and projects name but no Package.resolved
     pins, resolved, and the packages those name in turn. Each package takes a commit that all the
     requirements on it allow: a requirement found later (a dependency's exact version under the
     app's wider range) moves the pick, and the moved package's own requirements replace those of
-    its earlier pick, until no pick moves."""
+    its earlier pick, until no pick moves. When nothing satisfies a package's requirements and
+    leaving out one picked package's requirements would, that package goes back to an older
+    release (at most `backtracks` times), as SwiftPM would try before giving up."""
     pins = dict(pins)
     resolved_repos = {p["repo"].lower() for p in pins.values()}
     wanted = {}  # repo (lower) -> {"identity", "url", "repo", "by": {source: [requirement]}}
@@ -554,6 +557,27 @@ def declared_pins(work: Path, root: Path, extra, packages, pins, notes, passes=2
 
     want("", [d for p in packages for d in manifest_dependencies(p["dump"])] + project_dependencies(root, extra))
     picked = {}  # repo (lower) -> commit or None
+    excluded = {}  # repo (lower) -> commits a conflict ruled out
+
+    def blame(entry):
+        """A picked package whose requirements alone keep `entry` from resolving and that has
+        another release its own requirements allow, ruled out at its current pick; whether there
+        was one."""
+        for source in entry["by"]:
+            if not source or not picked.get(source):
+                continue  # the root's own requirements, or a package nothing satisfied either
+            if any(r[0] in ("branch", "revision") for reqs in wanted[source]["by"].values() for r in reqs):
+                continue  # on a branch or revision, so no older release to try
+            rest = [r for other in entry["by"] if other != source for r in entry["by"][other]]
+            if not resolve_requirements(entry["repo"], rest):
+                continue
+            ruled_out = excluded.get(source, set()) | {picked[source]}
+            own = [r for reqs in wanted[source]["by"].values() for r in reqs]
+            if resolve_requirements(wanted[source]["repo"], own, ruled_out):  # an older one to try
+                excluded[source] = ruled_out
+                return True
+        return False
+
     for _ in range(passes):
         moved = False
         for key, entry in list(wanted.items()):
@@ -570,7 +594,11 @@ def declared_pins(work: Path, root: Path, extra, packages, pins, notes, passes=2
                     for other in wanted.values():
                         other["by"].pop(key, None)
                 continue
-            revision = resolve_requirements(entry["repo"], reqs)
+            revision = resolve_requirements(entry["repo"], reqs, excluded.get(key, ()))
+            if not revision and backtracks and blame(entry):
+                backtracks -= 1
+                moved = True
+                continue  # the blamed package moves to an older release first
             if key in picked and picked[key] == revision:
                 continue
             moved = True
