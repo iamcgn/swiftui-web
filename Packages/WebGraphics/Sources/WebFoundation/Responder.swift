@@ -78,7 +78,8 @@ extension CharacterSet: ExpressibleByArrayLiteral {
 
 #endif
 
-#if !canImport(ObjectiveC)
+#if !canImport(ObjectiveC) && !os(WASI)
+// On wasm without the runtime, Selector is SwiftFoundation's (beside NSObject, whose members take it).
 
 /// A command name (`onCommand`); `#selector` needs an Objective-C runtime, so commands are
 /// named by their selector string ("copy:", "selectAll:").
@@ -171,55 +172,6 @@ private let _textTypeIdentifiers: Set<String> = ["public.utf8-plain-text", "publ
 
 #endif
 
-#if os(WASI) && !canImport(ObjectiveC)
-// MARK: - NSObject (decision 0021: the Countries app subclasses it for its notification
-// delegate; `super.init()`, identity equality, a hash and a description). With the
-// Objective-C runtime (decision 0023) the real NSObject comes from the ObjectiveC module.
-
-/// The protocol the root class conforms to.
-public protocol NSObjectProtocol: AnyObject {
-    func isEqual(_ object: Any?) -> Bool
-    var hash: Int { get }
-    var description: String { get }
-}
-
-/// The root class of most Objective-C class hierarchies, without the runtime: identity
-/// equality and hashing, overridable, as apps subclass it for delegates.
-open class NSObject: NSObjectProtocol, Hashable, CustomStringConvertible {
-    public init() {}
-    open func isEqual(_ object: Any?) -> Bool {
-        guard let other = object as? NSObject else { return false }
-        return other === self
-    }
-    open var hash: Int { ObjectIdentifier(self).hashValue }
-    open var description: String { "<\(type(of: self))>" }
-    open var debugDescription: String { description }
-    public static func == (lhs: NSObject, rhs: NSObject) -> Bool { lhs.isEqual(rhs) }
-    public func hash(into hasher: inout Hasher) { hasher.combine(hash) }
-    open class var description: String { "\(self)" }
-    public func isKind(of aClass: AnyClass) -> Bool { type(of: self) == aClass }
-    public func isMember(of aClass: AnyClass) -> Bool { type(of: self) == aClass }
-
-    // Sending a message by selector. Without the runtime no method is registered under a
-    // selector, so an object responds to none and a send returns nothing: code that checks
-    // first (`responds(to:)`, then `perform`), as Kingfisher does for `sharedApplication`,
-    // takes its branch for a missing method. A class overrides these to answer for itself.
-    open func responds(to aSelector: Selector!) -> Bool { false }
-    open class func responds(to aSelector: Selector!) -> Bool { false }
-    open class func instancesRespond(to aSelector: Selector!) -> Bool { false }
-    open func perform(_ aSelector: Selector!) -> Unmanaged<AnyObject>! { nil }
-    open func perform(_ aSelector: Selector!, with object: Any!) -> Unmanaged<AnyObject>! { nil }
-    open func perform(_ aSelector: Selector!, with object1: Any!, with object2: Any!) -> Unmanaged<AnyObject>! { nil }
-    open class func perform(_ aSelector: Selector!) -> Unmanaged<AnyObject>! { nil }
-    open class func perform(_ aSelector: Selector!, with object: Any!) -> Unmanaged<AnyObject>! { nil }
-    open class func perform(_ aSelector: Selector!, with object1: Any!, with object2: Any!) -> Unmanaged<AnyObject>! { nil }
-
-    /// Called when a value this object observes by key changes (`addObserver(_:forKeyPath:…)`,
-    /// KeyValueObserving.swift); subclasses override it.
-    open func observeValue(forKeyPath keyPath: String?, of object: Any?,
-                           change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {}
-}
-#endif
 
 #if os(WASI)
 // MARK: - Percent encoding with the URL character sets (with or without the Objective-C runtime)
