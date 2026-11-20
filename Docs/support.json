@@ -692,7 +692,7 @@
         {
           "api": "ContainerRelativeShape / containerShape / ConcentricRectangle / rect(corners:isUniform:) / Edge.Corner.Style",
           "status": "full",
-          "notes": "The container's shape inset by the smallest edge distance between the view and the container, drawn in the view's rect (uniform padding shrinks the radius, one-axis padding keeps it, a nested container wins); a rectangle without a container; clip shapes resolve too. ConcentricRectangle (2026-11-20, unmeasured): all corners concentric inside a container shape draw the container's shape inset; otherwise each corner takes its fixed radius or its concentric minimum, isUniform the largest",
+          "notes": "The container's shape inset by the smallest edge distance between the view and the container, drawn in the view's rect (uniform padding shrinks the radius, one-axis padding keeps it, a nested container wins); a rectangle without a container; clip shapes resolve too. ConcentricRectangle (2026-11-20, unmeasured): a concentric corner takes the container's radius at that corner less the view's distance from it, at least its minimum (its minimum without a container), a fixed corner its radius, isUniform the largest; inside a circle or custom container shape all-concentric corners draw that shape inset",
           "fixtures": [
             "shape/builtin",
             "shape/corners"

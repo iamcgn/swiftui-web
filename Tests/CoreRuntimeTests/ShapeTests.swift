@@ -433,6 +433,26 @@ func pathsMatch(_ ours: String, _ apple: String, tolerance: Double = 1e-3, sourc
         #expect(ContainerRelativeShape().path(in: CGRect(x: 0, y: 0, width: 10, height: 10)).description == "0 0 m 10 0 l 10 10 l 0 10 l h")
     }
 
+    /// A concentric corner takes the container's radius at that corner less the view's distance
+    /// from it; `isUniform` gives every corner the largest (issue 291).
+    @Test func concentricRectanglesFollowTheContainersCorners() {
+        func path<V: View>(_ view: V) -> String {
+            let runtime = Runtime()
+            runtime.mount(view)
+            runtime.layout(in: CGSize(width: 80, height: 80))
+            let list = runtime.render(scale: 1)
+            return DisplayListDecoder.decode(DisplayListEncoder.encode(list, font: DisplayListEncoder.cssFont)).first { $0.hasPrefix("fillPath") || $0.hasPrefix("fillRRect") } ?? ""
+        }
+        let container = UnevenRoundedRectangle(cornerRadii: .init(topLeading: 30, bottomLeading: 10, bottomTrailing: 20, topTrailing: 12))
+        let inner = CGRect(x: 10, y: 10, width: 60, height: 60)
+        let each = path(ConcentricRectangle().fill(Color.red).padding(10).frame(width: 80, height: 80).containerShape(container))
+        #expect(each == path(Path(roundedRect: inner, cornerRadii: .init(topLeading: 20, bottomLeading: 0, bottomTrailing: 10, topTrailing: 2), style: .continuous).fill(Color.red)))
+        let uniform = path(ConcentricRectangle(corners: .concentric, isUniform: true).fill(Color.red).padding(10).frame(width: 80, height: 80).containerShape(container))
+        #expect(uniform == path(Path(roundedRect: inner, cornerRadii: .init(topLeading: 20, bottomLeading: 20, bottomTrailing: 20, topTrailing: 20), style: .continuous).fill(Color.red)))
+        let floored = path(ConcentricRectangle(corners: .concentric(minimum: 8)).fill(Color.red).padding(10).frame(width: 80, height: 80).containerShape(container))
+        #expect(floored == path(Path(roundedRect: inner, cornerRadii: .init(topLeading: 20, bottomLeading: 8, bottomTrailing: 10, topTrailing: 8), style: .continuous).fill(Color.red)))
+    }
+
     /// The separator role draws a bare hierarchical level at the primary level when no foreground
     /// colour is set; a colour, a set foreground or the stroke role change nothing (measured
     /// 2026-10-11, `shape/corners`).
