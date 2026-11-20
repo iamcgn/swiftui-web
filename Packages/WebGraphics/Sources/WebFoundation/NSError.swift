@@ -48,6 +48,12 @@ open class NSError: NSObject, Error, @unchecked Sendable {
     open var localizedFailureReason: String? { userInfo[NSLocalizedFailureReasonErrorKey] as? String }
     open var localizedRecoverySuggestion: String? { userInfo[NSLocalizedRecoverySuggestionErrorKey] as? String }
     open override var description: String { localizedDescription }
+    /// Equal to an error with the same domain, code and user info keys, as without the runtime.
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NSError else { return false }
+        return other === self || (other.domain == domain && other.code == code && Set(other.userInfo.keys) == Set(userInfo.keys))
+    }
+    open override var hash: Int { domain.hashValue ^ code }
 }
 #else
 open class NSError: Error, CustomStringConvertible, @unchecked Sendable {
@@ -71,6 +77,14 @@ open class NSError: Error, CustomStringConvertible, @unchecked Sendable {
     open var localizedFailureReason: String? { userInfo[NSLocalizedFailureReasonErrorKey] as? String }
     open var localizedRecoverySuggestion: String? { userInfo[NSLocalizedRecoverySuggestionErrorKey] as? String }
     public var description: String { localizedDescription }
+    /// Equal to an error with the same domain, code and user info keys (OAuth2Error's `==` asks
+    /// two wrapped errors `lhe.isEqual(rhe)`). Foundation also compares the user info values,
+    /// which are `Any` here and have no equality to ask.
+    open func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NSError else { return false }
+        return other === self || (other.domain == domain && other.code == code && Set(other.userInfo.keys) == Set(userInfo.keys))
+    }
+    open var hash: Int { domain.hashValue ^ code }
 }
 #endif
 

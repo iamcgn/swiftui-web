@@ -352,6 +352,9 @@ public final class NSURL: _WebNSValue, _WebValueObject, @unchecked Sendable {
 /// A URL load request as an object, the request `URLRequest` bridges to; `NSMutableURLRequest`
 /// changes it (SwiftyStoreKit's receipt validation builds one and passes it `as URLRequest`).
 open class NSURLRequest: NSObject, @unchecked Sendable {
+    /// The cache policies, by the name Foundation declares them under (`URLRequest.CachePolicy`
+    /// is its alias there): OAuth2's `cachePolicy: NSURLRequest.CachePolicy` parameter.
+    public typealias CachePolicy = URLRequest.CachePolicy
     /// The request this object holds.
     public fileprivate(set) var _webValue: URLRequest
     public init(_webValue: URLRequest) {

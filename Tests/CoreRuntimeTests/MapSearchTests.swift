@@ -96,5 +96,22 @@ private final class Listener: MKLocalSearchCompleterDelegate {
         #expect(MKPointOfInterestFilter.includingAll.includes(.zoo) && MKPointOfInterestFilter.excludingAll.excludes(.zoo))
         #expect(MKPointOfInterestCategory.restaurant.rawValue == "MKPOICategoryRestaurant")
     }
+
+    /// CriticalMaps' "Open in Maps" for a ride's meeting point: Apple Maps' web link, with
+    /// directions when a mode is asked for, and nothing to open for the current location alone.
+    @Test func openingInMapsLinksToTheItem() {
+        let start = MKMapItem(coordinate: CLLocationCoordinate2D(latitude: 52.5, longitude: 13.25), name: "Start")
+        let meeting = MKMapItem(coordinate: CLLocationCoordinate2D(latitude: 52.25, longitude: 13.5), name: "Mariannenplatz Berlin")
+        let show = MKMapItem.mapsURL(for: [meeting], launchOptions: [:])
+        #expect(show?.absoluteString == "https://maps.apple.com/?ll=52.25,13.5&q=Mariannenplatz%20Berlin")
+        let walk = MKMapItem.mapsURL(for: [meeting], launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeWalking])
+        #expect(walk?.absoluteString == "https://maps.apple.com/?daddr=52.25,13.5&dirflg=w")
+        let route = MKMapItem.mapsURL(for: [start, meeting], launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDefault])
+        #expect(route?.absoluteString == "https://maps.apple.com/?saddr=52.5,13.25&daddr=52.25,13.5")
+        let fromHere = MKMapItem.mapsURL(for: [.forCurrentLocation(), meeting], launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving])
+        #expect(fromHere?.absoluteString == "https://maps.apple.com/?daddr=52.25,13.5&dirflg=d")
+        #expect(MKMapItem.mapsURL(for: [.forCurrentLocation()], launchOptions: [:]) == nil)
+        #expect(MKMapItem.mapsURL(for: [], launchOptions: [:]) == nil)
+    }
 }
 #endif

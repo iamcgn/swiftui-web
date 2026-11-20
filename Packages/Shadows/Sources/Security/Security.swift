@@ -161,6 +161,30 @@ public func SecAccessControlCreateWithFlags(_ allocator: CFAllocator?, _ protect
     SecAccessControl(protection: protection, flags: flags)
 }
 
+// MARK: - Random bytes
+
+/// A random number generator (Apple's `SecRandomRef`, an opaque C pointer). There is only the
+/// default one.
+public typealias SecRandomRef = OpaquePointer
+
+/// The default random number generator: the only one, as on Apple's platforms.
+nonisolated(unsafe) public let kSecRandomDefault: SecRandomRef? = nil
+
+/// Fills `count` bytes at `bytes` with cryptographically secure random bytes: the system
+/// generator, which WASI's `random_get` gives (in a browser, `crypto.getRandomValues`). OAuth's
+/// state and PKCE verifier and a push subscription's auth secret are made this way.
+public func SecRandomCopyBytes(_ rnd: SecRandomRef?, _ count: Int, _ bytes: UnsafeMutableRawPointer) -> Int32 {
+    var generator = SystemRandomNumberGenerator()
+    var offset = 0
+    while offset < count {
+        var word = generator.next()
+        let length = min(MemoryLayout<UInt64>.size, count - offset)
+        withUnsafeBytes(of: &word) { (bytes + offset).copyMemory(from: $0.baseAddress!, byteCount: length) }
+        offset += length
+    }
+    return errSecSuccess
+}
+
 // MARK: - Result codes
 
 public let errSecSuccess: OSStatus = 0

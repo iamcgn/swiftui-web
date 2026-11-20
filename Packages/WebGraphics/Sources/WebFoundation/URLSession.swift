@@ -219,10 +219,22 @@ open class URLResponse: _WebObjectBase, @unchecked Sendable {
         super.init()
     }
     public var suggestedFilename: String? { url?.lastPathComponent }
+    #if !canImport(ObjectiveC)
+    // What `NSObject` gives a response under the runtime, overridable as there (OAuth2's
+    // `HTTPURLResponse.debugDescription` prints the status line and headers for its log).
+    open var description: String { "<\(type(of: self))> { URL: \(url?.absoluteString ?? "(null)") }" }
+    open var debugDescription: String { description }
+    #endif
 }
 
-/// The metadata associated with the response to an HTTP protocol URL load request.
-public final class HTTPURLResponse: URLResponse, @unchecked Sendable {
+#if !canImport(ObjectiveC)
+extension URLResponse: CustomStringConvertible, CustomDebugStringConvertible {}
+#endif
+
+/// The metadata associated with the response to an HTTP protocol URL load request. Open, as
+/// Foundation's is, so an app's extension can override what it inherits (OAuth2's
+/// `override open var debugDescription`).
+open class HTTPURLResponse: URLResponse, @unchecked Sendable {
     public let statusCode: Int
     public let allHeaderFields: [AnyHashable: Any]
     private let headerFields: [String: String]

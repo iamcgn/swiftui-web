@@ -122,7 +122,67 @@ public final class MKMapItem: @unchecked Sendable {
     public static func forCurrentLocation() -> MKMapItem {
         MKMapItem(currentLocation: MKPlacemark(placemark: CLPlacemark(location: nil)))
     }
+
+    /// Opens the item in a maps page (Apple Maps on the web, in a new tab), with directions to it
+    /// when the options ask for a directions mode (CriticalMaps' "Open in Maps" for a ride's
+    /// meeting point). True when the host can open a page.
+    @discardableResult
+    public func openInMaps(launchOptions: [String: Any]? = nil) -> Bool {
+        Self.openMaps(with: [self], launchOptions: launchOptions)
+    }
+
+    /// Opens the items in a maps page: with a directions mode, directions from the first to the
+    /// last (from the current location when there is one item, or the first is
+    /// `forCurrentLocation()`); otherwise a search for the first item at its coordinate.
+    @discardableResult
+    public class func openMaps(with mapItems: [MKMapItem], launchOptions: [String: Any]? = nil) -> Bool {
+        guard let url = mapsURL(for: mapItems, launchOptions: launchOptions ?? [:]) else { return false }
+        Task { @MainActor in OpenURLAction.systemHandler?(url) }
+        return true
+    }
+
+    /// The Apple Maps web link for the items and options (Apple's documented map link keys).
+    package static func mapsURL(for mapItems: [MKMapItem], launchOptions: [String: Any]) -> URL? {
+        guard let last = mapItems.last else { return nil }
+        func point(_ item: MKMapItem) -> String? {
+            let coordinate = item.coordinate
+            guard !item.isCurrentLocation, CLLocationCoordinate2DIsValid(coordinate) else { return nil }
+            return "\(coordinate.latitude),\(coordinate.longitude)"
+        }
+        var items: [URLQueryItem] = []
+        if let mode = launchOptions[MKLaunchOptionsDirectionsModeKey] as? String {
+            if mapItems.count > 1, let start = point(mapItems[0]) { items.append(URLQueryItem(name: "saddr", value: start)) }
+            guard let destination = point(last) else { return nil }
+            items.append(URLQueryItem(name: "daddr", value: destination))
+            let flags = [MKLaunchOptionsDirectionsModeDriving: "d", MKLaunchOptionsDirectionsModeWalking: "w",
+                         MKLaunchOptionsDirectionsModeTransit: "r", MKLaunchOptionsDirectionsModeCycling: "c"]
+            if let flag = flags[mode] { items.append(URLQueryItem(name: "dirflg", value: flag)) }
+        } else {
+            guard let first = mapItems.first, let location = point(first) else { return nil }
+            items.append(URLQueryItem(name: "ll", value: location))
+            if let name = first.name { items.append(URLQueryItem(name: "q", value: name)) }
+        }
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "maps.apple.com"
+        components.path = "/"
+        components.queryItems = items
+        return components.url
+    }
 }
+
+// The keys of `openInMaps(launchOptions:)` and the directions modes, as Apple names them.
+public let MKLaunchOptionsDirectionsModeKey = "MKLaunchOptionsDirectionsMode"
+public let MKLaunchOptionsMapTypeKey = "MKLaunchOptionsMapType"
+public let MKLaunchOptionsShowsTrafficKey = "MKLaunchOptionsShowsTraffic"
+public let MKLaunchOptionsMapCenterKey = "MKLaunchOptionsMapCenter"
+public let MKLaunchOptionsMapSpanKey = "MKLaunchOptionsMapSpan"
+public let MKLaunchOptionsCameraKey = "MKLaunchOptionsCamera"
+public let MKLaunchOptionsDirectionsModeDefault = "MKLaunchOptionsDirectionsModeDefault"
+public let MKLaunchOptionsDirectionsModeDriving = "MKLaunchOptionsDirectionsModeDriving"
+public let MKLaunchOptionsDirectionsModeWalking = "MKLaunchOptionsDirectionsModeWalking"
+public let MKLaunchOptionsDirectionsModeTransit = "MKLaunchOptionsDirectionsModeTransit"
+public let MKLaunchOptionsDirectionsModeCycling = "MKLaunchOptionsDirectionsModeCycling"
 
 /// A placemark that a map shows: a `CLPlacemark` with a coordinate and a title, as Apple's is.
 open class MKPlacemark: CLPlacemark, @unchecked Sendable {

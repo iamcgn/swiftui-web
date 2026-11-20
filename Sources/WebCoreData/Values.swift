@@ -99,6 +99,16 @@ public struct NSOrderedSet: RandomAccessCollection, Hashable, @unchecked Sendabl
 /// `Date`, as Foundation bridges it: `date as NSDate` in a predicate's arguments. With the
 /// runtime, `NSDate` is WebFoundation's class, and `date as NSDate` an object (`_cdUnwrap`).
 public typealias NSDate = Date
+
+extension Date {
+    /// The later of the two dates, as `NSDate` answers: `(date as NSDate).laterDate(Date())`
+    /// (OAuth2's token expiry check) compiles with `NSDate` spelled as `Date`.
+    @_disfavoredOverload
+    public func laterDate(_ anotherDate: Date) -> Date { Swift.max(self, anotherDate) }
+    /// The earlier of the two dates, as `NSDate` answers.
+    @_disfavoredOverload
+    public func earlierDate(_ anotherDate: Date) -> Date { Swift.min(self, anotherDate) }
+}
 #endif
 /// A block that compares two objects (Foundation's `Comparator`).
 public typealias Comparator = (Any, Any) -> ComparisonResult
