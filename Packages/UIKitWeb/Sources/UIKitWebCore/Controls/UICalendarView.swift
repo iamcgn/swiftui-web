@@ -371,8 +371,8 @@ enum CalendarPainter {
     static let dayFont = UIFont.systemFont(ofSize: 20)
     static let selectedDayFont = UIFont.systemFont(ofSize: 20, weight: .semibold)
     /// iOS's tertiary (weekday initials, disabled chevrons) and quaternary (unavailable days) labels.
-    static let weekdayColor = UIColor(light: RGBA(r: 60, g: 60, b: 67, a: 0.3), dark: RGBA(r: 235, g: 235, b: 245, a: 0.3))
-    static let unavailableColor = UIColor(light: RGBA(r: 60, g: 60, b: 67, a: 0.18), dark: RGBA(r: 235, g: 235, b: 245, a: 0.18))
+    static let weekdayColor = UIColor(_light: RGBA(r: 60, g: 60, b: 67, a: 0.3), _dark: RGBA(r: 235, g: 235, b: 245, a: 0.3))
+    static let unavailableColor = UIColor(_light: RGBA(r: 60, g: 60, b: 67, a: 0.18), _dark: RGBA(r: 235, g: 235, b: 245, a: 0.18))
 
     static func paint(_ grid: CalendarGrid, at origin: CGPoint, tint: RGBA, style: UIUserInterfaceStyle,
                       isEnabled: (DateComponents) -> Bool, isSelected: (DateComponents) -> Bool,

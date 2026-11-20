@@ -407,7 +407,7 @@ open class UITextField: UIControl {
 
     /// The clear button: 17 pt, centred 15 in from the right edge and half a point below the middle.
     /// The clear button's disc colour (a search field's is the secondary label colour).
-    var clearButtonFill: UIColor { UIColor(light: RGBA(r: 204, g: 204, b: 204), dark: RGBA(r: 92, g: 92, b: 97)) }
+    var clearButtonFill: UIColor { UIColor(_light: RGBA(r: 204, g: 204, b: 204), _dark: RGBA(r: 92, g: 92, b: 97)) }
     static let clearButtonSize: CGFloat = 17
     static let clearButtonGap: CGFloat = 11
     open func clearButtonRect(forBounds bounds: CGRect) -> CGRect {

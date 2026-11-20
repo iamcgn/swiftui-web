@@ -212,7 +212,7 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
         self.style = style
         super.init(frame: frame)
         // The grouped ground is (242, 242, 247) on the iPhone (uikit/table/grouped).
-        backgroundColor = style == .plain ? .systemBackground : UIColor(light: RGBA(r: 242, g: 242, b: 247), dark: .black)
+        backgroundColor = style == .plain ? .systemBackground : UIColor(_light: RGBA(r: 242, g: 242, b: 247), _dark: .black)
         alwaysBounceVertical = true
         let swipe = UIPanGestureRecognizer()
         swipe.allowsSimultaneousRecognition = true

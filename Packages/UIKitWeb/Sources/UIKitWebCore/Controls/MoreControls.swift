@@ -101,7 +101,7 @@ open class UISlider: UIControl {
         let dim = isEnabled ? 1.0 : 0.5
         let track = context.absoluteRect(trackRect(forBounds: bounds))
         // The empty track is black at 10 % (uikit/controls/more).
-        let maximum = (maximumTrackTintColor ?? UIColor(light: RGBA(r: 0, g: 0, b: 0, a: 25.0 / 255), dark: RGBA(r: 255, g: 255, b: 255, a: 25.0 / 255))).rgba(for: style)
+        let maximum = (maximumTrackTintColor ?? UIColor(_light: RGBA(r: 0, g: 0, b: 0, a: 25.0 / 255), _dark: RGBA(r: 255, g: 255, b: 255, a: 25.0 / 255))).rgba(for: style)
         list.append(.fillRRect(track, cornerRadius: track.height / 2, maximum.multiplyingAlpha(by: dim)))
         let trackBounds = trackRect(forBounds: bounds)
         let filled = context.absoluteRect(CGRect(x: trackBounds.minX, y: 14, width: trackBounds.width * fraction, height: Self.trackHeight))
@@ -342,7 +342,7 @@ open class UISegmentedControl: UIControl {
             let segment = segmentFrames()[selectedSegmentIndex]
             let lens = context.absoluteRect(CGRect(x: segment.minX + 2, y: 2, width: segment.width - 4, height: bounds.height - 4))
             list.append(.beginShadow(RGBA(red: 0, green: 0, blue: 0, alpha: 0.1), radius: 4, offset: CGSize(width: 0, height: 2)))
-            list.append(.fillRRect(lens, cornerRadius: lens.height / 2, (selectedSegmentTintColor ?? UIColor(light: .white, dark: RGBA(r: 99, g: 99, b: 102))).rgba(for: style)))
+            list.append(.fillRRect(lens, cornerRadius: lens.height / 2, (selectedSegmentTintColor ?? UIColor(_light: .white, _dark: RGBA(r: 99, g: 99, b: 102))).rgba(for: style)))
             list.append(.endGroup)
         }
     }
@@ -517,7 +517,7 @@ open class UIProgressView: UIView {
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
         let track = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
         // The track is (120, 120, 125) at 20 % (uikit/controls/more).
-        let trackColor = (trackTintColor ?? UIColor(light: RGBA(r: 120, g: 120, b: 125, a: 0.2), dark: RGBA(r: 120, g: 120, b: 128, a: 0.32))).rgba(for: style)
+        let trackColor = (trackTintColor ?? UIColor(_light: RGBA(r: 120, g: 120, b: 125, a: 0.2), _dark: RGBA(r: 120, g: 120, b: 128, a: 0.32))).rgba(for: style)
         list.append(.fillRRect(track, cornerRadius: track.height / 2, trackColor))
         let width = (bounds.width * CGFloat(progress)).rounded()
         guard width > 0 else { return }
@@ -609,7 +609,7 @@ open class UIActivityIndicatorView: UIView {
     override func drawContent(into list: inout DisplayList, context: PaintContext, style userStyle: UIUserInterfaceStyle) {
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
         let legacy: UIColor? = style == .white || style == .whiteLarge ? .white : style == .gray ? .gray : nil
-        let ink = (color ?? legacy ?? UIColor(light: RGBA(r: 61, g: 61, b: 67, a: 0.8), dark: RGBA(r: 152, g: 152, b: 157))).rgba(for: userStyle)
+        let ink = (color ?? legacy ?? UIColor(_light: RGBA(r: 61, g: 61, b: 67, a: 0.8), _dark: RGBA(r: 152, g: 152, b: 157))).rgba(for: userStyle)
         let centre = CGPoint(x: rect.midX, y: rect.midY)
         let outer = rect.width / 2, inner = outer * 0.5, width = max(1.5, rect.width / 10)
         for spoke in 0..<8 {

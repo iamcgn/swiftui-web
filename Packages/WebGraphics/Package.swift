@@ -28,6 +28,7 @@ let package = Package(
         .library(name: "WebGraphics", targets: ["WebGraphics"]),
         .library(name: "WebImageIO", targets: ["WebImageIO"]),
         .library(name: "WebImageDestination", targets: ["WebImageDestination"]),
+        .library(name: "WebCoreImage", targets: ["WebCoreImage"]),
         .library(name: "WebGraphicsCanvas", targets: ["WebGraphicsCanvas"]),
         .library(name: "WebGraphicsNative", targets: ["WebGraphicsNative"]),
         .library(name: "WebGraphicsHeadless", targets: ["WebGraphicsHeadless"]),
@@ -92,6 +93,14 @@ let package = Package(
         .target(
             name: "WebImageDestination",
             dependencies: ["WebFoundation", "WebFoundationFormats", "WebGraphics", "WebImageIO"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // Core Image on the web (Docs/elements/CoreImage.md), which the `CoreImage` shadow
+        // re-exports, and UIKit too, as Apple's does (UIKitWeb's CoreImageBridges.swift holds
+        // UIKit's side). Here, below UIKit, so UIKit can bring it.
+        .target(
+            name: "WebCoreImage",
+            dependencies: ["WebFoundation", "WebGraphics", .target(name: "WebImageIO", condition: .when(platforms: [.wasi]))],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
