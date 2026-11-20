@@ -39,6 +39,10 @@ import WebCombine
         #expect(ascii == nil && latin == nil && shiftJIS == nil)
         let lossy: Data = text.data(using: .ascii, allowLossyConversion: true)!
         #expect(String(decoding: lossy, as: UTF8.self) == "caf? ? ?? ?")
+        // With the lossy flag and nothing to pick the result type, ours wins (KeychainAccess).
+        guard let strict = text.data(using: .utf8, allowLossyConversion: false) else { Issue.record("no UTF-8"); return }
+        let ours: Data = strict
+        #expect(ours == utf8)
         let cafe: Data? = "café".data(using: .isoLatin1), euro: Data? = "€".data(using: .windowsCP1252)
         #expect(cafe?.bytes == [0x63, 0x61, 0x66, 0xE9] && euro?.bytes == [0x80])
         #expect(String(data: Data([0xC3]), encoding: .utf8) == nil && String(data: Data([0x41, 0x42]), encoding: .ascii) == "AB")
