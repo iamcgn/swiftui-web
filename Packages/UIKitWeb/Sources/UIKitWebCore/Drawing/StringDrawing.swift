@@ -48,6 +48,17 @@ extension NSAttributedString.Key {
     public static let kern = NSAttributedString.Key("NSKern")
     public static let link = NSAttributedString.Key("NSLink")
     public static let attachment = NSAttributedString.Key("NSAttachment")
+    // Keys apps name in their attribute dictionaries (Styleguide's baseline-shifted labels).
+    // They stay with the string and carry into `AttributedString` (`\.uiKit`).
+    public static let baselineOffset = NSAttributedString.Key("NSBaselineOffset")
+    public static let shadow = NSAttributedString.Key("NSShadow")
+    public static let ligature = NSAttributedString.Key("NSLigature")
+    public static let strokeColor = NSAttributedString.Key("NSStrokeColor")
+    public static let strokeWidth = NSAttributedString.Key("NSStrokeWidth")
+    public static let obliqueness = NSAttributedString.Key("NSObliqueness")
+    public static let expansion = NSAttributedString.Key("NSExpansion")
+    public static let writingDirection = NSAttributedString.Key("NSWritingDirection")
+    public static let tracking = NSAttributedString.Key("NSTracking")
 }
 
 /// An attachment in an attributed string: an image (or file contents) and the bounds it
