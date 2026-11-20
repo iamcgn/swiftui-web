@@ -18,10 +18,14 @@
 @_exported import WASILibc
 // Image sources (`CGImageSource`), which Apple's UIKit brings with it.
 @_exported import WebImageIO
+// Core Image: UIKit's headers import it, so `import UIKit` names CIImage and CIFilter (Nuke's
+// processors) and UIImage's `ciImage` (CoreImageBridges.swift).
+@_exported import WebCoreImage
 #else
 // Linux: Foundation, and WebFoundation's stand-ins for what it lacks (`NSItemProvider`).
 @_exported import Foundation
 @_exported import WebFoundation
+@_exported import WebCoreImage
 #endif
 
 #if os(WASI)
