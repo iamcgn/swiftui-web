@@ -62,6 +62,24 @@ open class URLSessionWebSocketTask: URLSessionTask, @unchecked Sendable {
         case string(String)
     }
 
+    // `@objc` with the runtime, as the delegate method that takes it is.
+    #if canImport(ObjectiveC)
+    @objc public enum CloseCode: Int, Sendable {
+        case invalid = 0
+        case normalClosure = 1000
+        case goingAway = 1001
+        case protocolError = 1002
+        case unsupportedData = 1003
+        case noStatusReceived = 1005
+        case abnormalClosure = 1006
+        case invalidFramePayloadData = 1007
+        case policyViolation = 1008
+        case messageTooBig = 1009
+        case mandatoryExtensionMissing = 1010
+        case internalServerError = 1011
+        case tlsHandshakeFailure = 1015
+    }
+    #else
     public enum CloseCode: Int, Sendable {
         case invalid = 0
         case normalClosure = 1000
@@ -77,6 +95,7 @@ open class URLSessionWebSocketTask: URLSessionTask, @unchecked Sendable {
         case internalServerError = 1011
         case tlsHandshakeFailure = 1015
     }
+    #endif
 
     /// The largest message `receive` takes (1 MiB, Foundation's default).
     open var maximumMessageSize = 1_048_576
@@ -227,8 +246,8 @@ open class URLSessionWebSocketTask: URLSessionTask, @unchecked Sendable {
             response = HTTPURLResponse(url: url, statusCode: 101, httpVersion: "HTTP/1.1",
                                        headerFields: chosen.isEmpty ? [:] : ["Sec-WebSocket-Protocol": chosen])
         }
-        if let session, let delegate = session.delegate as? any URLSessionWebSocketDelegate {
-            delegate.urlSession(session, webSocketTask: self, didOpenWithProtocol: chosen.isEmpty ? nil : chosen)
+        if let session, let delegate = session._asWebSocket(session._delegate) {
+            session._tellOpened(delegate, self, chosen.isEmpty ? nil : chosen)
         }
         let queued = waiting
         waiting = []
@@ -258,8 +277,8 @@ open class URLSessionWebSocketTask: URLSessionTask, @unchecked Sendable {
         guard ending == nil else { return }
         closeCode = CloseCode(rawValue: code) ?? .invalid
         closeReason = reason.isEmpty ? nil : Data(reason.utf8)
-        if clean, let session, let delegate = session.delegate as? any URLSessionWebSocketDelegate {
-            delegate.urlSession(session, webSocketTask: self, didCloseWith: closeCode, reason: closeReason)
+        if clean, let session, let delegate = session._asWebSocket(session._delegate) {
+            session._tellClosed(delegate, self, closeCode, closeReason)
         }
         let error: Error?
         if clean {
@@ -288,8 +307,8 @@ open class URLSessionWebSocketTask: URLSessionTask, @unchecked Sendable {
         waiting = []
         for each in queued { each() }   // each fails with `ending`
         for receiver in waiters { receiver(.failure(failing)) }
-        if let session, let delegate = session.delegate as? any URLSessionTaskDelegate {
-            delegate.urlSession(session, task: self, didCompleteWithError: error)
+        if let session, let delegate = session._asTask(session._delegate) {
+            session._tellComplete(delegate, self, error)
         }
     }
 }
@@ -314,7 +333,9 @@ extension URLSession {
     private func webSocketTask(with request: URLRequest, protocols: [String]) -> URLSessionWebSocketTask {
         let identifier = nextTaskIdentifier
         nextTaskIdentifier += 1
-        return URLSessionWebSocketTask(identifier: identifier, request: request, protocols: protocols, session: self)
+        let task = URLSessionWebSocketTask(identifier: identifier, request: request, protocols: protocols, session: self)
+        _tellCreated(task)
+        return task
     }
 }
 #endif

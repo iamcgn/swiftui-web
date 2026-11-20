@@ -602,8 +602,13 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
     public let configuration: URLSessionConfiguration
     public var sessionDescription: String?
     /// The delegate (URLSessionDelegate.swift), held until the session is invalidated, as
-    /// Foundation holds it.
-    public private(set) var delegate: (any URLSessionDelegate)?
+    /// Foundation holds it. With the runtime the Foundation module names its type and reads it.
+    private(set) var _delegate: _SessionDelegate?
+    #if canImport(ObjectiveC)
+    public var _delegateObject: AnyObject? { _delegate }
+    #else
+    public var delegate: (any URLSessionDelegate)? { _delegate }
+    #endif
     /// The queue given, or one made when first read, as a session makes its own. Held untyped,
     /// so a page that never names it links no OperationQueue (Counter's size budget).
     public var delegateQueue: OperationQueue {
@@ -620,12 +625,22 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
         self.configuration = configuration
         core = _WebURLSession(configuration: configuration.core)
     }
+    #if canImport(ObjectiveC)
+    /// A session with a delegate: the Foundation module's `init(configuration:delegate:delegateQueue:)`.
+    public init(configuration: URLSessionConfiguration, _delegate delegate: AnyObject?, delegateQueue queue: OperationQueue?) {
+        self.configuration = configuration
+        core = _WebURLSession(configuration: configuration.core)
+        _delegate = delegate
+        _delegateQueue = queue
+    }
+    #else
     public init(configuration: URLSessionConfiguration, delegate: (any URLSessionDelegate)?, delegateQueue queue: OperationQueue?) {
         self.configuration = configuration
         core = _WebURLSession(configuration: configuration.core)
-        self.delegate = delegate
+        _delegate = delegate
         _delegateQueue = queue
     }
+    #endif
 
     /// Maps the host's answer: a response of any status is `(data, HTTPURLResponse)`; a
     /// failure is a `URLError`.
@@ -660,6 +675,7 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
             let error = failure ?? URLError(.badURL)
             let task = make(identifier, request) { _WebURLSession.Task(identifier: 0) { _ in } }
             task.finished(response: nil, error: error)
+            _tellCreated(task)
             completionHandler(nil, nil, error)
             return task
         }
@@ -680,6 +696,7 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
                 }
             }
         }
+        _tellCreated(task)
         return task
     }
 
@@ -771,7 +788,7 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
     /// cancelled Swift task cancels the request (`URLError.cancelled`).
     /// A `delegate` is accepted for the forms that take one; the browser reports no progress
     /// while a body goes out, so an upload tells it once, when the body is sent.
-    public func data(for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {
+    public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
         guard let url = request.url, url.scheme != nil else { throw URLError(.badURL) }
         // A task cancelled before the request goes out never sends it (Foundation's behaviour).
         if Task.isCancelled { throw URLError(.cancelled) }
@@ -794,28 +811,37 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
         }
     }
 
-    public func data(from url: URL, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) { try await data(for: URLRequest(url: url), delegate: delegate) }
-
     // The forms without a delegate are their own methods on Apple's URLSession (iOS 15), so a
     // protocol that requires `data(from:)` (RevenueCat's FontDownloadSession) finds them: a
-    // defaulted parameter does not satisfy a requirement.
-    public func data(for request: URLRequest) async throws -> (Data, URLResponse) { try await data(for: request, delegate: nil) }
-    public func data(from url: URL) async throws -> (Data, URLResponse) { try await data(for: URLRequest(url: url), delegate: nil) }
-    public func download(for request: URLRequest) async throws -> (URL, URLResponse) { try await download(for: request, delegate: nil) }
-    public func download(from url: URL) async throws -> (URL, URLResponse) { try await download(for: URLRequest(url: url), delegate: nil) }
-    public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) { try await upload(for: request, from: bodyData, delegate: nil) }
+    // defaulted parameter does not satisfy a requirement. With the runtime the forms that take a
+    // delegate are the Foundation module's, which names the delegate protocols.
+    public func data(from url: URL) async throws -> (Data, URLResponse) { try await data(for: URLRequest(url: url)) }
+    public func download(from url: URL) async throws -> (URL, URLResponse) { try await download(for: URLRequest(url: url)) }
+    public func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) { try await _upload(for: request, from: bodyData, telling: nil) }
+
+    #if !canImport(ObjectiveC)
+    public func data(for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) { try await data(for: request) }
+    public func data(from url: URL, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) { try await data(for: URLRequest(url: url)) }
+    public func download(for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (URL, URLResponse) { try await download(for: request) }
+    public func download(from url: URL, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (URL, URLResponse) { try await download(for: URLRequest(url: url)) }
+    public func upload(for request: URLRequest, from bodyData: Data, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {
+        try await _upload(for: request, from: bodyData, telling: delegate)
+    }
+    public func bytes(for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (AsyncBytes, URLResponse) { try await bytes(for: request) }
+    public func bytes(from url: URL, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (AsyncBytes, URLResponse) { try await bytes(for: URLRequest(url: url)) }
+    #endif
 
     /// Downloads to a file under the temporary directory (the in-memory file system on wasm,
     /// `Data(contentsOf:)` reads it back, as the Countries image repository does) and answers
     /// its URL with the response; an HTTP error status is still a response.
-    public func download(for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (URL, URLResponse) {
+    public func download(for request: URLRequest) async throws -> (URL, URLResponse) {
         let (data, response) = try await data(for: request)
         return (try Self.temporaryDownload(data), response)
     }
-    public func download(from url: URL, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (URL, URLResponse) { try await download(for: URLRequest(url: url), delegate: delegate) }
 
-    /// Uploads `bodyData` with the request's method (POST unless the request says otherwise).
-    public func upload(for request: URLRequest, from bodyData: Data, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (Data, URLResponse) {
+    /// Uploads `bodyData` with the request's method (POST unless the request says otherwise),
+    /// and tells `delegate` the body went out.
+    public func _upload(for request: URLRequest, from bodyData: Data, telling delegate: _TaskDelegate?) async throws -> (Data, URLResponse) {
         let uploading = Self.uploading(request, bodyData)
         let result = try await data(for: uploading)
         if let delegate {
@@ -823,21 +849,19 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
             nextTaskIdentifier += 1
             task.finished(response: result.1, error: nil)
             let sent = Int64(bodyData.count)
-            delegate.urlSession(self, task: task, didSendBodyData: sent, totalBytesSent: sent, totalBytesExpectedToSend: sent)
-            delegate.urlSession(self, task: task, didCompleteWithError: nil)
+            _tellSent(delegate, task, sent, expected: sent)
+            _tellComplete(delegate, task, nil)
         }
         return result
     }
 
     /// The response's body as a sequence of bytes, with the response. The host reads the body
     /// whole (fetch hands it over as one buffer), so the bytes arrive once it has.
-    public func bytes(for request: URLRequest, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (AsyncBytes, URLResponse) {
-        let (data, response) = try await data(for: request, delegate: delegate)
+    public func bytes(for request: URLRequest) async throws -> (AsyncBytes, URLResponse) {
+        let (data, response) = try await data(for: request)
         return (AsyncBytes(data: data), response)
     }
-    public func bytes(from url: URL, delegate: (any URLSessionTaskDelegate)? = nil) async throws -> (AsyncBytes, URLResponse) {
-        try await bytes(for: URLRequest(url: url), delegate: delegate)
-    }
+    public func bytes(from url: URL) async throws -> (AsyncBytes, URLResponse) { try await bytes(for: URLRequest(url: url)) }
 
     /// A response body's bytes, one at a time.
     public struct AsyncBytes: AsyncSequence, Sendable {
@@ -871,9 +895,9 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
     public func finishTasksAndInvalidate() { invalidate() }
 
     private func invalidate() {
-        guard let delegate else { return }
-        self.delegate = nil
-        delegate.urlSession(self, didBecomeInvalidWithError: nil)
+        guard let delegate = _delegate else { return }
+        _delegate = nil
+        _tellInvalid(delegate)
     }
     public func getAllTasks(completionHandler: @escaping ([URLSessionTask]) -> Void) { completionHandler([]) }
 }
