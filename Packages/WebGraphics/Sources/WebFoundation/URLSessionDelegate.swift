@@ -187,12 +187,17 @@ extension URLSession {
     public enum ResponseDisposition: Int, Sendable {
         case cancel = 0, allow = 1, becomeDownload = 2, becomeStream = 3
     }
-    #endif
 
+    /// How a delayed task goes on.
+    @objc public enum DelayedRequestDisposition: Int, Sendable {
+        case continueLoading = 0, useNewRequest = 1, cancel = 2
+    }
+    #else
     /// How a delayed task goes on.
     public enum DelayedRequestDisposition: Int, Sendable {
         case continueLoading = 0, useNewRequest = 1, cancel = 2
     }
+    #endif
 }
 
 extension URLCache {
@@ -328,6 +333,11 @@ public protocol URLSessionTaskDelegate: URLSessionDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics)
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?)
     func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask)
+    func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest,
+                    completionHandler: @escaping @Sendable (URLSession.DelayedRequestDisposition, URLRequest?) -> Void)
+    func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStreamFrom offset: Int64,
+                    completionHandler: @escaping @Sendable (InputStream?) -> Void)
+    func urlSession(_ session: URLSession, task: URLSessionTask, didReceiveInformationalResponse response: HTTPURLResponse)
 }
 
 extension URLSessionTaskDelegate {
@@ -348,6 +358,15 @@ extension URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {}
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {}
     public func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask) {}
+    public func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest,
+                           completionHandler: @escaping @Sendable (URLSession.DelayedRequestDisposition, URLRequest?) -> Void) {
+        completionHandler(.continueLoading, nil)
+    }
+    public func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStreamFrom offset: Int64,
+                           completionHandler: @escaping @Sendable (InputStream?) -> Void) {
+        completionHandler(nil)
+    }
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didReceiveInformationalResponse response: HTTPURLResponse) {}
 }
 
 /// What a session tells its delegate about a data task's response and data.
@@ -357,9 +376,11 @@ public protocol URLSessionDataDelegate: URLSessionTaskDelegate {
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data)
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse,
                     completionHandler: @escaping @Sendable (CachedURLResponse?) -> Void)
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask)
 }
 
 extension URLSessionDataDelegate {
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask) {}
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse,
                            completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
         completionHandler(.allow)

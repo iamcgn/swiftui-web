@@ -30,6 +30,11 @@ import WebFoundation
     @objc optional func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics)
     @objc optional func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?)
     @objc optional func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask)
+    @objc optional func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest,
+                                   completionHandler: @escaping @Sendable (URLSession.DelayedRequestDisposition, URLRequest?) -> Void)
+    @objc optional func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStreamFrom offset: Int64,
+                                   completionHandler: @escaping @Sendable (InputStream?) -> Void)
+    @objc optional func urlSession(_ session: URLSession, task: URLSessionTask, didReceiveInformationalResponse response: HTTPURLResponse)
 }
 
 /// What a session tells its delegate about a data task's response and data.
@@ -39,6 +44,7 @@ import WebFoundation
     @objc optional func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data)
     @objc optional func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse,
                                    completionHandler: @escaping @Sendable (CachedURLResponse?) -> Void)
+    @objc optional func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask)
 }
 
 /// What a session tells its delegate about a download task.
