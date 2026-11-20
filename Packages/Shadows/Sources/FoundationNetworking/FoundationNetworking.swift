@@ -15,10 +15,18 @@ public typealias URLSessionUploadTask = WebFoundation.URLSessionUploadTask
 public typealias URLSessionDownloadTask = WebFoundation.URLSessionDownloadTask
 public typealias URLSessionTaskMetrics = WebFoundation.URLSessionTaskMetrics
 public typealias URLSessionTaskTransactionMetrics = WebFoundation.URLSessionTaskTransactionMetrics
+#if canImport(ObjectiveC)
+// With the runtime the delegate protocols are the Foundation module's (URLSessionDelegates.swift).
+public typealias URLSessionDelegate = Foundation.URLSessionDelegate
+public typealias URLSessionTaskDelegate = Foundation.URLSessionTaskDelegate
+public typealias URLSessionDataDelegate = Foundation.URLSessionDataDelegate
+public typealias URLSessionDownloadDelegate = Foundation.URLSessionDownloadDelegate
+#else
 public typealias URLSessionDelegate = WebFoundation.URLSessionDelegate
 public typealias URLSessionTaskDelegate = WebFoundation.URLSessionTaskDelegate
 public typealias URLSessionDataDelegate = WebFoundation.URLSessionDataDelegate
 public typealias URLSessionDownloadDelegate = WebFoundation.URLSessionDownloadDelegate
+#endif
 public typealias URLRequest = WebFoundation.URLRequest
 public typealias URLResponse = WebFoundation.URLResponse
 public typealias HTTPURLResponse = WebFoundation.HTTPURLResponse
