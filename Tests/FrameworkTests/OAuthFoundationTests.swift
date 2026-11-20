@@ -56,11 +56,13 @@ private final class LoggedResponse: HTTPURLResponse, @unchecked Sendable {
             return false
         }
         #expect(matches(CocoaError(.fileReadNoSuchFile)))
-        #expect(matches(NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadNoSuchFile.rawValue)))
         #expect(!matches(CocoaError(.fileWriteOutOfSpace)))
         #if !os(Linux)
-        // swift-corelibs-foundation bridges any NSError to CocoaError, whatever its domain, so
-        // there its own `~=` matches this too.
+        // On Linux, swift-corelibs-foundation's own `~=` casts an NSError to CocoaError whatever
+        // its domain (a "Other" error matched), and the test process later crashed: that cast is
+        // Foundation's, not this package's, so the NSError cases run where it holds (Apple
+        // platforms, and wasm, where the `~=` is ours).
+        #expect(matches(NSError(domain: NSCocoaErrorDomain, code: CocoaError.fileReadNoSuchFile.rawValue)))
         #expect(!matches(NSError(domain: "Other", code: CocoaError.fileReadNoSuchFile.rawValue)))
         #endif
     }
