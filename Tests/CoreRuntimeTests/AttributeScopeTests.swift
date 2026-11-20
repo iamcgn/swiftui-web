@@ -32,5 +32,13 @@ import UIKit
         let text = AttributedString("Bold", attributes: container)
         #expect(text.uiKit.foregroundColor == red && text.runs.count == 1)
     }
+
+    @Test func keysAreNamedAsUIKitNamesThem() {
+        #expect(NSAttributedString.Key.baselineOffset.rawValue == "NSBaselineOffset")
+        #expect(NSAttributedString.Key.shadow.rawValue == "NSShadow")
+        #expect(NSAttributedString.Key.tracking.rawValue == "NSTracking")
+        let container = AttributeContainer([.baselineOffset: CGFloat(3), .kern: CGFloat(1)])
+        #expect(container.uiKit.baselineOffset == 3 && container.uiKit.kern == 1)
+    }
 }
 #endif
