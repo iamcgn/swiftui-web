@@ -22,6 +22,9 @@ private final class ProgressDelegate: NSObject, Sendable {
         let label = await Task.detached { delegate.label }.value
         #expect(label == "upload")
         #expect(delegate.isEqual(delegate) && !delegate.isEqual(ProgressDelegate(label: "upload")))
+        #if os(WASI) || canImport(ObjectiveC)
+        // swift-corelibs-foundation's NSObject (Linux) has no `responds(to:)`.
         #expect(delegate.responds(to: Selector(("cancel"))) == false)
+        #endif
     }
 }
