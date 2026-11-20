@@ -28,6 +28,8 @@ public enum NSKeyValueSetMutationKind: UInt, Sendable {
     case union = 1, minus, intersect, set
 }
 
+#if canImport(ObjectiveC)
+// Without the runtime it is SwiftFoundation's, beside NSObject, whose `observeValue` takes it.
 public struct NSKeyValueChangeKey: Hashable, RawRepresentable, Sendable {
     public let rawValue: String
     public init(rawValue: String) { self.rawValue = rawValue }
@@ -38,6 +40,7 @@ public struct NSKeyValueChangeKey: Hashable, RawRepresentable, Sendable {
     public static let indexesKey = NSKeyValueChangeKey("indexes")
     public static let notificationIsPriorKey = NSKeyValueChangeKey("notificationIsPrior")
 }
+#endif
 
 /// One change an observation reports.
 public struct NSKeyValueObservedChange<Value> {

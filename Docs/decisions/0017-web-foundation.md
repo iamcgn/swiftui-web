@@ -161,3 +161,14 @@ pickers on WebFoundation's calendar among them.
 - Every new use of a FoundationEssentials type on wasm is a size decision: check the map
   (`scripts/wasm-size-map.py`) before accepting one.
 - The stand-ins are API a user's iOS code may reach; the gaps list is the place to grow them.
+
+## Amendment (2026-11-20): NSObject lives in a module named SwiftFoundation
+
+Without the Objective-C runtime, `NSObject`, `NSObjectProtocol`, `Selector` and
+`NSKeyValueChangeKey` are declared in a small WASI-only target, `SwiftFoundation`, that
+WebFoundation re-exports. The compiler accepts an `NSObject` as the superclass of a `Sendable`
+class only when it comes from a module named Foundation, ObjectiveC or SwiftFoundation
+(`ClassDecl::isNSObject`), and apps write `final class Delegate: NSObject, URLSessionTaskDelegate,
+Sendable` (IceCubes' network client, swift-sharing's user defaults observer). Declared in
+WebFoundation, that one line failed and every package depending on it failed with it. Names an
+app sees are unchanged: `import Foundation` still reaches all four through WebFoundation.

@@ -24,7 +24,7 @@ IOS_DOMAINS = {"iOS", "iPadOS", "*"}
 OUR_MODULES = {
     "SwiftUI", "SwiftUIWebCore", "SwiftUIWebUIKit", "SwiftUIWebCanvas", "Charts", "MapKit", "CoreLocation",
     "AVFoundation", "AVFAudio", "AVKit", "Speech", "SwiftData", "UserNotifications", "UserNotificationsHost", "WebKit", "UIKit", "UIKitWebCore",
-    "WebFoundation", "WebFoundationFormats", "WebDecimalFormats", "WebCombine", "WebGraphics", "Foundation", "Combine", "Security", "SafariServices",
+    "WebFoundation", "SwiftFoundation", "WebFoundationFormats", "WebDecimalFormats", "WebCombine", "WebGraphics", "Foundation", "Combine", "Security", "SafariServices",
     "CoreData", "WebCoreData", "CryptoKit", "CoreHaptics", "CoreImage", "WebCoreImage", "WidgetKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit", "Symbols", "Translation", "_Translation_SwiftUI", "CloudKit", "JavaScriptCore",
 }
 SKIP_KINDS = {"swift.deinit"}

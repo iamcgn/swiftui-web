@@ -40,7 +40,15 @@ let package = Package(
     targets: [
         .target(
             name: "WebFoundation",
-            dependencies: ["WebDecimalDivision", .target(name: "WebObjCBlocks", condition: .when(platforms: [.wasi]))],
+            dependencies: ["WebDecimalDivision", .target(name: "WebObjCBlocks", condition: .when(platforms: [.wasi])),
+                           .target(name: "SwiftFoundation", condition: .when(platforms: [.wasi]))],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // `NSObject`, `NSObjectProtocol`, `Selector` and `NSKeyValueChangeKey` on wasm without the
+        // Objective-C runtime, which WebFoundation re-exports. The module's name is one the compiler
+        // takes an `NSObject` from as the superclass of a `Sendable` class (decision 0017).
+        .target(
+            name: "SwiftFoundation",
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         // The trampolines of `imp_implementationWithBlock` with the Objective-C runtime on wasm

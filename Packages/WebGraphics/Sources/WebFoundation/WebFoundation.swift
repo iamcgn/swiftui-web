@@ -59,6 +59,10 @@
 // The interop SDK (decision 0023): Selector, NSObject and NSObjectProtocol come from the
 // Objective-C runtime, as Apple's Foundation re-exports them.
 @_exported import ObjectiveC
+#else
+// Without the runtime, Selector, NSObject and NSObjectProtocol are SwiftFoundation's: a module of
+// that name is one the compiler accepts an NSObject from as a Sendable class's superclass.
+@_exported import SwiftFoundation
 #endif
 #else
 @_exported import Foundation
