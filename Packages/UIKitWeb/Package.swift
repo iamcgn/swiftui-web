@@ -45,6 +45,8 @@ let package = Package(
                 // Apple's UIKit brings ImageIO's image sources with it (Nuke and Kingfisher read
                 // `CGImageSource` with only `import UIKit`).
                 .product(name: "WebImageIO", package: "WebGraphics", condition: .when(platforms: [.wasi])),
+                // Apple's UIKit brings Core Image with it (CoreImageBridges.swift).
+                .product(name: "WebCoreImage", package: "WebGraphics"),
                 .product(name: "JavaScriptEventLoop", package: "JavaScriptKit", condition: .when(platforms: [.wasi])),
                 // `import UIKit.UIImage` and the other per-header submodules resolve through this
                 // clang module of the same name (wasm only: elsewhere the API is reached as `UIKit`).

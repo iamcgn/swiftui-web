@@ -32,6 +32,9 @@ public final class UIImage: UIObjectBase, @unchecked Sendable {
     public let imageOrientation: Orientation
     /// The CGImage the image was made from (UIImageCG.swift), which `cgImage` returns.
     let madeFromCGImage: AnyObject?
+    /// The Core Image recipe the image was made from, which UIKit's `ciImage` returns
+    /// (UIKit/CoreImageBridges.swift sets it as `UIImage(ciImage:)` makes the image).
+    public var _madeFromCIImage: AnyObject?
 
     init(name: String, isSystemSymbol: Bool, renderingMode: RenderingMode = .automatic, scale: CGFloat = 2, size: CGSize, tint: UIColor? = nil,
          symbolConfiguration: SymbolConfiguration? = nil, drawing: UIImageDrawing? = nil, data: Data? = nil, pixelSize: CGSize = .zero,
@@ -63,6 +66,20 @@ public final class UIImage: UIObjectBase, @unchecked Sendable {
     /// with the Objective-C runtime NSObject's `copy()` reaches `copy(with:)` below).
     public func copy() -> Any { self }
     #endif
+
+    /// The image ready to draw without decoding it as it is first shown, which on iOS moves the
+    /// decoding off the main thread. Here the browser decodes an image as it paints it, so the
+    /// image is already as ready as it gets: this is the image itself.
+    public func preparingForDisplay() -> UIImage? { self }
+
+    /// `preparingForDisplay()`, handed to `completionHandler`: there is no decoding to wait for,
+    /// so it is called before this returns.
+    public func prepareForDisplay(completionHandler: @escaping (UIImage?) -> Void) {
+        completionHandler(preparingForDisplay())
+    }
+
+    /// `preparingForDisplay()`, awaited.
+    public func byPreparingForDisplay() async -> UIImage? { preparingForDisplay() }
 
     /// An image from PNG, JPEG, GIF or WebP bytes at `scale` (1 by default: a 40 × 40 pixel PNG
     /// is 40 points wide); nil for bytes of another kind. The painters load it as a data URL,

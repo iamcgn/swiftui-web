@@ -7,7 +7,7 @@
 //     .product(name: "Foundation", package: "Shadows", condition: .when(platforms: [.wasi])),
 //     .product(name: "Combine", package: "Shadows", condition: .when(platforms: [.wasi])),
 // `os` and `OSLog` (`Logger` over the console), `CoreGraphics` (the geometry and image types),
-// `ImageIO` (image sources over WebImageIO, and destinations), `CoreImage` (SwiftUIWeb's WebCoreImage),
+// `ImageIO` (image sources over WebImageIO, and destinations), `CoreImage` (WebGraphics's WebCoreImage),
 // `MobileCoreServices` (the `kUTType` names and tag functions), `SystemConfiguration` (network
 // reachability over the browser's online state), `Network` (`NWPathMonitor` over the same state),
 // `LocalAuthentication` (an `LAContext` that
@@ -149,7 +149,7 @@ let package = Package(
         ),
         .target(
             name: "CoreImage",
-            dependencies: ["CoreGraphics", .product(name: "WebCoreImage", package: "SwiftUIWeb")],
+            dependencies: ["CoreGraphics", .product(name: "WebCoreImage", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
