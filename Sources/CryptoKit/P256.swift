@@ -148,7 +148,9 @@ public struct SharedSecret: Sendable, Equatable {
         while output.count < outputByteCount {
             var hash = H()
             hash.update(data: bytes)
-            hash.update(data: (0..<4).map { UInt8(truncatingIfNeeded: counter >> UInt32(24 - $0 * 8)) })
+            let counterBytes: [UInt8] = [UInt8(truncatingIfNeeded: counter >> 24), UInt8(truncatingIfNeeded: counter >> 16),
+                                         UInt8(truncatingIfNeeded: counter >> 8), UInt8(truncatingIfNeeded: counter)]
+            hash.update(data: counterBytes)
             hash.update(data: info)
             output += Array(hash.finalize())
             counter &+= 1
@@ -191,12 +193,22 @@ enum _P256 {
 
     /// 32 big-endian bytes as limbs.
     static func limbs(_ bytes: [UInt8]) -> Limbs {
-        (0..<4).map { i in (0..<8).reduce(UInt64(0)) { $0 << 8 | UInt64(bytes[(3 - i) * 8 + $1]) } }
+        var out = zero
+        for k in 0..<32 {
+            let limb: Int = 3 - k / 8
+            out[limb] = out[limb] << 8 | UInt64(bytes[k])
+        }
+        return out
     }
 
     /// Limbs as 32 big-endian bytes.
     static func bytes(_ limbs: Limbs) -> [UInt8] {
-        (0..<32).map { k in UInt8(truncatingIfNeeded: limbs[3 - k / 8] >> UInt64(56 - (k % 8) * 8)) }
+        var out = [UInt8](repeating: 0, count: 32)
+        for k in 0..<32 {
+            let shift: UInt64 = UInt64(56 - (k % 8) * 8)
+            out[k] = UInt8(truncatingIfNeeded: limbs[3 - k / 8] >> shift)
+        }
+        return out
     }
 
     static func isLess(_ a: Limbs, _ b: Limbs) -> Bool {
@@ -328,7 +340,9 @@ enum _P256 {
         let yz = add(point.y, point.z)
         let z3 = subtract(subtract(multiply(yz, yz), gamma), delta)
         let gamma2 = multiply(gamma, gamma)
-        let gamma8 = add(add(add(gamma2, gamma2), add(gamma2, gamma2)), add(add(gamma2, gamma2), add(gamma2, gamma2)))
+        let gamma2x2 = add(gamma2, gamma2)
+        let gamma2x4 = add(gamma2x2, gamma2x2)
+        let gamma8 = add(gamma2x4, gamma2x4)
         let y3 = subtract(multiply(alpha, subtract(beta4, x3)), gamma8)
         return Point(x: x3, y: y3, z: z3)
     }
