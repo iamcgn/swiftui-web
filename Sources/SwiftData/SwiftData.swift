@@ -474,14 +474,28 @@ public struct SortDescriptor<Compared>: @unchecked Sendable {
     public let keyPath: PartialKeyPath<Compared>?
     /// Whether the first value comes before the second, the order applied.
     let ordersBefore: (Compared, Compared) -> Bool
+    /// What the descriptor compares with, beyond its key path and order: the values' own order,
+    /// a string comparator, or the `NSSortDescriptor` it was made from. Two descriptors are equal
+    /// when this, the key path and the order are.
+    let comparison: AnyHashable
+    /// A descriptor from its parts, for the modules that make one from another kind of
+    /// descriptor (Core Data's `NSSortDescriptor`).
+    public init(_keyPath keyPath: PartialKeyPath<Compared>?, order: Order, comparison: AnyHashable, ordersBefore: @escaping (Compared, Compared) -> Bool) {
+        self.keyPath = keyPath
+        self.order = order
+        self.comparison = comparison
+        self.ordersBefore = ordersBefore
+    }
     public init<Value: Comparable>(_ keyPath: KeyPath<Compared, Value>, order: Order = .forward) {
         self.order = order
         self.keyPath = keyPath
+        comparison = AnyHashable("Comparable")
         ordersBefore = { a, b in order == .forward ? a[keyPath: keyPath] < b[keyPath: keyPath] : a[keyPath: keyPath] > b[keyPath: keyPath] }
     }
     public init<Value: Comparable>(_ keyPath: KeyPath<Compared, Value?>, order: Order = .forward) {
         self.order = order
         self.keyPath = keyPath
+        comparison = AnyHashable("Comparable")
         ordersBefore = { a, b in
             switch (a[keyPath: keyPath], b[keyPath: keyPath]) {
             case (nil, nil): return false
@@ -497,6 +511,7 @@ public struct SortDescriptor<Compared>: @unchecked Sendable {
     public init(_ keyPath: KeyPath<Compared, String>, comparator: String.StandardComparator = _SortDefaults.string, order: Order = .forward) {
         self.order = order
         self.keyPath = keyPath
+        comparison = AnyHashable(comparator)
         let ascending: ComparisonResult = order == .forward ? .orderedAscending : .orderedDescending
         ordersBefore = { a, b in comparator.compare(a[keyPath: keyPath], b[keyPath: keyPath]) == ascending }
     }
@@ -504,6 +519,7 @@ public struct SortDescriptor<Compared>: @unchecked Sendable {
     public init(_ keyPath: KeyPath<Compared, String?>, comparator: String.StandardComparator = _SortDefaults.string, order: Order = .forward) {
         self.order = order
         self.keyPath = keyPath
+        comparison = AnyHashable(comparator)
         let ascending: ComparisonResult = order == .forward ? .orderedAscending : .orderedDescending
         ordersBefore = { a, b in
             switch (a[keyPath: keyPath], b[keyPath: keyPath]) {
@@ -519,6 +535,19 @@ public struct SortDescriptor<Compared>: @unchecked Sendable {
     /// `SortComparator.compare`).
     public func compare(_ lhs: Compared, _ rhs: Compared) -> ComparisonResult {
         ordersBefore(lhs, rhs) ? .orderedAscending : ordersBefore(rhs, lhs) ? .orderedDescending : .orderedSame
+    }
+}
+
+/// Two descriptors are equal when they sort by the same key path, in the same order, with the
+/// same comparison, as Foundation's are (a configuration that holds them is `Equatable`).
+extension SortDescriptor: Hashable {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.keyPath == rhs.keyPath && lhs.order == rhs.order && lhs.comparison == rhs.comparison
+    }
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(keyPath)
+        hasher.combine(order)
+        hasher.combine(comparison)
     }
 }
 

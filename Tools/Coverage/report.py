@@ -42,6 +42,19 @@ def md_table(headers, rows):
     return "\n".join(out)
 
 
+def missing_results(plan, sweep, apps):
+    """The planned apps (those cloned, with a commit) that no sweep result covers, and the plan's
+    batches that sent no result at all."""
+    planned = [a for a in plan.get("apps", []) if a.get("sha")]
+    got = {a.get("name") for a in apps}
+    absent = [a for a in planned if a.get("name") not in got]
+    reported = {r.get("batch") for r in sweep}
+    batches = sorted({a["batch"] for a in absent if isinstance(a.get("batch"), int)} - reported)
+    deps_failed = sorted(r["batch"] for r in sweep if r.get("deps") == "failed" and isinstance(r.get("batch"), int))
+    return {"planned": len(planned), "apps": sorted(a.get("name", "?") for a in absent), "batches": batches,
+            "deps_failed": deps_failed}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--apple"); ap.add_argument("--ours"); ap.add_argument("--plan")
@@ -71,6 +84,24 @@ def main():
                + (f" at {args.commit[:10]}" if args.commit else "")
                + (f", against Apple's {apple['meta'].get('sdk')} SDK" if apple and apple.get("meta", {}).get("sdk") else "")
                + ". Method and caveats: `Tools/Coverage/README.md`.\n")
+
+    # A batch whose results never arrived (a cancelled or failed shard) leaves its apps out of
+    # every count below, so the report says so instead of reading as the whole corpus.
+    missing = missing_results(plan, sweep, apps)
+    data["partial"] = bool(missing["apps"])
+    data["missing_apps"] = missing["apps"]
+    data["missing_batches"] = missing["batches"]
+    data["deps_failed_batches"] = missing["deps_failed"]
+    if missing["apps"]:
+        why = []
+        if missing["batches"]:
+            why.append(f"batch{'es' if len(missing['batches']) > 1 else ''} {', '.join(map(str, missing['batches']))} sent no results")
+        if missing["deps_failed"]:
+            why.append(f"batch{'es' if len(missing['deps_failed']) > 1 else ''} {', '.join(map(str, missing['deps_failed']))} "
+                       "could not resolve their packages")
+        batches = f" ({'; '.join(why)})" if why else ""
+        out.append(f"**Partial: {len(missing['apps'])} of {missing['planned']} planned apps have no result{batches}**, "
+                   "so every count below leaves them out: " + ", ".join(missing["apps"]) + ".\n")
 
     # MARK: surface diff
     our_keys = set((ours or {}).get("modules", {}).get("all", {}))
