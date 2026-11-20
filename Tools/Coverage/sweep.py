@@ -395,10 +395,12 @@ def fetch_packages(work: Path, pins):
 # An app that keeps no Package.resolved (Thunderbird's local package asks for swift-nio's `main`;
 # Gem's and OnlineStoreTCA's Xcode projects leave theirs out of git) still names its packages and
 # the versions it takes: in each local Package.swift and in the project's package references.
-# Those it names with no pin are resolved the way Xcode would resolve them that day (a branch's
-# head, the newest release tag in range), and so are the packages those name in turn, so the
-# sweep builds them from source instead of counting every use as an error. The plan job resolves
-# them once, so every shard of a sweep builds the same revisions.
+# Those it names with no pin are resolved, and so are the packages those name in turn, so the
+# sweep builds them from source instead of counting every use as an error. A version range takes
+# the lowest release in it that every dependent accepts, not the newest: the version the authors
+# built against, and the same every day (the newest swift-collections needs a newer toolchain
+# than the sweep's). A branch takes its head that day. The plan job resolves them once, so every
+# shard of a sweep builds the same revisions.
 
 SEMVER = re.compile(r"^v?(\d+)\.(\d+)(?:\.(\d+))?$")
 _REFS = {}
@@ -433,7 +435,8 @@ def remote_refs(repo):
 
 def resolve_requirement(repo, req):
     """The commit a requirement picks: ("branch", name), ("revision", sha), ("exact", version) or
-    ("range", lower, upper) with `upper` excluded; None when nothing matches."""
+    ("range", lower, upper) with `upper` excluded, which picks the lowest release in range;
+    None when nothing matches."""
     if req[0] == "revision":
         return req[1] if re.fullmatch(r"[0-9a-f]{40}", req[1] or "") else None
     refs = remote_refs(repo)
@@ -443,7 +446,7 @@ def resolve_requirement(repo, req):
         return refs["tags"].get(version_tuple(req[1]))
     lower, upper = version_tuple(req[1]), version_tuple(req[2]) if req[2] else None
     found = [v for v in refs["tags"] if lower and v >= lower and (upper is None or v < upper)]
-    return refs["tags"][max(found)] if found else None
+    return refs["tags"][min(found)] if found else None
 
 
 def manifest_requirement(req):
@@ -513,33 +516,39 @@ def project_dependencies(root: Path, extra):
 
 def declared_pins(work: Path, root: Path, extra, packages, pins, notes):
     """`pins` with every package the app's manifests and projects name but no Package.resolved
-    pins, resolved, and the packages those name in turn."""
+    pins, resolved, and the packages those name in turn. A range a later dependent raises (NIO
+    asking for a newer swift-collections than the app does) moves that package up to it."""
     pins = dict(pins)
-    pinned_repos = {p["repo"].lower() for p in pins.values()}
+    locked = {p["repo"].lower() for p in pins.values()}
+    chosen = {}  # repo -> (identity, the version it resolved to, or None for a branch or revision)
     todo = [d for p in packages for d in manifest_dependencies(p["dump"])] + project_dependencies(root, extra)
-    seen = set()
     while todo:
         identity, url, req = todo.pop(0)
         repo = github_repo(url)
-        if not repo or repo.lower() in pinned_repos or repo.lower() in seen:
-            continue
-        seen.add(repo.lower())
+        if not repo or repo.lower() in locked or repo.lower() in ("apple/swift-syntax", "swiftlang/swift-syntax"):
+            continue  # pinned by a Package.resolved, or swift-syntax, which the sweep package brings
+        key = repo.lower()
+        if key in chosen:
+            low, have = version_tuple(req[1]) if req[0] == "range" else None, chosen[key][1]
+            if not (low and have and low > have):
+                continue  # what it resolved to already serves this dependent
+            identity = chosen[key][0]
         identity = identity or repo.split("/")[1].lower().removesuffix(".git")
-        if identity in pins:
+        if identity in pins and key not in chosen:
             continue
         revision = resolve_requirement(repo, req)
         if not revision:
             notes.append(f"package {identity}: nothing in {repo} matches {req}, not built")
             continue
+        version = next((v for v, sha in remote_refs(repo)["tags"].items() if sha == revision), None) if req[0] == "range" else None
+        chosen[key] = (identity, version)
         pins[identity] = {"url": url, "repo": repo, "revision": revision, "declared": list(req)}
-        pinned_repos.add(repo.lower())
         notes.append(f"package {identity}: no Package.resolved pin; {req} resolves to {revision[:12]}")
         keys = fetch_packages(work, {identity: pins[identity]})
         if identity in keys:
             dump, _ = dump_package(work / PACKAGES_DIR / keys[identity])
             todo.extend(manifest_dependencies(dump))
     return pins
-
 
 def dependency_traits_hold(dep, traits):
     """Whether a dump-package dependency's trait condition, if any, holds for `traits`."""
