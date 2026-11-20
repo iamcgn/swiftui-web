@@ -415,6 +415,28 @@ extension NSCalendar {
         }
         return NSRange(location: range.lowerBound, length: range.count)
     }
+    #if canImport(ObjectiveC)
+    /// The start and length of the unit around the date (the day, week or month it falls in);
+    /// false, leaving both as they were, when there is none. SwiftDate's `dateAtStartOf` reads it.
+    public func range(of unit: Unit, start datep: AutoreleasingUnsafeMutablePointer<NSDate?>?,
+                      interval tip: UnsafeMutablePointer<TimeInterval>?, for date: Date) -> Bool {
+        guard let interval = _webValue.dateInterval(of: Self.component(of: unit), for: date) else { return false }
+        datep?.pointee = NSDate(timeIntervalSinceReferenceDate: interval.start.timeIntervalSinceReferenceDate)
+        tip?.pointee = interval.duration
+        return true
+    }
+    #else
+    /// The start and length of the unit around the date (the day, week or month it falls in);
+    /// false, leaving both as they were, when there is none. Without the runtime `NSDate` is
+    /// `Date`, so the start comes back as one. SwiftDate's `dateAtStartOf` reads it.
+    public func range(of unit: Unit, start datep: UnsafeMutablePointer<Date?>?,
+                      interval tip: UnsafeMutablePointer<TimeInterval>?, for date: Date) -> Bool {
+        guard let interval = _webValue.dateInterval(of: Self.component(of: unit), for: date) else { return false }
+        datep?.pointee = interval.start
+        tip?.pointee = interval.duration
+        return true
+    }
+    #endif
     /// The ordinal of the smaller unit in the larger around the date, or `NSNotFound`.
     public func ordinality(of smaller: Unit, in larger: Unit, for date: Date) -> Int {
         _webValue.ordinality(of: Self.component(of: smaller), in: Self.component(of: larger), for: date) ?? NSNotFound
