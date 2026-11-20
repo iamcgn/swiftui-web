@@ -68,14 +68,17 @@ public final class UIImage: UIObjectBase, @unchecked Sendable {
     #endif
 
     /// The image ready to draw without decoding it as it is first shown, which on iOS moves the
-    /// decoding off the main thread. Here the browser decodes an image as it paints it, so the
-    /// image is already as ready as it gets: this is the image itself.
-    public func preparingForDisplay() -> UIImage? { self }
+    /// decoding off the main thread. Here the browser decodes an image as it paints it, so an
+    /// image is already as ready as it gets and this is the image itself. Nil, as on iOS, for
+    /// an image backed by a Core Image recipe (`UIImage(ciImage:)`), which has nothing to decode.
+    public func preparingForDisplay() -> UIImage? { _madeFromCIImage == nil ? self : nil }
 
-    /// `preparingForDisplay()`, handed to `completionHandler`: there is no decoding to wait for,
-    /// so it is called before this returns.
+    /// `preparingForDisplay()`, handed to `completionHandler` later, as iOS prepares the image
+    /// in the background: never before this returns.
     public func prepareForDisplay(completionHandler: @escaping (UIImage?) -> Void) {
-        completionHandler(preparingForDisplay())
+        nonisolated(unsafe) let handler = completionHandler
+        let prepared = preparingForDisplay()
+        Task { handler(prepared) }
     }
 
     /// `preparingForDisplay()`, awaited.
