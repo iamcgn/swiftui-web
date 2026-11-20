@@ -272,6 +272,9 @@ import CoreLocation
         #expect(location.course == 90 && location.speed == 3 && location.courseAccuracy == -1 && location.floor == nil)
         #expect(location.description.hasPrefix("<+37.33233141,-122.03121860> +/- 5.00m (speed 3.00 mps / course 90.00) @ "))
         #expect(CLLocation(latitude: 1, longitude: 2).horizontalAccuracy == 0 && CLLocation(latitude: 1, longitude: 2).speed == -1)
+        // `CLLocation()` is at 0, 0 (LocationProvider starts from one).
+        let empty = CLLocation()
+        #expect(empty.coordinate.latitude == 0 && empty.coordinate.longitude == 0 && empty.speed == -1)
         #expect(CLLocationCoordinate2DMake(1, 2) == CLLocationCoordinate2D(latitude: 1, longitude: 2))
         #expect(CLAuthorizationStatus.authorizedWhenInUse.rawValue == 4 && CLActivityType.fitness.rawValue == 3 && CLDeviceOrientation.faceDown.rawValue == 6)
         #expect(CLError.Code.geocodeFoundNoResult.rawValue == 8 && CLError.errorDomain == kCLErrorDomain && CLError(.network).errorCode == 2)

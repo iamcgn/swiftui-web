@@ -143,6 +143,15 @@ public struct DisplayRepresentation: ExpressibleByStringLiteral, Equatable, @unc
             displayStyle = .default
         }
 
+        /// A system symbol drawn in `tintColor` with `symbolConfiguration`, from UIKit. Nothing on
+        /// the web draws an intent's image, so the color and configuration are not kept; the image
+        /// is a template symbol, as `init(systemName:)` makes. Apple's is nil for a name the system has
+        /// no symbol for; the web's symbol table is smaller than Apple's, so this one never is.
+        @_disfavoredOverload
+        public init?(systemName: String, tintColor: UIColor? = nil, symbolConfiguration: UIImage.SymbolConfiguration? = nil) {
+            self.init(systemName: systemName, isTemplate: nil)
+        }
+
         public init(named name: String, isTemplate: Bool = false, displayStyle: DisplayStyle = .default) {
             source = .named(name)
             self.isTemplate = isTemplate

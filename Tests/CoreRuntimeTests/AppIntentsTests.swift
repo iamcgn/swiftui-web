@@ -154,6 +154,8 @@ private struct Shortcuts: AppShortcutsProvider {
         let unsaid: Bool? = nil
         #expect(DisplayRepresentation.Image(systemName: "leaf", isTemplate: unsaid).isTemplate)
         #expect(!DisplayRepresentation.Image(systemName: "leaf", isTemplate: false).isTemplate)
+        // UIKit's tinted symbol (SFSafeSymbols) is the same template symbol.
+        #expect(DisplayRepresentation.Image(systemName: "leaf", tintColor: .red, symbolConfiguration: nil) == DisplayRepresentation.Image(systemName: "leaf"))
         #expect(Mood.typeDisplayRepresentation.name.key == "Mood")
 
         let note = Note.all[0]
@@ -207,6 +209,21 @@ private struct Shortcuts: AppShortcutsProvider {
         runtime.activate(semanticsIdentifier: tree[1].identifier)
         await settle(until: 2)
         #expect(IntentLog.shared.entries == ["ping", "Ada busy x1 -"])
+    }
+
+    @Test func buttonWithASymbolAndAnIntentRunsIt() async {
+        IntentLog.shared.entries = []
+        let runtime = render(VStack {
+            Button("Ping", systemImage: "bolt", intent: PingIntent())
+            Button(String("Log"), systemImage: "pencil", role: .destructive, intent: LogIntent(mood: .calm, name: "Bo"))
+        })
+        let tree = runtime.semanticsTree()
+        #expect(tree.map(\.label) == ["Ping", "Log"])
+        runtime.activate(semanticsIdentifier: tree[0].identifier)
+        await settle(until: 1)
+        runtime.activate(semanticsIdentifier: tree[1].identifier)
+        await settle(until: 2)
+        #expect(IntentLog.shared.entries == ["ping", "Bo calm x1 -"])
     }
 
     @Test func toggleWithAnIntentRunsItWhenFlipped() async {

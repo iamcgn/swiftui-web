@@ -66,6 +66,20 @@ import SwiftUIWebHeadless
         #expect(log.events == ["down", "up"])
     }
 
+    @Test func anOptionalGestureRunsOnlyWhenPresent() {
+        let log = Log()
+        func box(_ enabled: Bool) -> some View {
+            Color.red.frame(width: 40, height: 20).gesture(enabled ? TapGesture().onEnded { log.events.append("tap") } : nil)
+        }
+        let p = CGPoint(x: 100, y: 50)
+        let on = runtime(box(true))
+        on.pointerDown(at: p, time: 0); on.pointerUp(at: p, time: 0.05)
+        #expect(log.events == ["tap"])
+        let off = runtime(box(false))
+        off.pointerDown(at: p, time: 1); off.pointerUp(at: p, time: 1.05)
+        #expect(log.events == ["tap"])
+    }
+
     @Test func tapCountsAndGestureStateUpdating() {
         let log = Log()
         let runtime = runtime(Color.red.frame(width: 40, height: 20).gesture(TapGesture(count: 2).onEnded { log.events.append("double") }))

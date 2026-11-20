@@ -29,6 +29,21 @@ extension Never: Gesture {
     @MainActor public func _makeRecognizer() -> _GestureRecognizer<Never> { fatalError("Never has no recogniser") }
 }
 
+/// An optional gesture: the wrapped one, or none, so `gesture(enabled ? drag : nil)` attaches a
+/// gesture only while `enabled` (SwiftUIPager), as SwiftUI's `Optional: Gesture` does.
+extension Optional: Gesture where Wrapped: Gesture {
+    public typealias Value = Wrapped.Value
+    public typealias Body = Never
+    public var body: Never { fatalError("Optional has no body") }
+    @MainActor public func _makeRecognizer() -> _GestureRecognizer<Wrapped.Value> {
+        switch self {
+        case .some(let gesture): gesture._makeRecognizer()
+        // The base recogniser never recognises, so the press goes to the views around it.
+        case .none: _GestureRecognizer()
+        }
+    }
+}
+
 /// Which gestures a `gesture(_:including:)` view takes: its own, its subviews', both or neither.
 public struct GestureMask: OptionSet, Sendable {
     public let rawValue: UInt32
