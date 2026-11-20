@@ -221,6 +221,16 @@ open class URLResponse: _WebObjectBase, @unchecked Sendable {
     public var suggestedFilename: String? { url?.lastPathComponent }
 }
 
+#if !canImport(ObjectiveC)
+/// Responses are equal only to themselves, as `NSObject`s are, so an error enum that carries one
+/// synthesizes `Equatable` (Networkable's `unexpectedResponse(URLResponse, Data)`). With the
+/// runtime they inherit this from `NSObject`.
+extension URLResponse: Hashable {
+    public static func == (lhs: URLResponse, rhs: URLResponse) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+}
+#endif
+
 /// The metadata associated with the response to an HTTP protocol URL load request.
 public final class HTTPURLResponse: URLResponse, @unchecked Sendable {
     public let statusCode: Int

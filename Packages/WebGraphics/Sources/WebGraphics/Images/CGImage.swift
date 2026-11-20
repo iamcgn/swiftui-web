@@ -37,6 +37,24 @@ public final class CGColorSpace: @unchecked Sendable {
     public var model: CGColorSpaceModel { numberOfComponents == 1 ? .monochrome : .rgb }
 }
 public func CGColorSpaceCreateDeviceRGB() -> CGColorSpace { CGColorSpace(_numberOfComponents: 3) }
+
+#if os(WASI)
+extension CGColor {
+    /// The colour's space: sRGB, as every colour here is (decision 0006).
+    public var colorSpace: CGColorSpace? { CGColorSpace(_numberOfComponents: 3) }
+
+    /// The colour in another space (GistHub's `hexString` converts to sRGB before reading the
+    /// components). Every RGB space is sRGB here, so the components carry over; a grey space
+    /// takes the colour's luminance (Rec. 709 weights), as CoreGraphics' conversion does.
+    public func converted(to space: CGColorSpace, intent: CGColorRenderingIntent, options: CFDictionary?) -> CGColor? {
+        guard let c = components, c.count == 4 else { return nil }
+        if space.numberOfComponents == 1 {
+            return CGColor(gray: 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2], alpha: c[3])
+        }
+        return CGColor(red: c[0], green: c[1], blue: c[2], alpha: c[3])
+    }
+}
+#endif
 public func CGColorSpaceCreateDeviceGray() -> CGColorSpace { CGColorSpace(_numberOfComponents: 1) }
 
 /// The kind of a colour space's components.

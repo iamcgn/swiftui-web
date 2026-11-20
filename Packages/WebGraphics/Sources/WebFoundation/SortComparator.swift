@@ -10,6 +10,28 @@ public enum ComparisonResult: Int, Sendable, Hashable, Codable {
     case orderedDescending = 1
 }
 
+// FoundationEssentials' `Date.compare(_:)` and `DateInterval.compare(_:)` answer its own
+// `ComparisonResult`, which this module's shadows, so `return date.compare(other)` from a
+// function returning `ComparisonResult` (SwiftDate's `compare(toDate:granularity:)`) did not
+// compile. These answer this module's. They are the disfavoured overloads, so a call with no
+// type to match (`date.compare(other) == .orderedSame`) still resolves as before.
+extension Date {
+    @_disfavoredOverload @_alwaysEmitIntoClient
+    public func compare(_ other: Date) -> ComparisonResult {
+        self < other ? .orderedAscending : self > other ? .orderedDescending : .orderedSame
+    }
+}
+
+extension DateInterval {
+    /// By start, then by duration, as Foundation orders intervals.
+    @_disfavoredOverload @_alwaysEmitIntoClient
+    public func compare(_ dateInterval: DateInterval) -> ComparisonResult {
+        if start != dateInterval.start { return start < dateInterval.start ? .orderedAscending : .orderedDescending }
+        if duration != dateInterval.duration { return duration < dateInterval.duration ? .orderedAscending : .orderedDescending }
+        return .orderedSame
+    }
+}
+
 public enum SortOrder: Hashable, Sendable, Codable {
     case forward, reverse
 }
