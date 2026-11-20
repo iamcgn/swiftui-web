@@ -524,6 +524,19 @@ import WebCombine
         #expect(Described().localizedDescription == "Nope." && Failure.bad.localizedDescription.hasPrefix("The operation couldn’t be completed."))
         #expect(NSError(domain: "D", code: 3).localizedDescription == "The operation couldn’t be completed. (D error 3.)")
         #expect(NSError(domain: "D", code: 3, userInfo: [NSLocalizedDescriptionKey: "Custom"]).localizedDescription == "Custom")
+        // Recovery options from the user info, and recovery through `RecoverableError`
+        // (Umbrella's `LocalizedNSError`).
+        struct Retry: RecoverableError {
+            var recoveryOptions: [String] { ["Retry", "Cancel"] }
+            func attemptRecovery(optionIndex: Int) -> Bool { optionIndex == 0 }
+        }
+        let offered = NSError(domain: "D", code: 4, userInfo: [NSLocalizedRecoveryOptionsErrorKey: ["Retry", "Cancel"], NSRecoveryAttempterErrorKey: Retry()])
+        #expect(offered.localizedRecoveryOptions == ["Retry", "Cancel"] && NSError(domain: "D", code: 3).localizedRecoveryOptions == nil)
+        #expect(NSError.attemptRecovery(fromError: offered, optionIndex: 0) && !NSError.attemptRecovery(fromError: offered, optionIndex: 1))
+        #expect(NSError.attemptRecovery(fromError: Retry(), optionIndex: 0) && !NSError.attemptRecovery(fromError: Failure.bad, optionIndex: 0))
+        var handled: Bool?
+        Retry().attemptRecovery(optionIndex: 0) { handled = $0 }
+        #expect(handled == true)
     }
 
     // The Node test runner cannot wait on the event loop ("async io not supported"), so the

@@ -509,6 +509,19 @@ struct CoreDataTests {
         }
     }
 
+    /// Keeps the results a body read, so a test can sort them as an app's code does.
+    final class ResultsBox { var books: FetchedResults<Book>? }
+
+    /// Re-sorted through the results' Foundation sort descriptors (Umbrella's `CDListQuery`).
+    struct BookTitlesResortable: View {
+        @FetchRequest(sortDescriptors: [SortDescriptor(\.title)]) private var books: FetchedResults<Book>
+        let box: ResultsBox
+        var body: some View {
+            let _ = { box.books = books }()
+            VStack { ForEach(books) { Text($0.title ?? "") } }
+        }
+    }
+
     struct ReadingList: View {
         @SectionedFetchRequest(sectionIdentifier: \Book.isRead, sortDescriptors: [NSSortDescriptor(key: "isRead", ascending: true), NSSortDescriptor(key: "title", ascending: true)])
         private var sections: SectionedFetchResults<Bool, Book>
@@ -561,6 +574,47 @@ struct CoreDataTests {
         runtime.mount(BookTitlesReversed().environment(\.managedObjectContext, container.viewContext))
         runtime.layout(in: CGSize(width: 320, height: 400))
         #expect(texts(runtime) == ["Emma", "Dune", "Beloved"])
+    }
+
+    @Test func fetchedResultsSortBySortDescriptors() throws {
+        let container = try container()
+        book("Dune", in: container.viewContext)
+        book("Beloved", in: container.viewContext)
+        book("Emma", in: container.viewContext)
+        let box = ResultsBox()
+        let runtime = Runtime()
+        runtime.mount(BookTitlesResortable(box: box).environment(\.managedObjectContext, container.viewContext))
+        runtime.layout(in: CGSize(width: 320, height: 400))
+        #expect(texts(runtime) == ["Beloved", "Dune", "Emma"])
+        // The descriptors read back equal to the ones the request was made with.
+        #expect(box.books?.sortDescriptors == [SortDescriptor(\Book.title)])
+        box.books?.sortDescriptors = [SortDescriptor(\Book.title, order: .reverse)]
+        runtime.layout(in: CGSize(width: 320, height: 400))
+        #expect(texts(runtime) == ["Emma", "Dune", "Beloved"])
+        #expect(box.books?.sortDescriptors == [SortDescriptor(\Book.title, order: .reverse)])
+        // A descriptor made from a Core Data one sorts as that one does.
+        let byKey = try #require(SortDescriptor(NSSortDescriptor(key: "title", ascending: false), comparing: Book.self))
+        #expect(byKey.order == .reverse)
+        #expect(try books(container.viewContext).sorted { byKey.compare($0, $1) == .orderedAscending }.compactMap(\.title) == ["Emma", "Dune", "Beloved"])
+        #expect(SortDescriptor(NSSortDescriptor(key: nil, ascending: true), comparing: Book.self) == nil)
+    }
+
+    @Test func predicatesAndSortDescriptorsCompareByValue() {
+        // A configuration that holds them is `Equatable`, as on Apple platforms.
+        struct Configuration: Equatable {
+            var predicate: NSPredicate?
+            var sortDescriptors: [SortDescriptor<Book>] = []
+        }
+        #expect(NSPredicate(format: "pages > %d", 100) == NSPredicate(format: "pages > %d", 100))
+        #expect(NSPredicate(format: "pages > %d", 100) != NSPredicate(format: "pages > %d", 200))
+        let block = NSPredicate { _, _ in true }
+        #expect(block == block && block != NSPredicate { _, _ in true })
+        #expect(Set([NSPredicate(format: "title == 'Dune'"), NSPredicate(format: "title == 'Dune'")]).count == 1)
+        #expect(Configuration(predicate: NSPredicate(value: false), sortDescriptors: [SortDescriptor(\.title)])
+                == Configuration(predicate: NSPredicate(value: false), sortDescriptors: [SortDescriptor(\.title)]))
+        #expect(SortDescriptor(\Book.title) != SortDescriptor(\Book.title, order: .reverse))
+        #expect(SortDescriptor(\Book.pages) != SortDescriptor(\Book.rating))
+        #expect(Set([SortDescriptor(\Book.pages), SortDescriptor(\Book.pages)]).count == 1)
     }
 
     @Test func sectionedFetchRequestGroupsResults() throws {

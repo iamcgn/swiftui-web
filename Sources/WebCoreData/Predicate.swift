@@ -713,6 +713,21 @@ struct _PredicateParser {
     }
 }
 
+/// Two predicates are equal when they state the same conditions, read by their format, as
+/// Foundation's are; a block predicate is equal only to itself (Umbrella's `CDListQuery`
+/// configuration is `Equatable`).
+extension NSPredicate: Hashable {
+    public static func == (lhs: NSPredicate, rhs: NSPredicate) -> Bool {
+        if lhs === rhs { return true }
+        if case .block = lhs._node { return false }
+        if case .block = rhs._node { return false }
+        return lhs.predicateFormat == rhs.predicateFormat
+    }
+    public func hash(into hasher: inout Hasher) {
+        if case .block = _node { hasher.combine(ObjectIdentifier(self)) } else { hasher.combine(predicateFormat) }
+    }
+}
+
 // MARK: - NSSortDescriptor
 
 /// An immutable description of how to order a collection of objects by a property they share.
@@ -724,6 +739,9 @@ open class NSSortDescriptor: CustomStringConvertible, Hashable, @unchecked Senda
     public let ascending: Bool
     private let comparator: ((Any, Any) -> ComparisonResult)?
     private let read: ((Any) -> Any?)?
+    /// The Swift `SortDescriptor` this descriptor was made from, so that turning it back gives
+    /// an equal one (`FetchedResults.sortDescriptors`).
+    var _origin: AnyHashable?
 
     public init(key: String?, ascending: Bool) {
         _key = key; keyPath = nil; rootType = nil; self.ascending = ascending; comparator = nil; read = nil
