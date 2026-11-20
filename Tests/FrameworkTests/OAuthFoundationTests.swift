@@ -37,6 +37,10 @@ private final class LoggedResponse: HTTPURLResponse, @unchecked Sendable {
         #expect(request.cachePolicy == .reloadIgnoringLocalCacheData)
     }
 
+    // On Linux, NSError is swift-corelibs-foundation's, not this package's, and the test process
+    // died (signal 11) inside this test there; it runs on Apple platforms, which it matches, and
+    // on wasm, where the NSError is this package's.
+    #if !os(Linux)
     @Test func errorsAreEqualByDomainCodeAndUserInfo() {
         let first = NSError(domain: "OAuth2", code: 401, userInfo: [NSLocalizedDescriptionKey: "expired"])
         let same = NSError(domain: "OAuth2", code: 401, userInfo: [NSLocalizedDescriptionKey: "expired"])
@@ -44,14 +48,10 @@ private final class LoggedResponse: HTTPURLResponse, @unchecked Sendable {
         #expect(!first.isEqual(NSError(domain: "OAuth2", code: 403, userInfo: [NSLocalizedDescriptionKey: "expired"])))
         #expect(!first.isEqual(NSError(domain: "Other", code: 401, userInfo: [NSLocalizedDescriptionKey: "expired"])))
         #expect(!first.isEqual(NSError(domain: "OAuth2", code: 401)))
-        #if !os(Linux)
-        // On Linux this runs swift-corelibs-foundation's NSError.isEqual, not this package's, and
-        // the test process died (signal 11) in this test; the String case runs on Apple platforms
-        // and wasm.
         #expect(!first.isEqual("OAuth2"))
-        #endif
         #expect(first.hash == same.hash)
     }
+    #endif
 
     /// Bodega's `catch CocoaError.fileReadNoSuchFile`: a code matches a Cocoa error with it, as
     /// an error or as an `NSError` in the Cocoa domain, and nothing else.
