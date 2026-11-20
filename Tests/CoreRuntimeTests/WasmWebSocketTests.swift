@@ -38,7 +38,7 @@ import WebFoundation
         }
     }
 
-    final class Listener: URLSessionWebSocketDelegate, @unchecked Sendable {
+    final class Listener: NSObject, URLSessionWebSocketDelegate, @unchecked Sendable {
         var heard: [String] = []
         func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
             heard.append("open \(`protocol` ?? "none")")

@@ -175,4 +175,12 @@ public final class UserDefaults: _WebObjectBase, @unchecked Sendable {
         }
     }
 }
+#if !canImport(ObjectiveC)
+/// Defaults objects are equal only to themselves, as `NSObject`s are, so a key can name its
+/// store (swift-sharing's `AppStorageKeyID`). With the runtime they inherit this from `NSObject`.
+extension UserDefaults: Hashable {
+    public static func == (lhs: UserDefaults, rhs: UserDefaults) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+}
+#endif
 #endif

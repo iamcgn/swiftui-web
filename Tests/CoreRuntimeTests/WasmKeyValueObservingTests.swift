@@ -16,6 +16,11 @@ private final class Player: NSObject {
     }
 }
 
+private struct StoreKeyID: Hashable {
+    let key: String
+    let store: UserDefaults
+}
+
 @Suite(.serialized) @MainActor struct WasmKeyValueObservingTests {
     @Test func handMadeReportsCarryOptions() {
         let player = Player()
@@ -84,6 +89,16 @@ private final class Player: NSObject {
         defaults.removeObserver(observer, forKeyPath: "count")
         defaults.set(3, forKey: "count")
         #expect(observer.seen.count == 4)
+    }
+
+    // swift-sharing's own shapes: a key that names its store, and a check by selector before
+    // asking the store for its suite.
+    @Test func appStorageShapes() throws {
+        let defaults = try #require(UserDefaults(suiteName: "kvo.\(Int.random(in: 0..<1_000_000))"))
+        let ids: Set<StoreKeyID> = [StoreKeyID(key: "flag", store: defaults), StoreKeyID(key: "flag", store: defaults),
+                                    StoreKeyID(key: "flag", store: .standard)]
+        #expect(ids.count == 2)
+        #expect(!defaults.responds(to: Selector(("_identifier"))))
     }
 
     @Test func anObserverByKeyHearsAHandMadeReportAndInitialValue() throws {

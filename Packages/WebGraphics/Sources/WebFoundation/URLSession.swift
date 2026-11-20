@@ -660,6 +660,7 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
             let error = failure ?? URLError(.badURL)
             let task = make(identifier, request) { _WebURLSession.Task(identifier: 0) { _ in } }
             task.finished(response: nil, error: error)
+            _tellCreated(task)
             completionHandler(nil, nil, error)
             return task
         }
@@ -680,6 +681,7 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
                 }
             }
         }
+        _tellCreated(task)
         return task
     }
 
@@ -823,8 +825,8 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
             nextTaskIdentifier += 1
             task.finished(response: result.1, error: nil)
             let sent = Int64(bodyData.count)
-            delegate.urlSession(self, task: task, didSendBodyData: sent, totalBytesSent: sent, totalBytesExpectedToSend: sent)
-            delegate.urlSession(self, task: task, didCompleteWithError: nil)
+            _tellSent(delegate, task, sent, expected: sent)
+            _tellComplete(delegate, task, nil)
         }
         return result
     }
@@ -873,7 +875,7 @@ public final class URLSession: _WebObjectBase, @unchecked Sendable {
     private func invalidate() {
         guard let delegate else { return }
         self.delegate = nil
-        delegate.urlSession(self, didBecomeInvalidWithError: nil)
+        _tellInvalid(delegate)
     }
     public func getAllTasks(completionHandler: @escaping ([URLSessionTask]) -> Void) { completionHandler([]) }
 }
