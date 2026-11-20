@@ -45,8 +45,9 @@ private final class LoggedResponse: HTTPURLResponse, @unchecked Sendable {
         #expect(!first.isEqual(NSError(domain: "Other", code: 401, userInfo: [NSLocalizedDescriptionKey: "expired"])))
         #expect(!first.isEqual(NSError(domain: "OAuth2", code: 401)))
         #if !os(Linux)
-        // swift-corelibs-foundation's NSError.isEqual crashes the process (signal 11) when handed
-        // a String on Linux; that's Foundation's code, not this package's.
+        // On Linux this runs swift-corelibs-foundation's NSError.isEqual, not this package's, and
+        // the test process died (signal 11) in this test; the String case runs on Apple platforms
+        // and wasm.
         #expect(!first.isEqual("OAuth2"))
         #endif
         #expect(first.hash == same.hash)
