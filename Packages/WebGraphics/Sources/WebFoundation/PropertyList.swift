@@ -129,7 +129,7 @@ public final class PropertyListDecoder: @unchecked Sendable {
 // MARK: - Values
 
 /// A property-list value.
-indirect enum _PlistValue {
+package indirect enum _PlistValue {
     case string(String)
     case integer(Int64)
     case unsigned(UInt64)
@@ -147,7 +147,7 @@ indirect enum _PlistValue {
     static let null = "$null"
 
     /// The value of an object, or an error naming the first thing a property list can't hold.
-    init(_ object: Any) throws {
+    package init(_ object: Any) throws {
         switch object {
         case let value as _PlistValue: self = value
         case let string as String: self = .string(string)
@@ -186,7 +186,7 @@ indirect enum _PlistValue {
     }
 
     /// The value as the objects `PropertyListSerialization` hands back.
-    var object: Any {
+    package var object: Any {
         switch self {
         case .string(let string): return string
         case .integer(let integer): return Int(exactly: integer).map { $0 as Any } ?? integer
@@ -239,7 +239,7 @@ indirect enum _PlistValue {
     }
 
     /// The value the bytes hold, and the format they hold it in.
-    static func read(_ bytes: [UInt8]) throws -> (_PlistValue, PropertyListSerialization.PropertyListFormat) {
+    package static func read(_ bytes: [UInt8]) throws -> (_PlistValue, PropertyListSerialization.PropertyListFormat) {
         if bytes.starts(with: Array("bplist00".utf8)) { return (try _PlistBinary.read(bytes), .binary) }
         var start = 0
         if bytes.starts(with: [0xEF, 0xBB, 0xBF]) { start = 3 }
@@ -254,7 +254,7 @@ indirect enum _PlistValue {
 
 // MARK: - XML
 
-struct _PlistXML {
+package struct _PlistXML {
     private let scalars: [Unicode.Scalar]
     private var index = 0
 
@@ -262,7 +262,7 @@ struct _PlistXML {
 
     // MARK: Writing
 
-    static func write(_ value: _PlistValue) -> String {
+    package static func write(_ value: _PlistValue) -> String {
         var text = """
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -506,8 +506,8 @@ struct _PlistXML {
 // MARK: - Binary
 
 /// The `bplist00` format: the objects, a table of their offsets and a 32-byte trailer.
-enum _PlistBinary {
-    static func write(_ root: _PlistValue) -> [UInt8] {
+package enum _PlistBinary {
+    package static func write(_ root: _PlistValue) -> [UInt8] {
         // Objects in the order they're numbered: each container before its contents.
         var objects: [_PlistValue] = []
         var references: [[Int]] = []
@@ -707,4 +707,21 @@ enum _PlistBinary {
         return try object(top, depth: 0)
     }
 }
+
+// For the keyed archive coders in WebFoundationFormats.
+extension _PlistValue {
+    /// The UID this value is, when it is the `CF$UID` dictionary a reference reads as.
+    package var _uid: Int? {
+        guard case .dictionary(let entries) = self, entries.count == 1, entries[0].key == "CF$UID",
+              case .integer(let index) = entries[0].value, index >= 0, index <= 0xFFFF_FFFF else { return nil }
+        return Int(index)
+    }
+
+    package func _entry(_ key: String) -> _PlistValue? {
+        guard case .dictionary(let entries) = self else { return nil }
+        for entry in entries where entry.key == key { return entry.value }
+        return nil
+    }
+}
+
 #endif

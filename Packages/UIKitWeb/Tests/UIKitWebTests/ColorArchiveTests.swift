@@ -4,6 +4,9 @@
 import Testing
 import UIKit
 import WebGraphicsHeadless
+#if os(WASI)
+import WebFoundationFormats
+#endif
 
 @Suite struct ColorArchiveTests {
     #if os(WASI) || canImport(Darwin)

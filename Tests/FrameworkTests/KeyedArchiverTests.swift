@@ -4,6 +4,9 @@
 // macOS and Linux too, so the wasm coders read and write what Apple's do.
 import Testing
 import WebFoundation
+#if os(WASI)
+import WebFoundationFormats
+#endif
 
 final class ArchivedNote: NSObject, NSCoding {
     let title: String

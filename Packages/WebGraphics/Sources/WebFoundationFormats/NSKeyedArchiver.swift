@@ -7,9 +7,14 @@
 // write them; any other object must conform to NSCoding. A class is archived under the name
 // `NSStringFromClass` gives it ("Module.Class"; the framework's own classes, such as UIColor,
 // under their bare Apple names) and found again by that name through Swift's type metadata.
+// The coders live here, in WebFoundationFormats, and not in WebFoundation: a class keeps its
+// methods in every bundle that links its module (decision 0006's budget), and a SwiftUI app that
+// never archives would carry them. `import Foundation` re-exports this module; `import SwiftUI`
+// does with the FoundationFormats trait, which Tools/Traits turns on for an app that names them.
 // Not done: conditional objects (encoded as ordinary ones), cycles (an object that refers back
 // to one still decoding reads nil there), delegates, and `Codable` values in an archive.
 #if os(WASI)
+import WebFoundation
 
 /// The key the root object of an archive is stored under.
 public let NSKeyedArchiveRootObjectKey = "root"
@@ -25,21 +30,6 @@ func _coderError(_ code: Int, _ message: String) -> NSError {
 
 /// A UID, as a keyed archive stores references.
 private func _uid(_ index: Int) -> _PlistValue { .dictionary([("CF$UID", .integer(Int64(index)))]) }
-
-extension _PlistValue {
-    /// The UID this value is, when it is the `CF$UID` dictionary a reference reads as.
-    var _uid: Int? {
-        guard case .dictionary(let entries) = self, entries.count == 1, entries[0].key == "CF$UID",
-              case .integer(let index) = entries[0].value, index >= 0, index <= 0xFFFF_FFFF else { return nil }
-        return Int(index)
-    }
-
-    func _entry(_ key: String) -> _PlistValue? {
-        guard case .dictionary(let entries) = self else { return nil }
-        for entry in entries where entry.key == key { return entry.value }
-        return nil
-    }
-}
 
 /// The names classes are archived under.
 enum _ArchiveNames {
