@@ -33,7 +33,7 @@ OURS = {
     "CoreLocation", "AVFoundation", "AVFAudio", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit",
     "os", "OSLog", "CoreGraphics", "UniformTypeIdentifiers", "CoreData", "CryptoKit", "CoreHaptics", "CoreImage", "WidgetKit", "StoreKit", "AppIntents",
     "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices", "SystemConfiguration",
-    "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit",
+    "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit", "Contacts",
     "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit", "Symbols", "Compression", "zlib", "Translation", "_Translation_SwiftUI", "JavaScriptCore",
     "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "XCTest",
 }
@@ -1184,6 +1184,7 @@ WEB_PRODUCTS = [
     ("WebKit", "SwiftUIWeb"),
     ("AudioToolbox", "SwiftUIWeb"),
     ("EventKit", "SwiftUIWeb"),
+    ("Contacts", "SwiftUIWeb"),
     ("Photos", "SwiftUIWeb"),
     ("PhotosUI", "SwiftUIWeb"),
     ("AuthenticationServices", "SwiftUIWeb"),
