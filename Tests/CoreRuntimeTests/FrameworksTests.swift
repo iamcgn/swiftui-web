@@ -26,6 +26,16 @@ private final class Finished: @unchecked Sendable { var value: Bool? }
         return runtime
     }
 
+    /// IceCubes' video view sets the background policy and observes the item's end.
+    @Test func aPlayerTakesABackgroundPolicyAndItemsNameTheirNotifications() {
+        let player = AVPlayer(url: URL(fileURLWithPath: "/clip.mp4"))
+        #expect(player.audiovisualBackgroundPlaybackPolicy == .automatic)
+        player.audiovisualBackgroundPlaybackPolicy = .pauses
+        #expect(player.audiovisualBackgroundPlaybackPolicy.rawValue == 2)
+        #expect(Notification.Name.AVPlayerItemDidPlayToEndTime == AVPlayerItem.didPlayToEndTimeNotification)
+        #expect(AVPlayerItem.didPlayToEndTimeNotification.rawValue == "AVPlayerItemDidPlayToEndTimeNotification")
+    }
+
     @Test func videoPlayerReportsItsElementAndFollowsThePlayer() {
         let player = AVPlayer(url: URL(fileURLWithPath: "/clip.mp4"))
         let runtime = render(VideoPlayer(player: player).padding(16))

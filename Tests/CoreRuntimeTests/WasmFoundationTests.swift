@@ -235,6 +235,26 @@ import WebCombine
         #expect(bundle.localizedString(forKey: "Hello", value: "Hallo", table: nil) == "Hallo")
     }
 
+    /// EmojiText reads back the emoji data it stored: a cache keeps what the app stores in it.
+    @Test func aCacheKeepsTheResponsesStoredInIt() throws {
+        let cache = URLCache(memoryCapacity: 1_000, diskCapacity: 0)
+        let url = try #require(URL(string: "https://example.com/emoji.png"))
+        let request = URLRequest(url: url)
+        #expect(cache.cachedResponse(for: request) == nil)
+        let response = URLResponse(url: url, mimeType: "image/png", expectedContentLength: 3, textEncodingName: nil)
+        cache.storeCachedResponse(CachedURLResponse(response: response, data: Data([1, 2, 3])), for: request)
+        #expect(cache.cachedResponse(for: request)?.data == Data([1, 2, 3]))
+        #expect(cache.currentMemoryUsage == 3)
+        cache.storeCachedResponse(CachedURLResponse(response: response, data: Data([9]), storagePolicy: .notAllowed), for: request)
+        #expect(cache.cachedResponse(for: request)?.data == Data([1, 2, 3]))
+        cache.storeCachedResponse(CachedURLResponse(response: response, data: Data(count: 2_000)), for: request)
+        #expect(cache.cachedResponse(for: request)?.data == Data([1, 2, 3]))
+        cache.removeCachedResponses(since: Date(timeIntervalSinceNow: 60))
+        #expect(cache.cachedResponse(for: request) != nil)
+        cache.removeCachedResponse(for: request)
+        #expect(cache.cachedResponse(for: request) == nil && cache.currentMemoryUsage == 0)
+    }
+
     /// Inject's `Bundle(path:)?.load()` in a debug build: only the app's own code is loaded.
     @Test func onlyTheAppsBundleHasLoadedCode() throws {
         #expect(Bundle.main.isLoaded && Bundle.main.load())

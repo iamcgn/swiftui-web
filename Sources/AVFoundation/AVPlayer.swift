@@ -97,6 +97,27 @@ public final class AVPlayerItem: @unchecked Sendable {
     public func cancelPendingSeeks() {}
 }
 
+/// What a player does with its video when the app goes to the background.
+public enum AVPlayerAudiovisualBackgroundPlaybackPolicy: Int, Sendable {
+    case automatic = 1, pauses = 2, continuesIfPossible = 3
+}
+
+extension AVPlayerItem {
+    /// Posted when an item plays to its end. The host does not report the end yet, so nothing
+    /// posts these: an observer added for them is kept and never called.
+    public static let didPlayToEndTimeNotification = Notification.Name("AVPlayerItemDidPlayToEndTimeNotification")
+    public static let failedToPlayToEndTimeNotification = Notification.Name("AVPlayerItemFailedToPlayToEndTimeNotification")
+    public static let playbackStalledNotification = Notification.Name("AVPlayerItemPlaybackStalledNotification")
+    public static let timeJumpedNotification = Notification.Name("AVPlayerItemTimeJumpedNotification")
+}
+
+extension Notification.Name {
+    public static let AVPlayerItemDidPlayToEndTime = AVPlayerItem.didPlayToEndTimeNotification
+    public static let AVPlayerItemFailedToPlayToEndTime = AVPlayerItem.failedToPlayToEndTimeNotification
+    public static let AVPlayerItemPlaybackStalled = AVPlayerItem.playbackStalledNotification
+    public static let AVPlayerItemTimeJumped = AVPlayerItem.timeJumpedNotification
+}
+
 /// Plays one item: `play()`, `pause()`, the rate, muting, looping through `actionAtItemEnd`.
 @MainActor @Observable
 public class AVPlayer {
@@ -110,6 +131,9 @@ public class AVPlayer {
     /// Whether the screen stays awake while video plays (the browser decides: a playing video
     /// keeps the display on there already).
     public var preventsDisplaySleepDuringVideoPlayback = true
+    /// What happens to the video when the app goes to the background (the browser decides:
+    /// a hidden page's video is the browser's to pause).
+    public var audiovisualBackgroundPlaybackPolicy: AVPlayerAudiovisualBackgroundPlaybackPolicy = .automatic
     /// Whether the host shows transport controls (`VideoPlayer` shows them; apps hide them
     /// through the view's `_controls`).
     package var showsControls = true
