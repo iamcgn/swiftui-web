@@ -72,6 +72,18 @@ private final class Ticker: ConnectablePublisher {
         #expect(ticks == stopped)
         subscription.cancel()
 
+        // A token from a stopped run leaves a later run going (#320).
+        let a = timer.connect(), b = timer.connect()
+        a.cancel()
+        let c = timer.connect()
+        b.cancel()
+        let resumed = ticks
+        let again = timer.sink { _ in ticks += 1 }
+        for _ in 0..<200 where ticks == resumed { try await Task.sleep(nanoseconds: 10_000_000) }
+        #expect(ticks > resumed)
+        c.cancel()
+        again.cancel()
+
         let _: Publishers.Autoconnect<_TimerPublisher> = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     }
 

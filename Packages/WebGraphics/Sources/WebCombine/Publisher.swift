@@ -282,6 +282,8 @@ public final class _TimerPublisher: ConnectablePublisher, @unchecked Sendable {
     private var receivers: [Int: @MainActor (Date) -> Void] = [:]
     private var nextReceiver = 0
     private var task: Task<Void, Never>?
+    /// Counts the timer's starts, so a token from an earlier start leaves a later one running.
+    private var generation = 0
 
     public init(interval: TimeInterval, tolerance: TimeInterval? = nil) {
         self.interval = interval
@@ -296,9 +298,11 @@ public final class _TimerPublisher: ConnectablePublisher, @unchecked Sendable {
         return AnyCancellable { [self] in receivers[id] = nil }
     }
 
-    /// Starts the timer; cancelling the result stops it (a second call while it runs shares it).
+    /// Starts the timer; cancelling the result stops it (a second call while it runs shares that
+    /// run, and a token from a run already stopped does nothing).
     public func connect() -> any Cancellable {
         if task == nil {
+            generation += 1
             let interval = max(self.interval, 0.001)
             task = Task { @MainActor [self] in
                 while !Task.isCancelled {
@@ -309,8 +313,10 @@ public final class _TimerPublisher: ConnectablePublisher, @unchecked Sendable {
                 }
             }
         }
+        let issued = generation
         return AnyCancellable { [self] in
-            task?.cancel()
+            guard generation == issued, let running = task else { return }
+            running.cancel()
             task = nil
         }
     }
