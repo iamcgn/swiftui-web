@@ -19,6 +19,20 @@ private struct Tappable: PrimitiveButtonStyle {
     }
 }
 
+/// A primitive style that draws the standard button plain, through `Button(configuration)`.
+private struct PlainWrapping: PrimitiveButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Button(configuration).buttonStyle(.plain)
+    }
+}
+
+/// A view generic over a primitive style, as Umbrella's `ModifierButtonStyle` is.
+private struct PrimitiveStyled<S: PrimitiveButtonStyle>: View {
+    let style: S
+    let action: @MainActor () -> Void
+    var body: some View { Button("OK", action: action).buttonStyle(style) }
+}
+
 @Suite @MainActor struct ButtonLooksTests {
     private static let size13 = ResolvedFont(family: "system", size: 13, weight: .regular, italic: false, textStyle: nil)
     private static let size10 = ResolvedFont(family: "system", size: 10, weight: .regular, italic: false, textStyle: nil)
@@ -48,6 +62,30 @@ private struct Tappable: PrimitiveButtonStyle {
         runtime.pointerDown(at: CGPoint(x: frame.midX, y: frame.midY))
         runtime.pointerUp(at: CGPoint(x: frame.midX, y: frame.midY))
         #expect(counter.taps == 1)
+    }
+
+    @Test func standardStylesServeAsPrimitiveStyles() {
+        let counter = Counter()
+        let runtime = runtime(VStack(spacing: 8) {
+            PrimitiveStyled(style: .bordered) { counter.taps += 1 }._probe("bordered")
+            PrimitiveStyled(style: .borderedProminent) { counter.taps += 1 }._probe("prominent")
+            PrimitiveStyled(style: .plain) { counter.taps += 1 }._probe("plain")
+            Button("OK") { counter.taps += 1 }.buttonStyle(PlainWrapping())._probe("wrapped")
+            Button("OK") {}.buttonStyle(.bordered)._probe("direct")
+        })
+        // `.bordered` named as a primitive style draws the bordered bezel, the same as the
+        // `ButtonStyle` of that name; `.plain` and `Button(configuration)` draw the bare label.
+        #expect(runtime.probeFrames["bordered"]?.height == 24 && runtime.probeFrames["bordered"]?.width == 64)
+        #expect(runtime.probeFrames["prominent"]?.size == runtime.probeFrames["bordered"]?.size)
+        #expect(runtime.probeFrames["direct"]?.size == runtime.probeFrames["bordered"]?.size)
+        #expect(runtime.probeFrames["plain"]?.height == 16 && runtime.probeFrames["plain"]?.width == 40)
+        #expect(runtime.probeFrames["wrapped"]?.size == runtime.probeFrames["plain"]?.size)
+        for name in ["bordered", "plain", "wrapped"] {
+            let frame = runtime.probeFrames[name]!
+            runtime.pointerDown(at: CGPoint(x: frame.midX, y: frame.midY))
+            runtime.pointerUp(at: CGPoint(x: frame.midX, y: frame.midY))
+        }
+        #expect(counter.taps == 3)
     }
 
     @Test func controlSizesChangeTheBezel() {
