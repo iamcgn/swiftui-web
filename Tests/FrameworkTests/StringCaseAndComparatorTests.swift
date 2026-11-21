@@ -58,6 +58,27 @@ private struct Item: Sendable { let name: String }
         #expect(String.StandardComparator(descending) == lexical)
     }
 
+    @Test func optionalKeyPathsSortNilFirst() {
+        struct Entry: Sendable { let title: String?; let rank: Int? }
+        let entries = [Entry(title: "b", rank: 2), Entry(title: nil, rank: nil), Entry(title: "a", rank: 1)]
+        #expect(entries.sorted(using: KeyPathComparator(\Entry.rank)).map(\.rank) == [nil, 1, 2])
+        #expect(entries.sorted(using: KeyPathComparator(\Entry.rank, order: .reverse)).map(\.rank) == [2, 1, nil])
+        #expect(entries.sorted(using: KeyPathComparator(\Entry.title, comparator: String.StandardComparator.lexical)).map(\.title) == [nil, "a", "b"])
+    }
+
+    #if os(WASI)
+    // Foundation's formatters are Sendable: an app keeps one in a `static let` (Hipstapaper).
+    private static let shared: DateFormatter = { let formatter = DateFormatter(); formatter.dateStyle = .short; return formatter }()
+    @Test func formattersAreSendable() {
+        func sendable<T: Sendable>(_: T.Type) {}
+        sendable(DateFormatter.self)
+        sendable(NumberFormatter.self)
+        sendable(RelativeDateTimeFormatter.self)
+        sendable(ListFormatter.self)
+        #expect(Self.shared.dateStyle == .short)
+    }
+    #endif
+
     // Linux's Foundation keeps only `.lexical`; the localized comparators are Apple's and wasm's.
     #if canImport(Darwin) || os(WASI)
     @Test func localizedComparatorsSort() {

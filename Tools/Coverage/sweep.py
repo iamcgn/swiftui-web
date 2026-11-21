@@ -1536,6 +1536,8 @@ let package = Package(
     (pkg / "Package.swift").write_text(manifest)
     (pkg / "mapping.json").write_text(json.dumps(mapping))
     (pkg / "strip.json").write_text(json.dumps(strips))
+    # Whether the sources were written with iOS conditions on, so a rewrite during the run keeps it.
+    (pkg / "options.json").write_text(json.dumps({"ios": bool(args.ios)}))
     (pkg / "manifest.json").write_text(json.dumps(parts))
     print(f"wrote {pkg / 'Package.swift'} ({len(decls)} targets, {len(mapping)} files"
           + "".join(f", {t} trait" for t in app_traits.TRAITS if t in traits_needed) + ")")
@@ -1633,12 +1635,16 @@ def tokens_of(root: Path, files):
     return sorted(words)
 
 
-def rewrite_sources(mapping, work, app_name, strip):
-    """Writes an app's copied sources again with a larger set of imports taken out."""
+def rewrite_sources(mapping, work, app_name, strip, ios=False):
+    """Writes an app's copied sources again with a larger set of imports taken out, the way
+    prepare wrote them (with iOS conditions on in an --ios sweep)."""
     for dest, where in mapping.items():
         if where["app"] == app_name:
             source = work / where.get("base", app_name) / where["file"]
-            text = strip_imports(source.read_text(errors="replace"), strip)
+            text = source.read_text(errors="replace")
+            if ios:
+                text = ios_conditions(text)
+            text = strip_imports(text, strip)
             if Path(dest).read_text(errors="replace") != text:  # an unchanged file keeps its build
                 Path(dest).write_text(text)
 
@@ -1651,6 +1657,8 @@ def cmd_run(args):
     logs.mkdir(exist_ok=True)
     mapping = json.loads((pkg / "mapping.json").read_text())
     strips = json.loads((pkg / "strip.json").read_text())
+    options_file = pkg / "options.json"
+    ios = bool(json.loads(options_file.read_text()).get("ios")) if options_file.exists() else False
     parts_file = pkg / "manifest.json"
     parts = json.loads(parts_file.read_text()) if parts_file.exists() else None
     drops = {}  # module -> the dependencies it is built without (package targets that failed)
@@ -1696,14 +1704,14 @@ def cmd_run(args):
                 drops[t["module"]] = sorted(set(drops.get(t["module"], [])) | set(blocked))
                 (pkg / "Package.swift").write_text(render_manifest(parts, drops))
                 strips[app["name"]] = sorted(set(strips[app["name"]]) | set(blocked))
-                rewrite_sources(mapping, work, app["name"], set(strips[app["name"]]))
+                rewrite_sources(mapping, work, app["name"], set(strips[app["name"]]), ios)
             code, out = build(t["module"], 2400)
             # A module the wasm SDK turns out not to have (or not to show to this target) is
             # taken out like the others and the target built again, once.
             absent = set(NO_MODULE.findall(out)) - set(strips[app["name"]])
             if code != 0 and absent:
                 strips[app["name"]] = sorted(set(strips[app["name"]]) | absent)
-                rewrite_sources(mapping, work, app["name"], set(strips[app["name"]]))
+                rewrite_sources(mapping, work, app["name"], set(strips[app["name"]]), ios)
                 code, out = build(t["module"], 2400)
             errors, seen = [], set()
             for path, line, col, msg in ERROR.findall(out):

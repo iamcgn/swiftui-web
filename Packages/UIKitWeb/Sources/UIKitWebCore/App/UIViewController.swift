@@ -181,6 +181,19 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
     /// Observers registered with `registerForTraitChanges` (UITraitChangeObservable).
     public var traitChangeObservers: [TraitChangeObserver] = []
 
+    // MARK: Accessibility
+
+    // UIKit gives every object these through NSObject's UIAccessibility informal protocol, so
+    // a controller has them too (swiftui-introspect labels its introspection controller). A
+    // controller isn't an element itself: its view is what assistive technologies read.
+    open var isAccessibilityElement = false
+    open var accessibilityLabel: String?
+    open var accessibilityValue: String?
+    open var accessibilityHint: String?
+    open var accessibilityIdentifier: String?
+    open var accessibilityTraits: UIAccessibilityTraits = .none
+    open var accessibilityElementsHidden = false
+
     // MARK: Appearance
 
     var hasAppeared = false
