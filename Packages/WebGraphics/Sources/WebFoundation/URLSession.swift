@@ -527,18 +527,54 @@ public final class URLSessionConfiguration: @unchecked Sendable {
     }
 }
 
-/// The browser's cache is the cache (`fetch` consults it); the object records the sizes asked for.
+/// The browser's cache is the cache `fetch` consults; this object keeps, in memory, the responses
+/// an app stores in it itself (`storeCachedResponse(_:for:)`), keyed by the request's URL, so an
+/// app reading back what it stored (EmojiText's emoji cache) finds it. Nothing goes to disk.
 public final class URLCache: @unchecked Sendable {
     nonisolated(unsafe) public static var shared = URLCache(memoryCapacity: 512_000, diskCapacity: 10_000_000)
     public var memoryCapacity: Int
     public var diskCapacity: Int
-    public var currentMemoryUsage: Int { 0 }
+    private var stored: [String: (response: CachedURLResponse, at: Date)] = [:]
+    public var currentMemoryUsage: Int { stored.values.reduce(0) { $0 + $1.response.data.count } }
     public var currentDiskUsage: Int { 0 }
     public init(memoryCapacity: Int, diskCapacity: Int, diskPath: String? = nil) {
         self.memoryCapacity = memoryCapacity
         self.diskCapacity = diskCapacity
     }
-    public func removeAllCachedResponses() {}
+    public convenience init(memoryCapacity: Int, diskCapacity: Int, directory: URL?) {
+        self.init(memoryCapacity: memoryCapacity, diskCapacity: diskCapacity)
+    }
+    private func key(_ request: URLRequest) -> String? { request.url?.absoluteString }
+
+    /// The response stored for the request's URL, if any.
+    public func cachedResponse(for request: URLRequest) -> CachedURLResponse? {
+        key(request).flatMap { stored[$0]?.response }
+    }
+    /// Keeps `cachedResponse` for the request's URL, unless its policy says not to or its data
+    /// alone is larger than the memory capacity.
+    public func storeCachedResponse(_ cachedResponse: CachedURLResponse, for request: URLRequest) {
+        guard let key = key(request), cachedResponse.storagePolicy != .notAllowed,
+              cachedResponse.data.count <= memoryCapacity else { return }
+        stored[key] = (cachedResponse, Date())
+    }
+    public func removeCachedResponse(for request: URLRequest) {
+        if let key = key(request) { stored[key] = nil }
+    }
+    /// Removes the responses stored at or after `date`.
+    public func removeCachedResponses(since date: Date) {
+        stored = stored.filter { $0.value.at < date }
+    }
+    public func removeAllCachedResponses() { stored = [:] }
+
+    public func storeCachedResponse(_ cachedResponse: CachedURLResponse, for dataTask: URLSessionDataTask) {
+        if let request = dataTask.currentRequest ?? dataTask.originalRequest { storeCachedResponse(cachedResponse, for: request) }
+    }
+    public func getCachedResponse(for dataTask: URLSessionDataTask, completionHandler: @escaping @Sendable (CachedURLResponse?) -> Void) {
+        completionHandler((dataTask.currentRequest ?? dataTask.originalRequest).flatMap { cachedResponse(for: $0) })
+    }
+    public func removeCachedResponse(for dataTask: URLSessionDataTask) {
+        if let request = dataTask.currentRequest ?? dataTask.originalRequest { removeCachedResponse(for: request) }
+    }
 }
 
 /// The size of a body that is not known (Foundation's `NSURLSessionTransferSizeUnknown`).
