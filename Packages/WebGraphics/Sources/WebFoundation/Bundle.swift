@@ -90,7 +90,13 @@ open class Bundle: _WebObjectBase, @unchecked Sendable {
     public func path(forResource name: String?, ofType ext: String?) -> String? {
         url(forResource: name, withExtension: ext)?.relativeString
     }
+    public func path(forResource name: String?, ofType ext: String?, inDirectory subpath: String?) -> String? {
+        url(forResource: name, withExtension: ext, subdirectory: subpath)?.relativeString
+    }
+    /// Resource listings: a page can't list the files beside it, so a bundle answers none, as one
+    /// with no resources of that type does (Alamofire's pinned-certificate scan finds nothing).
     public func urls(forResourcesWithExtension ext: String?, subdirectory: String?) -> [URL]? { [] }
+    public func paths(forResourcesOfType ext: String?, inDirectory subpath: String?) -> [String] { [] }
 
     /// Localized strings: the key itself (or `value`), as a bundle without tables answers.
     public func localizedString(forKey key: String, value: String?, table: String?) -> String {

@@ -2337,7 +2337,7 @@
         {
           "api": "Bundle",
           "status": "partial",
-          "notes": "`main`, `init?(path:)`, `init?(url:)`, `init(for:)` (one bundle: the app), `url(forResource:withExtension:subdirectory:)` and `path(forResource:ofType:)` relative to the host's assets directory, `localizedString(forKey:value:table:)` answering the key, `bundleIdentifier` and `infoDictionary` from the host; SwiftPM's generated `Bundle.module` compiles, `Color(_:bundle:)` and `Image(_:bundle:)` take the label on wasm; a package target's processed resources are not yet copied into the bundle (2026-10-12)",
+          "notes": "`main`, `init?(path:)`, `init?(url:)`, `init(for:)` (one bundle: the app), `url(forResource:withExtension:subdirectory:)` and `path(forResource:ofType:)` and `path(forResource:ofType:inDirectory:)` relative to the host's assets directory, `paths(forResourcesOfType:inDirectory:)` and `urls(forResourcesWithExtension:subdirectory:)` listing none (a page can't list its files), `localizedString(forKey:value:table:)` answering the key, `bundleIdentifier` and `infoDictionary` from the host; SwiftPM's generated `Bundle.module` compiles, `Color(_:bundle:)` and `Image(_:bundle:)` take the label on wasm; a package target's processed resources are not yet copied into the bundle (2026-10-12)",
           "noFixture": "Paths, not a screen; WasmFoundationTests."
         },
         {
