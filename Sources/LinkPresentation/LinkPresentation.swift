@@ -26,9 +26,9 @@ open class LPLinkMetadata: NSObject, @unchecked Sendable {
     var _summary: String?
     public override init() { super.init() }
 
-    /// Key-value coding's read of the record's properties, and of `summary` (with the runtime it
-    /// replaces NSObject's, as WebCoreData's managed objects do).
-    #if os(WASI) && canImport(ObjectiveC)
+    /// Key-value coding's read of the record's properties, and of `summary` (where NSObject has
+    /// key-value coding, Apple's platforms and the runtime's, it overrides NSObject's).
+    #if canImport(ObjectiveC)
     open override func value(forKey key: String) -> Any? { _value(forKey: key) ?? super.value(forKey: key) }
     #else
     open func value(forKey key: String) -> Any? { _value(forKey: key) }
