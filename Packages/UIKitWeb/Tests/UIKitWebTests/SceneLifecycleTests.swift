@@ -15,9 +15,9 @@ import Foundation
     static let current = LifecycleLog()
 }
 
-final class TestSceneDelegate: UIWindowSceneDelegate {
+final class TestSceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
-    init() {}
+    override init() { super.init() }
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
         let window = UIWindow(windowScene: windowScene)
@@ -126,6 +126,28 @@ final class TestSceneDelegate: UIWindowSceneDelegate {
         UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!) { opened = $0 }
         #expect(opened == false && !UIApplication.shared.canOpenURL(URL(string: UIApplication.openSettingsURLString)!))
     }
+
+    #if canImport(ObjectiveC)
+    /// A non-final `NSObject` subclass, as IceCubes declares its scene delegate: the launch
+    /// instantiates it through `NSObject`'s initializer.
+    class OpenSceneDelegate: NSObject, UIWindowSceneDelegate {
+        var window: UIWindow?
+        func sceneDidBecomeActive(_ scene: UIScene) { LifecycleLog.current.events.append("open active") }
+    }
+
+    @Test func aNonFinalNSObjectSceneDelegateConnects() {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.hostIsVisible = true; scene.hostIsFocused = true
+        scene.sceneDelegateType = nil; scene.disconnectWindowScene()
+        LifecycleLog.current.events = []
+        defer { scene.sceneDelegateType = nil; scene.disconnectWindowScene(); scene.removeAllWindows() }
+        scene.sceneDelegateType = OpenSceneDelegate.self
+        scene.connectWindowScene()
+        #expect(scene.sceneDelegate is OpenSceneDelegate && scene.windowScene.delegate is OpenSceneDelegate)
+        #expect(LifecycleLog.current.events.contains("open active"), "\(LifecycleLog.current.events)")
+    }
+    #endif
 
     @Test func aSceneDelegateWithoutAWindowPropertyKeepsItOnTheScene() {
         let scene = UIKitScene.shared

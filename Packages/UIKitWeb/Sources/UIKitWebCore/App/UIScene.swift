@@ -124,7 +124,12 @@ public struct UISceneSizeRestrictions: Sendable {
 /// The scene delegate's callbacks (every one optional).
 @preconcurrency @MainActor
 public protocol UISceneDelegate: AnyObject {
+    #if !canImport(ObjectiveC)
+    /// Without an Objective-C runtime the launch cannot instantiate the delegate class from its
+    /// metatype otherwise; with one it does through `NSObject`'s initializer, as UIKit does, so
+    /// a delegate may be a non-final `NSObject` subclass (IceCubes' `SceneDelegate`).
     init()
+    #endif
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions)
     func sceneDidDisconnect(_ scene: UIScene)
     func sceneDidBecomeActive(_ scene: UIScene)
@@ -221,12 +226,21 @@ extension UIKitScene {
         }
     }
 
+    /// A new instance of the scene delegate class: through `NSObject`'s initializer with the
+    /// Objective-C runtime (UIKit's scene delegates are `NSObject`s), else the protocol's `init()`.
+    static func makeSceneDelegate(_ type: any UISceneDelegate.Type) -> (any UISceneDelegate)? {
+        #if canImport(ObjectiveC)
+        return (type as? NSObject.Type)?.init() as? any UISceneDelegate
+        #else
+        return type.init()
+        #endif
+    }
+
     /// Connects the scene to the registered delegate class (the launch sequence), with the
     /// URL the page opened with when there is one.
     public func connectWindowScene() {
         let scene = windowScene
-        guard sceneDelegate == nil, let type = sceneDelegateType else { return }
-        let delegate = type.init()
+        guard sceneDelegate == nil, let type = sceneDelegateType, let delegate = Self.makeSceneDelegate(type) else { return }
         sceneDelegate = delegate
         scene.delegate = delegate
         let contexts: Set<UIOpenURLContext> = lastOpenedURL.flatMap { URL(string: $0) }.map { [UIOpenURLContext(url: $0)] } ?? []
