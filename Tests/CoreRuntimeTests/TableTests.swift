@@ -256,6 +256,38 @@ import SwiftUIWebHeadless
         press(r, CGPoint(x: 300, y: 10))
         #expect(model.order.first?.keyPath == \Fruit.count && model.order.first?.order == .reverse)
     }
+
+    /// Columns are typed by their row value, sort comparator, content and label, as SwiftUI's
+    /// are, so an app can name a column's type (Hipstapaper's `TableColumn<Row, Never, V, Text>`).
+    @Test func columnsAreTypedBySortContentAndLabel() {
+        let name: TableColumn<Fruit, KeyPathComparator<Fruit>, Text, Text> = TableColumn("Name", value: \.name)
+        let count: TableColumn<Fruit, KeyPathComparator<Fruit>, Text, Text> = TableColumn(Text("Count"), value: \.count) { Text("\($0.count)") }
+        let color: TableColumn<Fruit, Never, Text, Text> = TableColumn("Color") { Text($0.color) }
+        #expect(name._column.keyPath == (\Fruit.name as PartialKeyPath<Fruit>))
+        #expect(count._column.title == "Count" && count._column.keyPath == (\Fruit.count as PartialKeyPath<Fruit>))
+        #expect(color._column.keyPath == nil && color._column.makeComparator == nil)
+        #expect(name.width(80)._column.width == .fixed(80))
+        #expect(color.width(min: 40, ideal: 60, max: 100)._column.width == .flexible(min: 40, ideal: 60, max: 100))
+        // A column kept in a property of an opaque content type lays out like an inline one.
+        let r = runtime(_TypedColumnFruits())
+        #expect(r.probeFrames["typed1"]?.minY == 37 && r.probeFrames["typed3"]?.minY == 85)
+    }
+}
+
+/// A table whose columns are properties typed the way Hipstapaper names them.
+struct _TypedColumnFruits: View {
+    typealias Unsorted<V: View> = TableColumn<TableTests.Fruit, Never, V, Text>
+    private var nameColumn: Unsorted<some View> {
+        TableColumn("Name") { fruit in
+            if fruit.count > 10 { Text(fruit.name).bold()._probe("typed\(fruit.id)") } else { Text(fruit.name)._probe("typed\(fruit.id)") }
+        }
+    }
+    var body: some View {
+        Table(TableTests.fruits) {
+            nameColumn
+            TableColumn("Color", value: \.color)
+        }
+    }
 }
 
 /// Sorts its rows in its body, as an app does, so the table re-sorts when the order changes.
