@@ -222,10 +222,18 @@ extension Error {
 
 /// Matches a Cocoa error's code against any error, as Foundation's `~=` for error codes does
 /// (Bodega's `catch CocoaError.fileReadNoSuchFile`): a `CocoaError` with that code, or an
-/// `NSError` in `NSCocoaErrorDomain` with it.
+/// `NSError` in `NSCocoaErrorDomain` with it. The `CocoaError` is read by reflection, because
+/// casting to it names its type metadata, which extracts CocoaError.swift and with it most of
+/// FoundationEssentials, as `LocalizedError`'s descriptor would (4 MB of the Gallery).
 public func ~= (code: CocoaError.Code, error: any Error) -> Bool {
-    if let error = error as? CocoaError { return error.code == code }
     if let error = error as? NSError { return error.domain == NSCocoaErrorDomain && error.code == code.rawValue }
+    let mirror = Mirror(reflecting: error)
+    guard String(reflecting: mirror.subjectType).hasSuffix(".CocoaError") else { return false }
+    for child in mirror.children where child.label == "code" {
+        for field in Mirror(reflecting: child.value).children where field.label == "rawValue" {
+            return field.value as? Int == code.rawValue
+        }
+    }
     return false
 }
 #endif
