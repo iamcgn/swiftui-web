@@ -474,7 +474,8 @@ extension Date {
 // MARK: - DateFormatter
 
 /// Foundation's `DateFormatter` on wasm: the date and time styles, a pattern, or a template.
-open class DateFormatter: Formatter {
+/// Sendable as Foundation's formatters are (`@unchecked`: one is set up, then shared to format).
+open class DateFormatter: Formatter, @unchecked Sendable {
     public enum Style: UInt, Sendable { case none = 0, short, medium, long, full }
 
     open var dateStyle: Style = .none
@@ -619,7 +620,7 @@ open class ISO8601DateFormatter: Formatter, @unchecked Sendable {
 }
 
 /// Foundation's `RelativeDateTimeFormatter` on wasm: "2 hours ago", "in 3 days".
-open class RelativeDateTimeFormatter: Formatter {
+open class RelativeDateTimeFormatter: Formatter, @unchecked Sendable {
     public enum DateTimeStyle: Int, Sendable { case numeric = 0, named }
     public enum UnitsStyle: Int, Sendable { case full = 0, spellOut, short, abbreviated }
 

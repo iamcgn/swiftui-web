@@ -55,6 +55,24 @@ private final class Ticker: ConnectablePublisher {
         #expect(a == [1] && b == [1, 2])
     }
 
+    @Test func theTimerPublishesOnlyWhileConnected() async throws {
+        let timer = Timer.publish(every: 0.01, on: .main, in: .common)
+        var ticks = 0
+        let subscription = timer.sink { _ in ticks += 1 }
+        try await Task.sleep(nanoseconds: 60_000_000)
+        #expect(ticks == 0)
+        let connection = timer.connect()
+        for _ in 0..<200 where ticks == 0 { try await Task.sleep(nanoseconds: 10_000_000) }
+        #expect(ticks > 0)
+        connection.cancel()
+        let stopped = ticks
+        try await Task.sleep(nanoseconds: 60_000_000)
+        #expect(ticks == stopped)
+        subscription.cancel()
+
+        let _: Publishers.Autoconnect<_TimerPublisher> = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    }
+
     @Test func makeConnectableWaitsForConnect() {
         let source = PassthroughSubject<Int, Never>()
         let connectable = source.makeConnectable()

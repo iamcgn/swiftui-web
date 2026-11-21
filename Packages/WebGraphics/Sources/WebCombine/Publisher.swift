@@ -268,35 +268,60 @@ extension Published.Publisher: Publisher {
 
 // MARK: - Timer and notification publishers
 
-/// `Timer.publish(every:tolerance:on:in:)`: delivers the date every interval through a task on
-/// the main actor, from the first subscription (connectable publishers connect on subscription).
+/// `Timer.publish(every:tolerance:on:in:)`: a connectable publisher, as Combine's is. From
+/// `connect()` (or `autoconnect()`'s first subscription) it delivers the date every interval to
+/// its subscribers, through a task on the main actor, until the connection is cancelled.
 /// (Not named `TimerPublisher`: Apple's Combine nests one under `Timer`.)
-public struct _TimerPublisher: Publisher {
+public final class _TimerPublisher: ConnectablePublisher, @unchecked Sendable {
     public typealias Output = Date
     public typealias Failure = Never
     public let interval: TimeInterval
-    public init(interval: TimeInterval) { self.interval = interval }
+    public let tolerance: TimeInterval?
+    // The subscribers and the running task are touched from the main actor, where subscriptions
+    // are made and the timer's task runs (`@unchecked`, as Autoconnect's counts are).
+    private var receivers: [Int: @MainActor (Date) -> Void] = [:]
+    private var nextReceiver = 0
+    private var task: Task<Void, Never>?
+
+    public init(interval: TimeInterval, tolerance: TimeInterval? = nil) {
+        self.interval = interval
+        self.tolerance = tolerance
+    }
 
     @MainActor public func _subscribe(_ receive: @escaping @MainActor (Date) -> Void,
                                       _ complete: @escaping @MainActor (Subscribers.Completion<Never>) -> Void) -> AnyCancellable {
-        let interval = max(self.interval, 0.001)
-        let task = Task { @MainActor in
-            while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
-                guard !Task.isCancelled else { return }
-                receive(Date())
+        let id = nextReceiver
+        nextReceiver += 1
+        receivers[id] = receive
+        return AnyCancellable { [self] in receivers[id] = nil }
+    }
+
+    /// Starts the timer; cancelling the result stops it (a second call while it runs shares it).
+    public func connect() -> any Cancellable {
+        if task == nil {
+            let interval = max(self.interval, 0.001)
+            task = Task { @MainActor [self] in
+                while !Task.isCancelled {
+                    try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
+                    guard !Task.isCancelled else { return }
+                    let now = Date()
+                    for receive in receivers.values { receive(now) }
+                }
             }
         }
-        return AnyCancellable { task.cancel() }
+        return AnyCancellable { [self] in
+            task?.cancel()
+            task = nil
+        }
     }
 }
 
 extension Timer {
-    /// A publisher that repeatedly emits the current date on the interval (the run loop and
-    /// mode are accepted: the main actor delivers).
+    /// A connectable publisher that repeatedly emits the current date on the interval once
+    /// connected (the run loop and mode are accepted: the main actor delivers).
     public static func publish(every interval: TimeInterval, tolerance: TimeInterval? = nil, on runLoop: RunLoop = .main, in mode: RunLoop.Mode = .default,
                                options: Any? = nil) -> _TimerPublisher {
-        _TimerPublisher(interval: interval)
+        _TimerPublisher(interval: interval, tolerance: tolerance)
     }
 }
 
