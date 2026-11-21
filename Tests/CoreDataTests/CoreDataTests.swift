@@ -679,6 +679,16 @@ struct CoreDataTests {
         #expect(event.description.contains("type: Export"))
     }
 
+    /// The schema options take Apple's raw values and Hipstapaper's `[.printSchema]` call.
+    @Test func cloudKitSchemaOptionsAreAnOptionSet() {
+        let options: NSPersistentCloudKitContainerSchemaInitializationOptions = [.printSchema, .dryRun]
+        #expect(options.contains(.printSchema) && options.contains(.dryRun))
+        #expect(NSPersistentCloudKitContainerSchemaInitializationOptions.dryRun.rawValue == 2)
+        #expect(NSPersistentCloudKitContainerSchemaInitializationOptions.printSchema.rawValue == 4)
+        let initialize: (NSPersistentCloudKitContainer) throws -> Void = { try $0.initializeCloudKitSchema(options: [.printSchema]) }
+        _ = initialize
+    }
+
     // MARK: Fetched results controllers
 
     /// A controller's results, in sections by author, with the index paths UIKit reads.
