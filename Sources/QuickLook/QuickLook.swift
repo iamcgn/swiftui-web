@@ -48,11 +48,17 @@ let _quickLookImageExtensions: Set<String> = ["png", "jpg", "jpeg", "gif", "webp
 /// The preview: the selected file, its name as the title, Done, and paging through several.
 struct _QuickLookPreview: View {
     let urls: [URL]
-    @Binding var selection: URL?
+    let binding: Binding<URL?>
 
+    // A plain binding (not `@Binding`) so the nonisolated presentation modifiers can build this.
     nonisolated init(urls: [URL], selection: Binding<URL?>) {
         self.urls = urls
-        self._selection = selection
+        self.binding = selection
+    }
+
+    private var selection: URL? {
+        get { binding.wrappedValue }
+        nonmutating set { binding.wrappedValue = newValue }
     }
 
     private var index: Int? { selection.flatMap { urls.firstIndex(of: $0) } }
