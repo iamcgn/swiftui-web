@@ -50,6 +50,11 @@ struct _QuickLookPreview: View {
     let urls: [URL]
     @Binding var selection: URL?
 
+    nonisolated init(urls: [URL], selection: Binding<URL?>) {
+        self.urls = urls
+        self._selection = selection
+    }
+
     private var index: Int? { selection.flatMap { urls.firstIndex(of: $0) } }
 
     var body: some View {
