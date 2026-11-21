@@ -448,8 +448,12 @@ extension Publisher {
         Publishers.PrefixUntilOutput(upstream: self, other: other)
     }
 
-    /// The values as an asynchronous sequence (`for await value in publisher.values`).
-    public var values: AsyncThrowingStream<Output, any Error> {
+    /// The values as an asynchronous sequence that ends by throwing the failure
+    /// (`for try await value in publisher.values`).
+    public var values: AsyncThrowingPublisher<Self> { AsyncThrowingPublisher(self) }
+
+    /// A stream of the values: subscribed on the main actor, cancelled when the loop ends.
+    func _valueStream() -> AsyncThrowingStream<Output, any Error> {
         nonisolated(unsafe) let publisher = self
         return AsyncThrowingStream { continuation in
             let subscription = _State<AnyCancellable?>(nil)
@@ -464,6 +468,66 @@ extension Publisher {
             continuation.onTermination = { _ in subscription.value?.cancel() }
         }
     }
+}
+
+extension Publisher where Failure == Never {
+    /// The values as an asynchronous sequence that can't fail (`for await value in publisher.values`).
+    public var values: AsyncPublisher<Self> { AsyncPublisher(self) }
+
+    func _neverValueStream() -> AsyncStream<Output> {
+        nonisolated(unsafe) let publisher = self
+        return AsyncStream { continuation in
+            let subscription = _State<AnyCancellable?>(nil)
+            Task { @MainActor in
+                subscription.value = publisher._subscribeOnMain({ value in nonisolated(unsafe) let value = value; continuation.yield(value) }, { _ in
+                    continuation.finish()
+                })
+            }
+            continuation.onTermination = { _ in subscription.value?.cancel() }
+        }
+    }
+}
+
+/// A never-failing publisher's values as an asynchronous sequence (`Publisher.values`). Each
+/// iterator subscribes once; ending the loop cancels the subscription.
+public struct AsyncPublisher<P: Publisher>: AsyncSequence where P.Failure == Never {
+    public typealias Element = P.Output
+    public typealias Failure = Never
+    let publisher: P
+    public init(_ publisher: P) { self.publisher = publisher }
+
+    public struct Iterator: AsyncIteratorProtocol {
+        public typealias Element = P.Output
+        public typealias Failure = Never
+        final class Box: @unchecked Sendable {
+            var base: AsyncStream<P.Output>.Iterator
+            init(_ base: AsyncStream<P.Output>.Iterator) { self.base = base }
+        }
+        let box: Box
+        public mutating func next() async -> P.Output? { await box.base.next() }
+    }
+    public func makeAsyncIterator() -> Iterator { Iterator(box: .init(publisher._neverValueStream().makeAsyncIterator())) }
+}
+
+/// A publisher's values as an asynchronous sequence that throws the publisher's failure
+/// (`Publisher.values`).
+public struct AsyncThrowingPublisher<P: Publisher>: AsyncSequence {
+    public typealias Element = P.Output
+    public typealias Failure = any Error
+    let publisher: P
+    public init(_ publisher: P) { self.publisher = publisher }
+
+    public struct Iterator: AsyncIteratorProtocol {
+        public typealias Element = P.Output
+        public typealias Failure = any Error
+        final class Box: @unchecked Sendable {
+            var base: AsyncThrowingStream<P.Output, any Error>.Iterator
+            init(_ base: AsyncThrowingStream<P.Output, any Error>.Iterator) { self.base = base }
+        }
+        let box: Box
+        public mutating func next() async throws -> P.Output? { try await box.base.next() }
+    }
+    public func makeAsyncIterator() -> Iterator { Iterator(box: .init(publisher._valueStream().makeAsyncIterator())) }
 }
 
 // MARK: - Publishers
