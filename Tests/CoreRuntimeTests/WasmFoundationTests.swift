@@ -230,6 +230,8 @@ import WebCombine
         #expect(bundle.path(forResource: "ding", ofType: "wav") == "assets/ding.wav")
         #expect(bundle.url(forResource: "a", withExtension: nil, subdirectory: "sounds")?.relativeString == "assets/sounds/a")
         #expect(bundle.url(forResource: nil, withExtension: "wav") == nil)
+        #expect(bundle.path(forResource: "a", ofType: "wav", inDirectory: "sounds") == "assets/sounds/a.wav")
+        #expect(bundle.paths(forResourcesOfType: "cer", inDirectory: nil).isEmpty)
         #expect(Bundle.main.bundlePath == "/" && Bundle(url: URL(fileURLWithPath: "/x")) != nil)
         #expect(bundle.localizedString(forKey: "Hello", value: nil, table: nil) == "Hello")
         #expect(bundle.localizedString(forKey: "Hello", value: "Hallo", table: nil) == "Hallo")
