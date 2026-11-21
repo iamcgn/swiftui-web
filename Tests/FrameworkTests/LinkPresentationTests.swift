@@ -38,6 +38,17 @@ import Testing
         #expect(LPLinkMetadata().value(forKey: "summary") == nil)
     }
 
+    @Test func commentedOutMarkupIsNotRead() {
+        let html = """
+        <html><head><!-- <title>Template title</title> --><title>Published title</title>
+        <!-- <meta property="og:description" content="Old"> -->
+        </head></html>
+        """
+        let metadata = _LinkMetadataReader.metadata(html: html, original: page, loaded: page)
+        #expect(metadata.title == "Published title")
+        #expect(metadata.value(forKey: "summary") == nil)
+    }
+
     @Test func theTitleElementIsReadWhenNoMetaTagNamesOne() {
         let html = "<HTML><HEAD><TITLE lang=en>\n  Release   notes\n</TITLE></HEAD></HTML>"
         #expect(_LinkMetadataReader.metadata(html: html, original: page, loaded: page).title == "Release notes")

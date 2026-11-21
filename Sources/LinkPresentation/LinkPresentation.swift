@@ -130,6 +130,8 @@ package enum _LinkMetadataReader {
         let metadata = LPLinkMetadata()
         metadata.originalURL = original
         metadata.url = loaded
+        // A commented-out tag or title is not part of the page (#315).
+        let html = withoutComments(html)
         let tags = self.tags(in: html)
         func meta(_ key: String) -> String? {
             tags.first { $0.name == "meta" && ($0.attributes["property"] == key || $0.attributes["name"] == key) }?.attributes["content"]
@@ -147,6 +149,32 @@ package enum _LinkMetadataReader {
     }
 
     struct Tag { let name: String; let attributes: [String: String] }
+
+    /// The markup with its `<!-- … -->` comments removed (an unclosed one runs to the end).
+    static func withoutComments(_ html: String) -> String {
+        let chars = Array(html.unicodeScalars)
+        var out = ""
+        var i = 0
+        func at(_ index: Int, _ text: String) -> Bool {
+            var k = index
+            for scalar in text.unicodeScalars {
+                guard k < chars.count, chars[k] == scalar else { return false }
+                k += 1
+            }
+            return true
+        }
+        while i < chars.count {
+            if at(i, "<!--") {
+                i += 4
+                while i < chars.count, !at(i, "-->") { i += 1 }
+                i += 3
+                continue
+            }
+            out.unicodeScalars.append(chars[i])
+            i += 1
+        }
+        return out
+    }
 
     /// The page's tags with their attributes (names lowercased), up to the end of `<head>`.
     static func tags(in html: String) -> [Tag] {
