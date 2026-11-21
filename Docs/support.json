@@ -2846,7 +2846,7 @@
         {
           "api": "LPLinkMetadata / LPMetadataProvider / LPError (LinkPresentation)",
           "status": "partial",
-          "notes": "pf-everyday (2026-11-21): LPLinkMetadata is the record an app fills for a share sheet (IceCubes). LPMetadataProvider fetches the page once and reads its Open Graph or Twitter title, else its <title>, and its canonical URL; the browser lets a page read another site's markup only where that site allows it, so most fetches fail with metadataFetchFailed. Icons, images and videos are not loaded, so their providers stay nil. LPLinkView is not here.",
+          "notes": "pf-everyday (2026-11-21): LPLinkMetadata is the record an app fills for a share sheet (IceCubes). LPMetadataProvider fetches the page once and reads its Open Graph or Twitter title, else its <title>, and its canonical URL, and keeps its description under the key summary, which Gem reads with value(forKey:); the browser lets a page read another site's markup only where that site allows it, so most fetches fail with metadataFetchFailed. Icons, images and videos are not loaded, so their providers stay nil. LPLinkView is not here.",
           "noFixture": "Nothing to draw: LinkPresentationTests read titles and canonical links from markup"
         },
         {

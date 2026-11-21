@@ -21,7 +21,32 @@ open class LPLinkMetadata: NSObject, @unchecked Sendable {
     open var imageProvider: NSItemProvider?
     open var videoProvider: NSItemProvider?
     open var remoteVideoURL: URL?
+    /// The page's description (Open Graph, Twitter or `<meta name="description">`), which Apple's
+    /// record keeps under the key `summary` only: apps read it with `value(forKey:)` (Gem).
+    var _summary: String?
     public override init() { super.init() }
+
+    /// Key-value coding's read of the record's properties, and of `summary` (with the runtime it
+    /// replaces NSObject's, as WebCoreData's managed objects do).
+    #if os(WASI) && canImport(ObjectiveC)
+    open override func value(forKey key: String) -> Any? { _value(forKey: key) ?? super.value(forKey: key) }
+    #else
+    open func value(forKey key: String) -> Any? { _value(forKey: key) }
+    #endif
+
+    private func _value(forKey key: String) -> Any? {
+        switch key {
+        case "originalURL": originalURL
+        case "url", "URL": url
+        case "title": title
+        case "summary": _summary
+        case "iconProvider": iconProvider
+        case "imageProvider": imageProvider
+        case "videoProvider": videoProvider
+        case "remoteVideoURL": remoteVideoURL
+        default: nil
+        }
+    }
 }
 
 /// The domain of Link Presentation's errors.
@@ -111,6 +136,8 @@ package enum _LinkMetadataReader {
         }
         let title = meta("og:title") ?? meta("twitter:title") ?? titleElement(in: html)
         if let title = title.map(decodeEntities).map(collapseWhitespace), !title.isEmpty { metadata.title = title }
+        let summary = meta("og:description") ?? meta("twitter:description") ?? meta("description")
+        if let summary = summary.map(decodeEntities).map(collapseWhitespace), !summary.isEmpty { metadata._summary = summary }
         let canonical = meta("og:url") ?? tags.first { $0.name == "link" && $0.attributes["rel"]?.lowercased() == "canonical" }?.attributes["href"]
         if let canonical, let resolved = URL(string: decodeEntities(canonical), relativeTo: loaded)?.absoluteURL,
            resolved.scheme == "http" || resolved.scheme == "https" {

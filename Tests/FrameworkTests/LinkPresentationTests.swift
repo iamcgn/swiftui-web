@@ -25,6 +25,19 @@ import Testing
         #expect(metadata.originalURL == page && metadata.url == page)
     }
 
+    @Test func thePageDescriptionIsTheSummaryKey() {
+        let html = """
+        <html><head><title>Post</title>
+        <meta name="description" content="A plain one">
+        <meta property="og:description" content="Read  this &amp; that">
+        </head></html>
+        """
+        let metadata = _LinkMetadataReader.metadata(html: html, original: URL(string: "https://example.com/p")!, loaded: URL(string: "https://example.com/p")!)
+        #expect(metadata.value(forKey: "summary") as? String == "Read this & that")
+        #expect(metadata.value(forKey: "title") as? String == "Post")
+        #expect(LPLinkMetadata().value(forKey: "summary") == nil)
+    }
+
     @Test func theTitleElementIsReadWhenNoMetaTagNamesOne() {
         let html = "<HTML><HEAD><TITLE lang=en>\n  Release   notes\n</TITLE></HEAD></HTML>"
         #expect(_LinkMetadataReader.metadata(html: html, original: page, loaded: page).title == "Release notes")
