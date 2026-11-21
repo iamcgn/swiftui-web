@@ -137,6 +137,19 @@ extension Button where Label == Text {
     }
 }
 
+extension Button where Label == SwiftUI.Label<Text, Image> {
+    /// A button with a localized title, a symbol and an optional role that runs an intent.
+    @preconcurrency nonisolated public init(_ titleKey: LocalizedStringKey, systemImage: String, role: ButtonRole? = nil, intent: some AppIntent) {
+        self.init(titleKey, systemImage: systemImage, role: role, action: { run(intent) })
+    }
+
+    /// A button with a string title, a symbol and an optional role that runs an intent.
+    @_disfavoredOverload
+    @preconcurrency nonisolated public init(_ title: some StringProtocol, systemImage: String, role: ButtonRole? = nil, intent: some AppIntent) {
+        self.init(title, systemImage: systemImage, role: role, action: { run(intent) })
+    }
+}
+
 extension Toggle {
     /// A toggle that shows `isOn` and runs an intent when the user flips it.
     @MainActor

@@ -102,6 +102,10 @@ open class CLLocation: NSObject, @unchecked Sendable {
         sourceInformation = sourceInfo
     }
 
+    /// A location at 0, 0 with no known altitude accuracy, measured now, as `CLLocation()` is on
+    /// Apple platforms (LocationProvider starts from one).
+    public override convenience init() { self.init(latitude: 0, longitude: 0) }
+
     public convenience init(latitude: CLLocationDegrees, longitude: CLLocationDegrees) {
         self.init(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: 0, horizontalAccuracy: 0,
                   verticalAccuracy: -1, timestamp: Date())
