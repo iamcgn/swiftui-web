@@ -10,7 +10,8 @@ Apple docs: [Table](https://developer.apple.com/documentation/swiftui/table),
 | API | Notes |
 |---|---|
 | `Table(_:columns:)`, `Table(_:selection:columns:)` (single and set), `Table(_:sortOrder:columns:)`, both combined | implemented for `RandomAccessCollection`s of `Identifiable` rows |
-| `TableColumn(_:value:)` (string key path), `TableColumn(_:value:content:)`, `TableColumn(_:content:)`; `LocalizedStringKey` and `StringProtocol` titles | implemented; a column with a `value:` key path is sortable |
+| `TableColumn(_:value:)` (string key path), `TableColumn(_:value:content:)`, `TableColumn(_:content:)`; `LocalizedStringKey`, `Text` and `StringProtocol` titles | implemented; a column with a `value:` key path is sortable |
+| `TableColumn<RowValue, Sort, Content, Label>` | implemented: `Sort` is `KeyPathComparator<RowValue>` for a sortable column and `Never` for the rest, `Label` is `Text`, so an app can name a column's type |
 | `TableColumn.width(_:)`, `width(min:ideal:max:)` | implemented (the measured NSTableView distribution below) |
 | `TableColumnBuilder` | blocks, optionals and either branches, `TableColumnForEach`, `Group` of columns |
 | `KeyPathComparator`, `SortOrder`, `sorted(using:)` | Foundation's on Apple platforms; on wasm `SortOrder`, `SortComparator` and `sorted(using:)` are WebFoundation's (decision 0017) and WebFoundation's `SortComparator.swift` defines `KeyPathComparator` (key path, `order`, the comparator form, `Hashable`) |

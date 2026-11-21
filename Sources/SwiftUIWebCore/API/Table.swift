@@ -10,7 +10,7 @@ import Foundation
 /// A container that presents rows of data arranged in one or more columns.
 public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View where Data.Element == Value, Value.ID: Hashable {
     package let data: Data
-    package let columns: [TableColumn<Value>]
+    package let columns: [_AnyTableColumn<Value>]
     package let selection: _ListSelection?
     package let sortOrder: Binding<[KeyPathComparator<Value>]>?
     /// An outline table's children key path (`Table(_:children:columns:)`).
@@ -22,7 +22,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     @Environment(\._alternatingRowBackgrounds) private var rowBackgrounds
 
     /// Creates a table that computes its rows from a collection.
-    public init(_ data: Data, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>]) {
+    public init(_ data: Data, @TableColumnBuilder<Value, Never> columns: () -> [_AnyTableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         selection = nil
@@ -30,7 +30,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     }
 
     /// Creates a table with a single selection.
-    public init(_ data: Data, selection: Binding<Value.ID?>, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>]) {
+    public init(_ data: Data, selection: Binding<Value.ID?>, @TableColumnBuilder<Value, Never> columns: () -> [_AnyTableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         self.selection = _ListSelection(single: selection)
@@ -38,7 +38,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     }
 
     /// Creates a table with a multiple selection.
-    public init(_ data: Data, selection: Binding<Set<Value.ID>>, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>]) {
+    public init(_ data: Data, selection: Binding<Set<Value.ID>>, @TableColumnBuilder<Value, Never> columns: () -> [_AnyTableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         self.selection = _ListSelection(multiple: selection)
@@ -46,7 +46,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     }
 
     /// Creates a sortable table.
-    public init(_ data: Data, sortOrder: Binding<[KeyPathComparator<Value>]>, @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [TableColumn<Value>]) {
+    public init(_ data: Data, sortOrder: Binding<[KeyPathComparator<Value>]>, @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [_AnyTableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         selection = nil
@@ -54,7 +54,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     }
 
     public init(_ data: Data, selection: Binding<Value.ID?>, sortOrder: Binding<[KeyPathComparator<Value>]>,
-                @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [TableColumn<Value>]) {
+                @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [_AnyTableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         self.selection = _ListSelection(single: selection)
@@ -62,7 +62,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     }
 
     public init(_ data: Data, selection: Binding<Set<Value.ID>>, sortOrder: Binding<[KeyPathComparator<Value>]>,
-                @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [TableColumn<Value>]) {
+                @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [_AnyTableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         self.selection = _ListSelection(multiple: selection)
@@ -70,14 +70,14 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
     }
 
     /// Creates a table from rows declared one by one (`TableRow`).
-    public init(of valueType: Value.Type, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
+    public init(of valueType: Value.Type, @TableColumnBuilder<Value, Never> columns: () -> [_AnyTableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
         data = rows().map(\.value)
         self.columns = columns()
         selection = nil
         sortOrder = nil
     }
 
-    public init(of valueType: Value.Type, selection: Binding<Value.ID?>, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
+    public init(of valueType: Value.Type, selection: Binding<Value.ID?>, @TableColumnBuilder<Value, Never> columns: () -> [_AnyTableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
         data = rows().map(\.value)
         self.columns = columns()
         self.selection = _ListSelection(single: selection)
@@ -86,7 +86,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
 
     /// Creates an outline table: rows with children show a disclosure triangle, their children
     /// indented when expanded.
-    public init(_ data: Data, children: KeyPath<Value, [Value]?>, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>]) {
+    public init(_ data: Data, children: KeyPath<Value, [Value]?>, @TableColumnBuilder<Value, Never> columns: () -> [_AnyTableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         selection = nil
@@ -94,7 +94,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
         self.children = children
     }
 
-    public init(_ data: Data, children: KeyPath<Value, [Value]?>, selection: Binding<Value.ID?>, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>]) {
+    public init(_ data: Data, children: KeyPath<Value, [Value]?>, selection: Binding<Value.ID?>, @TableColumnBuilder<Value, Never> columns: () -> [_AnyTableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         self.selection = _ListSelection(single: selection)
@@ -102,7 +102,7 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
         self.children = children
     }
 
-    public init(_ data: Data, children: KeyPath<Value, [Value]?>, selection: Binding<Set<Value.ID>>, @TableColumnBuilder<Value, Never> columns: () -> [TableColumn<Value>]) {
+    public init(_ data: Data, children: KeyPath<Value, [Value]?>, selection: Binding<Set<Value.ID>>, @TableColumnBuilder<Value, Never> columns: () -> [_AnyTableColumn<Value>]) {
         self.data = data
         self.columns = columns()
         self.selection = _ListSelection(multiple: selection)
@@ -242,20 +242,20 @@ public struct TableRowBuilder<Value: Identifiable> {
 
 /// Columns made from a collection (`TableColumnForEach(data) { TableColumn(...) }`).
 public struct TableColumnForEach<Data: RandomAccessCollection, ID: Hashable, RowValue: Identifiable> {
-    package let columns: [TableColumn<RowValue>]
+    package let columns: [_AnyTableColumn<RowValue>]
 
-    public init(_ data: Data, id: KeyPath<Data.Element, ID>, @TableColumnBuilder<RowValue, Never> content: (Data.Element) -> [TableColumn<RowValue>]) {
+    public init(_ data: Data, id: KeyPath<Data.Element, ID>, @TableColumnBuilder<RowValue, Never> content: (Data.Element) -> [_AnyTableColumn<RowValue>]) {
         columns = data.flatMap { content($0) }
     }
 
-    public init(_ data: Data, @TableColumnBuilder<RowValue, Never> content: (Data.Element) -> [TableColumn<RowValue>]) where Data.Element: Identifiable, ID == Data.Element.ID {
+    public init(_ data: Data, @TableColumnBuilder<RowValue, Never> content: (Data.Element) -> [_AnyTableColumn<RowValue>]) where Data.Element: Identifiable, ID == Data.Element.ID {
         columns = data.flatMap { content($0) }
     }
 }
 
 extension Group {
     /// A group of columns (a `Group` inside `TableColumnBuilder`).
-    public init<R: Identifiable>(@TableColumnBuilder<R, Never> content: () -> [TableColumn<R>]) where Content == [TableColumn<R>] {
+    public init<R: Identifiable>(@TableColumnBuilder<R, Never> content: () -> [_AnyTableColumn<R>]) where Content == [_AnyTableColumn<R>] {
         self.init(_content: content())
     }
 }
@@ -298,8 +298,8 @@ extension View {
     nonisolated public func tableColumnHeaders(_ visibility: Visibility) -> some View { environment(\._tableHeadersVisibility, visibility) }
 }
 
-/// A column that displays a view for each row in a table.
-public struct TableColumn<RowValue: Identifiable> {
+/// A table column without its sort, content and label types: what `Table` lays out.
+public struct _AnyTableColumn<RowValue: Identifiable> {
     package var title: String
     package var content: (RowValue) -> AnyView
     package var width: _TableColumnWidth = .automatic
@@ -307,56 +307,86 @@ public struct TableColumn<RowValue: Identifiable> {
     package var keyPath: PartialKeyPath<RowValue>?
     package var makeComparator: ((SortOrder) -> KeyPathComparator<RowValue>)?
 
+    package init(title: String, content: @escaping (RowValue) -> AnyView,
+                 keyPath: PartialKeyPath<RowValue>? = nil, makeComparator: ((SortOrder) -> KeyPathComparator<RowValue>)? = nil) {
+        self.title = title
+        self.content = content
+        self.keyPath = keyPath
+        self.makeComparator = makeComparator
+    }
+}
+
+/// A column that displays a view for each row in a table, typed like SwiftUI's by its row
+/// value, the comparator that sorts by it (`Never` when it doesn't sort), its cell content and
+/// its label.
+public struct TableColumn<RowValue: Identifiable, Sort, Content: View, Label: View> {
+    package var _column: _AnyTableColumn<RowValue>
+
+    package init(_column: _AnyTableColumn<RowValue>) { self._column = _column }
+
+    /// Creates a fixed-width column.
+    public func width(_ width: CGFloat? = nil) -> TableColumn {
+        var copy = self
+        copy._column.width = width.map { .fixed($0) } ?? .automatic
+        return copy
+    }
+
+    /// Creates a resizable column with the provided constraints.
+    public func width(min: CGFloat? = nil, ideal: CGFloat? = nil, max: CGFloat? = nil) -> TableColumn {
+        var copy = self
+        copy._column.width = .flexible(min: min, ideal: ideal, max: max)
+        return copy
+    }
+}
+
+extension TableColumn where Sort == KeyPathComparator<RowValue>, Label == Text {
     /// Creates a sortable column with the given content.
-    public init<V: Comparable, Content: View>(_ titleKey: LocalizedStringKey, value: KeyPath<RowValue, V> & Sendable, @ViewBuilder content: @escaping (RowValue) -> Content) {
-        title = Text(titleKey).resolvedString
-        self.content = { AnyView(content($0)) }
-        keyPath = value
-        makeComparator = { KeyPathComparator(value, order: $0) }
+    public init<V: Comparable>(_ titleKey: LocalizedStringKey, value: KeyPath<RowValue, V> & Sendable, @ViewBuilder content: @escaping (RowValue) -> Content) {
+        self.init(_column: _AnyTableColumn(title: Text(titleKey).resolvedString, content: { AnyView(content($0)) },
+                                           keyPath: value, makeComparator: { KeyPathComparator(value, order: $0) }))
+    }
+
+    public init<V: Comparable>(_ text: Text, value: KeyPath<RowValue, V> & Sendable, @ViewBuilder content: @escaping (RowValue) -> Content) {
+        self.init(_column: _AnyTableColumn(title: text.resolvedString, content: { AnyView(content($0)) },
+                                           keyPath: value, makeComparator: { KeyPathComparator(value, order: $0) }))
     }
 
     @_disfavoredOverload
-    public init<S: StringProtocol, V: Comparable, Content: View>(_ title: S, value: KeyPath<RowValue, V> & Sendable, @ViewBuilder content: @escaping (RowValue) -> Content) {
-        self.title = String(title)
-        self.content = { AnyView(content($0)) }
-        keyPath = value
-        makeComparator = { KeyPathComparator(value, order: $0) }
+    public init<S: StringProtocol, V: Comparable>(_ title: S, value: KeyPath<RowValue, V> & Sendable, @ViewBuilder content: @escaping (RowValue) -> Content) {
+        self.init(_column: _AnyTableColumn(title: String(title), content: { AnyView(content($0)) },
+                                           keyPath: value, makeComparator: { KeyPathComparator(value, order: $0) }))
     }
+}
 
+extension TableColumn where Sort == KeyPathComparator<RowValue>, Content == Text, Label == Text {
     /// Creates a sortable column that shows a string key path's value.
     public init(_ titleKey: LocalizedStringKey, value: KeyPath<RowValue, String> & Sendable) {
         self.init(titleKey, value: value) { Text($0[keyPath: value]) }
+    }
+
+    public init(_ text: Text, value: KeyPath<RowValue, String> & Sendable) {
+        self.init(text, value: value) { Text($0[keyPath: value]) }
     }
 
     @_disfavoredOverload
     public init<S: StringProtocol>(_ title: S, value: KeyPath<RowValue, String> & Sendable) {
         self.init(title, value: value) { Text($0[keyPath: value]) }
     }
+}
 
+extension TableColumn where Sort == Never, Label == Text {
     /// Creates an unsortable column with the given content.
-    public init<Content: View>(_ titleKey: LocalizedStringKey, @ViewBuilder content: @escaping (RowValue) -> Content) {
-        title = Text(titleKey).resolvedString
-        self.content = { AnyView(content($0)) }
+    public init(_ titleKey: LocalizedStringKey, @ViewBuilder content: @escaping (RowValue) -> Content) {
+        self.init(_column: _AnyTableColumn(title: Text(titleKey).resolvedString, content: { AnyView(content($0)) }))
+    }
+
+    public init(_ text: Text, @ViewBuilder content: @escaping (RowValue) -> Content) {
+        self.init(_column: _AnyTableColumn(title: text.resolvedString, content: { AnyView(content($0)) }))
     }
 
     @_disfavoredOverload
-    public init<S: StringProtocol, Content: View>(_ title: S, @ViewBuilder content: @escaping (RowValue) -> Content) {
-        self.title = String(title)
-        self.content = { AnyView(content($0)) }
-    }
-
-    /// Creates a fixed-width column.
-    public func width(_ width: CGFloat? = nil) -> TableColumn<RowValue> {
-        var copy = self
-        copy.width = width.map { .fixed($0) } ?? .automatic
-        return copy
-    }
-
-    /// Creates a resizable column with the provided constraints.
-    public func width(min: CGFloat? = nil, ideal: CGFloat? = nil, max: CGFloat? = nil) -> TableColumn<RowValue> {
-        var copy = self
-        copy.width = .flexible(min: min, ideal: ideal, max: max)
-        return copy
+    public init<S: StringProtocol>(_ title: S, @ViewBuilder content: @escaping (RowValue) -> Content) {
+        self.init(_column: _AnyTableColumn(title: String(title), content: { AnyView(content($0)) }))
     }
 }
 
@@ -366,14 +396,15 @@ public struct TableColumnBuilder<RowValue: Identifiable, Sort> {
     /// Content as itself: a body that never returns (`fatalError()`) is `Never`'s.
     public static func buildExpression<Content: TableColumnContent>(_ content: Content) -> Content { content }
     public static func buildBlock<Content: TableColumnContent>(_ content: Content) -> Content { content }
-    public static func buildBlock(_ columns: TableColumn<RowValue>...) -> [TableColumn<RowValue>] { columns }
-    public static func buildBlock(_ columns: [TableColumn<RowValue>]...) -> [TableColumn<RowValue>] { columns.flatMap { $0 } }
-    public static func buildExpression(_ column: TableColumn<RowValue>) -> [TableColumn<RowValue>] { [column] }
-    public static func buildExpression<D, I>(_ columns: TableColumnForEach<D, I, RowValue>) -> [TableColumn<RowValue>] { columns.columns }
-    public static func buildExpression(_ group: Group<[TableColumn<RowValue>]>) -> [TableColumn<RowValue>] { group.content }
-    public static func buildOptional(_ columns: [TableColumn<RowValue>]?) -> [TableColumn<RowValue>] { columns ?? [] }
-    public static func buildEither(first: [TableColumn<RowValue>]) -> [TableColumn<RowValue>] { first }
-    public static func buildEither(second: [TableColumn<RowValue>]) -> [TableColumn<RowValue>] { second }
+    public static func buildBlock(_ columns: [_AnyTableColumn<RowValue>]...) -> [_AnyTableColumn<RowValue>] { columns.flatMap { $0 } }
+    /// A column of any sort, content and label type, sortable or not: an unsortable column
+    /// sits in a sortable table too.
+    public static func buildExpression<S, C, L>(_ column: TableColumn<RowValue, S, C, L>) -> [_AnyTableColumn<RowValue>] { [column._column] }
+    public static func buildExpression<D, I>(_ columns: TableColumnForEach<D, I, RowValue>) -> [_AnyTableColumn<RowValue>] { columns.columns }
+    public static func buildExpression(_ group: Group<[_AnyTableColumn<RowValue>]>) -> [_AnyTableColumn<RowValue>] { group.content }
+    public static func buildOptional(_ columns: [_AnyTableColumn<RowValue>]?) -> [_AnyTableColumn<RowValue>] { columns ?? [] }
+    public static func buildEither(first: [_AnyTableColumn<RowValue>]) -> [_AnyTableColumn<RowValue>] { first }
+    public static func buildEither(second: [_AnyTableColumn<RowValue>]) -> [_AnyTableColumn<RowValue>] { second }
 }
 
 /// A column's width: fixed (plus the cell padding), flexible within a range, or automatic.
