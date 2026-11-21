@@ -26,3 +26,21 @@ public func AudioServicesPlaySystemSoundWithCompletion(_ inSystemSoundID: System
 public func AudioServicesPlayAlertSoundWithCompletion(_ inSystemSoundID: SystemSoundID, _ inCompletionBlock: (@Sendable () -> Void)?) {
     inCompletionBlock?()
 }
+
+#if os(WASI)
+/// Registers a sound file as a system sound and writes its identifier (IceCubes registers its
+/// tap and refresh sounds at launch). Each file gets its own identifier, above the built-in
+/// ones (the vibrate ID is the last of those); playing it is silent, as for every system sound here.
+@discardableResult
+public func AudioServicesCreateSystemSoundID(_ inFileURL: CFURL, _ outSystemSoundID: UnsafeMutablePointer<SystemSoundID>) -> OSStatus {
+    _registeredSystemSounds += 1
+    outSystemSoundID.pointee = 4095 + _registeredSystemSounds
+    return 0
+}
+
+/// Releases a sound registered with `AudioServicesCreateSystemSoundID`.
+@discardableResult
+public func AudioServicesDisposeSystemSoundID(_ inSystemSoundID: SystemSoundID) -> OSStatus { 0 }
+
+nonisolated(unsafe) private var _registeredSystemSounds: SystemSoundID = 0
+#endif

@@ -114,6 +114,35 @@ public struct Fail<Output, Failure: Error>: Publisher {
     }
 }
 
+#if !canImport(Darwin)
+// Apple's Combine declares this beside `Just` and `Fail`; on Apple platforms it is Combine's.
+extension Result {
+    /// A publisher of the result: its value and then finished, or its error (Alamofire's
+    /// `DataResponsePublisher` maps each response's result through `result.publisher`).
+    public var publisher: Publisher { Publisher(self) }
+
+    /// A publisher that publishes a result's value once and finishes, or fails with its error.
+    public struct Publisher: WebCombine.Publisher {
+        public typealias Output = Success
+        public let result: Result<Success, Failure>
+        public init(_ result: Result<Success, Failure>) { self.result = result }
+        public init(_ output: Success) { result = .success(output) }
+        public init(_ failure: Failure) { result = .failure(failure) }
+        @MainActor public func _subscribe(_ receive: @escaping @MainActor (Success) -> Void,
+                                          _ complete: @escaping @MainActor (Subscribers.Completion<Failure>) -> Void) -> AnyCancellable {
+            switch result {
+            case .success(let output):
+                receive(output)
+                complete(.finished)
+            case .failure(let error):
+                complete(.failure(error))
+            }
+            return AnyCancellable {}
+        }
+    }
+}
+#endif
+
 // MARK: - Subjects
 
 /// A publisher that exposes a method for outside callers to publish elements.

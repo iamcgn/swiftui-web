@@ -48,6 +48,12 @@ open class NSError: NSObject, Error, @unchecked Sendable {
     open var localizedFailureReason: String? { userInfo[NSLocalizedFailureReasonErrorKey] as? String }
     open var localizedRecoverySuggestion: String? { userInfo[NSLocalizedRecoverySuggestionErrorKey] as? String }
     open override var description: String { localizedDescription }
+    /// Equal to an error with the same domain, code and user info keys, as without the runtime.
+    open override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NSError else { return false }
+        return other === self || (other.domain == domain && other.code == code && Set(other.userInfo.keys) == Set(userInfo.keys))
+    }
+    open override var hash: Int { domain.hashValue ^ code }
 }
 #else
 open class NSError: Error, CustomStringConvertible, @unchecked Sendable {
@@ -71,6 +77,14 @@ open class NSError: Error, CustomStringConvertible, @unchecked Sendable {
     open var localizedFailureReason: String? { userInfo[NSLocalizedFailureReasonErrorKey] as? String }
     open var localizedRecoverySuggestion: String? { userInfo[NSLocalizedRecoverySuggestionErrorKey] as? String }
     public var description: String { localizedDescription }
+    /// Equal to an error with the same domain, code and user info keys (OAuth2Error's `==` asks
+    /// two wrapped errors `lhe.isEqual(rhe)`). Foundation also compares the user info values,
+    /// which are `Any` here and have no equality to ask.
+    open func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? NSError else { return false }
+        return other === self || (other.domain == domain && other.code == code && Set(other.userInfo.keys) == Set(userInfo.keys))
+    }
+    open var hash: Int { domain.hashValue ^ code }
 }
 #endif
 
@@ -204,5 +218,22 @@ extension Error {
         if let error = self as? any LocalizedError, let text = error.errorDescription { return text }
         return "The operation couldn’t be completed. (\(String(reflecting: type(of: self))) error \(_code).)"
     }
+}
+
+/// Matches a Cocoa error's code against any error, as Foundation's `~=` for error codes does
+/// (Bodega's `catch CocoaError.fileReadNoSuchFile`): a `CocoaError` with that code, or an
+/// `NSError` in `NSCocoaErrorDomain` with it. The `CocoaError` is read by reflection, because
+/// casting to it names its type metadata, which extracts CocoaError.swift and with it most of
+/// FoundationEssentials, as `LocalizedError`'s descriptor would (4 MB of the Gallery).
+public func ~= (code: CocoaError.Code, error: any Error) -> Bool {
+    if let error = error as? NSError { return error.domain == NSCocoaErrorDomain && error.code == code.rawValue }
+    let mirror = Mirror(reflecting: error)
+    guard String(reflecting: mirror.subjectType).hasSuffix(".CocoaError") else { return false }
+    for child in mirror.children where child.label == "code" {
+        for field in Mirror(reflecting: child.value).children where field.label == "rawValue" {
+            return field.value as? Int == code.rawValue
+        }
+    }
+    return false
 }
 #endif
