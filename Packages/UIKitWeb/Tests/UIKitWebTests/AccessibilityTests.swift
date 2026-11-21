@@ -96,6 +96,19 @@ import UIKitFixtureKit
         #expect(action.name == "Named" && !action.perform())
     }
 
+    /// A controller carries the accessibility properties every NSObject has in UIKit; they
+    /// stay its own and don't label its view.
+    @Test func controllersCarryAccessibilityProperties() {
+        let controller = UIViewController()
+        #expect(controller.accessibilityLabel == nil && !controller.isAccessibilityElement)
+        controller.accessibilityLabel = "IntrospectionUIViewController"
+        controller.accessibilityIdentifier = "probe"
+        controller.accessibilityTraits = .button
+        #expect(controller.accessibilityLabel == "IntrospectionUIViewController")
+        #expect(controller.accessibilityIdentifier == "probe" && controller.accessibilityTraits == .button)
+        #expect(controller.view.accessibilityLabel == nil)
+    }
+
     @Test func colorNames() {
         #expect(UIColor.black.accessibilityName == "black" && UIColor.white.accessibilityName == "white")
         #expect(UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1).accessibilityName == "gray")
