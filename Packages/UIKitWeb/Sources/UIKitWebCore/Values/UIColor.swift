@@ -3,6 +3,8 @@
 // `ios/dark/system-colors`; the same palette SwiftUIWeb's iOS profile reads), and labels keep
 // the alphas those goldens show.
 
+import WebFoundation   // NSCoder and NSSecureCoding, for the colour's archiving
+
 /// An object that stores colour data and sometimes opacity.
 public final class UIColor: UIObjectBase, @unchecked Sendable {
     /// The colour in the light and dark appearances.
