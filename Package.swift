@@ -52,6 +52,7 @@ let package = Package(
         .library(name: "AudioToolbox", targets: ["AudioToolbox"]),
         .library(name: "PDFKit", targets: ["PDFKit"]),
         .library(name: "CoreSpotlight", targets: ["CoreSpotlight"]),
+        .library(name: "NaturalLanguage", targets: ["NaturalLanguage"]),
         .library(name: "StoreKit", targets: ["StoreKit"]),
         .library(name: "AppIntents", targets: ["AppIntents"]),
         .library(name: "WebKit", targets: ["WebKit"]),
@@ -215,6 +216,9 @@ let package = Package(
         // An app's searchable items, kept by an index a page has no system search to hand them to.
         .target(name: "CoreSpotlight", dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
+        // The language of a text, told by its script and, for Latin text, by its common words.
+        .target(name: "NaturalLanguage", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")],
+                swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "SpeechRecognitionHost", swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "Speech", dependencies: ["SpeechRecognitionHost", "AVFAudio", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -347,7 +351,7 @@ let package = Package(
         // The small frameworks against known answers (FIPS 180, RFC 1321, RFC 4231 vectors).
         .testTarget(
             name: "FrameworkTests",
-            dependencies: ["CryptoKit", "CoreHaptics", .product(name: "WebCoreImage", package: "WebGraphics"), "WidgetKit", "EventKit", "AudioToolbox", .product(name: "WebGraphics", package: "WebGraphics"), .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics"), .product(name: "WebDecimalFormats", package: "WebGraphics")],
+            dependencies: ["CryptoKit", "NaturalLanguage", "CoreHaptics", .product(name: "WebCoreImage", package: "WebGraphics"), "WidgetKit", "EventKit", "AudioToolbox", .product(name: "WebGraphics", package: "WebGraphics"), .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics"), .product(name: "WebDecimalFormats", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         .testTarget(
