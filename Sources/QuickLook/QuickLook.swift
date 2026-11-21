@@ -48,9 +48,10 @@ let _quickLookImageExtensions: Set<String> = ["png", "jpg", "jpeg", "gif", "webp
 /// The preview: the selected file, its name as the title, Done, and paging through several.
 struct _QuickLookPreview: View {
     let urls: [URL]
-    let binding: Binding<URL?>
+    nonisolated(unsafe) let binding: Binding<URL?>
 
-    // A plain binding (not `@Binding`) so the nonisolated presentation modifiers can build this.
+    // A plain binding (not `@Binding`) so the nonisolated presentation modifiers can build this;
+    // Binding is not Sendable, and the view only reads it on the main actor.
     nonisolated init(urls: [URL], selection: Binding<URL?>) {
         self.urls = urls
         self.binding = selection
