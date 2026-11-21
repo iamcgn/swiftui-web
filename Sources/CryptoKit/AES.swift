@@ -10,7 +10,7 @@ public enum AES {
     /// AES in Galois/Counter Mode, an authenticated cipher.
     public enum GCM {
         /// A value used once per message under a key: 12 bytes, or more.
-        public struct Nonce: Sequence, Sendable, Hashable {
+        public struct Nonce: ContiguousBytes, Sequence, Sendable, Hashable {
             let bytes: [UInt8]
 
             /// A random 12-byte nonce.

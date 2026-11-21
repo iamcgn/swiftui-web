@@ -85,6 +85,13 @@ private func bytes(_ hex: String) -> [UInt8] {
         }
     }
 
+    @Test func noncesAndKeysAreContiguousBytes() {
+        func byteCount<B: ContiguousBytes>(_ value: B) -> Int { value.withUnsafeBytes { $0.count } }
+        #expect(byteCount(AES.GCM.Nonce()) == 12)
+        #expect(byteCount(ChaChaPoly.Nonce()) == 12)
+        #expect(byteCount(SymmetricKey(size: .bits128)) == 16)
+    }
+
     @Test func checksSizes() {
         #expect(throws: CryptoKitError.incorrectKeySize) {
             try AES.GCM.seal([UInt8](), using: SymmetricKey(data: [UInt8](repeating: 1, count: 20)))
