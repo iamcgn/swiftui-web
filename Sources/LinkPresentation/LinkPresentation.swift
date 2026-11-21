@@ -29,22 +29,28 @@ open class LPLinkMetadata: NSObject, @unchecked Sendable {
     /// Key-value coding's read of the record's properties, and of `summary` (where NSObject has
     /// key-value coding, Apple's platforms and the runtime's, it overrides NSObject's).
     #if canImport(ObjectiveC)
-    open override func value(forKey key: String) -> Any? { _value(forKey: key) ?? super.value(forKey: key) }
+    open override func value(forKey key: String) -> Any? {
+        // A key the record has answers with its value, even when that is nil: only other keys go
+        // on to NSObject, which throws for a key it doesn't know.
+        if let known = _value(forKey: key) { return known }
+        return super.value(forKey: key)
+    }
     #else
-    open func value(forKey key: String) -> Any? { _value(forKey: key) }
+    open func value(forKey key: String) -> Any? { _value(forKey: key) ?? nil }
     #endif
 
-    private func _value(forKey key: String) -> Any? {
+    /// The value of one of the record's keys, which may itself be nil, or nil for any other key.
+    private func _value(forKey key: String) -> Any?? {
         switch key {
-        case "originalURL": originalURL
-        case "url", "URL": url
-        case "title": title
-        case "summary": _summary
-        case "iconProvider": iconProvider
-        case "imageProvider": imageProvider
-        case "videoProvider": videoProvider
-        case "remoteVideoURL": remoteVideoURL
-        default: nil
+        case "originalURL": .some(originalURL)
+        case "url", "URL": .some(url)
+        case "title": .some(title)
+        case "summary": .some(_summary)
+        case "iconProvider": .some(iconProvider)
+        case "imageProvider": .some(imageProvider)
+        case "videoProvider": .some(videoProvider)
+        case "remoteVideoURL": .some(remoteVideoURL)
+        default: .none
         }
     }
 }
