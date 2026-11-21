@@ -505,9 +505,6 @@ public struct AsyncPublisher<P: Publisher>: AsyncSequence where P.Failure == Nev
         }
         let box: Box
         public mutating func next() async -> P.Output? { await box.base.next() }
-        public mutating func next(isolation actor: isolated (any Actor)?) async -> P.Output? {
-            await box.base.next(isolation: actor)
-        }
     }
     public func makeAsyncIterator() -> Iterator { Iterator(box: .init(publisher._neverValueStream().makeAsyncIterator())) }
 }
@@ -529,9 +526,6 @@ public struct AsyncThrowingPublisher<P: Publisher>: AsyncSequence {
         }
         let box: Box
         public mutating func next() async throws -> P.Output? { try await box.base.next() }
-        public mutating func next(isolation actor: isolated (any Actor)?) async throws(any Error) -> P.Output? {
-            try await box.base.next(isolation: actor)
-        }
     }
     public func makeAsyncIterator() -> Iterator { Iterator(box: .init(publisher._valueStream().makeAsyncIterator())) }
 }
