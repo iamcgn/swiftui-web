@@ -197,7 +197,19 @@ def excluded_by_entry(rel: Path, extra):
 
 # MARK: local packages
 
+_DUMPS = {}
+
+
 def dump_package(pkg_dir: Path):
+    """dump-package's JSON of a package, once per folder (the plan reads a cloned package's
+    manifest both to find what it depends on and to describe its targets)."""
+    key = str(Path(pkg_dir).resolve())
+    if key not in _DUMPS:
+        _DUMPS[key] = _dump_package(pkg_dir)
+    return _DUMPS[key]
+
+
+def _dump_package(pkg_dir: Path):
     r = sh(["swift", "package", "dump-package", "--package-path", str(pkg_dir)], check=False, timeout=600)
     if r.returncode != 0:
         return None, (r.stderr or r.stdout).strip().splitlines()[-1:] or ["dump-package failed"]
@@ -380,6 +392,244 @@ def fetch_packages(work: Path, pins):
     return keys
 
 
+# An app that keeps no Package.resolved (Thunderbird's local package asks for swift-nio's `main`;
+# Gem's and OnlineStoreTCA's Xcode projects leave theirs out of git) still names its packages and
+# the versions it takes: in each local Package.swift and in the project's package references.
+# Those it names with no pin are resolved the way Xcode would resolve them that day (a branch's
+# head, the newest release tag in range), and so are the packages those name in turn, so the
+# sweep builds them from source instead of counting every use as an error. The plan job resolves
+# them once, so every shard of a sweep builds the same revisions.
+
+SEMVER = re.compile(r"^v?(\d+)\.(\d+)(?:\.(\d+))?$")
+_REFS = {}
+
+
+def version_tuple(text):
+    m = SEMVER.match(str(text or "").strip())
+    return (int(m.group(1)), int(m.group(2)), int(m.group(3) or 0)) if m else None
+
+
+def remote_refs(repo):
+    """{"heads": {branch: sha}, "tags": {version: sha}} of a public GitHub repository."""
+    if repo not in _REFS:
+        refs = {"heads": {}, "tags": {}}
+        r = sh(["git", "ls-remote", "--heads", "--tags", f"https://github.com/{repo}.git"],
+               check=False, timeout=120)
+        peeled = {}
+        for line in r.stdout.splitlines() if r.returncode == 0 else []:
+            sha, _, ref = line.partition("\t")
+            if ref.startswith("refs/heads/"):
+                refs["heads"][ref[len("refs/heads/"):]] = sha
+            elif ref.startswith("refs/tags/"):
+                name = ref[len("refs/tags/"):]
+                if name.endswith("^{}"):
+                    peeled[name[:-3]] = sha
+                elif version_tuple(name):
+                    refs["tags"].setdefault(version_tuple(name), (name, sha))
+        refs["tags"] = {v: peeled.get(name, sha) for v, (name, sha) in refs["tags"].items()}
+        _REFS[repo] = refs
+    return _REFS[repo]
+
+
+def resolve_requirement(repo, req):
+    """The commit a requirement picks: ("branch", name), ("revision", sha), ("exact", version) or
+    ("range", lower, upper) with `upper` excluded; None when nothing matches."""
+    if req[0] == "revision":
+        return req[1] if re.fullmatch(r"[0-9a-f]{40}", req[1] or "") else None
+    refs = remote_refs(repo)
+    if req[0] == "branch":
+        return refs["heads"].get(req[1])
+    if req[0] == "exact":
+        return refs["tags"].get(version_tuple(req[1]))
+    lower, upper = version_tuple(req[1]), version_tuple(req[2]) if req[2] else None
+    found = [v for v in refs["tags"] if lower and v >= lower and (upper is None or v < upper)]
+    return refs["tags"][max(found)] if found else None
+
+
+def manifest_requirement(req):
+    """A dump-package dependency requirement in resolve_requirement's form."""
+    for kind in ("branch", "revision", "exact"):
+        if kind in req:
+            v = req[kind]
+            return (kind, v[0] if isinstance(v, list) else v)
+    if "range" in req:
+        r = req["range"][0] if isinstance(req["range"], list) else req["range"]
+        return ("range", r.get("lowerBound"), r.get("upperBound"))
+    return None
+
+
+def manifest_dependencies(dump):
+    """[(identity, url, requirement)] of a dump-package's source-control dependencies."""
+    out = []
+    for d in (dump or {}).get("dependencies") or []:
+        for entry in d.get("sourceControl") or []:
+            remote = ((entry.get("location") or {}).get("remote") or [None])[0]
+            url = remote.get("urlString") if isinstance(remote, dict) else remote
+            req = manifest_requirement(entry.get("requirement") or {})
+            if url and req:
+                out.append(((entry.get("identity") or "").lower(), url, req))
+    return out
+
+
+def project_requirement(req):
+    """An Xcode XCRemoteSwiftPackageReference requirement in resolve_requirement's form."""
+    kind = req.get("kind")
+    if kind == "branch":
+        return ("branch", req.get("branch"))
+    if kind == "revision":
+        return ("revision", req.get("revision"))
+    if kind == "exactVersion":
+        return ("exact", req.get("version"))
+    low = version_tuple(req.get("minimumVersion"))
+    if not low:
+        return None
+    if kind == "upToNextMajorVersion":
+        return ("range", req["minimumVersion"], f"{low[0] + 1}.0.0")
+    if kind == "upToNextMinorVersion":
+        return ("range", req["minimumVersion"], f"{low[0]}.{low[1] + 1}.0")
+    if kind == "versionRange":
+        return ("range", req["minimumVersion"], req.get("maximumVersion"))
+    return None
+
+
+def project_dependencies(root: Path, extra):
+    """[(identity, url, requirement)] of the package references in the clone's Xcode projects."""
+    out = []
+    for pbx in sorted(root.rglob("project.pbxproj")):
+        rel = pbx.relative_to(root)
+        if excluded(rel, extra):
+            continue
+        try:
+            objects = xcodeproj.parse(pbx.read_text(errors="replace")).get("objects") or {}
+        except (AssertionError, ValueError, IndexError):
+            continue
+        for obj in objects.values():
+            if isinstance(obj, dict) and obj.get("isa") == "XCRemoteSwiftPackageReference":
+                url, req = obj.get("repositoryURL"), project_requirement(obj.get("requirement") or {})
+                if url and req:
+                    out.append(("", url, req))
+    return out
+
+
+def requirement_allows(version, req):
+    """Whether a release version satisfies an exact or range requirement."""
+    if req[0] == "exact":
+        return version == version_tuple(req[1])
+    if req[0] == "range":
+        lower, upper = version_tuple(req[1]), version_tuple(req[2]) if req[2] else None
+        return bool(lower) and version >= lower and (upper is None or version < upper)
+    return False
+
+
+def resolve_requirements(repo, reqs, excluded=()):
+    """The commit that every requirement on one package allows, as SwiftPM picks it: a branch or
+    revision when one is asked for (the first, the root's before its packages'), else the newest
+    release, other than the `excluded` commits, that every version requirement allows; None when
+    nothing does."""
+    fixed = [r for r in reqs if r[0] in ("branch", "revision")]
+    if fixed:
+        return resolve_requirement(repo, fixed[0])
+    tags = remote_refs(repo)["tags"]
+    allowed = [v for v in tags if tags[v] not in excluded and all(requirement_allows(v, r) for r in reqs)]
+    return tags[max(allowed)] if allowed else None
+
+
+def declared_pins(work: Path, root: Path, extra, packages, pins, notes, passes=20, backtracks=8):
+    """`pins` with every package the app's manifests and projects name but no Package.resolved
+    pins, resolved, and the packages those name in turn. Each package takes a commit that all the
+    requirements on it allow: a requirement found later (a dependency's exact version under the
+    app's wider range) moves the pick, and the moved package's own requirements replace those of
+    its earlier pick, until no pick moves. When nothing satisfies a package's requirements and
+    leaving out one picked package's requirements would, that package goes back to an older
+    release (at most `backtracks` times), as SwiftPM would try before giving up."""
+    pins = dict(pins)
+    resolved_repos = {p["repo"].lower() for p in pins.values()}
+    wanted = {}  # repo (lower) -> {"identity", "url", "repo", "by": {source: [requirement]}}
+
+    def want(source, deps):
+        for identity, url, req in deps:
+            repo = github_repo(url)
+            if not repo or repo.lower() in resolved_repos:
+                continue
+            entry = wanted.setdefault(repo.lower(), {"identity": identity or repo.split("/")[1].lower().removesuffix(".git"),
+                                                       "url": url, "repo": repo, "by": {}})
+            entry["by"].setdefault(source, []).append(req)
+
+    want("", [d for p in packages for d in manifest_dependencies(p["dump"])] + project_dependencies(root, extra))
+    picked = {}  # repo (lower) -> commit or None
+    excluded = {}  # repo (lower) -> commits a conflict ruled out
+
+    def blame(entry):
+        """A picked package whose requirements alone keep `entry` from resolving and that has
+        another release its own requirements allow, ruled out at its current pick; whether there
+        was one."""
+        for source in entry["by"]:
+            if not source or not picked.get(source):
+                continue  # the root's own requirements, or a package nothing satisfied either
+            if any(r[0] in ("branch", "revision") for reqs in wanted[source]["by"].values() for r in reqs):
+                continue  # on a branch or revision, so no older release to try
+            rest = [r for other in entry["by"] if other != source for r in entry["by"][other]]
+            if not resolve_requirements(entry["repo"], rest):
+                continue
+            ruled_out = excluded.get(source, set()) | {picked[source]}
+            own = [r for reqs in wanted[source]["by"].values() for r in reqs]
+            if resolve_requirements(wanted[source]["repo"], own, ruled_out):  # an older one to try
+                excluded[source] = ruled_out
+                return True
+        return False
+
+    for _ in range(passes):
+        moved = False
+        for key, entry in list(wanted.items()):
+            identity = entry["identity"]
+            if identity in pins and key not in picked:
+                continue  # Package.resolved pins one of that name
+            reqs = [r for source in entry["by"] for r in entry["by"][source]]
+            if not reqs:
+                if key in picked:
+                    # Only an earlier pick asked for it: drop it, and what its own pick asked for.
+                    moved = True
+                    del picked[key]
+                    pins.pop(identity, None)
+                    for other in wanted.values():
+                        other["by"].pop(key, None)
+                continue
+            revision = resolve_requirements(entry["repo"], reqs, excluded.get(key, ()))
+            if not revision and backtracks and blame(entry):
+                backtracks -= 1
+                moved = True
+                continue  # the blamed package moves to an older release first
+            if key in picked and picked[key] == revision:
+                continue
+            moved = True
+            picked[key] = revision
+            for other in wanted.values():
+                other["by"].pop(key, None)  # what the earlier pick asked for no longer holds
+            if not revision:
+                pins.pop(identity, None)
+                continue
+            pins[identity] = {"url": entry["url"], "repo": entry["repo"], "revision": revision, "declared": reqs}
+            keys = fetch_packages(work, {identity: pins[identity]})
+            if identity in keys:
+                dump, _ = dump_package(work / PACKAGES_DIR / keys[identity])
+                want(key, manifest_dependencies(dump))
+        if not moved:
+            break
+    else:
+        notes.append(f"packages: no stable resolution after {passes} passes; the last picks are built")
+    for key, revision in picked.items():
+        entry = wanted[key]
+        reqs = [r for source in entry["by"] for r in entry["by"][source]]
+        if not reqs:
+            pins.pop(entry["identity"], None)  # left over when the passes ran out
+            continue
+        if revision:
+            notes.append(f"package {entry['identity']}: no Package.resolved pin; {reqs} resolve to {revision[:12]}")
+        else:
+            notes.append(f"package {entry['identity']}: nothing in {entry['repo']} satisfies all of {reqs}, not built")
+    return pins
+
+
 def dependency_traits_hold(dep, traits):
     """Whether a dump-package dependency's trait condition, if any, holds for `traits`."""
     parts = (dep.get("product") or dep.get("byName") or dep.get("target") or [])[1:]
@@ -543,6 +793,8 @@ def describe_app(entry, root: Path, work: Path = None):
     packages = read_local_packages(root, extra)
     pins = resolved_pins(root, extra) if work else {}
     remote_notes = []
+    if work:
+        pins = declared_pins(work, root, extra, packages, pins, remote_notes)
     remote, remote_names_by_product = describe_remote_packages(work, fetch_packages(work, pins), remote_notes) if pins else ([], {})
     pkg_dirs = [Path(p["dir"]) for p in packages]
     targets, notes = [], []
