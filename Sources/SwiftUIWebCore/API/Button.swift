@@ -35,6 +35,9 @@ public struct Button<Label: View>: View {
     package let action: _ActionBox
     nonisolated(unsafe) package let label: Label
     package let role: ButtonRole?
+    /// A button made from a primitive style's configuration (`Button(configuration)`): the
+    /// style it sits in is its caller, so it draws with the `ButtonStyle` instead.
+    package var _ignoresPrimitiveStyle = false
     @State private var isPressed = false
 
     /// Creates a button that displays a custom label.
@@ -59,7 +62,7 @@ public struct Button<Label: View>: View {
         if inMenu {
             // A menu item: the label in a row, no button chrome.
             _ButtonHost(action: action, isPressed: $isPressed, label: AnyView(_MenuRowLabel(label: AnyView(label), submenu: false)))
-        } else if let primitiveStyle {
+        } else if let primitiveStyle, !_ignoresPrimitiveStyle {
             // A primitive style owns the interaction: its body decides when `trigger` runs.
             let configuration = PrimitiveButtonStyleConfiguration(label: PrimitiveButtonStyleConfiguration.Label(AnyView(label)), role: role, action: action)
             primitiveStyle.makeBodyErased(configuration)
@@ -71,6 +74,18 @@ public struct Button<Label: View>: View {
             _ButtonHost(action: action, isPressed: $isPressed, label: AnyView(style.makeBodyErased(configuration)))
                 .layoutValue(key: _ButtonRoleKey.self, value: role)
         }
+    }
+}
+
+extension Button where Label == PrimitiveButtonStyleConfiguration.Label {
+    /// Creates a button from a primitive style's configuration: its label, role and action,
+    /// drawn and pressed as a button with the `ButtonStyle` in effect. A primitive style's body
+    /// uses it to wrap the standard button.
+    @preconcurrency nonisolated public init(_ configuration: PrimitiveButtonStyleConfiguration) {
+        self.action = configuration.action
+        self.label = configuration.label
+        self.role = configuration.role
+        self._ignoresPrimitiveStyle = true
     }
 }
 
@@ -477,6 +492,34 @@ struct _PlainButtonBody: View {
     }
 }
 
+/// A standard style as a primitive style. SwiftUI declares `.automatic`, `.bordered`,
+/// `.borderedProminent`, `.borderless` and `.plain` on `PrimitiveButtonStyle`, so code generic
+/// over `some PrimitiveButtonStyle` can name them (Hipstapaper's `ModifierButtonStyle(.bordered)`).
+/// Here they are `ButtonStyle`s, and this draws the button with the one it wraps.
+public struct _StandardPrimitiveButtonStyle<Style: ButtonStyle>: PrimitiveButtonStyle {
+    package let style: Style
+    package init(_ style: Style) { self.style = style }
+    public func makeBody(configuration: Configuration) -> some View {
+        Button(configuration).buttonStyle(style)
+    }
+}
+
+extension PrimitiveButtonStyle where Self == _StandardPrimitiveButtonStyle<DefaultButtonStyle> {
+    public static var automatic: _StandardPrimitiveButtonStyle<DefaultButtonStyle> { .init(DefaultButtonStyle()) }
+}
+extension PrimitiveButtonStyle where Self == _StandardPrimitiveButtonStyle<BorderedButtonStyle> {
+    public static var bordered: _StandardPrimitiveButtonStyle<BorderedButtonStyle> { .init(BorderedButtonStyle()) }
+}
+extension PrimitiveButtonStyle where Self == _StandardPrimitiveButtonStyle<BorderedProminentButtonStyle> {
+    public static var borderedProminent: _StandardPrimitiveButtonStyle<BorderedProminentButtonStyle> { .init(BorderedProminentButtonStyle()) }
+}
+extension PrimitiveButtonStyle where Self == _StandardPrimitiveButtonStyle<BorderlessButtonStyle> {
+    public static var borderless: _StandardPrimitiveButtonStyle<BorderlessButtonStyle> { .init(BorderlessButtonStyle()) }
+}
+extension PrimitiveButtonStyle where Self == _StandardPrimitiveButtonStyle<PlainButtonStyle> {
+    public static var plain: _StandardPrimitiveButtonStyle<PlainButtonStyle> { .init(PlainButtonStyle()) }
+}
+
 extension ButtonStyle where Self == DefaultButtonStyle {
     public static var automatic: DefaultButtonStyle { DefaultButtonStyle() }
 }
@@ -513,7 +556,9 @@ extension View {
     }
 
     /// Sets the style for buttons within this view to a primitive style, which owns the
-    /// interaction as well as the look.
+    /// interaction as well as the look. Disfavoured, so `.buttonStyle(.bordered)` picks the
+    /// `ButtonStyle` of that name rather than its primitive twin.
+    @_disfavoredOverload
     nonisolated public func buttonStyle<S: PrimitiveButtonStyle>(_ style: S) -> some View {
         environment(\._primitiveButtonStyle, style)
     }
