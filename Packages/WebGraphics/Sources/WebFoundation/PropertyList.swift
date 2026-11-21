@@ -519,7 +519,7 @@ enum _PlistBinary {
             case .array(let items):
                 let children = items.map(add)
                 references[number] = children
-            case .dictionary(let entries):
+            case .dictionary(let entries) where value._uid == nil:
                 let sorted = entries.sorted { $0.key < $1.key }
                 let keys = sorted.map { add(.string($0.key)) }
                 let values = sorted.map { add($0.value) }
@@ -551,6 +551,13 @@ enum _PlistBinary {
         }
         for (number, value) in objects.enumerated() {
             offsets.append(out.count)
+            // A keyed archive's reference: the `CF$UID` dictionary the reader gives back.
+            if let uid = value._uid {
+                let size = byteCount(UInt64(uid))
+                out.append(0x80 | UInt8(size - 1))
+                append(UInt64(uid), size: size)
+                continue
+            }
             switch value {
             case .bool(let flag): out.append(flag ? 0x09 : 0x08)
             case .integer(let integer): writeInteger(UInt64(bitPattern: integer), signed: true)

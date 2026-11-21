@@ -3,6 +3,8 @@
 // `ios/dark/system-colors`; the same palette SwiftUIWeb's iOS profile reads), and labels keep
 // the alphas those goldens show.
 
+import WebFoundation   // NSCoder and NSSecureCoding, for the colour's archiving
+
 /// An object that stores colour data and sometimes opacity.
 public final class UIColor: UIObjectBase, @unchecked Sendable {
     /// The colour in the light and dark appearances.
@@ -256,3 +258,46 @@ extension UIColor: Hashable {
     public func hash(into hasher: inout Hasher) { hasher.combine(light); hasher.combine(dark) }
 }
 #endif
+
+/// A colour archives as iOS's RGB colours do: its light components under UIRed, UIGreen,
+/// UIBlue and UIAlpha (floats) with UIColorComponentCount 4, and reads back from those or from
+/// a grey's UIWhite and UIAlpha (IceCubes keeps its theme's colours as base64 keyed archives in
+/// user defaults). A dynamic colour's dark value, which iOS archives as its provider, goes under
+/// SwiftUIWebDarkRed, SwiftUIWebDarkGreen, SwiftUIWebDarkBlue and SwiftUIWebDarkAlpha, so it
+/// survives a round trip here; an archive without them gives the same colour in both appearances.
+extension UIColor: NSSecureCoding {
+    public static var supportsSecureCoding: Bool { true }
+
+    public func encode(with coder: NSCoder) {
+        coder.encode(4, forKey: "UIColorComponentCount")
+        coder.encode(Float(light.red), forKey: "UIRed")
+        coder.encode(Float(light.green), forKey: "UIGreen")
+        coder.encode(Float(light.blue), forKey: "UIBlue")
+        coder.encode(Float(light.alpha), forKey: "UIAlpha")
+        if dark != light {
+            coder.encode(Float(dark.red), forKey: "SwiftUIWebDarkRed")
+            coder.encode(Float(dark.green), forKey: "SwiftUIWebDarkGreen")
+            coder.encode(Float(dark.blue), forKey: "SwiftUIWebDarkBlue")
+            coder.encode(Float(dark.alpha), forKey: "SwiftUIWebDarkAlpha")
+        }
+    }
+
+    public convenience init?(coder: NSCoder) {
+        func component(_ key: String) -> Double { Double(coder.decodeFloat(forKey: key)) }
+        let light: RGBA
+        if coder.containsValue(forKey: "UIRed") {
+            light = RGBA(red: component("UIRed"), green: component("UIGreen"), blue: component("UIBlue"), alpha: component("UIAlpha"))
+        } else if coder.containsValue(forKey: "UIWhite") {
+            let white = component("UIWhite")
+            light = RGBA(red: white, green: white, blue: white, alpha: component("UIAlpha"))
+        } else {
+            return nil
+        }
+        var dark = light
+        if coder.containsValue(forKey: "SwiftUIWebDarkRed") {
+            dark = RGBA(red: component("SwiftUIWebDarkRed"), green: component("SwiftUIWebDarkGreen"),
+                        blue: component("SwiftUIWebDarkBlue"), alpha: component("SwiftUIWebDarkAlpha"))
+        }
+        self.init(_light: light, _dark: dark)
+    }
+}
