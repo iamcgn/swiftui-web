@@ -1751,6 +1751,13 @@ def cmd_run(args):
                     print(f"  {e['file']}:{e['line']}: {e['msg']}")
                     for note in these:
                         print(f"      {note}")
+                # A module that failed with no error of the app's (a compiler crash, say) shows
+                # the end of its build output, which holds the crash's stack dump, since only
+                # the results file keeps it otherwise.
+                if status[-1]["tail"]:
+                    print("  end of the build output:")
+                    for line in status[-1]["tail"].splitlines():
+                        print(f"    | {line}")
         files = [f for t in app["targets"] if not t.get("skip") and not t.get("remote") for f in t["files"]]
         results["apps"].append({
             **{k: app.get(k) for k in ("name", "repo", "sha", "control", "missing_imports", "asset_names",
