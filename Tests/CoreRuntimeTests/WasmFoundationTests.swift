@@ -257,6 +257,22 @@ import WebCombine
         #expect(cache.cachedResponse(for: request) == nil && cache.currentMemoryUsage == 0)
     }
 
+    /// The memory capacity bounds the cache's total, not only each response (#316).
+    @Test func aCacheStaysWithinItsMemoryCapacity() throws {
+        let cache = URLCache(memoryCapacity: 1_000, diskCapacity: 0)
+        for name in ["a", "b", "c"] {
+            let url = try #require(URL(string: "https://example.com/\(name).png"))
+            let response = URLResponse(url: url, mimeType: "image/png", expectedContentLength: 600, textEncodingName: nil)
+            cache.storeCachedResponse(CachedURLResponse(response: response, data: Data(count: 600), storagePolicy: .allowedInMemoryOnly),
+                                      for: URLRequest(url: url))
+            #expect(cache.currentMemoryUsage <= 1_000)
+        }
+        let newest = try #require(URL(string: "https://example.com/c.png"))
+        #expect(cache.cachedResponse(for: URLRequest(url: newest)) != nil)
+        cache.memoryCapacity = 100
+        #expect(cache.currentMemoryUsage == 0)
+    }
+
     /// Inject's `Bundle(path:)?.load()` in a debug build: only the app's own code is loaded.
     @Test func onlyTheAppsBundleHasLoadedCode() throws {
         #expect(Bundle.main.isLoaded && Bundle.main.load())
