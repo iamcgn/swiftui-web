@@ -54,6 +54,23 @@ private struct StoreKeyID: Hashable {
     }
 
     // Waits by yielding: under Node a sleeping task asks WASI for timers it doesn't have.
+    @Test func aKeyPathPublisherSendsTheValueThenItsChanges() {
+        let player = Player()
+        var rates: [Double] = []
+        let subscription = player.publisher(for: \.rate).sink { rates.append($0) }
+        player.rate = 1.5
+        #expect(rates == [0, 1.5])
+        subscription.cancel()
+        player.rate = 2
+        #expect(rates == [0, 1.5])
+
+        var later: [Double] = []
+        let changesOnly = player.publisher(for: \.rate, options: [.new]).sink { later.append($0) }
+        player.rate = 3
+        #expect(later == [3])
+        changesOnly.cancel()
+    }
+
     @Test func observableProgressReportsItsSets() async {
         let progress = Progress(totalUnitCount: 10)
         var fractions: [Double] = []

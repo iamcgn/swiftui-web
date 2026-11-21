@@ -400,7 +400,7 @@ extension AttributeScopes.FoundationAttributes {
 // MARK: - MeasurementFormatter
 
 /// Formats measurements as strings, the older interface to the same formatting.
-open class MeasurementFormatter: Formatter {
+open class MeasurementFormatter: Formatter, @unchecked Sendable {
     /// How the unit is chosen.
     public struct UnitOptions: OptionSet, Hashable, Sendable {
         public let rawValue: UInt

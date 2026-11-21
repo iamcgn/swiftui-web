@@ -451,7 +451,7 @@ extension NSCalendar {
 }
 
 /// Formats an amount of time ("1h 5m", "1:05:03", "1 hour, 5 minutes").
-open class DateComponentsFormatter: Formatter {
+open class DateComponentsFormatter: Formatter, @unchecked Sendable {
     public enum UnitsStyle: Int, Sendable { case positional = 0, abbreviated, short, full, spellOut, brief }
 
     public struct ZeroFormattingBehavior: OptionSet, Hashable, Sendable {
@@ -582,7 +582,7 @@ open class DateComponentsFormatter: Formatter {
 
 /// Formats a byte count ("1.5 MB", "Zero KB"), as Foundation's adaptive formatter does: whole
 /// kilobytes, megabytes to one decimal, larger units to two, trailing zeros dropped.
-open class ByteCountFormatter: Formatter {
+open class ByteCountFormatter: Formatter, @unchecked Sendable {
     public struct Units: OptionSet, Hashable, Sendable {
         public let rawValue: UInt
         public init(rawValue: UInt) { self.rawValue = rawValue }

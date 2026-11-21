@@ -109,6 +109,38 @@ public struct KeyPathComparator<Compared>: SortComparator, @unchecked Sendable {
         compareValues = { forward.compare($0[keyPath: keyPath], $1[keyPath: keyPath]) }
     }
 
+    /// Creates a comparator using a key path to an optional comparable value; nil sorts first,
+    /// as Foundation's does.
+    public init<Value: Comparable>(_ keyPath: KeyPath<Compared, Value?> & Sendable, order: SortOrder = .forward) {
+        self.keyPath = keyPath
+        self.order = order
+        compareValues = { lhs, rhs in
+            switch (lhs[keyPath: keyPath], rhs[keyPath: keyPath]) {
+            case (nil, nil): return .orderedSame
+            case (nil, _): return .orderedAscending
+            case (_, nil): return .orderedDescending
+            case let (a?, b?): return a < b ? .orderedAscending : a == b ? .orderedSame : .orderedDescending
+            }
+        }
+    }
+
+    /// Creates a comparator using a key path to an optional value and a comparator for the
+    /// value; nil sorts first.
+    public init<Value, Comparator: SortComparator>(_ keyPath: KeyPath<Compared, Value?> & Sendable, comparator: Comparator, order: SortOrder = .forward)
+    where Comparator.Compared == Value, Comparator: Sendable {
+        self.keyPath = keyPath
+        self.order = order
+        let forward = { var copy = comparator; copy.order = .forward; return copy }()
+        compareValues = { lhs, rhs in
+            switch (lhs[keyPath: keyPath], rhs[keyPath: keyPath]) {
+            case (nil, nil): return .orderedSame
+            case (nil, _): return .orderedAscending
+            case (_, nil): return .orderedDescending
+            case let (a?, b?): return forward.compare(a, b)
+            }
+        }
+    }
+
     public func compare(_ lhs: Compared, _ rhs: Compared) -> ComparisonResult {
         let result = compareValues(lhs, rhs)
         switch (order, result) {
