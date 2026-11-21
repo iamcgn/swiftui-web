@@ -221,7 +221,7 @@ enum _LanguageGuess {
                 else if has("ӨөҮү") > 0 { add(count, [.mongolian: 1]) }
                 else if has("ЫыЭэЁё") > 0 { add(count, [.russian: 1]) }
                 else if has("Ъъ") > 0 { add(count, [.bulgarian: 1]) }
-                else { add(count, [.russian: 1]) }
+                else { add(count, russianOrBulgarian(text)) }
             case .arabic:
                 if has("ٹڈڑںےۓہھ") > 0 { add(count, [.urdu: 1]) }
                 else if has("پچژگکی") > 0 { add(count, [.persian: 1]) }
@@ -231,6 +231,34 @@ enum _LanguageGuess {
             }
         }
         return scores
+    }
+
+    /// Cyrillic text with neither language's own letters (#308): Russian and Bulgarian told apart
+    /// by the common words only one of them uses (each weighted by the cube of its count when both
+    /// have some), and split nearly evenly when none is found, so a caller with a confidence
+    /// threshold leaves the language unset.
+    static func russianOrBulgarian(_ text: String) -> [NLLanguage: Double] {
+        let russian: Set<String> = ["что", "это", "он", "она", "оно", "они", "его", "её", "ее", "в", "я", "вы", "мы", "ты", "очень",
+                                    "сегодня", "есть", "был", "была", "было", "были", "так", "все", "всё", "только", "уже", "где", "когда",
+                                    "если", "или", "меня", "тебя", "нет", "здравствуйте", "привет", "спасибо", "хорошо", "день"]
+        let bulgarian: Set<String> = ["е", "че", "ще", "това", "са", "от", "се", "сте", "сме", "съм", "си", "днес", "тя", "той",
+                                      "ние", "вие", "аз", "където", "кога", "ако", "само", "вече", "няма", "здравейте",
+                                      "здрасти", "благодаря", "добре", "ден", "хубав", "хубаво"]
+        var ru = 0.0, bg = 0.0
+        var word = ""
+        func count() {
+            guard !word.isEmpty else { return }
+            let inRussian = russian.contains(word), inBulgarian = bulgarian.contains(word)
+            if inRussian && !inBulgarian { ru += 1 } else if inBulgarian && !inRussian { bg += 1 }
+            word = ""
+        }
+        for character in text.lowercased() {
+            if character.isLetter { word.append(character) } else { count() }
+        }
+        count()
+        if bg == 0 { return ru == 0 ? [.russian: 0.55, .bulgarian: 0.45] : [.russian: 1] }
+        if ru == 0 { return [.bulgarian: 1] }
+        return [.russian: ru * ru * ru, .bulgarian: bg * bg * bg]
     }
 
     /// Latin text's languages, each weighted by the cube of its common words and letters found,
