@@ -2,7 +2,9 @@
 // `autoconnect()` connecting with the first subscriber and stopping after the last, and
 // `makeConnectable()` / `multicast` sharing one upstream subscription.
 import Testing
-#if !canImport(Darwin)
+#if canImport(Darwin)
+import Foundation
+#else
 import WebFoundation
 #endif
 @testable import WebCombine
