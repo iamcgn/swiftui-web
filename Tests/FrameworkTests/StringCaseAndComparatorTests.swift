@@ -63,7 +63,7 @@ private struct Item: Sendable { let name: String }
         let entries = [Entry(title: "b", rank: 2), Entry(title: nil, rank: nil), Entry(title: "a", rank: 1)]
         #expect(entries.sorted(using: KeyPathComparator(\Entry.rank)).map(\.rank) == [nil, 1, 2])
         #expect(entries.sorted(using: KeyPathComparator(\Entry.rank, order: .reverse)).map(\.rank) == [2, 1, nil])
-        #expect(entries.sorted(using: KeyPathComparator(\Entry.title, comparator: .lexical)).map(\.title) == [nil, "a", "b"])
+        #expect(entries.sorted(using: KeyPathComparator(\Entry.title, comparator: String.StandardComparator.lexical)).map(\.title) == [nil, "a", "b"])
     }
 
     #if os(WASI)
