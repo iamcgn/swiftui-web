@@ -62,6 +62,19 @@ import SwiftUIWebHeadless
         ._probe("nav")
     }
 
+    @Test func aDetailLinkPushesLikeAnyOtherLink() {
+        let box = _IOSPathBox()
+        let r = runtime(NavigationStack(path: Binding(get: { box.path }, set: { box.path = $0 })) {
+            NavigationLink("Detail", value: 1).isDetailLink(false)
+                .navigationDestination(for: Int.self) { _ in Text("Pushed")._probe("pushed") }
+        })
+        #expect(texts(r) == ["Detail"])
+        box.path = [1]
+        r.layout(in: CGSize(width: 320, height: 480))
+        r.advanceAnimations(elapsed: 1)
+        #expect(texts(r) == ["Pushed"])
+    }
+
     @Test func aPushedScreenGetsABackButtonThatPops() {
         let box = _IOSPathBox()
         let r = runtime(stack(box) { _ in AnyView(Text("Pushed")._probe("pushed").navigationTitle("Detail")) })

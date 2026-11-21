@@ -89,6 +89,21 @@ func pathsMatch(_ ours: String, _ apple: String, tolerance: Double = 1e-3, sourc
                    "30 40 m 30 57.07 l 30 63.6726 30 66.9739 28.8763 70.5276 c 27.4641 74.4076 24.4076 77.4641 20.5276 78.8763 c 17.7 80 15.6 80 15 80 c 15 80 l 14.4 80 12.3 80 9.47241 78.8763 c 5.59236 77.4641 2.5359 74.4076 1.12367 70.5276 c 0 66.9739 0 63.6726 0 57.07 c 0 22.93 l 0 16.3274 0 13.0261 1.12367 9.47241 c 2.5359 5.59236 5.59236 2.5359 9.47241 1.12367 c 12.3 0 14.4 0 15 0 c 15 0 l 15.6 0 17.7 0 20.5276 1.12367 c 24.4076 2.5359 27.4641 5.59236 28.8763 9.47241 c 30 13.0261 30 16.3274 30 22.93 c h")
     }
 
+    @Test func concentricRectangleFallsBackToFixedAndMinimumRadii() {
+        // Outside a container shape a concentric corner takes its minimum and a fixed one its radius.
+        let mixed = ConcentricRectangle(topLeadingCorner: .fixed(5), topTrailingCorner: .concentric(minimum: 20),
+                                        bottomLeadingCorner: .fixed(10), bottomTrailingCorner: .concentric(minimum: .fixed(15)))
+        #expect(mixed.path(in: rect).description
+                == UnevenRoundedRectangle(cornerRadii: .init(topLeading: 5, bottomLeading: 10, bottomTrailing: 15, topTrailing: 20)).path(in: rect).description)
+        let uniform: ConcentricRectangle = .rect(corners: .concentric(), isUniform: true)
+        #expect(uniform.isUniform && uniform.corners.allSatisfy { $0 == .concentric })
+        #expect(uniform.path(in: rect).description == UnevenRoundedRectangle(cornerRadii: .init()).path(in: rect).description)
+        let largest = ConcentricRectangle(corners: .fixed(12), isUniform: true)
+        #expect(largest.path(in: rect).description
+                == UnevenRoundedRectangle(cornerRadii: .init(topLeading: 12, bottomLeading: 12, bottomTrailing: 12, topTrailing: 12)).path(in: rect).description)
+        #expect(ConcentricRectangle().corners == Array(repeating: .concentric, count: 4))
+    }
+
     @Test func unevenCorners() {
         pathsMatch(UnevenRoundedRectangle(cornerRadii: .init(topLeading: 5, bottomLeading: 10, bottomTrailing: 15, topTrailing: 20), style: .circular).path(in: rect).description,
                    "100 32.5 m 100 45 l 100 53.2843 93.2843 60 85 60 c 10 60 l 4.47715 60 0 55.5228 0 50 c 0 5 l 0 2.23858 2.23858 0 5 0 c 80 0 l 91.0457 0 100 8.95431 100 20 c h")
@@ -416,6 +431,41 @@ func pathsMatch(_ ours: String, _ apple: String, tolerance: Double = 1e-3, sourc
         #expect(clipped.hasPrefix("clipPath") && uniform.hasPrefix("fillPath " + clipped.dropFirst(9)), "\(clipped)")
         // Outside any node the shape is a plain rectangle.
         #expect(ContainerRelativeShape().path(in: CGRect(x: 0, y: 0, width: 10, height: 10)).description == "0 0 m 10 0 l 10 10 l 0 10 l h")
+    }
+
+    /// A concentric corner takes the container's radius at that corner less the view's distance
+    /// from it; `isUniform` gives every corner the largest (issue 291).
+    @Test func concentricRectanglesFollowTheContainersCorners() {
+        func path<V: View>(_ view: V) -> String {
+            let runtime = Runtime()
+            runtime.mount(view)
+            runtime.layout(in: CGSize(width: 80, height: 80))
+            let list = runtime.render(scale: 1)
+            return DisplayListDecoder.decode(DisplayListEncoder.encode(list, font: DisplayListEncoder.cssFont)).first { $0.hasPrefix("fillPath") || $0.hasPrefix("fillRRect") } ?? ""
+        }
+        /// The same commands with coordinates equal to 1e-6 (the shape is drawn in its own frame and
+        /// moved, which leaves float noise in the last digits).
+        func close(_ a: String, _ b: String, sourceLocation: SourceLocation = #_sourceLocation) {
+            let split = { (s: String) in s.split(whereSeparator: { $0 == " " || $0 == "," }) }
+            let x = split(a), y = split(b)
+            #expect(x.count == y.count, "\(a)\n≠\n\(b)", sourceLocation: sourceLocation)
+            for (p, q) in zip(x, y) {
+                let n = String(p.drop(while: \.isLetter)), m = String(q.drop(while: \.isLetter))
+                if let u = Double(n), let v = Double(m), p.filter(\.isLetter) == q.filter(\.isLetter) {
+                    #expect(abs(u - v) <= 1e-6, "\(a)\n≠\n\(b)", sourceLocation: sourceLocation)
+                } else {
+                    #expect(p == q, "\(a)\n≠\n\(b)", sourceLocation: sourceLocation)
+                }
+            }
+        }
+        let container = UnevenRoundedRectangle(cornerRadii: .init(topLeading: 30, bottomLeading: 10, bottomTrailing: 20, topTrailing: 12))
+        let inner = CGRect(x: 10, y: 10, width: 60, height: 60)
+        let each = path(ConcentricRectangle().fill(Color.red).padding(10).frame(width: 80, height: 80).containerShape(container))
+        close(each, path(Path(roundedRect: inner, cornerRadii: .init(topLeading: 20, bottomLeading: 0, bottomTrailing: 10, topTrailing: 2), style: .continuous).fill(Color.red)))
+        let uniform = path(ConcentricRectangle(corners: .concentric, isUniform: true).fill(Color.red).padding(10).frame(width: 80, height: 80).containerShape(container))
+        #expect(uniform == path(Path(roundedRect: inner, cornerRadii: .init(topLeading: 20, bottomLeading: 20, bottomTrailing: 20, topTrailing: 20), style: .continuous).fill(Color.red)))
+        let floored = path(ConcentricRectangle(corners: .concentric(minimum: 8)).fill(Color.red).padding(10).frame(width: 80, height: 80).containerShape(container))
+        close(floored, path(Path(roundedRect: inner, cornerRadii: .init(topLeading: 20, bottomLeading: 8, bottomTrailing: 10, topTrailing: 8), style: .continuous).fill(Color.red)))
     }
 
     /// The separator role draws a bare hierarchical level at the primary level when no foreground

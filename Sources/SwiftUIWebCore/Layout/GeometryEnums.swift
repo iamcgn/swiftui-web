@@ -44,6 +44,40 @@ public enum Edge: Int8, CaseIterable, Sendable, Hashable {
     }
 }
 
+extension Edge {
+    /// One corner of a rectangle.
+    @frozen
+    public enum Corner: Int8, CaseIterable, Sendable, Hashable {
+        case topLeading, topTrailing, bottomLeading, bottomTrailing
+
+        /// How a corner of a `ConcentricRectangle` is rounded: a fixed radius, or concentric with
+        /// the container's corner (its radius less the view's distance from it), no smaller than a
+        /// minimum.
+        public struct Style: Sendable, Hashable {
+            package enum Kind: Sendable, Hashable { case fixed(CGFloat), concentric(minimum: CGFloat) }
+            package let kind: Kind
+            package init(kind: Kind) { self.kind = kind }
+
+            /// A corner concentric with the container's.
+            public static var concentric: Style { Style(kind: .concentric(minimum: 0)) }
+            /// A corner concentric with the container's, rounded at least `minimum`.
+            public static func concentric(minimum: CGFloat = 0) -> Style { Style(kind: .concentric(minimum: minimum)) }
+            /// A corner concentric with the container's, rounded at least as much as `minimum`.
+            public static func concentric(minimum: Style) -> Style { Style(kind: .concentric(minimum: minimum.fallbackRadius)) }
+            /// A corner with a fixed radius.
+            public static func fixed(_ radius: CGFloat) -> Style { Style(kind: .fixed(radius)) }
+
+            /// The radius without a container to be concentric with.
+            package var fallbackRadius: CGFloat {
+                switch kind {
+                case .fixed(let radius): return radius
+                case .concentric(let minimum): return minimum
+                }
+            }
+        }
+    }
+}
+
 extension EdgeInsets {
     package init(_ edges: Edge.Set, _ length: CGFloat) {
         self.init(

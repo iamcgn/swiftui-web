@@ -133,6 +133,86 @@ extension UnevenRoundedRectangle: InsettableShape, _InsetPathProviding {
     }
 }
 
+// MARK: - ConcentricRectangle
+
+/// A rectangle whose corners are concentric with its container's (`containerShape`): each
+/// concentric corner takes the container's radius at that corner less the view's distance from
+/// it, no less than its minimum, and a fixed corner keeps its radius; `isUniform` gives every
+/// corner the largest. Inside a container shape without corner radii (a circle, a custom shape)
+/// all-concentric corners draw that shape inset, as `ContainerRelativeShape` does; without a
+/// container a concentric corner takes its minimum (decision 0021: unmeasured).
+@frozen
+public struct ConcentricRectangle: Sendable {
+    public var topLeadingCorner: Edge.Corner.Style
+    public var topTrailingCorner: Edge.Corner.Style
+    public var bottomLeadingCorner: Edge.Corner.Style
+    public var bottomTrailingCorner: Edge.Corner.Style
+    public var isUniform: Bool
+
+    /// A rectangle with every corner concentric with its container's.
+    nonisolated public init() { self.init(corners: .concentric, isUniform: false) }
+
+    nonisolated public init(corners: Edge.Corner.Style = .concentric, isUniform: Bool = false) {
+        self.init(topLeadingCorner: corners, topTrailingCorner: corners, bottomLeadingCorner: corners,
+                  bottomTrailingCorner: corners, isUniform: isUniform)
+    }
+
+    nonisolated public init(topLeadingCorner: Edge.Corner.Style = .concentric, topTrailingCorner: Edge.Corner.Style = .concentric,
+                            bottomLeadingCorner: Edge.Corner.Style = .concentric, bottomTrailingCorner: Edge.Corner.Style = .concentric) {
+        self.init(topLeadingCorner: topLeadingCorner, topTrailingCorner: topTrailingCorner, bottomLeadingCorner: bottomLeadingCorner,
+                  bottomTrailingCorner: bottomTrailingCorner, isUniform: false)
+    }
+
+    nonisolated init(topLeadingCorner: Edge.Corner.Style, topTrailingCorner: Edge.Corner.Style, bottomLeadingCorner: Edge.Corner.Style,
+                     bottomTrailingCorner: Edge.Corner.Style, isUniform: Bool) {
+        self.topLeadingCorner = topLeadingCorner
+        self.topTrailingCorner = topTrailingCorner
+        self.bottomLeadingCorner = bottomLeadingCorner
+        self.bottomTrailingCorner = bottomTrailingCorner
+        self.isUniform = isUniform
+    }
+
+    nonisolated package var corners: [Edge.Corner.Style] { [topLeadingCorner, topTrailingCorner, bottomLeadingCorner, bottomTrailingCorner] }
+
+    /// The corner radii, inset by `amount`: a concentric corner takes the container's radius at
+    /// that corner less the view's distance from it (`container`, the container's radii and that
+    /// distance), at least its minimum; without a container, its minimum.
+    nonisolated func radii(insetBy amount: CGFloat, container: (radii: RectangleCornerRadii, inset: CGFloat)? = nil) -> RectangleCornerRadii {
+        let outer = container.map { [$0.radii.topLeading, $0.radii.topTrailing, $0.radii.bottomLeading, $0.radii.bottomTrailing] }
+        var r = corners.enumerated().map { index, style -> CGFloat in
+            switch style.kind {
+            case .fixed(let radius): return max(0, radius - amount)
+            case .concentric(let minimum):
+                guard let outer, let container else { return max(0, minimum - amount) }
+                return max(0, max(minimum, outer[index] - container.inset) - amount)
+            }
+        }
+        if isUniform, let largest = r.max() { r = Array(repeating: largest, count: 4) }
+        return RectangleCornerRadii(topLeading: r[0], bottomLeading: r[2], bottomTrailing: r[3], topTrailing: r[1])
+    }
+}
+
+extension ConcentricRectangle: InsettableShape, _InsetPathProviding {
+    nonisolated public func path(in rect: CGRect) -> Path { _insetPath(in: rect, by: 0) }
+
+    nonisolated public func _insetPath(in rect: CGRect, by amount: CGFloat) -> Path {
+        if let resolution = ContainerRelativeShape._resolution {
+            if let outer = resolution.radii {
+                return Path(roundedRect: rect.insetBy(dx: amount, dy: amount),
+                            cornerRadii: radii(insetBy: amount, container: (outer, resolution.inset)), style: .continuous)
+            }
+            // A container shape without corner radii (a circle, a custom shape): its inset shape.
+            if !isUniform, corners.allSatisfy({ $0 == .concentric }) {
+                return ContainerRelativeShape()._insetPath(in: rect, by: amount)
+            }
+        }
+        return Path(roundedRect: rect.insetBy(dx: amount, dy: amount), cornerRadii: radii(insetBy: amount), style: .continuous)
+    }
+
+    nonisolated public func inset(by amount: CGFloat) -> _InsetShape<ConcentricRectangle> { _InsetShape(shape: self, amount: amount) }
+    public typealias AnimatableData = EmptyAnimatableData
+}
+
 // MARK: - Circle, Ellipse, Capsule
 
 /// A circle centered on the frame of the view containing it.
@@ -199,7 +279,18 @@ public struct ContainerRelativeShape: Sendable {
     @inlinable nonisolated public init() {}
 
     /// The container shape in force while a node resolves its paths (`_withContainerShape`).
-    nonisolated(unsafe) package static var _resolution: (path: (CGRect, CGFloat) -> Path, inset: CGFloat)?
+    /// `radii` are the container's own corner radii where its shape has them (a rounded, uneven
+    /// or capsule rectangle), which concentric corners follow.
+    /// A struct rather than a tuple: the objc SDK's assertions build crashes in LoadableByAddress
+    /// on the setter of an optional tuple holding a closure and an optional `RectangleCornerRadii`.
+    nonisolated(unsafe) package static var _resolution: _ContainerResolution?
+}
+
+/// The container shape in force while a node resolves its paths.
+package struct _ContainerResolution {
+    package var path: (CGRect, CGFloat) -> Path
+    package var inset: CGFloat
+    package var radii: RectangleCornerRadii?
 }
 
 extension ContainerRelativeShape: InsettableShape, _InsetPathProviding {
@@ -217,14 +308,37 @@ extension ContainerRelativeShape: InsettableShape, _InsetPathProviding {
 @MainActor
 package final class _ContainerShapeContext {
     package var path: (CGRect, CGFloat) -> Path
+    /// The container shape's corner radii in a rect of the container's size, where it has them.
+    package var radii: (CGRect) -> RectangleCornerRadii?
     package weak var node: ViewNode?
 
     package init<S: InsettableShape>(_ shape: S) {
         path = Self.path(of: shape)
+        radii = Self.radii(of: shape)
     }
 
     package func set<S: InsettableShape>(_ shape: S) {
         path = Self.path(of: shape)
+        radii = Self.radii(of: shape)
+    }
+
+    private static func radii<S: InsettableShape>(of shape: S) -> (CGRect) -> RectangleCornerRadii? {
+        switch shape {
+        case let rounded as RoundedRectangle:
+            let r = min(rounded.cornerSize.width, rounded.cornerSize.height)
+            return { _ in RectangleCornerRadii(topLeading: r, bottomLeading: r, bottomTrailing: r, topTrailing: r) }
+        case let uneven as UnevenRoundedRectangle:
+            return { _ in uneven.cornerRadii }
+        case is Capsule:
+            return { rect in
+                let r = min(rect.width, rect.height) / 2
+                return RectangleCornerRadii(topLeading: r, bottomLeading: r, bottomTrailing: r, topTrailing: r)
+            }
+        case is Rectangle:
+            return { _ in RectangleCornerRadii() }
+        default:
+            return { _ in nil }
+        }
     }
 
     /// The shape inset by the amount but drawn in `rect` itself (the view's rect already sits
@@ -253,7 +367,8 @@ extension EnvironmentValues {
 @MainActor
 package func _withContainerShape<R>(for node: ViewNode, _ body: () -> R) -> R {
     guard let context = node.environment._containerShape else { return body() }
-    ContainerRelativeShape._resolution = (context.path, context.inset(for: node.frameInRoot))
+    let container = context.node?.frameInRoot ?? node.frameInRoot
+    ContainerRelativeShape._resolution = _ContainerResolution(path: context.path, inset: context.inset(for: node.frameInRoot), radii: context.radii(container))
     defer { ContainerRelativeShape._resolution = nil }
     return body()
 }

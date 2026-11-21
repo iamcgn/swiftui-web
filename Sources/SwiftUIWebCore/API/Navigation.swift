@@ -239,6 +239,12 @@ public struct NavigationLink<Label: View, Destination: View>: View {
     }
 }
 
+extension NavigationLink {
+    /// Whether the link's destination shows in a split view's detail column (iOS). The link
+    /// pushes onto the stack it is in either way here, so this returns the link unchanged.
+    public func isDetailLink(_ isDetailLink: Bool) -> some View { self }
+}
+
 extension NavigationLink where Label == Text {
     /// Creates a navigation link that presents a destination view, with a text label.
     public init(_ titleKey: LocalizedStringKey, @ViewBuilder destination: () -> Destination) {

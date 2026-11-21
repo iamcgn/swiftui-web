@@ -127,6 +127,13 @@ extension Shape where Self == UnevenRoundedRectangle {
     }
 }
 
+extension Shape where Self == ConcentricRectangle {
+    /// A rectangle with corners concentric with its container's.
+    public static func rect(corners: Edge.Corner.Style, isUniform: Bool = false) -> ConcentricRectangle {
+        ConcentricRectangle(corners: corners, isUniform: isUniform)
+    }
+}
+
 extension Shape where Self == Circle {
     /// A circle.
     public static var circle: Circle { Circle() }
