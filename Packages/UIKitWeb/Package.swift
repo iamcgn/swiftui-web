@@ -85,6 +85,7 @@ let package = Package(
             name: "UIKitWebTests",
             dependencies: ["UIKit", "UIKitFixtureKit", "UIKitFixtures",
                            .product(name: "WebFoundation", package: "WebGraphics"),
+                           .product(name: "WebFoundationFormats", package: "WebGraphics"),
                            .product(name: "WebGraphicsHeadless", package: "WebGraphics"),
                            .product(name: "WebGraphicsNative", package: "WebGraphics")],
             // Testing declares a UIKit overlay that only ships on Apple platforms.

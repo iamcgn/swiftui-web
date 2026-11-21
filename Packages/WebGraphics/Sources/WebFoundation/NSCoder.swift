@@ -3,7 +3,7 @@
 // `fatalError` or a call to `super.init(coder:)`; the web has no storyboards or nibs, so no
 // coder from one ever reaches it. This base class holds nothing: every decode finds no value,
 // as an empty archive would give, and encoding is accepted and dropped. NSKeyedArchiver and
-// NSKeyedUnarchiver (NSKeyedArchiver.swift) are the coders that hold values.
+// NSKeyedUnarchiver (WebFoundationFormats' NSKeyedArchiver.swift) are the coders that hold values.
 #if os(WASI)
 
 /// An abstract class that serves as the basis for objects that archive and unarchive values.
