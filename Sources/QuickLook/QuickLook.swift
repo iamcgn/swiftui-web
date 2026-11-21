@@ -66,26 +66,30 @@ struct _QuickLookPreview: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if let url = selection {
-                    _QuickLookItem(url: url).id(url)
-                } else {
-                    EmptyView()
+            VStack(spacing: 0) {
+                Group {
+                    if let url = selection {
+                        _QuickLookItem(url: url).id(url)
+                    } else {
+                        EmptyView()
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // Paging sits under the file rather than in a bottom toolbar, which only iOS
+                // hosts draw, so every host shows it.
+                if urls.count > 1 {
+                    HStack {
+                        Button("Previous") { step(-1) }.disabled((index ?? 0) == 0)
+                        Spacer()
+                        Button("Next") { step(1) }.disabled((index ?? urls.count - 1) >= urls.count - 1)
+                    }
+                    .padding()
                 }
             }
             .navigationTitle(selection?.lastPathComponent ?? "")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { selection = nil }
-                }
-                if urls.count > 1 {
-                    ToolbarItem(placement: .bottomBar) {
-                        HStack {
-                            Button("Previous") { step(-1) }.disabled((index ?? 0) == 0)
-                            Spacer()
-                            Button("Next") { step(1) }.disabled((index ?? urls.count - 1) >= urls.count - 1)
-                        }
-                    }
                 }
             }
         }
