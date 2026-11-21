@@ -40,8 +40,10 @@ public struct LPError: Error, Hashable, Sendable {
     public static let metadataFetchCancelled = Code.metadataFetchCancelled
     public static let metadataFetchTimedOut = Code.metadataFetchTimedOut
     public static let metadataFetchNotAllowed = Code.metadataFetchNotAllowed
-    public static func ~= (code: Code, error: any Error) -> Bool { (error as? LPError)?.code == code }
 }
+
+/// Lets `catch LPError.metadataFetchFailed` match a thrown `LPError` by its code.
+public func ~= (code: LPError.Code, error: any Error) -> Bool { (error as? LPError)?.code == code }
 
 /// Fetches a page's metadata, once per provider (a second fetch fails, as Apple's does).
 open class LPMetadataProvider: NSObject, @unchecked Sendable {
@@ -86,7 +88,7 @@ open class LPMetadataProvider: NSObject, @unchecked Sendable {
 
     /// The page's metadata, or the error, handed to `completionHandler`.
     open func startFetchingMetadata(for url: URL, completionHandler: @escaping @Sendable (LPLinkMetadata?, (any Error)?) -> Void) {
-        nonisolated(unsafe) let provider = self
+        let provider = self
         Task {
             do { completionHandler(try await provider.startFetchingMetadata(for: url), nil) } catch { completionHandler(nil, error) }
         }
