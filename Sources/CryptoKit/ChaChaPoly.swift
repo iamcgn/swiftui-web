@@ -7,7 +7,7 @@
 /// The ChaCha20-Poly1305 cipher.
 public enum ChaChaPoly {
     /// A 12-byte value used once per message under a key.
-    public struct Nonce: Sequence, Sendable, Hashable {
+    public struct Nonce: ContiguousBytes, Sequence, Sendable, Hashable {
         let bytes: [UInt8]
 
         /// A random nonce.

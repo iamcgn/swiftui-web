@@ -14,7 +14,7 @@ public struct SymmetricKeySize: Sendable {
 }
 
 /// A symmetric cryptographic key.
-public struct SymmetricKey: Sendable, Equatable {
+public struct SymmetricKey: ContiguousBytes, Sendable, Equatable {
     let bytes: [UInt8]
 
     /// Creates a key from the data.
