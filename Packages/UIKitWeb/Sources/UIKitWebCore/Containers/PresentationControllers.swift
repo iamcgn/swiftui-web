@@ -58,10 +58,21 @@ open class UISheetPresentationController: UIPresentationController {
 
         public static func medium() -> Detent { Detent(identifier: .medium, resolver: nil) }
         public static func large() -> Detent { Detent(identifier: .large, resolver: nil) }
+        /// A detent whose height `resolver` gives from the context: the sheet's largest height
+        /// (`maximumDetentValue`) and the container's traits. Nil leaves the detent out.
         @MainActor
-        public static func custom(identifier: Identifier? = nil, resolver: @escaping @MainActor (_ maximumDetentValue: CGFloat) -> CGFloat?) -> Detent {
+        public static func custom(identifier: Identifier? = nil, resolver: @escaping @MainActor (any UISheetPresentationControllerDetentResolutionContext) -> CGFloat?) -> Detent {
             customCount += 1
-            return Detent(identifier: identifier ?? Identifier("custom-\(customCount)"), resolver: resolver)
+            return Detent(identifier: identifier ?? Identifier("custom-\(customCount)"), resolver: { maximum in
+                resolver(_DetentResolutionContext(maximumDetentValue: maximum, containerTraitCollection: UIScreen.main.traitCollection))
+            })
+        }
+
+        /// The detent's height in a context: a custom detent's resolver's, the medium detent's
+        /// half and the large detent's whole of the maximum.
+        public func resolvedValue(in context: any UISheetPresentationControllerDetentResolutionContext) -> CGFloat? {
+            if let resolver { return resolver(context.maximumDetentValue) }
+            return identifier == .medium ? context.maximumDetentValue / 2 : context.maximumDetentValue
         }
         @MainActor private static var customCount = 0
 
@@ -89,6 +100,23 @@ open class UISheetPresentationController: UIPresentationController {
     open func animateChanges(_ changes: () -> Void) {
         changes()
         presentedViewController.presentationContainer?.setNeedsLayout()
+    }
+}
+
+/// What a custom detent's resolver is told: the largest height a sheet can have and the traits
+/// of the container it is in.
+@preconcurrency @MainActor
+public protocol UISheetPresentationControllerDetentResolutionContext: AnyObject {
+    var containerTraitCollection: UITraitCollection { get }
+    var maximumDetentValue: CGFloat { get }
+}
+
+@MainActor final class _DetentResolutionContext: UISheetPresentationControllerDetentResolutionContext {
+    let maximumDetentValue: CGFloat
+    let containerTraitCollection: UITraitCollection
+    init(maximumDetentValue: CGFloat, containerTraitCollection: UITraitCollection) {
+        self.maximumDetentValue = maximumDetentValue
+        self.containerTraitCollection = containerTraitCollection
     }
 }
 

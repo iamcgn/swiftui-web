@@ -3,7 +3,7 @@
 // tap reaches its didSelectRowAt and the next appearance clears the selection; a window resize
 // is a size transition the controller hears before the new size, whose alongside blocks and
 // completions run after it; the status bar preferences, the scene's status bar manager and the
-// iOS 9 `openURL(_:)` answer as UIKit's do.
+// iOS 9 `openURL(_:)` answer as UIKit's do; a custom sheet detent reads its resolution context.
 import Testing
 import UIKit
 @testable import UIKitWebCore
@@ -112,5 +112,14 @@ import UIKit
         #expect(UIApplication.shared.openURL(URL(string: "https://example.com/a")!))
         #expect(!UIApplication.shared.openURL(URL(string: UIApplication.openSettingsURLString)!))
         #expect(opened == ["https://example.com/a"])
+    }
+
+    @Test func customDetentsReadTheirContext() {
+        // RevenueCat's debug sheet: `.custom { context in context.maximumDetentValue * 0.5 }`.
+        let half = UISheetPresentationController.Detent.custom { context in context.maximumDetentValue * 0.5 }
+        let context = _DetentResolutionContext(maximumDetentValue: 600, containerTraitCollection: UIScreen.main.traitCollection)
+        #expect(half.resolvedValue(in: context) == 300)
+        #expect(UISheetPresentationController.Detent.medium().resolvedValue(in: context) == 300)
+        #expect(UISheetPresentationController.Detent.large().resolvedValue(in: context) == 600)
     }
 }
