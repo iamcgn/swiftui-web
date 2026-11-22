@@ -68,6 +68,50 @@ import WebFoundationFormats
         #expect(match == match)
     }
 
+    #if os(WASI) || canImport(Darwin)
+    /// A link detector finds addresses in running text (AcknowList's license parser), without
+    /// the sentence punctuation after them.
+    @Test func dataDetectorLinks() throws {
+        let detector = try NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        func links(_ text: String) -> [String] {
+            detector.matches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count)).compactMap { $0.url?.absoluteString }
+        }
+        let license = "Copyright (c) 2015 the authors. See https://github.com/vtourraine/AcknowList."
+        let first = try #require(detector.firstMatch(in: license, options: [], range: NSMakeRange(0, license.utf16.count)))
+        #expect(first.url?.absoluteString == "https://github.com/vtourraine/AcknowList")
+        #expect(first.resultType == .link)
+        #expect(first.range == NSRange(location: 36, length: 40))
+        #expect(links("Mail someone@example.com today") == ["mailto:someone@example.com"])
+        #expect(links("Visit www.example.org, then (see https://example.com/a).") == ["http://www.example.org", "https://example.com/a"])
+        #expect(links("No links in this sentence.").isEmpty)
+        #expect(NSTextCheckingResult.CheckingType.link.rawValue == 1 << 5)
+        #expect(ProcessInfo.processInfo.isMacCatalystApp == false)
+    }
+    #endif
+
+    #if os(WASI)
+    @Test func dataDetectorKinds() throws {
+        // A detector for kinds it does not find makes no matches; one for no detectable kind throws.
+        let dates = try NSDataDetector(types: NSTextCheckingResult.CheckingType.date.rawValue)
+        #expect(dates.numberOfMatches(in: "https://example.com tomorrow", range: NSRange(location: 0, length: 27)) == 0)
+        #expect(throws: (any Error).self) { try NSDataDetector(types: NSTextCheckingResult.CheckingType.spelling.rawValue) }
+        let links = try NSDataDetector(types: NSTextCheckingAllTypes)
+        let text = "github.com/apple and file:///tmp/x but not README.md or e.g. this"
+        let found = links.matches(in: text, range: NSRange(location: 0, length: text.utf16.count)).compactMap { $0.url?.absoluteString }
+        #expect(found == ["http://github.com/apple", "file:///tmp/x"])
+        let mail = "write to mailto:a.b@example.co.uk."
+        let match = try #require(links.firstMatch(in: mail, range: NSRange(location: 0, length: mail.utf16.count)))
+        #expect(match.range == NSRange(location: 9, length: 24))
+        #expect(match.url?.absoluteString == "mailto:a.b@example.co.uk")
+    }
+
+    /// KeychainAccess' iOS 8 workaround compares the running Foundation with iOS 8's.
+    @Test func foundationVersionNumber() {
+        #expect(NSFoundationVersionNumber.rounded(.down) > NSFoundationVersionNumber_iOS_8_0.rounded(.down))
+        #expect(NSFoundationVersionNumber_iOS_8_0 > NSFoundationVersionNumber_iOS_7_1)
+    }
+    #endif
+
     #if os(WASI)
     @Test func localizedOrder() {
         #expect("a".localizedCompare("B") == .orderedAscending)
