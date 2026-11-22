@@ -20,6 +20,9 @@ open class UIResponderBase {
     nonisolated open func responds(to aSelector: Selector!) -> Bool { false }
     nonisolated open class func responds(to aSelector: Selector!) -> Bool { false }
     nonisolated open class func instancesRespond(to aSelector: Selector!) -> Bool { false }
+    /// The class an archive records: the class itself, as NSObject's root-class method answers
+    /// (`tableView.register(UITableViewCell.classForCoder(), forCellReuseIdentifier:)`).
+    nonisolated open class func classForCoder() -> AnyClass { self }
     nonisolated open func perform(_ aSelector: Selector!) -> Unmanaged<AnyObject>! { nil }
     nonisolated open func perform(_ aSelector: Selector!, with object: Any!) -> Unmanaged<AnyObject>! { nil }
     nonisolated open func perform(_ aSelector: Selector!, with object1: Any!, with object2: Any!) -> Unmanaged<AnyObject>! { nil }

@@ -52,6 +52,9 @@ open class NSObject: NSObjectProtocol, Hashable, CustomStringConvertible {
     public static func == (lhs: NSObject, rhs: NSObject) -> Bool { lhs.isEqual(rhs) }
     public func hash(into hasher: inout Hasher) { hasher.combine(hash) }
     open class var description: String { "\(self)" }
+    /// The class an archive records for objects of this class: the class itself
+    /// (`UITableViewCell.classForCoder()`, which apps register cells with).
+    open class func classForCoder() -> AnyClass { self }
     public func isKind(of aClass: AnyClass) -> Bool { type(of: self) == aClass }
     public func isMember(of aClass: AnyClass) -> Bool { type(of: self) == aClass }
 

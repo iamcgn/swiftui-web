@@ -1844,7 +1844,7 @@
         {
           "api": "UITableView (plain, grouped, inset grouped)",
           "status": "partial",
-          "notes": "The row, header and footer geometry measured on the simulator (plain, grouped and inset grouped), recycling, selection through the delegate, automatic and self-sizing row heights, section index, pinned headers, tableHeaderView / tableFooterView, right-to-left layouts (mirrored, approximate); open: the lifted row's shadow",
+          "notes": "UITableViewController (2026-11-22): a table view of its style as its view, with the controller as data source and delegate through open methods a subclass overrides, the rows loaded on the first appearance and the selection cleared on each (clearsSelectionOnViewWillAppear), refreshControl; UITableViewCell.classForCoder() for registering cells. The row, header and footer geometry measured on the simulator (plain, grouped and inset grouped), recycling, selection through the delegate, automatic and self-sizing row heights, section index, pinned headers, tableHeaderView / tableFooterView, right-to-left layouts (mirrored, approximate); open: the lifted row's shadow",
           "fixtures": [
             "uikit/table/rest",
             "uikit/table/rtl",
@@ -1924,7 +1924,7 @@
         {
           "api": "UIViewController (lifecycle, containment, preferredContentSize, safe areas, layout margins)",
           "status": "partial",
-          "notes": "loadView / viewDidLoad / the appearance callbacks as a window's root or a container's child, addChild / removeFromParent, additionalSafeAreaInsets, systemMinimumLayoutMargins; open: the appearance callbacks' animated flag semantics, viewSafeAreaInsetsDidChange outside hosted trees",
+          "notes": "loadView / viewDidLoad / the appearance callbacks as a window's root or a container's child, addChild / removeFromParent, additionalSafeAreaInsets, systemMinimumLayoutMargins; size transitions (2026-11-22): a window resize sends viewWillTransition(to:with:) to the root controller on screen, which passes it to its children and presented controller, and the coordinator runs the alongside blocks and completions once the new size is laid out (not animated); the status bar preferences (preferredStatusBarStyle, prefersStatusBarHidden, childForStatusBarStyle) are answered and read by nothing, as a page has no status bar; UIWindowScene.statusBarManager gives the strip above the safe area; extendedLayoutIncludesOpaqueBars and automaticallyAdjustsScrollViewInsets are kept; open: the appearance callbacks' animated flag semantics, viewSafeAreaInsetsDidChange outside hosted trees",
           "fixtures": [
             "uikit/nav/basic",
             "uikit/nav/push",
@@ -2027,7 +2027,7 @@
         {
           "api": "UIViewController.present / dismiss (page and form sheets, full screen, custom containers) / transitioningDelegate / UISheetPresentationController / UIPopoverPresentationController",
           "status": "partial",
-          "notes": "The page sheet card with its dimming and a tap outside dismissing, full-screen styles filling the window, appearance callbacks for presented controllers; open: detents and the grabber, popovers, custom presentation controllers and transitioning delegates; custom animators through UIViewControllerTransitioningDelegate, UIViewControllerAnimatedTransitioning and UIViewControllerContextTransitioning (interaction and presentation controllers accepted; 2026-10-04); sheet detents (medium measured, custom resolvers), the grabber and corner radius, popovers kept as arrowed cards or adapted to a sheet, action sheets anchored to a source, the adaptive delegates (2026-10-04)",
+          "notes": "Custom detents (2026-11-22) take a resolution context (maximumDetentValue, containerTraitCollection), as iOS 16's do, and Detent.resolvedValue(in:) answers a detent's height. The page sheet card with its dimming and a tap outside dismissing, full-screen styles filling the window, appearance callbacks for presented controllers; open: detents and the grabber, popovers, custom presentation controllers and transitioning delegates; custom animators through UIViewControllerTransitioningDelegate, UIViewControllerAnimatedTransitioning and UIViewControllerContextTransitioning (interaction and presentation controllers accepted; 2026-10-04); sheet detents (medium measured, custom resolvers), the grabber and corner radius, popovers kept as arrowed cards or adapted to a sheet, action sheets anchored to a source, the adaptive delegates (2026-10-04)",
           "fixtures": [
             "uikit/alert/anchored",
             "uikit/popover/adapted",
