@@ -2718,6 +2718,12 @@
           "noFixture": "Nothing to draw: FrameworkTests check the declined requests and the throwing save"
         },
         {
+          "api": "CNContactStore / CNContact / CNMutableContact / CNLabeledValue / CNContactFormatter (Contacts)",
+          "status": "stub",
+          "notes": "2026-11-21: a page cannot reach the person's address book, so an access request answers as a person who declined (not granted, no error), the status is denied, and fetching, enumerating, listing containers or executing a save request throws authorizationDenied, as on a device without access. Contacts, labeled values (CNLabelHome, CNLabelPhoneNumberMobile and the other labels, localizedString(forLabel:)), phone numbers, postal addresses, relations, social profiles and save requests are values an app fills, copies (copy, mutableCopy) and reads; CNContactFormatter writes a full name and CNPostalAddressFormatter a mailing address (OldOS's contacts and phone apps, Clendar's permission check). Not done: reading or writing any real contact, ContactsUI's pickers",
+          "noFixture": "Nothing to draw: FrameworkTests check the declined store and the contact values"
+        },
+        {
           "api": "PhotosPicker / photosPicker / PhotosPickerItem / PHPickerViewController / PHPickerConfiguration / PHPickerFilter / PHPickerResult (PhotosUI)",
           "status": "partial",
           "notes": "pf-small-frameworks (2026-11-13): the pickers open the host's file panel (a browser's file input, which a phone fills from its photo library or camera) for the filter's photos, videos or both, and the chosen files become the selection, capped at the maximum count; closing the panel without a choice keeps the selection. Picker items load as `Data` and through an app's own representations (IceCubes' file representations of movies and GIFs); `PHPickerViewController` hands its delegate an item provider for each file, which loads as `UIImage`, data or a transferable value. Not done: the inline and compact styles (the panel always takes the screen), live photos, and the person's library albums",
