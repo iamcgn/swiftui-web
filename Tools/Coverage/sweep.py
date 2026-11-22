@@ -1279,6 +1279,11 @@ def package_name_of(target, app):
 
 
 IMPLICIT_FOUNDATION = '.unsafeFlags(["-Xfrontend", "-import-module", "-Xfrontend", "Foundation"], .when(platforms: [.wasi]))'
+# A package's macro builds for the host against the swift-syntax SwiftUIWeb resolves, which can be
+# newer than the one the package pins. Older swift-syntax modules imported Foundation, so a macro
+# could use Foundation's String members (TCA's ReducerMacro, `capitalized`) without importing it.
+# The host's own Foundation, imported implicitly, keeps those macros building as they do upstream.
+MACRO_FOUNDATION = '.unsafeFlags(["-Xfrontend", "-import-module", "-Xfrontend", "Foundation"])'
 
 
 def names_foundation_without_importing(text):
@@ -1404,7 +1409,7 @@ def cmd_prepare(args):
                     shutil.copy2(clone_dir / f, dest)
                 syntax = "".join(f', .product(name: "{n}", package: "swift-syntax")' for n in t.get("syntax", []))
                 deps = (", ".join(json.dumps(d) for d in t["deps"]) + syntax).lstrip(", ")
-                settings = ", ".join([f".swiftLanguageMode(.{t['mode']})"] + t["settings"] + [package_flag])
+                settings = ", ".join([f".swiftLanguageMode(.{t['mode']})"] + t["settings"] + [package_flag, MACRO_FOUNDATION])
                 decls.append(
                     f'        .macro(\n            name: "{t["module"]}",\n            dependencies: [{deps}],\n'
                     f'            path: "Sources/{t["module"]}",\n'
