@@ -3,7 +3,8 @@
 // tap reaches its didSelectRowAt and the next appearance clears the selection; a window resize
 // is a size transition the controller hears before the new size, whose alongside blocks and
 // completions run after it; the status bar preferences, the scene's status bar manager and the
-// iOS 9 `openURL(_:)` answer as UIKit's do; a custom sheet detent reads its resolution context.
+// iOS 9 `openURL(_:)` answer as UIKit's do; a custom sheet detent reads its resolution context;
+// a controller's awakeFromNib override chains to UIKit's, which does nothing.
 import Testing
 import UIKit
 @testable import UIKitWebCore
@@ -29,6 +30,12 @@ import UIKit
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) { picked.append(indexPath) }
 
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
+
+    var awoke = false
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        awoke = true
+    }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
@@ -101,6 +108,12 @@ import UIKit
         let plain = UIViewController()
         #expect(plain.preferredStatusBarStyle == .default && !plain.prefersStatusBarHidden && plain.childForStatusBarStyle == nil)
         #expect(FruitList().preferredStatusBarStyle == .lightContent)
+        // AcknowList's pattern: nothing loads a nib here, so only a direct call reaches the override.
+        let list = FruitList()
+        #expect(!list.awoke)
+        list.awakeFromNib()
+        list.prepareForInterfaceBuilder()
+        #expect(list.awoke)
         let scene = host(plain)
         let manager = scene.windowScene.statusBarManager
         #expect(manager === scene.windowScene.statusBarManager)

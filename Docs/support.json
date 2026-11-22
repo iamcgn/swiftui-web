@@ -1844,7 +1844,7 @@
         {
           "api": "UITableView (plain, grouped, inset grouped)",
           "status": "partial",
-          "notes": "UITableViewController (2026-11-22): a table view of its style as its view, with the controller as data source and delegate through open methods a subclass overrides, the rows loaded on the first appearance and the selection cleared on each (clearsSelectionOnViewWillAppear), refreshControl; UITableViewCell.classForCoder() for registering cells. The row, header and footer geometry measured on the simulator (plain, grouped and inset grouped), recycling, selection through the delegate, automatic and self-sizing row heights, section index, pinned headers, tableHeaderView / tableFooterView, right-to-left layouts (mirrored, approximate); open: the lifted row's shadow",
+          "notes": "UITableViewController (2026-11-22): a table view of its style as its view (awakeFromNib and prepareForInterfaceBuilder on UIResponder do nothing, as no nib is loaded), with the controller as data source and delegate through open methods a subclass overrides, the rows loaded on the first appearance and the selection cleared on each (clearsSelectionOnViewWillAppear), refreshControl; UITableViewCell.classForCoder() for registering cells. The row, header and footer geometry measured on the simulator (plain, grouped and inset grouped), recycling, selection through the delegate, automatic and self-sizing row heights, section index, pinned headers, tableHeaderView / tableFooterView, right-to-left layouts (mirrored, approximate); open: the lifted row's shadow",
           "fixtures": [
             "uikit/table/rest",
             "uikit/table/rtl",
