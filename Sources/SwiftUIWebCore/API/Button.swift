@@ -495,7 +495,10 @@ struct _PlainButtonBody: View {
 /// A standard style as a primitive style. SwiftUI declares `.automatic`, `.bordered`,
 /// `.borderedProminent`, `.borderless` and `.plain` on `PrimitiveButtonStyle`, so code generic
 /// over `some PrimitiveButtonStyle` can name them (Hipstapaper's `ModifierButtonStyle(.bordered)`).
-/// Here they are `ButtonStyle`s, and this draws the button with the one it wraps.
+/// Here they are `ButtonStyle`s, and this draws the button with the one it wraps. The members are
+/// disfavoured, so `.buttonStyle(.bordered)` still picks the `ButtonStyle` of that name. The
+/// `buttonStyle` overload is left as it is, so an app's own `buttonStyle` that takes an optional
+/// primitive style and forwards it (Harbour's) still reaches ours, not itself.
 public struct _StandardPrimitiveButtonStyle<Style: ButtonStyle>: PrimitiveButtonStyle {
     package let style: Style
     package init(_ style: Style) { self.style = style }
@@ -505,18 +508,23 @@ public struct _StandardPrimitiveButtonStyle<Style: ButtonStyle>: PrimitiveButton
 }
 
 extension PrimitiveButtonStyle where Self == _StandardPrimitiveButtonStyle<DefaultButtonStyle> {
+    @_disfavoredOverload
     public static var automatic: _StandardPrimitiveButtonStyle<DefaultButtonStyle> { .init(DefaultButtonStyle()) }
 }
 extension PrimitiveButtonStyle where Self == _StandardPrimitiveButtonStyle<BorderedButtonStyle> {
+    @_disfavoredOverload
     public static var bordered: _StandardPrimitiveButtonStyle<BorderedButtonStyle> { .init(BorderedButtonStyle()) }
 }
 extension PrimitiveButtonStyle where Self == _StandardPrimitiveButtonStyle<BorderedProminentButtonStyle> {
+    @_disfavoredOverload
     public static var borderedProminent: _StandardPrimitiveButtonStyle<BorderedProminentButtonStyle> { .init(BorderedProminentButtonStyle()) }
 }
 extension PrimitiveButtonStyle where Self == _StandardPrimitiveButtonStyle<BorderlessButtonStyle> {
+    @_disfavoredOverload
     public static var borderless: _StandardPrimitiveButtonStyle<BorderlessButtonStyle> { .init(BorderlessButtonStyle()) }
 }
 extension PrimitiveButtonStyle where Self == _StandardPrimitiveButtonStyle<PlainButtonStyle> {
+    @_disfavoredOverload
     public static var plain: _StandardPrimitiveButtonStyle<PlainButtonStyle> { .init(PlainButtonStyle()) }
 }
 
@@ -556,9 +564,7 @@ extension View {
     }
 
     /// Sets the style for buttons within this view to a primitive style, which owns the
-    /// interaction as well as the look. Disfavoured, so `.buttonStyle(.bordered)` picks the
-    /// `ButtonStyle` of that name rather than its primitive twin.
-    @_disfavoredOverload
+    /// interaction as well as the look.
     nonisolated public func buttonStyle<S: PrimitiveButtonStyle>(_ style: S) -> some View {
         environment(\._primitiveButtonStyle, style)
     }

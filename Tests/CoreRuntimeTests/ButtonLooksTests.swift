@@ -26,6 +26,14 @@ private struct PlainWrapping: PrimitiveButtonStyle {
     }
 }
 
+/// An app's own `buttonStyle` for an optional primitive style, as Harbour declares one: it must
+/// forward to SwiftUI's, not to itself, and leave `.buttonStyle(.bordered)` unambiguous.
+private extension View {
+    @ViewBuilder func buttonStyle(_ style: (some PrimitiveButtonStyle)?) -> some View {
+        if let style { self.buttonStyle(style) } else { self }
+    }
+}
+
 /// A view generic over a primitive style, as Umbrella's `ModifierButtonStyle` is.
 private struct PrimitiveStyled<S: PrimitiveButtonStyle>: View {
     let style: S
@@ -72,6 +80,7 @@ private struct PrimitiveStyled<S: PrimitiveButtonStyle>: View {
             PrimitiveStyled(style: .plain) { counter.taps += 1 }._probe("plain")
             Button("OK") { counter.taps += 1 }.buttonStyle(PlainWrapping())._probe("wrapped")
             Button("OK") {}.buttonStyle(.bordered)._probe("direct")
+            Button("OK") { counter.taps += 1 }.buttonStyle(Optional(PlainWrapping()))._probe("optional")
         })
         // `.bordered` named as a primitive style draws the bordered bezel, the same as the
         // `ButtonStyle` of that name; `.plain` and `Button(configuration)` draw the bare label.
@@ -80,12 +89,13 @@ private struct PrimitiveStyled<S: PrimitiveButtonStyle>: View {
         #expect(runtime.probeFrames["direct"]?.size == runtime.probeFrames["bordered"]?.size)
         #expect(runtime.probeFrames["plain"]?.height == 16 && runtime.probeFrames["plain"]?.width == 40)
         #expect(runtime.probeFrames["wrapped"]?.size == runtime.probeFrames["plain"]?.size)
-        for name in ["bordered", "plain", "wrapped"] {
+        #expect(runtime.probeFrames["optional"]?.size == runtime.probeFrames["plain"]?.size)
+        for name in ["bordered", "plain", "wrapped", "optional"] {
             let frame = runtime.probeFrames[name]!
             runtime.pointerDown(at: CGPoint(x: frame.midX, y: frame.midY))
             runtime.pointerUp(at: CGPoint(x: frame.midX, y: frame.midY))
         }
-        #expect(counter.taps == 3)
+        #expect(counter.taps == 4)
     }
 
     @Test func controlSizesChangeTheBezel() {
