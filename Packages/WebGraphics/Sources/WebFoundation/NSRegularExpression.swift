@@ -318,22 +318,56 @@ public final class NSRegularExpression: @unchecked Sendable {
 public final class NSTextCheckingResult: @unchecked Sendable {
     public let regularExpression: NSRegularExpression?
     private let ranges: [NSRange]
+    /// The link a data detector found (`.link` results only).
+    public let url: URL?
+    private let type: CheckingType
 
     init(ranges: [NSRange], expression: NSRegularExpression?) {
         self.ranges = ranges.isEmpty ? [.notFound] : ranges
         regularExpression = expression
+        url = nil
+        type = .regularExpression
+    }
+
+    /// A link result over `range` (what `NSDataDetector` returns, and Foundation's
+    /// `NSTextCheckingResult.linkCheckingResult(range:url:)`).
+    public class func linkCheckingResult(range: NSRange, url: URL) -> NSTextCheckingResult {
+        NSTextCheckingResult(range: range, url: url)
+    }
+
+    private init(range: NSRange, url: URL) {
+        ranges = [range]
+        regularExpression = nil
+        self.url = url
+        type = .link
     }
 
     public var range: NSRange { ranges[0] }
     public var numberOfRanges: Int { ranges.count }
     public func range(at idx: Int) -> NSRange { idx < ranges.count ? ranges[idx] : .notFound }
     public func range(withName name: String) -> NSRange { .notFound }
-    public var resultType: CheckingType { .regularExpression }
+    public var resultType: CheckingType { type }
 
+    /// The kinds of result, by Foundation's raw values (`NSTextCheckingTypes` is the raw type).
     public struct CheckingType: OptionSet, Hashable, Sendable {
         public let rawValue: UInt64
         public init(rawValue: UInt64) { self.rawValue = rawValue }
+        public static let orthography = CheckingType(rawValue: 1 << 0)
+        public static let spelling = CheckingType(rawValue: 1 << 1)
+        public static let grammar = CheckingType(rawValue: 1 << 2)
+        public static let date = CheckingType(rawValue: 1 << 3)
+        public static let address = CheckingType(rawValue: 1 << 4)
+        public static let link = CheckingType(rawValue: 1 << 5)
+        public static let quote = CheckingType(rawValue: 1 << 6)
+        public static let dash = CheckingType(rawValue: 1 << 7)
+        public static let replacement = CheckingType(rawValue: 1 << 8)
+        public static let correction = CheckingType(rawValue: 1 << 9)
         public static let regularExpression = CheckingType(rawValue: 1 << 10)
+        public static let phoneNumber = CheckingType(rawValue: 1 << 11)
+        public static let transitInformation = CheckingType(rawValue: 1 << 12)
+        public static let allSystemTypes = CheckingType(rawValue: 0xffff_ffff)
+        public static let allCustomTypes = CheckingType(rawValue: 0xffff_ffff << 32)
+        public static let allTypes = CheckingType(rawValue: UInt64.max)
     }
 }
 

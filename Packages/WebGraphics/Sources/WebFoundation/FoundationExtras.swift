@@ -346,4 +346,17 @@ extension URL {
     public func stopAccessingSecurityScopedResource() {}
 }
 
+// MARK: - Foundation's version number
+
+// The version of Foundation the app runs against, and the named releases apps compare it with
+// (KeychainAccess: `floor(NSFoundationVersionNumber) <= floor(NSFoundationVersionNumber_iOS_8_0)`
+// for a workaround only iOS 8 needs). This Foundation is newer than every named release.
+public let NSFoundationVersionNumber: Double = 2000
+public let NSFoundationVersionNumber_iOS_6_0: Double = 993.00
+public let NSFoundationVersionNumber_iOS_7_0: Double = 1047.20
+public let NSFoundationVersionNumber_iOS_7_1: Double = 1047.25
+public let NSFoundationVersionNumber_iOS_8_0: Double = 1140.11
+public let NSFoundationVersionNumber_iOS_8_x_Max: Double = 1199
+public let NSFoundationVersionNumber_iOS_9_0: Double = 1240.1
+public let NSFoundationVersionNumber_iOS_9_x_Max: Double = 1299
 #endif

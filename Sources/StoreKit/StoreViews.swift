@@ -205,6 +205,9 @@ struct _ProductViewBody: View {
 /// load, so the view shows it as unavailable with its placeholder icon.
 public struct ProductView<Icon: View, PlaceholderIcon: View>: View {
     private let configuration: ProductViewStyleConfiguration
+    /// Whether the environment's product view style draws the view (not for a view made from a
+    /// style's own configuration, which draws in the standard style).
+    private var styled = true
 
     private init(id: Product.ID, product: Product?, icon: AnyView) {
         configuration = ProductViewStyleConfiguration(
@@ -221,7 +224,23 @@ public struct ProductView<Icon: View, PlaceholderIcon: View>: View {
         self.init(id: product.id, product: product, icon: AnyView(icon()))
     }
 
-    public var body: some View { _ProductViewBody(configuration: configuration) }
+    public var body: some View {
+        if styled {
+            _ProductViewBody(configuration: configuration)
+        } else {
+            _StandardProductBody(configuration: configuration, size: .regular)
+        }
+    }
+}
+
+extension ProductView where Icon == ProductViewStyleConfiguration.Icon, PlaceholderIcon == EmptyView {
+    /// The standard product view for a custom style's configuration (a style that draws its
+    /// own loading and purchase states and falls back to the system's otherwise, RevenueCat's
+    /// debug screen).
+    public init(_ configuration: ProductViewStyleConfiguration) {
+        self.configuration = configuration
+        styled = false
+    }
 }
 
 extension ProductView where PlaceholderIcon == EmptyView {

@@ -6,7 +6,10 @@
 // `metadataFetchFailed`. No icon, image or video is loaded, so those providers stay `nil`.
 // Apple's framework re-exports Foundation: a file importing only this module names `URL`.
 @_exported import WebFoundation
-#if canImport(FoundationNetworking)
+// Not on wasm, where WebFoundation has URLSession and `FoundationNetworking` is the shadow module,
+// which an app's build may have built (so `canImport` finds it) but whose dependencies this
+// target doesn't put on its search paths (the Objective-C sweep's missing WebCGGeometry).
+#if canImport(FoundationNetworking) && !os(WASI)
 import FoundationNetworking   // Linux keeps URLSession here
 #endif
 

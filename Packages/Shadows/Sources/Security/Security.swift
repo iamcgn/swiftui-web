@@ -213,6 +213,52 @@ public func SecCopyErrorMessageString(_ status: OSStatus, _ reserved: UnsafeMuta
     }
 }
 
+// MARK: - Shared web credentials
+
+// Safari's saved passwords for an app's associated domains (KeychainAccess'
+// `requestSharedWebCredential` and `setSharedPassword`). A web page has no associated domains
+// and no way to the browser's password store: a request finds no credential, saving one fails
+// as unimplemented, and only the password generator works (`SecCreateSharedWebCredentialPassword`).
+
+/// The key of a shared credential's password in the dictionaries a request returns.
+public let kSecSharedPassword: CFString = "spwd"
+
+/// Saves a password for an account on a domain to Safari's saved passwords: unavailable here,
+/// so the completion handler gets an `errSecUnimplemented` error.
+public func SecAddSharedWebCredential(_ fqdn: CFString, _ account: CFString, _ password: CFString?,
+                                      _ completionHandler: @escaping (CFError?) -> Void) {
+    completionHandler(NSError(domain: NSOSStatusErrorDomain, code: Int(errSecUnimplemented),
+                              userInfo: [NSLocalizedDescriptionKey: "Shared web credentials are not available in a web page."]))
+}
+
+/// Requests Safari's saved passwords for a domain and account: there are none here, so the
+/// completion handler gets no credentials and an `errSecItemNotFound` error, as Apple's does
+/// when nothing is saved.
+public func SecRequestSharedWebCredential(_ fqdn: CFString?, _ account: CFString?,
+                                          _ completionHandler: @escaping (CFArray?, CFError?) -> Void) {
+    completionHandler(nil, NSError(domain: NSOSStatusErrorDomain, code: Int(errSecItemNotFound),
+                                   userInfo: [NSLocalizedDescriptionKey: "No shared web credentials were found."]))
+}
+
+/// A random password in Safari's form, `xxx-xxx-xxx-xxx`, with at least one character from each
+/// of its three sets (lowercase letters, uppercase letters and digits, without the ones that
+/// look alike).
+public func SecCreateSharedWebCredentialPassword() -> CFString? {
+    let sets: [[Character]] = [Array("abcdefghkmnopqrstuvwxy"), Array("ABCDEFGHJKLMNPQRSTUVWXYZ"), Array("3456789")]
+    let all = sets.flatMap { $0 }
+    var generator = SystemRandomNumberGenerator()
+    while true {
+        let characters = (0..<12).map { _ in all[Int(generator.next(upperBound: UInt(all.count)))] }
+        guard sets.allSatisfy({ set in characters.contains { set.contains($0) } }) else { continue }
+        var password = ""
+        for (index, character) in characters.enumerated() {
+            if index > 0, index % 3 == 0 { password.append("-") }
+            password.append(character)
+        }
+        return password
+    }
+}
+
 // MARK: - The item store
 
 /// The keychain: items by class and identifying attributes, each a dictionary of attributes

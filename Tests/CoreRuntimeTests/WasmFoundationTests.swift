@@ -293,6 +293,17 @@ import WebCombine
         #expect(a.description == "key" && NSString().length == 0)
     }
 
+    /// SwiftSoup's Apple-platform URL parsing goes through Core Foundation.
+    @Test func coreFoundationURLs() throws {
+        let url = try #require(CFURLCreateWithString(nil, "https://example.com/a?b=c" as CFString, nil) as URL?)
+        #expect(url.absoluteString == "https://example.com/a?b=c")
+        let base = URL(string: "https://example.com/dir/")!
+        let relative = try #require(CFURLCreateWithString(kCFAllocatorDefault, "page.html", base) as URL?)
+        #expect(CFURLGetString(relative) == "page.html")
+        #expect(CFURLCopyAbsoluteURL(relative)?.absoluteString == "https://example.com/dir/page.html")
+        #expect(CFURLCreateWithString(nil, nil, nil) == nil)
+    }
+
     /// `Bundle.localizations` is what the app's string catalogs and `.lproj` folders hold, as
     /// the build recorded them (scripts/assets.py → the manifest → the host); the development
     /// language is the catalogs' source; the preferred one follows the current locale

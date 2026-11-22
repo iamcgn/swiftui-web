@@ -85,6 +85,19 @@ public func CFDataGetTypeID() -> CFTypeID { 20 }
 public func CFBooleanGetTypeID() -> CFTypeID { 21 }
 public func CFNumberGetTypeID() -> CFTypeID { 22 }
 public func CFURLGetTypeID() -> CFTypeID { 29 }
+
+/// A URL from a string, relative to `baseURL` when given (SwiftSoup's URL parsing on Apple
+/// platforms); nil for a string that isn't a URL, as Core Foundation's is.
+public func CFURLCreateWithString(_ allocator: CFAllocator!, _ URLString: CFString!, _ baseURL: CFURL!) -> CFURL! {
+    guard let URLString else { return nil }
+    return URL(string: URLString, relativeTo: baseURL)
+}
+
+/// The URL's string, as it was given (relative to its base, if it has one).
+public func CFURLGetString(_ anURL: CFURL!) -> CFString! { anURL?.relativeString }
+
+/// The URL resolved against its base.
+public func CFURLCopyAbsoluteURL(_ relativeURL: CFURL!) -> CFURL! { relativeURL?.absoluteURL }
 public func CFErrorGetTypeID() -> CFTypeID { 30 }
 public func CFDateGetTypeID() -> CFTypeID { 42 }
 

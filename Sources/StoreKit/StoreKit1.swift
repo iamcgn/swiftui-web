@@ -486,6 +486,10 @@ open class SKPaymentQueue: NSObject {
     #else
     open func presentCodeRedemptionSheet() {}
     #endif
+
+    /// Asks the customer to consent to a subscription's price increase when the App Store has
+    /// one waiting (RevenueCat's deferred price-consent sheet). The web has none, so nothing shows.
+    open func showPriceConsentIfNeeded() {}
 }
 
 // MARK: - Review prompt
