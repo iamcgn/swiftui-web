@@ -218,7 +218,14 @@ extension _WebNSArray: Sequence, _WebJSONCollection {
     public func addingObjects(from otherArray: [Any]) -> [Any] { elements + otherArray }
     /// The elements' descriptions joined by the separator.
     public func componentsJoined(by separator: String) -> String { elements.map { "\($0)" }.joined(separator: separator) }
-    public func isEqual(to otherArray: [Any]) -> Bool {
+    // `@objc` with the runtime, as Foundation's is, so a call on `AnyObject` finds it: AcknowList
+    // filters an `[AnyObject]` plist with `item.isEqual(to: headerItem)`.
+    #if canImport(ObjectiveC)
+    @objc public func isEqual(to otherArray: [Any]) -> Bool { _webIsEqual(to: otherArray) }
+    #else
+    public func isEqual(to otherArray: [Any]) -> Bool { _webIsEqual(to: otherArray) }
+    #endif
+    private func _webIsEqual(to otherArray: [Any]) -> Bool {
         otherArray.count == elements.count && zip(elements, otherArray).allSatisfy { _webValuesEqual($0, $1) }
     }
     public func makeIterator() -> IndexingIterator<[Any]> { elements.makeIterator() }
@@ -248,7 +255,13 @@ extension _WebNSDictionary: Sequence, _WebJSONCollection {
     public func allKeys(for anObject: Any) -> [Any] {
         entries.filter { _webValuesEqual($0.value, anObject) }.map { $0.key.base }
     }
+    // `@objc` with the runtime, as Foundation's is, so a call on `AnyObject` finds it (AcknowList's
+    // `item.isEqual(to: headerItem)` with a `[String: String]`).
+    #if canImport(ObjectiveC)
+    @objc public func isEqual(to otherDictionary: [AnyHashable: Any]) -> Bool { _webEntriesEqual(entries, otherDictionary) }
+    #else
     public func isEqual(to otherDictionary: [AnyHashable: Any]) -> Bool { _webEntriesEqual(entries, otherDictionary) }
+    #endif
     /// Calls the block with each key and value; setting `stop` ends the walk.
     public func enumerateKeysAndObjects(_ block: (Any, Any, UnsafeMutablePointer<Bool>) -> Void) {
         var stop = false
