@@ -302,11 +302,9 @@ import SwiftUIWebHeadless
                 return decoder
             }
         }
-        let exporter = try #require(Tag._representationExporters.first { $0.exportedType == Data.self })
-        let data = try #require(exporter.export(Tag(displayName: "home")) as? Data)
+        let data = try #require(_TransferItem(Tag(displayName: "home")).load(as: Data.self))
         #expect(String(decoding: data, as: UTF8.self) == #"{"display_name":"home"}"#)
-        let imported = try #require(exporter.importer?(data))
-        #expect(imported == Tag(displayName: "home"))
+        #expect(_TransferItem(data).load(as: Tag.self) == Tag(displayName: "home"))
     }
 }
 
