@@ -135,4 +135,29 @@ public func SCNetworkReachabilitySetDispatchQueue(_ target: SCNetworkReachabilit
     target.update()
     return true
 }
+
+// The BSD length fields of the socket address structs, which Darwin's `sockaddr`s have and
+// WASI's don't: reachability code sets them before it hands an address to
+// `SCNetworkReachabilityCreateWithAddress` (Alamofire's zero address). An address's length is
+// its struct's size, and setting it changes nothing.
+extension sockaddr {
+    public var sa_len: UInt8 {
+        get { UInt8(MemoryLayout<sockaddr>.size) }
+        set {}
+    }
+}
+
+extension sockaddr_in {
+    public var sin_len: UInt8 {
+        get { UInt8(MemoryLayout<sockaddr_in>.size) }
+        set {}
+    }
+}
+
+extension sockaddr_in6 {
+    public var sin6_len: UInt8 {
+        get { UInt8(MemoryLayout<sockaddr_in6>.size) }
+        set {}
+    }
+}
 #endif
