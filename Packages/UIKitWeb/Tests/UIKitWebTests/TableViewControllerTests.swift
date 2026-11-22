@@ -112,6 +112,10 @@ import UIKit
         #expect(UIApplication.shared.openURL(URL(string: "https://example.com/a")!))
         #expect(!UIApplication.shared.openURL(URL(string: UIApplication.openSettingsURLString)!))
         #expect(opened == ["https://example.com/a"])
+        #if !canImport(Darwin)
+        #expect(UIApplication.value(forKey: "sharedApplication") as? UIApplication === UIApplication.shared)
+        #expect(UIApplication.value(forKey: "delegate") == nil)
+        #endif
     }
 
     @Test func customDetentsReadTheirContext() {

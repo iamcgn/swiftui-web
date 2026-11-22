@@ -132,6 +132,18 @@ public final class UIScreen {
 public final class UIApplication: UIResponder {
     public static let shared = UIApplication()
 
+    /// Key-value coding on the class, as an Objective-C class object answers it: the shared
+    /// application under "sharedApplication", the class method's name, and nothing else. Code
+    /// that may run in an app extension, where `shared` is unavailable, reaches it this way
+    /// (RevenueCat's `UIApplication.value(forKey: "sharedApplication")`).
+    /// (On Apple platforms the class object answers through Foundation's own key-value coding.)
+    #if !canImport(Darwin)
+    nonisolated public class func value(forKey key: String) -> Any? {
+        guard key == "sharedApplication" else { return nil }
+        return MainActor.assumeIsolated { shared }
+    }
+    #endif
+
     public var delegate: (any UIApplicationDelegate)?
     public var windows: [UIWindow] { UIKitScene.shared.windows }
     public var keyWindow: UIWindow? { UIKitScene.shared.windows.first { $0.isKeyWindow } }
