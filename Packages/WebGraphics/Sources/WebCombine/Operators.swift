@@ -1,7 +1,8 @@
 // Combine's operators over the closure publishers (decision 0021): each one is a `_Pipe`, a
 // publisher made of the upstream's subscription with the downstream closures wrapped, so the
 // chain costs one closure per stage. Apple's operator types (`Publishers.Map<Upstream, T>` and
-// friends) are not spelt out; `AnyPublisher` is what apps name. Schedulers are accepted and
+// friends) are names for the pipe their operator returns (`Publishers.CompactMap<Just<A?>, A>` is
+// `_Pipe<A, Never>`), so code that spells the type an operator returns compiles. Schedulers are accepted and
 // ignored: everything already delivers on the main actor.
 import WebFoundation
 
@@ -531,6 +532,26 @@ public struct AsyncThrowingPublisher<P: Publisher>: AsyncSequence {
 }
 
 // MARK: - Publishers
+
+// Apple's names for the operators' publishers, each the pipe its operator returns here
+// (TCA's `Effect.cancel(id:)` returns `Publishers.CompactMap<Just<Action?>, Action>`).
+extension Publishers {
+    public typealias Map<Upstream: Publisher, Output> = _Pipe<Output, Upstream.Failure>
+    public typealias TryMap<Upstream: Publisher, Output> = _Pipe<Output, any Error>
+    public typealias CompactMap<Upstream: Publisher, Output> = _Pipe<Output, Upstream.Failure>
+    public typealias Scan<Upstream: Publisher, Output> = _Pipe<Output, Upstream.Failure>
+    public typealias Filter<Upstream: Publisher> = _Pipe<Upstream.Output, Upstream.Failure>
+    public typealias RemoveDuplicates<Upstream: Publisher> = _Pipe<Upstream.Output, Upstream.Failure>
+    public typealias DropFirst<Upstream: Publisher> = _Pipe<Upstream.Output, Upstream.Failure>
+    public typealias Collect<Upstream: Publisher> = _Pipe<[Upstream.Output], Upstream.Failure>
+    public typealias MapError<Upstream: Publisher, Failure: Error> = _Pipe<Upstream.Output, Failure>
+    public typealias SetFailureType<Upstream: Publisher, Failure: Error> = _Pipe<Upstream.Output, Failure>
+    public typealias ReplaceError<Upstream: Publisher> = _Pipe<Upstream.Output, Never>
+    public typealias FlatMap<NewPublisher: Publisher, Upstream: Publisher> = _Pipe<NewPublisher.Output, Upstream.Failure>
+    public typealias SwitchToLatest<P: Publisher, Upstream: Publisher> = _Pipe<P.Output, Upstream.Failure>
+    public typealias Share<Upstream: Publisher> = _Pipe<Upstream.Output, Upstream.Failure>
+}
+
 
 public enum Publishers {
     /// A publisher created by applying the merge function to two upstream publishers.

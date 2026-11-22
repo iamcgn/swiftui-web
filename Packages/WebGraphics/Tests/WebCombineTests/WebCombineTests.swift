@@ -147,6 +147,21 @@ private func removingDuplicates<P: Publisher>(_ upstream: P, by isDuplicate: @es
         #expect(compacted == [1, 3])
         h.cancel()
 
+        // Apple's operator type names, as TCA's `Effect.cancel(id:)` spells its return type.
+        let typed: Publishers.CompactMap<Just<Int?>, Int> = Just<Int?>(nil).compactMap { $0 }
+        var typedDone = false
+        let t = typed.sink(receiveCompletion: { _ in typedDone = true }, receiveValue: { compacted.append($0) })
+        #expect(typedDone && compacted == [1, 3])
+        t.cancel()
+        let mapped: Publishers.Map<Just<Int>, String> = Just(2).map(String.init)
+        let filtered: Publishers.Filter<Publishers.Sequence<[Int], Never>> = [1, 2, 3].publisher.filter { $0 > 1 }
+        let failing: Publishers.SetFailureType<Just<Int>, any Error> = Just(1).setFailureType(to: (any Error).self)
+        var names: [String] = []
+        let n = mapped.combineLatest(filtered.collect()).sink { names.append("\($0.0) \($0.1)") }
+        #expect(names == ["2 [2, 3]"])
+        n.cancel()
+        _ = failing
+
         var keyed: [Int] = []
         struct Item { var size: Int }
         let k = [Item(size: 4), Item(size: 5)].publisher.map(\.size).sink { keyed.append($0) }
