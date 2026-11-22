@@ -71,7 +71,7 @@
         {
           "api": "EnvironmentValues / EnvironmentKey / @Entry / environment(_:_:) / transformEnvironment",
           "status": "full",
-          "notes": "@Entry on EnvironmentValues, FocusedValues and Transaction extensions (SwiftUIWebMacros); Tier B (Chromium) within tolerance dynamicTypeSize and displayScale follow the host (iOS Safari's -apple-system-body, devicePixelRatio; 2026-10-11).",
+          "notes": "@Entry on EnvironmentValues, FocusedValues and Transaction extensions (SwiftUIWebMacros), with a computed default as Apple's, so non-Sendable defaults compile in Swift 6 (2026-11-22); Tier B (Chromium) within tolerance dynamicTypeSize and displayScale follow the host (iOS Safari's -apple-system-body, devicePixelRatio; 2026-10-11).",
           "fixtures": [
             "text/styles",
             "dark/text",

@@ -61,7 +61,9 @@ public struct EntryMacro: AccessorMacro, PeerMacro {
             context.diagnose(Diagnostic(node: Syntax(declaration), message: EntryMessage("'@Entry' needs a default value")))
             return []
         }
-        return ["private struct \(raw: key): \(raw: container.key) { static let defaultValue: \(raw: property.type) = \(raw: initializer) }"]
+        // A computed default, as Apple's expansion has: a stored `static let` of a non-Sendable type
+        // (a class, a closure) is shared mutable state, an error in the Swift 6 language mode.
+        return ["private struct \(raw: key): \(raw: container.key) { static var defaultValue: \(raw: property.type) { \(raw: initializer) } }"]
     }
 
     /// `T?` or `Optional<T>` → `T` (focused values are declared optional).
