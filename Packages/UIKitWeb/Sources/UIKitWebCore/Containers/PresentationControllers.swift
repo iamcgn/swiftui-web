@@ -70,6 +70,7 @@ open class UISheetPresentationController: UIPresentationController {
 
         /// The detent's height in a context: a custom detent's resolver's, the medium detent's
         /// half and the large detent's whole of the maximum.
+        @MainActor
         public func resolvedValue(in context: any UISheetPresentationControllerDetentResolutionContext) -> CGFloat? {
             if let resolver { return resolver(context.maximumDetentValue) }
             return identifier == .medium ? context.maximumDetentValue / 2 : context.maximumDetentValue
