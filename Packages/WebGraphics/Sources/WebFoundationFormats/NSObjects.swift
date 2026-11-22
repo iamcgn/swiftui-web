@@ -338,6 +338,17 @@ public final class NSURL: _WebNSValue, _WebValueObject, @unchecked Sendable {
         self.init(_webValue: url)
     }
     public convenience init(fileURLWithPath path: String) { self.init(_webValue: URL(fileURLWithPath: path)) }
+    #if canImport(ObjectiveC)
+    // `@objc`, as on Apple, so a key path can run through a URL: Hipstapaper's
+    // `#keyPath(CD_Website.cd_resolvedURL.absoluteString)` in an `NSPredicate`.
+    @objc public var absoluteString: String? { _webValue.absoluteString }
+    @objc public var absoluteURL: URL? { _webValue.absoluteURL }
+    @objc public var path: String? { _webValue.path }
+    @objc public var scheme: String? { _webValue.scheme }
+    @objc public var host: String? { _webValue.host }
+    @objc public var lastPathComponent: String? { _webValue.lastPathComponent }
+    @objc public var isFileURL: Bool { _webValue.isFileURL }
+    #else
     public var absoluteString: String? { _webValue.absoluteString }
     public var absoluteURL: URL? { _webValue.absoluteURL }
     public var path: String? { _webValue.path }
@@ -345,6 +356,7 @@ public final class NSURL: _WebNSValue, _WebValueObject, @unchecked Sendable {
     public var host: String? { _webValue.host }
     public var lastPathComponent: String? { _webValue.lastPathComponent }
     public var isFileURL: Bool { _webValue.isFileURL }
+    #endif
     public override func isEqual(_ object: Any?) -> Bool { (object as? NSURL)?._webValue == _webValue }
     public override var hash: Int { _webValue.hashValue }
 }

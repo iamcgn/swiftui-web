@@ -576,6 +576,15 @@ open class NSPersistentContainer: @unchecked Sendable {
 /// A container whose stores mirror to CloudKit on Apple's platforms; here its data stays on the
 /// device. With no iCloud account in the browser nothing syncs, so the container posts no
 /// events; the event types are here for the apps that watch for them.
+/// How `initializeCloudKitSchema(options:)` runs: a dry run that uploads nothing, and printing
+/// the schema it would make (Hipstapaper passes `[.printSchema]`).
+public struct NSPersistentCloudKitContainerSchemaInitializationOptions: OptionSet, Sendable {
+    public let rawValue: UInt
+    public init(rawValue: UInt) { self.rawValue = rawValue }
+    public static let dryRun = NSPersistentCloudKitContainerSchemaInitializationOptions(rawValue: 1 << 1)
+    public static let printSchema = NSPersistentCloudKitContainerSchemaInitializationOptions(rawValue: 1 << 2)
+}
+
 open class NSPersistentCloudKitContainer: NSPersistentContainer, @unchecked Sendable {
     /// Posted when a sync event starts or ends, with the event under `eventNotificationUserInfoKey`.
     public static let eventChangedNotification = Notification.Name("NSPersistentCloudKitContainerEventChangedNotification")
@@ -625,7 +634,7 @@ open class NSPersistentCloudKitContainer: NSPersistentContainer, @unchecked Send
     }
 
     /// Accepted: there is no CloudKit schema to initialize.
-    open func initializeCloudKitSchema(options: Int = 0) throws {}
+    open func initializeCloudKitSchema(options: NSPersistentCloudKitContainerSchemaInitializationOptions = []) throws {}
     open func canUpdateRecord(forManagedObjectWith objectID: NSManagedObjectID) -> Bool { true }
     open func canDeleteRecord(forManagedObjectWith objectID: NSManagedObjectID) -> Bool { true }
     open func canModifyManagedObjects(in store: NSPersistentStore) -> Bool { true }

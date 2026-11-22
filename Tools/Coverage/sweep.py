@@ -35,7 +35,7 @@ OURS = {
     "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices", "SystemConfiguration",
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit",
     "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit", "Symbols", "Compression", "zlib", "Translation", "_Translation_SwiftUI", "JavaScriptCore",
-    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "XCTest",
+    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "QuickLook", "LinkPresentation", "XCTest",
 }
 # `Builtin` is the compiler's own module (swift-collections imports it with the BuiltinModule
 # feature). `XCTest` is the shadow's (Packages/Shadows): the wasm SDK's own can't be read beside
@@ -1198,6 +1198,8 @@ WEB_PRODUCTS = [
     ("PDFKit", "SwiftUIWeb"),
     ("CoreSpotlight", "SwiftUIWeb"),
     ("NaturalLanguage", "SwiftUIWeb"),
+    ("QuickLook", "SwiftUIWeb"),
+    ("LinkPresentation", "SwiftUIWeb"),
     ("UIKit", "UIKitWeb"),
     ("Foundation", "Shadows"),
     ("Combine", "Shadows"),
@@ -1456,6 +1458,14 @@ def cmd_prepare(args):
                 name = Path(m).name
                 if name in models:
                     continue
+                # A model inside a resource folder that was copied above (Hipstapaper's
+                # Resources/CD_MOM.xcdatamodeld) comes out of that copy, or the plugin, which
+                # reads the whole target folder, would generate its classes twice.
+                model_src = (clone_dir / m).resolve()
+                for r, _ in resource_rules:
+                    r_src = (clone_dir / t["source_root"] / r).resolve()
+                    if r_src.is_dir() and r_src != model_src and model_src.is_relative_to(r_src):
+                        shutil.rmtree(dest_root / r / model_src.relative_to(r_src), ignore_errors=True)
                 shutil.copytree(clone_dir / m, dest_root / name, dirs_exist_ok=True)
                 models.append(name)
             # The app's catalogs (not its resources here): their folders and `Contents.json`, out
@@ -1534,6 +1544,8 @@ let package = Package(
     (pkg / "Package.swift").write_text(manifest)
     (pkg / "mapping.json").write_text(json.dumps(mapping))
     (pkg / "strip.json").write_text(json.dumps(strips))
+    # Whether the sources were written with iOS conditions on, so a rewrite during the run keeps it.
+    (pkg / "options.json").write_text(json.dumps({"ios": bool(args.ios)}))
     (pkg / "manifest.json").write_text(json.dumps(parts))
     print(f"wrote {pkg / 'Package.swift'} ({len(decls)} targets, {len(mapping)} files"
           + "".join(f", {t} trait" for t in app_traits.TRAITS if t in traits_needed) + ")")
@@ -1631,12 +1643,16 @@ def tokens_of(root: Path, files):
     return sorted(words)
 
 
-def rewrite_sources(mapping, work, app_name, strip):
-    """Writes an app's copied sources again with a larger set of imports taken out."""
+def rewrite_sources(mapping, work, app_name, strip, ios=False):
+    """Writes an app's copied sources again with a larger set of imports taken out, the way
+    prepare wrote them (with iOS conditions on in an --ios sweep)."""
     for dest, where in mapping.items():
         if where["app"] == app_name:
             source = work / where.get("base", app_name) / where["file"]
-            text = strip_imports(source.read_text(errors="replace"), strip)
+            text = source.read_text(errors="replace")
+            if ios:
+                text = ios_conditions(text)
+            text = strip_imports(text, strip)
             if Path(dest).read_text(errors="replace") != text:  # an unchanged file keeps its build
                 Path(dest).write_text(text)
 
@@ -1649,6 +1665,8 @@ def cmd_run(args):
     logs.mkdir(exist_ok=True)
     mapping = json.loads((pkg / "mapping.json").read_text())
     strips = json.loads((pkg / "strip.json").read_text())
+    options_file = pkg / "options.json"
+    ios = bool(json.loads(options_file.read_text()).get("ios")) if options_file.exists() else False
     parts_file = pkg / "manifest.json"
     parts = json.loads(parts_file.read_text()) if parts_file.exists() else None
     drops = {}  # module -> the dependencies it is built without (package targets that failed)
@@ -1694,14 +1712,14 @@ def cmd_run(args):
                 drops[t["module"]] = sorted(set(drops.get(t["module"], [])) | set(blocked))
                 (pkg / "Package.swift").write_text(render_manifest(parts, drops))
                 strips[app["name"]] = sorted(set(strips[app["name"]]) | set(blocked))
-                rewrite_sources(mapping, work, app["name"], set(strips[app["name"]]))
+                rewrite_sources(mapping, work, app["name"], set(strips[app["name"]]), ios)
             code, out = build(t["module"], 2400)
             # A module the wasm SDK turns out not to have (or not to show to this target) is
             # taken out like the others and the target built again, once.
             absent = set(NO_MODULE.findall(out)) - set(strips[app["name"]])
             if code != 0 and absent:
                 strips[app["name"]] = sorted(set(strips[app["name"]]) | absent)
-                rewrite_sources(mapping, work, app["name"], set(strips[app["name"]]))
+                rewrite_sources(mapping, work, app["name"], set(strips[app["name"]]), ios)
                 code, out = build(t["module"], 2400)
             errors, seen = [], set()
             for path, line, col, msg in ERROR.findall(out):
@@ -1743,6 +1761,13 @@ def cmd_run(args):
                     print(f"  {e['file']}:{e['line']}: {e['msg']}")
                     for note in these:
                         print(f"      {note}")
+                # A module that failed with no error of the app's (a compiler crash, say) shows
+                # the end of its build output, which holds the crash's stack dump, since only
+                # the results file keeps it otherwise.
+                if status[-1]["tail"]:
+                    print("  end of the build output:")
+                    for line in status[-1]["tail"].splitlines():
+                        print(f"    | {line}")
         files = [f for t in app["targets"] if not t.get("skip") and not t.get("remote") for f in t["files"]]
         results["apps"].append({
             **{k: app.get(k) for k in ("name", "repo", "sha", "control", "missing_imports", "asset_names",
