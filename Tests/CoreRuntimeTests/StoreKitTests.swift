@@ -26,6 +26,14 @@ private struct RecordingStyle: ProductViewStyle {
     }
 }
 
+/// A custom style that draws the standard product view for its configuration (RevenueCat's
+/// debug screen).
+private struct FallbackStyle: ProductViewStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        ProductView(configuration)
+    }
+}
+
 private final class PaymentObserver: SKPaymentTransactionObserver, SKProductsRequestDelegate {
     var updated: [SKPaymentTransaction] = []
     var restored = false
@@ -205,6 +213,22 @@ private final class ReceiptRefresh: SKRequestDelegate {
         let styled = render(ProductView(id: "tip.small") { Text("icon") }.productViewStyle(RecordingStyle(log: log)))
         #expect(log.entries.last == "tip.small unavailable true false")
         #expect(texts(styled) == ["–"])
+
+        // A style that falls back to the standard view for its configuration draws that view,
+        // not itself again.
+        let fallback = render(ProductView(id: "tip.small").productViewStyle(FallbackStyle()))
+        #expect(texts(fallback) == ["Unavailable"])
+    }
+
+    /// The App Store's messages (RevenueCat's deferred price-consent and billing notices): the
+    /// web has none, so the sequence ends, and consent asks for nothing.
+    @Test func noStoreMessages() async throws {
+        var count = 0
+        for await _ in Message.messages { count += 1 }
+        #expect(count == 0)
+        #expect(Message.Reason.priceIncreaseConsent != .generic)
+        #expect(Message.Reason(rawValue: "billingIssue") == .billingIssue)
+        SKPaymentQueue.default().showPriceConsentIfNeeded()
     }
 
     @Test func storesShowMarketingAndAnEmptyStore() {
