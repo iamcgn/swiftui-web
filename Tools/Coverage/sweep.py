@@ -40,9 +40,12 @@ OURS = {
 # `Builtin` is the compiler's own module (swift-collections imports it with the BuiltinModule
 # feature). `XCTest` is the shadow's (Packages/Shadows): the wasm SDK's own can't be read beside
 # SwiftUIWeb's Foundation, and packages import it on wasm where Apple's platforms look it up at
-# run time (swift-dependencies' test observer, xctest-dynamic-overlay's `XCTFail`).
+# run time (swift-dependencies' test observer, xctest-dynamic-overlay's `XCTFail`). `SwiftShims` is
+# the standard library's C declarations, in every SDK: swift-collections 1.7.6 imports it for
+# `_swift_stdlib_immortalize`, and stripping it failed InternalCollectionsUtilities and every
+# collection module above it (Thunderbird, OnlineStoreTCA, EhPanda).
 STDLIB = {"Swift", "_Concurrency", "_StringProcessing", "Observation", "Synchronization", "RegexBuilder", "WASILibc",
-          "Builtin"}
+          "Builtin", "SwiftShims"}
 # swift-syntax, which the sweep package depends on itself: a package's macro targets import it.
 SYNTAX_PACKAGE = "https://github.com/swiftlang/swift-syntax.git"
 SYNTAX = {"SwiftSyntax", "SwiftSyntaxMacros", "SwiftCompilerPlugin", "SwiftSyntaxBuilder", "SwiftDiagnostics",
