@@ -282,6 +282,30 @@ import SwiftUIWebHeadless
         }
         #expect(_TransferItem(Tag(name: "home")).load(as: Tag.self) == Tag(name: "home"))
     }
+
+    /// `CodableRepresentation(contentType:encoder:decoder:)` exports and imports with the app's
+    /// coders (RevenueCat's pretty-printed debug export).
+    @Test func codableRepresentationUsesTheAppsCoders() throws {
+        struct Tag: Codable, Transferable, Equatable {
+            var displayName: String
+            static var transferRepresentation: some TransferRepresentation {
+                CodableRepresentation(contentType: .json, encoder: Tag.encoder, decoder: Tag.decoder)
+            }
+            static var encoder: JSONEncoder {
+                let encoder = JSONEncoder()
+                encoder.keyEncodingStrategy = .convertToSnakeCase
+                return encoder
+            }
+            static var decoder: JSONDecoder {
+                let decoder = JSONDecoder()
+                decoder.keyDecodingStrategy = .convertFromSnakeCase
+                return decoder
+            }
+        }
+        let data = try #require(_TransferItem(Tag(displayName: "home")).load(as: Data.self))
+        #expect(String(decoding: data, as: UTF8.self) == #"{"display_name":"home"}"#)
+        #expect(_TransferItem(data).load(as: Tag.self) == Tag(displayName: "home"))
+    }
 }
 
 extension DynamicViewContent {

@@ -1354,6 +1354,11 @@ def cmd_prepare(args):
         local = {t["module"] for t in app["targets"]} | {t["module"].replace("-", "_") for t in app["targets"]}
         strip = (set(app["missing_imports"]) | set(strip_extra.get(app["name"], []))) - local
         strips[app["name"]] = sorted(strip)
+        # A pinned package's Swift target over a C target of its own keeps its `os(iOS)` lines in
+        # an --ios sweep: its iOS branches call C declarations that the C headers guard with
+        # `__APPLE__`, which the rewrite can't change (swift-numerics' RealModule calls
+        # `libm_exp10`, declared only `#if __APPLE__` in _NumericsShims).
+        c_targets = {(t["remote"], t["module"]) for t in app["targets"] if t.get("c") and t.get("remote")}
         for t in app["targets"]:
             if t.get("skip"):
                 continue
@@ -1409,6 +1414,7 @@ def cmd_prepare(args):
                 continue
             used = set()
             foundation_name = False
+            wraps_c = bool(t.get("remote")) and any((t["remote"], d) in c_targets for d in t["deps"])
             for f in t["files"]:
                 rel = Path(f).relative_to(t["source_root"]) if t["source_root"] != "." else Path(f)
                 name = rel.name
@@ -1422,11 +1428,12 @@ def cmd_prepare(args):
                 text = (clone_dir / f).read_text(errors="replace")
                 traits_needed |= set(app_traits.needed_in_text(text))
                 foundation_name = foundation_name or names_foundation_without_importing(text)
-                if args.ios:
+                if args.ios and not wraps_c:
                     text = ios_conditions(text)
                 dest.write_text(strip_imports(text, strip))
                 mapping[str(dest.resolve())] = {"app": app["name"], "file": f, "base": t.get("base") or app["name"],
-                                                **({"package": t["remote"].split("@")[0]} if t.get("remote") else {})}
+                                                **({"package": t["remote"].split("@")[0]} if t.get("remote") else {}),
+                                                **({"keep_os": True} if wraps_c else {})}
             if not t["files"]:
                 # A target with no Swift sources (an Objective-C or C package, whose only Swift
                 # file was its manifest) still needs its folder, so the module exists for the
@@ -1562,6 +1569,27 @@ NOTE_LINE = re.compile(r"^/[^:\n]+:\d+:\d+: note: .+$")
 OTHER_DIAGNOSTIC = re.compile(r"^/[^:\n]+:\d+:\d+: (?:error|warning): ")
 
 
+# The lines of a crashed compile that say what crashed come before its backtrace's frames: the
+# assertion or error, "Stack dump:" and the numbered requests ("3.\tWhile evaluating request
+# ASTLoweringRequest(...)", "4.\tWhile silgen emitFunction ... (at file:line)").
+CRASH_LINE = re.compile(r"^\s*\d+\.\t|Stack dump:|Assertion|error:")
+
+
+def crash_tail(out: str, keep: int = 40, last: int = 20) -> str:
+    """What a module that failed with none of its errors in the app keeps for the log: the lines
+    that name a crash (at most `keep` of them) and then the output's last `last` lines."""
+    lines = out.splitlines()
+    named = [n for n, line in enumerate(lines) if CRASH_LINE.search(line)][:keep]
+    picked = sorted(set(named) | set(range(max(0, len(lines) - last), len(lines))))
+    text, previous = [], -1
+    for n in picked:
+        if previous >= 0 and n != previous + 1:
+            text.append("    ...")
+        text.append(lines[n][:400])
+        previous = n
+    return "\n".join(text)
+
+
 def notes_of(out):
     """The compiler's `note:` lines after each error, keyed as ERROR's matches are (path, line,
     column, message): "found this candidate in module …" and the like, which --show prints."""
@@ -1651,7 +1679,7 @@ def rewrite_sources(mapping, work, app_name, strip, ios=False):
         if where["app"] == app_name:
             source = work / where.get("base", app_name) / where["file"]
             text = source.read_text(errors="replace")
-            if ios:
+            if ios and not where.get("keep_os"):
                 text = ios_conditions(text)
             text = strip_imports(text, strip)
             if Path(dest).read_text(errors="replace") != text:  # an unchanged file keeps its build
@@ -1746,7 +1774,7 @@ def cmd_run(args):
             # SwiftUIWeb's code, or carry no file) keeps the first of them, so the job log says why.
             outside = [] if ok or errors else UNATTRIBUTED.findall(out)[:5]
             status.append({"module": t["module"], "status": "ok" if ok else ("timeout" if code == "timeout" else "errors"),
-                           "errors": errors, "tail": "" if ok or errors else out[-3000:],
+                           "errors": errors, "tail": "" if ok or errors else crash_tail(out),
                            **({"outside": outside} if outside else {}),
                            **({"without": blocked} if blocked else {})})
             if t.get("remote"):
