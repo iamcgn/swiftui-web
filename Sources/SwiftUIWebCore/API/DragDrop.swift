@@ -2,6 +2,7 @@
 // `dropDestination` receives the payload. Payloads are `Transferable` values carried as they are;
 // a destination for another type reads them through the payload's proxy representation.
 import WebFoundation
+import WebCombine
 
 // MARK: - Uniform type identifiers (the subset the representations name)
 
@@ -68,11 +69,27 @@ public struct ProxyRepresentation<Item, ProxyRepresentation: Transferable>: Tran
 /// Exports the item as JSON (`_TransferJSONEncoder`, the coder of `TransferJSON.swift`).
 public struct CodableRepresentation<Item: Codable>: TransferRepresentation {
     package let contentType: UTType
-    public init(for itemType: Item.Type = Item.self, contentType: UTType = .json) { self.contentType = contentType }
+    private let encode: (Item) -> Data?
+    private let decode: (Data) -> Item?
+    public init(for itemType: Item.Type = Item.self, contentType: UTType = .json) {
+        self.contentType = contentType
+        encode = { try? _TransferJSONEncoder().encode($0) }
+        decode = { try? _TransferJSONDecoder().decode(Item.self, from: $0) }
+    }
+    /// Exports the item with the app's own coders (a pretty-printing `JSONEncoder`, RevenueCat's
+    /// debug screen).
+    public init<E: TopLevelEncoder, D: TopLevelDecoder>(for itemType: Item.Type = Item.self, contentType: UTType = .json,
+                                                        encoder: E, decoder: D)
+        where E.Output == Data, D.Input == Data {
+        self.contentType = contentType
+        encode = { try? encoder.encode($0) }
+        decode = { try? decoder.decode(Item.self, from: $0) }
+    }
     public var _exporters: [_TransferExporter<Item>] {
-        [_TransferExporter(contentType: contentType, exportedType: Data.self,
-                           export: { try? _TransferJSONEncoder().encode($0) },
-                           importer: { ($0 as? Data).flatMap { try? _TransferJSONDecoder().decode(Item.self, from: $0) } })]
+        let encode = encode, decode = decode
+        return [_TransferExporter(contentType: contentType, exportedType: Data.self,
+                                  export: { encode($0) },
+                                  importer: { ($0 as? Data).flatMap(decode) })]
     }
 }
 

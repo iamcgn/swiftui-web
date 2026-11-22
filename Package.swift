@@ -39,6 +39,7 @@ let package = Package(
         .library(name: "CoreHaptics", targets: ["CoreHaptics"]),
         .library(name: "WidgetKit", targets: ["WidgetKit"]),
         .library(name: "EventKit", targets: ["EventKit"]),
+        .library(name: "Contacts", targets: ["Contacts"]),
         .library(name: "ActivityKit", targets: ["ActivityKit"]),
         .library(name: "BackgroundTasks", targets: ["BackgroundTasks"]),
         .library(name: "Translation", targets: ["Translation", "_Translation_SwiftUI"]),
@@ -156,6 +157,10 @@ let package = Package(
         .target(name: "WidgetKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // Its event queries take an `NSPredicate`, which Apple's Foundation declares and WebCoreData holds here.
         .target(name: "EventKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics"),
+                                                 .target(name: "WebCoreData", condition: .when(platforms: [.wasi]))],
+                swiftSettings: [.treatAllWarnings(as: .error)]),
+        // The address book is out of a page's reach: access is declined, the contact types are values.
+        .target(name: "Contacts", dependencies: [.product(name: "WebFoundation", package: "WebGraphics"),
                                                  .target(name: "WebCoreData", condition: .when(platforms: [.wasi]))],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
         // Live Activities: a page has no Lock Screen or Dynamic Island, so none starts.
@@ -358,7 +363,7 @@ let package = Package(
         // The small frameworks against known answers (FIPS 180, RFC 1321, RFC 4231 vectors).
         .testTarget(
             name: "FrameworkTests",
-            dependencies: ["CryptoKit", "NaturalLanguage", "LinkPresentation", "CoreHaptics", .product(name: "WebCoreImage", package: "WebGraphics"), "WidgetKit", "EventKit", "AudioToolbox", .product(name: "WebGraphics", package: "WebGraphics"), .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics"), .product(name: "WebDecimalFormats", package: "WebGraphics")],
+            dependencies: ["CryptoKit", "NaturalLanguage", "LinkPresentation", "CoreHaptics", .product(name: "WebCoreImage", package: "WebGraphics"), "WidgetKit", "EventKit", "Contacts", "AudioToolbox", .product(name: "WebGraphics", package: "WebGraphics"), .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics"), .product(name: "WebDecimalFormats", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         .testTarget(

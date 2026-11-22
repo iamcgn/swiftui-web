@@ -31,6 +31,9 @@ extension ProcessInfo {
 
     /// Whether the process is an iPhone or iPad app running on a Mac (never, here).
     public var isiOSAppOnMac: Bool { false }
+
+    /// Whether the process is a Mac Catalyst app (never, here).
+    public var isMacCatalystApp: Bool { false }
 }
 
 extension Notification.Name {
