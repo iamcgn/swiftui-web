@@ -244,6 +244,14 @@ extension NSObject: @retroactive CustomStringConvertible, @retroactive CustomDeb
     @objc(_webDebugDescription) open var debugDescription: String { description }
 }
 
+/// The class an archive records for objects of this class: the class itself. Apps name a
+/// class with it, as Foundation's root-class method lets them (`tableView.register(
+/// UITableViewCell.classForCoder(), forCellReuseIdentifier:)`, AcknowList). Foundation's
+/// `NSCoderMethods` category is not in this SDK's runtime header, so the compiler has none.
+extension NSObject {
+    public class func classForCoder() -> AnyClass { self }
+}
+
 /// A value type that bridges as itself in a `_WebNSValue`.
 public protocol _WebValueBridged: _ObjectiveCBridgeable where _ObjectiveCType == _WebNSValue {}
 

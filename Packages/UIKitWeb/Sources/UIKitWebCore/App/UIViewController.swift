@@ -146,6 +146,44 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
     open var supportedInterfaceOrientations: UIInterfaceOrientationMask { .allButUpsideDown }
     open var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation { .portrait }
     open var shouldAutorotate: Bool { true }
+
+    // MARK: The status bar
+    //
+    // A page has no status bar to restyle or hide: the controller still answers what it
+    // prefers, as subclasses override (SwiftUIIntrospect reads it), and asking for an update
+    // has nothing to redraw.
+
+    /// The status bar style the controller prefers: the default (dark content in light mode).
+    open var preferredStatusBarStyle: UIStatusBarStyle { .default }
+    /// Whether the controller prefers the status bar hidden.
+    open var prefersStatusBarHidden: Bool { false }
+    open var preferredStatusBarUpdateAnimation: UIStatusBarAnimation { .fade }
+    /// The child whose status bar preferences count instead of this controller's.
+    open var childForStatusBarStyle: UIViewController? { nil }
+    open var childForStatusBarHidden: UIViewController? { nil }
+    open func setNeedsStatusBarAppearanceUpdate() {}
+
+    // MARK: Layout under bars
+
+    /// Whether the view extends under opaque bars too, not only translucent ones.
+    open var extendedLayoutIncludesOpaqueBars = false
+    /// The scroll view insets UIKit adjusted before iOS 11; scroll views here follow their
+    /// `contentInsetAdjustmentBehavior`, so the flag is kept and read by nothing.
+    @available(iOS, deprecated: 11.0, message: "Use UIScrollView's contentInsetAdjustmentBehavior instead")
+    open var automaticallyAdjustsScrollViewInsets = true
+
+    // MARK: Size transitions
+
+    /// The view is about to change to `size` (the window resized): the default passes the
+    /// change to the children and the presented controller. `coordinator` runs the
+    /// alongside blocks once the new size is laid out, then the completions.
+    open func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {
+        for child in children { child.viewWillTransition(to: size, with: coordinator) }
+        presentedViewController?.viewWillTransition(to: size, with: coordinator)
+    }
+
+    /// The coordinator of the size transition under way, if any.
+    open var transitionCoordinator: (any UIViewControllerTransitionCoordinator)? { _UISizeTransitionCoordinator.current }
     /// Whether the controller is being presented, or dismissed, until that transition ends.
     public internal(set) var isBeingPresented = false
     public internal(set) var isBeingDismissed = false

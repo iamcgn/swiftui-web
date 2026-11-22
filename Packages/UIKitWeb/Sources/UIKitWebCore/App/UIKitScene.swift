@@ -383,7 +383,17 @@ public final class UIKitScene: HostedScene {
 
     public func layout(in size: CGSize) {
         needsFrame = false
+        var sizeTransitions: [_UISizeTransitionCoordinator] = []
         if UIScreen.main.bounds.size != size {
+            // The root controllers on screen hear the coming size first (`viewWillTransition(to:with:)`).
+            for window in windows where window.bounds.size != size {
+                guard let controller = window.rootViewController, controller.hasAppeared else { continue }
+                let coordinator = _UISizeTransitionCoordinator(containerView: window)
+                _UISizeTransitionCoordinator.current = coordinator
+                controller.viewWillTransition(to: size, with: coordinator)
+                _UISizeTransitionCoordinator.current = nil
+                sizeTransitions.append(coordinator)
+            }
             UIScreen.main.bounds = CGRect(origin: .zero, size: size)
             for window in windows { window.frame = UIScreen.main.bounds }
             // The size classes follow the host's size; a change reaches every tree.
@@ -401,6 +411,10 @@ public final class UIKitScene: HostedScene {
             window.completePendingAppearances()
         }
         // Appearance callbacks may have changed the tree.
+        for window in windows { window.layoutIfNeeded() }
+        // The new size is laid out: the transitions' alongside blocks and completions run.
+        guard !sizeTransitions.isEmpty else { return }
+        for coordinator in sizeTransitions { coordinator.finish() }
         for window in windows { window.layoutIfNeeded() }
     }
 

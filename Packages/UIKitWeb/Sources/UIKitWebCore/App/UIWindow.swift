@@ -207,6 +207,15 @@ public final class UIApplication: UIResponder {
         url.absoluteString != Self.openSettingsURLString && url.absoluteString != Self.openNotificationSettingsURLString && UIKitScene.shared.openURL != nil
     }
 
+    /// Opens a URL the way iOS 9 did, answering whether it could (`open(_:options:)` today).
+    @available(iOS, deprecated: 10.0, message: "Use open(_:options:completionHandler:) instead")
+    @discardableResult
+    public func openURL(_ url: URL) -> Bool {
+        guard canOpenURL(url) else { return false }
+        open(url)
+        return true
+    }
+
     /// The URL that opens the app's settings on iOS; a page has no such place (`open` answers false).
     public static let openSettingsURLString = "app-settings:"
     public static let openNotificationSettingsURLString = "app-settings:notifications"
