@@ -127,7 +127,7 @@ public final class NotificationCenter: _WebObjectBase, @unchecked Sendable {
     /// Adds an observer (the queue is accepted; blocks run where `post` runs, which is the main
     /// thread, the only one here). Returns a token for `removeObserver`.
     @discardableResult
-    public func addObserver(forName name: Notification.Name?, object: Any? = nil, queue: OperationQueue? = nil, using block: @escaping @Sendable (Notification) -> Void) -> any NSObjectProtocolToken {
+    public func addObserver(forName name: Notification.Name?, object: Any? = nil, queue: OperationQueue? = nil, using block: @escaping @Sendable (Notification) -> Void) -> any NSObjectProtocol {
         nextID += 1
         let id = nextID
         observers[id] = Observer(name: name, object: object.map { $0 as AnyObject }, filtersObject: object != nil, block: block)
@@ -215,7 +215,7 @@ extension NotificationCenter {
 /// The observer behind a `Notifications` sequence, removed when the sequence ends.
 final class _NotificationObservation: @unchecked Sendable {
     weak var center: NotificationCenter?
-    var token: (any NSObjectProtocolToken)?
+    var token: (any NSObjectProtocol)?
     init(center: NotificationCenter) { self.center = center }
     func end() {
         if let token { center?.removeObserver(token) }
@@ -229,12 +229,22 @@ final class _WeakTarget: @unchecked Sendable {
     init(_ object: AnyObject) { self.object = object }
 }
 
-/// An observer token (`addObserver(forName:...)`'s return value).
-public protocol NSObjectProtocolToken: AnyObject {}
-public final class NotificationToken: NSObjectProtocolToken {
+/// An observer token (`addObserver(forName:...)`'s return value), an `NSObjectProtocol` as
+/// Foundation's is, so an app keeps it in an `(any NSObjectProtocol)?` (TCA's storage keys).
+#if canImport(ObjectiveC)
+public final class NotificationToken: NSObject {
+    package let id: Int
+    package init(id: Int) { self.id = id; super.init() }
+}
+#else
+public final class NotificationToken: NSObjectProtocol {
     package let id: Int
     package init(id: Int) { self.id = id }
+    public func isEqual(_ object: Any?) -> Bool { (object as? NotificationToken) === self }
+    public var hash: Int { ObjectIdentifier(self).hashValue }
+    public var description: String { "<NotificationToken: \(id)>" }
 }
+#endif
 
 #endif
 

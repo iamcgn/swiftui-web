@@ -194,5 +194,18 @@ extension FoundationGapsTests {
         #expect(second?.userInfo?["n"] as? Int == 2)
         #expect(second?.name == name)
     }
+
+    /// `addObserver(forName:object:queue:using:)` returns an `NSObjectProtocol`, which an app keeps
+    /// in an `(any NSObjectProtocol)?` and later removes (TCA's app storage and file storage keys).
+    @Test func observerTokenIsAnNSObjectProtocol() {
+        let center = NotificationCenter()
+        let name = Notification.Name("FoundationGapsTests.token")
+        nonisolated(unsafe) var heard = 0
+        let token: (any NSObjectProtocol)? = center.addObserver(forName: name, object: nil, queue: nil) { _ in heard += 1 }
+        center.post(name: name, object: nil)
+        if let token { center.removeObserver(token) }
+        center.post(name: name, object: nil)
+        #expect(heard == 1)
+    }
     #endif
 }
