@@ -32,10 +32,12 @@ import UIKit
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
 
     var awoke = false
+    #if !canImport(AppKit)
     override func awakeFromNib() {
         super.awakeFromNib()
         awoke = true
     }
+    #endif
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
@@ -108,12 +110,14 @@ import UIKit
         let plain = UIViewController()
         #expect(plain.preferredStatusBarStyle == .default && !plain.prefersStatusBarHidden && plain.childForStatusBarStyle == nil)
         #expect(FruitList().preferredStatusBarStyle == .lightContent)
+        #if !canImport(AppKit)
         // AcknowList's pattern: nothing loads a nib here, so only a direct call reaches the override.
         let list = FruitList()
         #expect(!list.awoke)
         list.awakeFromNib()
         list.prepareForInterfaceBuilder()
         #expect(list.awoke)
+        #endif
         let scene = host(plain)
         let manager = scene.windowScene.statusBarManager
         #expect(manager === scene.windowScene.statusBarManager)
