@@ -27,6 +27,16 @@ import WebFoundation
         #expect(event.title == "Focus" && event.endDate.timeIntervalSince(event.startDate) == 1500)
         #expect(throws: EKError.self) { try store.save(event, span: .thisEvent) }
 
+        // A new calendar (Shift's app calendar) takes a source and a colour, and saving it throws.
+        let calendar = EKCalendar(for: .event, eventStore: store)
+        calendar.title = "Clendar"
+        calendar.source = store.defaultCalendarForNewEvents?.source
+        calendar.cgColor = .init(red: 1, green: 0, blue: 0, alpha: 1)
+        #expect(calendar.allowedEntityTypes == .event && calendar.source == nil && calendar.cgColor.alpha == 1)
+        #expect(store.sources.isEmpty && store.calendar(withIdentifier: calendar.calendarIdentifier) == nil)
+        #expect(throws: EKError.self) { try store.saveCalendar(calendar, commit: true) }
+        #expect(Set([calendar, calendar]).count == 1)
+
         // A query for a range of events (Shift's day view) matches none without access.
         let query = store.predicateForEvents(withStart: Date(timeIntervalSince1970: 0), end: Date(timeIntervalSince1970: 86_400), calendars: nil)
         #expect(store.events(matching: query).isEmpty)

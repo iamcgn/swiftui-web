@@ -7,6 +7,11 @@
 #if os(WASI)
 import WebCoreData   // NSPredicate, which Apple's Foundation declares
 #endif
+#if canImport(CoreGraphics) && !os(WASI)
+import CoreGraphics
+#else
+import WebGraphics   // CGColor, a calendar's colour
+#endif
 
 /// The kinds of entity an event store holds.
 public enum EKEntityType: UInt, Sendable {
@@ -46,12 +51,60 @@ public struct EKError: Error, Sendable, Equatable {
     public static var noCalendar: Code { .noCalendar }
 }
 
+/// The kinds of account a calendar lives in.
+public enum EKSourceType: Int, Sendable {
+    case local = 0, exchange, calDAV, mobileMe, subscribed, birthdays
+}
+
+/// The kinds of calendar.
+public enum EKCalendarType: Int, Sendable {
+    case local = 0, calDAV, exchange, subscription, birthday
+}
+
+/// An account that holds calendars (iCloud, Exchange, the device). A page reaches none, so the
+/// store lists no sources; an app reads the source of a calendar it was given.
+public final class EKSource: @unchecked Sendable {
+    public let sourceIdentifier: String
+    public let title: String
+    public let sourceType: EKSourceType
+    public var isDelegate: Bool { false }
+    init(title: String, sourceType: EKSourceType) {
+        self.title = title
+        self.sourceType = sourceType
+        sourceIdentifier = UUID().uuidString
+    }
+    /// The source's calendars of a type: none a page can reach.
+    public func calendars(for entityType: EKEntityType) -> Set<EKCalendar> { [] }
+}
+
 /// A calendar: a named collection of events.
-public final class EKCalendar: @unchecked Sendable {
+public final class EKCalendar: @unchecked Sendable, Hashable {
     public var title: String
     public let calendarIdentifier: String
+    /// The entity type the calendar holds.
+    public let allowedEntityTypes: EKEntityType
+    /// The account the calendar lives in; a new calendar needs one before it can be saved.
+    public var source: EKSource!
+    /// The colour the calendar's events are drawn in.
+    public var cgColor: CGColor!
+    public var type: EKCalendarType { .local }
     public var allowsContentModifications: Bool { false }
-    init(title: String) { self.title = title; calendarIdentifier = UUID().uuidString }
+    public var isSubscribed: Bool { false }
+    public var isImmutable: Bool { false }
+
+    init(title: String, entityType: EKEntityType = .event) {
+        self.title = title
+        allowedEntityTypes = entityType
+        calendarIdentifier = UUID().uuidString
+    }
+
+    /// A new calendar for entities of a type in `eventStore`, in no source until one is set.
+    public convenience init(for entityType: EKEntityType, eventStore: EKEventStore) {
+        self.init(title: "", entityType: entityType)
+    }
+
+    public static func == (lhs: EKCalendar, rhs: EKCalendar) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 }
 
 /// The base of events and reminders: what they have in common.
@@ -104,6 +157,17 @@ open class EKEventStore: @unchecked Sendable {
     open var defaultCalendarForNewEvents: EKCalendar? { nil }
     /// The calendars holding entities of a type: none without access.
     open func calendars(for entityType: EKEntityType) -> [EKCalendar] { [] }
+    /// The calendar with this identifier: none without access.
+    open func calendar(withIdentifier identifier: String) -> EKCalendar? { nil }
+    /// The accounts holding calendars: none a page can reach.
+    open var sources: [EKSource] { [] }
+    /// The source with this identifier: none.
+    open func source(withIdentifier identifier: String) -> EKSource? { nil }
+
+    /// Saves a calendar: without access it throws, as the store does on a device.
+    open func saveCalendar(_ calendar: EKCalendar, commit: Bool) throws { throw EKError(.eventStoreNotAuthorized) }
+    /// Removes a calendar: without access it throws.
+    open func removeCalendar(_ calendar: EKCalendar, commit: Bool) throws { throw EKError(.eventStoreNotAuthorized) }
 
     /// Saves an event: without access it throws, as the store does on a device.
     open func save(_ event: EKEvent, span: EKSpan) throws { throw EKError(.eventStoreNotAuthorized) }

@@ -157,6 +157,7 @@ let package = Package(
         .target(name: "WidgetKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // Its event queries take an `NSPredicate`, which Apple's Foundation declares and WebCoreData holds here.
         .target(name: "EventKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics"),
+                                                 .product(name: "WebGraphics", package: "WebGraphics", condition: .when(platforms: [.wasi, .linux])),
                                                  .target(name: "WebCoreData", condition: .when(platforms: [.wasi]))],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
         // The address book is out of a page's reach: access is declined, the contact types are values.

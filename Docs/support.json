@@ -2738,7 +2738,7 @@
         {
           "api": "EKEventStore / EKEvent / EKCalendar / EKAuthorizationStatus (EventKit)",
           "status": "stub",
-          "notes": "pf-small-frameworks (2026-11-09): a page cannot reach the person's calendars, so every access request answers as a person who declined (not granted, no error), the status is denied, there is no default calendar, and saving or removing an event throws eventStoreNotAuthorized, as on a device without access. Events and calendars are values an app fills, so the code that adds an event compiles and runs (Pompaddo's CalendarManager). Not done: reading or writing any calendar (an .ics download would be a different API)",
+          "notes": "pf-small-frameworks (2026-11-09): a page cannot reach the person's calendars, so every access request answers as a person who declined (not granted, no error), the status is denied, there is no default calendar, and saving or removing an event throws eventStoreNotAuthorized, as on a device without access. Events and calendars are values an app fills, so the code that adds an event compiles and runs (Pompaddo's CalendarManager). A new calendar (2026-11-22: EKCalendar(for:eventStore:) with a source, a CGColor and its type) is a value too, the store lists no sources, and saveCalendar / removeCalendar throw as saving an event does (Clendar's Shift). Not done: reading or writing any calendar (an .ics download would be a different API)",
           "noFixture": "Nothing to draw: FrameworkTests check the declined requests and the throwing save"
         },
         {
