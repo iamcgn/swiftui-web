@@ -35,7 +35,7 @@ OURS = {
     "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices", "SystemConfiguration",
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit", "Contacts",
     "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit", "Symbols", "Compression", "zlib", "Translation", "_Translation_SwiftUI", "JavaScriptCore",
-    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "XCTest",
+    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "QuickLook", "LinkPresentation", "XCTest",
 }
 # `Builtin` is the compiler's own module (swift-collections imports it with the BuiltinModule
 # feature). `XCTest` is the shadow's (Packages/Shadows): the wasm SDK's own can't be read beside
@@ -1199,6 +1199,8 @@ WEB_PRODUCTS = [
     ("PDFKit", "SwiftUIWeb"),
     ("CoreSpotlight", "SwiftUIWeb"),
     ("NaturalLanguage", "SwiftUIWeb"),
+    ("QuickLook", "SwiftUIWeb"),
+    ("LinkPresentation", "SwiftUIWeb"),
     ("UIKit", "UIKitWeb"),
     ("Foundation", "Shadows"),
     ("Combine", "Shadows"),
@@ -1457,6 +1459,14 @@ def cmd_prepare(args):
                 name = Path(m).name
                 if name in models:
                     continue
+                # A model inside a resource folder that was copied above (Hipstapaper's
+                # Resources/CD_MOM.xcdatamodeld) comes out of that copy, or the plugin, which
+                # reads the whole target folder, would generate its classes twice.
+                model_src = (clone_dir / m).resolve()
+                for r, _ in resource_rules:
+                    r_src = (clone_dir / t["source_root"] / r).resolve()
+                    if r_src.is_dir() and r_src != model_src and model_src.is_relative_to(r_src):
+                        shutil.rmtree(dest_root / r / model_src.relative_to(r_src), ignore_errors=True)
                 shutil.copytree(clone_dir / m, dest_root / name, dirs_exist_ok=True)
                 models.append(name)
             # The app's catalogs (not its resources here): their folders and `Contents.json`, out

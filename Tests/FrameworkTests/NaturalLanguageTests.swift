@@ -57,6 +57,15 @@ private func top(_ text: String) -> (String, Double)? {
         }
     }
 
+    @Test func bulgarianIsToldFromRussianByItsWords() {
+        #expect(NLLanguageRecognizer.dominantLanguage(for: "Здравейте, как сте? Днес е много хубав ден.") == .bulgarian)
+        // No word or letter of either language's own: neither is sure enough for a 0.85 cut-off (#308).
+        let unsure = NLLanguageRecognizer().with("Мама мыла раму").languageHypotheses(withMaximum: 2)
+        #expect(unsure[.russian] == 1)
+        let neither = NLLanguageRecognizer().with("Мама, кафе, банан").languageHypotheses(withMaximum: 2)
+        #expect((neither[.russian] ?? 1) < 0.85 && (neither[.bulgarian] ?? 1) < 0.85)
+    }
+
     @Test func mixedScriptsSplitTheHypotheses() {
         let recognizer = NLLanguageRecognizer()
         recognizer.processString("Привет")

@@ -532,7 +532,8 @@ public final class URLSessionConfiguration: @unchecked Sendable {
 /// app reading back what it stored (EmojiText's emoji cache) finds it. Nothing goes to disk.
 public final class URLCache: @unchecked Sendable {
     nonisolated(unsafe) public static var shared = URLCache(memoryCapacity: 512_000, diskCapacity: 10_000_000)
-    public var memoryCapacity: Int
+    /// The bytes of response data the cache keeps; lowering it drops the oldest responses.
+    public var memoryCapacity: Int { didSet { trim(toFit: 0) } }
     public var diskCapacity: Int
     private var stored: [String: (response: CachedURLResponse, at: Date)] = [:]
     public var currentMemoryUsage: Int { stored.values.reduce(0) { $0 + $1.response.data.count } }
@@ -551,11 +552,23 @@ public final class URLCache: @unchecked Sendable {
         key(request).flatMap { stored[$0]?.response }
     }
     /// Keeps `cachedResponse` for the request's URL, unless its policy says not to or its data
-    /// alone is larger than the memory capacity.
+    /// alone is larger than the memory capacity; the oldest responses go to make room (#316).
     public func storeCachedResponse(_ cachedResponse: CachedURLResponse, for request: URLRequest) {
         guard let key = key(request), cachedResponse.storagePolicy != .notAllowed,
               cachedResponse.data.count <= memoryCapacity else { return }
+        stored[key] = nil
+        trim(toFit: cachedResponse.data.count)
         stored[key] = (cachedResponse, Date())
+    }
+    /// Drops the oldest responses until `extra` more bytes fit in the memory capacity.
+    private func trim(toFit extra: Int) {
+        var usage = currentMemoryUsage
+        guard usage + extra > memoryCapacity else { return }
+        for (key, entry) in stored.sorted(by: { $0.value.at < $1.value.at }) {
+            guard usage + extra > memoryCapacity else { break }
+            stored[key] = nil
+            usage -= entry.response.data.count
+        }
     }
     public func removeCachedResponse(for request: URLRequest) {
         if let key = key(request) { stored[key] = nil }

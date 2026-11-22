@@ -54,6 +54,8 @@ let package = Package(
         .library(name: "PDFKit", targets: ["PDFKit"]),
         .library(name: "CoreSpotlight", targets: ["CoreSpotlight"]),
         .library(name: "NaturalLanguage", targets: ["NaturalLanguage"]),
+        .library(name: "QuickLook", targets: ["QuickLook"]),
+        .library(name: "LinkPresentation", targets: ["LinkPresentation"]),
         .library(name: "StoreKit", targets: ["StoreKit"]),
         .library(name: "AppIntents", targets: ["AppIntents"]),
         .library(name: "WebKit", targets: ["WebKit"]),
@@ -224,6 +226,11 @@ let package = Package(
         // The language of a text, told by its script and, for Latin text, by its common words.
         .target(name: "NaturalLanguage", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Quick Look's SwiftUI preview: a sheet that shows the file at a URL.
+        .target(name: "QuickLook", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Link metadata: the record share sheets take, and a page's title read from its markup.
+        .target(name: "LinkPresentation", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")],
+                swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "SpeechRecognitionHost", swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "Speech", dependencies: ["SpeechRecognitionHost", "AVFAudio", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -311,7 +318,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", .product(name: "UserNotifications", package: "UIKitWeb"), "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", "LanguageMode5Fixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", .product(name: "UserNotifications", package: "UIKitWeb"), "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "QuickLook", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", "LanguageMode5Fixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // A Swift 5 language mode type for the tests, as packages built in that mode (swift-perception)
@@ -356,7 +363,7 @@ let package = Package(
         // The small frameworks against known answers (FIPS 180, RFC 1321, RFC 4231 vectors).
         .testTarget(
             name: "FrameworkTests",
-            dependencies: ["CryptoKit", "NaturalLanguage", "CoreHaptics", .product(name: "WebCoreImage", package: "WebGraphics"), "WidgetKit", "EventKit", "Contacts", "AudioToolbox", .product(name: "WebGraphics", package: "WebGraphics"), .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics"), .product(name: "WebDecimalFormats", package: "WebGraphics")],
+            dependencies: ["CryptoKit", "NaturalLanguage", "LinkPresentation", "CoreHaptics", .product(name: "WebCoreImage", package: "WebGraphics"), "WidgetKit", "EventKit", "Contacts", "AudioToolbox", .product(name: "WebGraphics", package: "WebGraphics"), .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebFoundationFormats", package: "WebGraphics"), .product(name: "WebDecimalFormats", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         .testTarget(

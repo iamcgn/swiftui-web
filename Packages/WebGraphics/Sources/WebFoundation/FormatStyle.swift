@@ -560,7 +560,7 @@ open class Formatter: NSObject {
 }
 
 /// Foundation's `NumberFormatter` on wasm: the none, decimal, percent, currency and ordinal styles.
-open class NumberFormatter: Formatter {
+open class NumberFormatter: Formatter, @unchecked Sendable {
     public enum Style: Int, Sendable { case none = 0, decimal, currency, percent, scientific, spellOut, ordinal }
 
     open var numberStyle: Style = .none
@@ -710,7 +710,7 @@ open class NumberFormatter: Formatter {
 #if os(WASI)
 /// Foundation's `ListFormatter`: items joined as English prose ("a, b, and c", the serial
 /// comma as Foundation's en_US; other locales are not carried).
-open class ListFormatter: Formatter {
+open class ListFormatter: Formatter, @unchecked Sendable {
     public var locale: Locale = .current
     public var itemFormatter: Formatter?
 
