@@ -6,6 +6,11 @@ import Testing
 import WebFoundation
 import WebFoundationFormats
 
+/// What a deallocator saw (a class, so a sendable closure can record it).
+private final class ReleasedCount: @unchecked Sendable {
+    var value = 0
+}
+
 @Suite struct FoundationGapsTests {
     @Test func comparisons() {
         #expect("abc".caseInsensitiveCompare("ABD") == .orderedAscending)
@@ -34,6 +39,27 @@ import WebFoundationFormats
         data.count = 3
         #expect(Array(data) == [1, 0, 0])
         #expect(Data(count: 2).count == 2)
+    }
+
+    /// SwiftNIO's `ByteBuffer` hands its storage over with a custom deallocator; the bytes read
+    /// back through the value and the deallocator runs by the time the value is gone.
+    @Test func noCopyDataReleasesThroughItsDeallocator() {
+        let buffer = UnsafeMutableRawPointer.allocate(byteCount: 3, alignment: 1)
+        buffer.copyMemory(from: [7, 8, 9] as [UInt8], byteCount: 3)
+        let released = ReleasedCount()
+        do {
+            let data = Data(bytesNoCopy: buffer, count: 3, deallocator: .custom { pointer, count in
+                released.value = count
+                pointer.deallocate()
+            })
+            #expect(Array(data) == [7, 8, 9])
+        }
+        #expect(released.value == 3)
+
+        let unowned = UnsafeMutableRawPointer.allocate(byteCount: 2, alignment: 1)
+        unowned.storeBytes(of: 0x0201, as: UInt16.self)
+        #expect(Data(bytesNoCopy: unowned, count: 2, deallocator: .none).count == 2)
+        unowned.deallocate()
     }
 
     @Test func json5() throws {

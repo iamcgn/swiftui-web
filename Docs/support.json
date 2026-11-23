@@ -2395,9 +2395,9 @@
           "noFixture": "NSStringMethodsTests checks Apple's documented answers and runs against Foundation on macOS and Linux as well as on wasm."
         },
         {
-          "api": "NSData / NSMutableData / NSCopying / NSMutableCopying / Data.count setter / Data(count:)",
+          "api": "NSData / NSMutableData / NSCopying / NSMutableCopying / Data.count setter / Data(count:) / Data(bytesNoCopy:count:deallocator:)",
           "status": "full",
-          "notes": "On wasm: byte buffers over Data, bridged both ways (`body as Data`), equal by bytes; setting `count` truncates or pads with zeros.",
+          "notes": "On wasm: byte buffers over Data, bridged both ways (`body as Data`), equal by bytes; setting `count` truncates or pads with zeros. The no-copy initialiser (2026-11-23, SwiftNIO's ByteBuffer) copies the bytes and releases the buffer at once through its deallocator.",
           "noFixture": "Foundation API with nothing on screen; FoundationGapsTests holds it to Foundation on macOS and Linux and checks the wasm forms."
         },
         {

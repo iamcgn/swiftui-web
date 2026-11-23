@@ -3,6 +3,8 @@
 // does (`data[2..<4].startIndex` is 2; `Data(slice)` starts a fresh value at zero);
 // `String.Encoding` lives in StringEncoding.swift.
 #if os(WASI)
+import WASILibc
+
 public struct Data: Hashable, Sendable, Codable, CustomStringConvertible, CustomDebugStringConvertible,
                     RandomAccessCollection, MutableCollection, RangeReplaceableCollection {
     public typealias Index = Int
@@ -293,6 +295,30 @@ extension Data {
         public static let completeFileProtectionUntilFirstUserAuthentication = WritingOptions(rawValue: 0x40000000)
         public static let completeFileProtectionWhenUserInactive = WritingOptions(rawValue: 0x50000000)
         public static let fileProtectionMask = WritingOptions(rawValue: 0xf0000000)
+    }
+}
+
+/// The no-copy initialiser (SwiftNIO's `ByteBuffer` hands its storage to `Data` this way). A
+/// `Data` here is one array, so it copies the bytes and releases the caller's buffer at once:
+/// `free` frees it, a custom deallocator runs, `none` leaves it, and `unmap` and
+/// `virtualMemory` leave it too, as wasm maps no memory. What the caller sees is Foundation's:
+/// the bytes stay readable through the value, and the buffer is the deallocator's to release.
+extension Data {
+    public enum Deallocator {
+        case virtualMemory
+        case unmap
+        case free
+        case none
+        case custom((UnsafeMutableRawPointer, Int) -> Void)
+    }
+
+    public init(bytesNoCopy bytes: UnsafeMutableRawPointer, count: Int, deallocator: Deallocator) {
+        self.init(bytes: UnsafeRawPointer(bytes), count: count)
+        switch deallocator {
+        case .free: WASILibc.free(bytes)
+        case .custom(let release): release(bytes, count)
+        case .virtualMemory, .unmap, .none: break
+        }
     }
 }
 #endif
