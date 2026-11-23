@@ -183,14 +183,15 @@ extension NSValue {
 }
 #else
 // Linux's Foundation boxes no structs of its own, so a vector rides in a rectangle's four
-// numbers (a float fits a double exactly) and a matrix in a pointer to a copy kept alive.
+// numbers (a float fits a double exactly), and a matrix in a range whose location is the
+// address of a copy kept alive.
 extension NSValue {
     public convenience init(scnVector3 v: SCNVector3) { self.init(rect: .init(x: Double(v.x), y: Double(v.y), width: Double(v.z), height: 0)) }
     public convenience init(scnVector4 v: SCNVector4) { self.init(rect: .init(x: Double(v.x), y: Double(v.y), width: Double(v.z), height: Double(v.w))) }
     public convenience init(scnMatrix4 v: SCNMatrix4) {
         let box = UnsafeMutablePointer<SCNMatrix4>.allocate(capacity: 1)
         box.initialize(to: v)
-        self.init(pointer: UnsafeRawPointer(box))
+        self.init(range: NSRange(location: Int(bitPattern: box), length: 0))
     }
     public var scnVector3Value: SCNVector3 {
         let r = rectValue
@@ -201,30 +202,8 @@ extension NSValue {
         return SCNVector4(x: Float(r.origin.x), y: Float(r.origin.y), z: Float(r.size.width), w: Float(r.size.height))
     }
     public var scnMatrix4Value: SCNMatrix4 {
-        guard let pointer = pointerValue else { return SCNMatrix4Identity }
-        return pointer.assumingMemoryBound(to: SCNMatrix4.self).pointee
-    }
-}
-#endif
-        return v
-    }
-    public var scnVector4Value: SCNVector4 {
-        var v = SCNVector4()
-        #if canImport(Darwin)
-        getValue(&v, size: MemoryLayout<SCNVector4>.size)
-        #else
-        getValue(&v)
-        #endif
-        return v
-    }
-    public var scnMatrix4Value: SCNMatrix4 {
-        var v = SCNMatrix4()
-        #if canImport(Darwin)
-        getValue(&v, size: MemoryLayout<SCNMatrix4>.size)
-        #else
-        getValue(&v)
-        #endif
-        return v
+        guard let box = UnsafePointer<SCNMatrix4>(bitPattern: rangeValue.location) else { return SCNMatrix4Identity }
+        return box.pointee
     }
 }
 #endif
