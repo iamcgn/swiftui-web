@@ -2395,9 +2395,9 @@
           "noFixture": "NSStringMethodsTests checks Apple's documented answers and runs against Foundation on macOS and Linux as well as on wasm."
         },
         {
-          "api": "NSMutableString / NSString.getBytes(_:maxLength:usedLength:encoding:options:range:remaining:) / rangeOfComposedCharacterSequence(at:) and (for:) / CharacterSet.isSubset(of:), isSuperset(of:), isDisjoint(with:) / Timer(timeInterval:repeats:block:) and the target-action initialiser / RunLoop.add(_:forMode:) / Timer.fire() / NSAttributedString() / CFRange / CFRangeMake / CFAttributedString / CFAttributedStringGetLength",
+          "api": "NSMutableString / NSString.getBytes(_:maxLength:usedLength:encoding:options:range:remaining:) / rangeOfComposedCharacterSequence(at:) and (for:) / CharacterSet.isSubset(of:), isSuperset(of:), isDisjoint(with:) / Timer(timeInterval:repeats:block:) and the target-action initialiser / RunLoop.add(_:forMode:) / Timer.fire() / NSAttributedString()",
           "status": "full",
-          "notes": "On wasm (2026-11-23), for text engines such as Runestone: a string edited in place in UTF-16 ranges; the bytes of a range in an encoding, whole characters only, with what is left over; edits widened to whole characters; subset tests that answer at once for sets built from strings and literals and check every scalar otherwise; timers made unscheduled and started by the run loop, every mode being the browser's loop; Core Text's attributed-string and range names as the Foundation types.",
+          "notes": "On wasm (2026-11-23), for text engines such as Runestone: a string edited in place in UTF-16 ranges; the bytes of a range in an encoding, whole characters only, with what is left over; edits widened to whole characters; subset tests that answer at once for sets built from strings and literals and check every scalar otherwise; timers made unscheduled and started by the run loop, every mode being the browser's loop.",
           "noFixture": "Foundation API with nothing on screen; TextEngineFoundationTests checks Apple's answers and runs against Foundation on macOS and Linux as well as on wasm."
         },
         {

@@ -16,20 +16,6 @@ public typealias CFBoolean = Bool
 public typealias CFNumber = Int
 public typealias CFIndex = Int
 public typealias CFError = NSError
-/// Attributed strings, as Core Text takes them (Runestone measures its lines through
-/// `CFAttributedString`); each is the Foundation class it bridges to.
-public typealias CFAttributedString = NSAttributedString
-public typealias CFMutableAttributedString = NSMutableAttributedString
-
-/// A range of a CF string or attributed string, in UTF-16 units.
-public struct CFRange: Hashable, Sendable {
-    public var location: CFIndex
-    public var length: CFIndex
-    public init() { location = 0; length = 0 }
-    public init(location: CFIndex, length: CFIndex) { self.location = location; self.length = length }
-}
-public func CFRangeMake(_ loc: CFIndex, _ len: CFIndex) -> CFRange { CFRange(location: loc, length: len) }
-public func CFAttributedStringGetLength(_ aStr: CFAttributedString!) -> CFIndex { aStr.length }
 /// A result code (Core Services' `OSStatus`, which the keychain functions return).
 public typealias OSStatus = Int32
 /// A bit set of options (Security's revocation flags).

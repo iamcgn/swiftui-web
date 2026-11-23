@@ -1,8 +1,8 @@
 // The Foundation members a text engine calls (Runestone keeps its text in an `NSMutableString`,
 // hands tree-sitter the UTF-16 bytes through `getBytes`, widens edits to whole characters,
 // checks character sets with `isSubset(of:)` and adds its caret timer to the run loop). The
-// wasm forms are WebFoundation's (NSMutableString.swift, Responder.swift, Lifecycle.swift,
-// CoreFoundation.swift); these run against Foundation on macOS and Linux too.
+// wasm forms are WebFoundation's (NSMutableString.swift, Responder.swift, Lifecycle.swift);
+// these run against Foundation on macOS and Linux too.
 import Testing
 import WebFoundation
 
@@ -93,11 +93,5 @@ private final class Count: @unchecked Sendable {
         let text = NSMutableAttributedString()
         text.append(NSAttributedString(string: "a😀"))
         #expect(text.length == 3 && NSAttributedString().length == 0)
-        #if os(WASI) || canImport(Darwin)
-        // Linux's Foundation keeps Core Foundation to itself.
-        let range = CFRangeMake(2, 3)
-        #expect(range.location == 2 && range.length == 3)
-        #expect(CFAttributedStringGetLength(text as CFAttributedString) == 3)
-        #endif
     }
 }
