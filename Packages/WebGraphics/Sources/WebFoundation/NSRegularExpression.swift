@@ -17,12 +17,21 @@
 /// Foundation's name for the string object (`_WebNSString`, see above).
 public typealias NSString = _WebNSString
 
-/// A static, plain-text Unicode string object, bridged from `String` (`as NSString`). An
-/// `NSObject` with the Objective-C runtime, as Foundation's is, so `key as NSString` goes where
-/// an `NSObject` does (RevenueCat's `[String: NSObject]` attribute dictionaries).
-public final class _WebNSString: _WebObjectBase, ExpressibleByStringLiteral, @unchecked Sendable {
-    public let string: String
-    private lazy var utf16: [UInt16] = Array(string.utf16)
+/// A plain-text Unicode string object, bridged from `String` (`as NSString`). An `NSObject`
+/// with the Objective-C runtime, as Foundation's is, so `key as NSString` goes where an
+/// `NSObject` does (RevenueCat's `[String: NSObject]` attribute dictionaries). Its subclass
+/// `NSMutableString` (NSMutableString.swift) changes the characters in place.
+public class _WebNSString: _WebObjectBase, ExpressibleByStringLiteral, @unchecked Sendable {
+    /// The characters. Only `NSMutableString` sets them.
+    public internal(set) var string: String { didSet { _units = nil } }
+    private var _units: [UInt16]?
+    /// The UTF-16 units, as NSString indexes them (made once per change of the characters).
+    var utf16: [UInt16] {
+        if let units = _units { return units }
+        let units = Array(string.utf16)
+        _units = units
+        return units
+    }
 
     public init(string: String) {
         self.string = string
@@ -33,7 +42,9 @@ public final class _WebNSString: _WebObjectBase, ExpressibleByStringLiteral, @un
         super.init()
     }
     /// `let key: NSString = "name"`, as Foundation's bridged string takes a literal.
-    public convenience init(stringLiteral value: String) { self.init(string: value) }
+    public required convenience init(stringLiteral value: String) { self.init(string: value) }
+    public required convenience init(extendedGraphemeClusterLiteral value: String) { self.init(string: value) }
+    public required convenience init(unicodeScalarLiteral value: String) { self.init(string: value) }
 
     /// The number of UTF-16 code units.
     public var length: Int { string.utf16.count }

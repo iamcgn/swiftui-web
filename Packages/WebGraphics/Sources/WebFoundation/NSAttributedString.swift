@@ -29,6 +29,8 @@ open class NSAttributedString: @unchecked Sendable {
         string = attributedString.string
         runs = attributedString.runs
     }
+    /// An empty attributed string.
+    public convenience init() { self.init(string: "") }
     /// A Swift attributed string's characters and attributes: each attribute under its key's
     /// name (`.link` is "NSLink", UIKit's foreground colour "NSColor"), as Foundation's
     /// conversion keys them.

@@ -214,7 +214,7 @@
         {
           "api": "Button",
           "status": "partial",
-          "notes": "bordered (default), borderedProminent, plain exact in layout; borderless approximate (grey label in a window); custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance; PrimitiveButtonStyle (the style owns the interaction; the standard styles named as primitive styles, and Button(configuration) inside one), controlSize bezels (iOS measured: 31 / 38.5 / 54.5 pt capsules; macOS approximate), the destructive role's red label or capsule, the disabled looks (iOS measured; macOS 26.6's 30 % label), the pressed look unverified (2026-10-04)",
+          "notes": "bordered (default), borderedProminent, plain exact in layout; borderless approximate (grey label in a window); custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance; PrimitiveButtonStyle (the style owns the interaction; the standard styles are primitive styles, as SwiftUI's are, so BorderedButtonStyle() satisfies some PrimitiveButtonStyle (2026-11-23); Button(configuration) inside one), controlSize bezels (iOS measured: 31 / 38.5 / 54.5 pt capsules; macOS approximate), the destructive role's red label or capsule, the disabled looks (iOS measured; macOS 26.6's 30 % label), the pressed look unverified (2026-10-04)",
           "fixtures": [
             "button/basic",
             "button/styles"
@@ -2393,6 +2393,12 @@
           "status": "partial",
           "notes": "Answered in UTF-16 ranges over the String forms, as Apple's Foundation does (StyledTextKit's trimming, 2026-11-14).",
           "noFixture": "NSStringMethodsTests checks Apple's documented answers and runs against Foundation on macOS and Linux as well as on wasm."
+        },
+        {
+          "api": "NSMutableString / NSString.getBytes(_:maxLength:usedLength:encoding:options:range:remaining:) / rangeOfComposedCharacterSequence(at:) and (for:) / CharacterSet.isSubset(of:), isSuperset(of:), isDisjoint(with:) / Timer(timeInterval:repeats:block:) and the target-action initialiser / RunLoop.add(_:forMode:) / Timer.fire() / NSAttributedString()",
+          "status": "full",
+          "notes": "On wasm (2026-11-23), for text engines such as Runestone: a string edited in place in UTF-16 ranges; the bytes of a range in an encoding, whole characters only, with what is left over; edits widened to whole characters; subset tests that answer at once for sets built from strings and literals and check every scalar otherwise; timers made unscheduled and started by the run loop, every mode being the browser's loop.",
+          "noFixture": "Foundation API with nothing on screen; TextEngineFoundationTests checks Apple's answers and runs against Foundation on macOS and Linux as well as on wasm."
         },
         {
           "api": "NSData / NSMutableData / NSCopying / NSMutableCopying / Data.count setter / Data(count:) / Data(bytesNoCopy:count:deallocator:)",

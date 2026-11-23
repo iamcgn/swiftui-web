@@ -5,32 +5,65 @@
 // Apple platforms use Foundation's declarations.
 #if os(WASI)
 
-/// A set of Unicode scalars, by predicate.
+/// A set of Unicode scalars, by predicate, which also keeps its members when they are few and
+/// known (a set built from strings and array literals, and their unions and intersections), so
+/// the subset tests answer at once for those.
 public struct CharacterSet: @unchecked Sendable {
     private let predicate: (Unicode.Scalar) -> Bool
+    private let finite: Set<Unicode.Scalar>?
 
-    public init() { predicate = { _ in false } }
-    private init(_ predicate: @escaping (Unicode.Scalar) -> Bool) { self.predicate = predicate }
+    public init() { self.init(scalars: []) }
+    private init(_ predicate: @escaping (Unicode.Scalar) -> Bool) { self.predicate = predicate; finite = nil }
+    private init(scalars: Set<Unicode.Scalar>) { predicate = { scalars.contains($0) }; finite = scalars }
 
     /// The scalars of `string`.
-    public init(charactersIn string: String) {
-        let scalars = Set(string.unicodeScalars)
-        predicate = { scalars.contains($0) }
-    }
+    public init(charactersIn string: String) { self.init(scalars: Set(string.unicodeScalars)) }
 
     /// The scalars in `range` (`"a"..."z"`).
-    public init(charactersIn range: ClosedRange<Unicode.Scalar>) { predicate = { range.contains($0) } }
-    public init(charactersIn range: Range<Unicode.Scalar>) { predicate = { range.contains($0) } }
+    public init(charactersIn range: ClosedRange<Unicode.Scalar>) { self.init { range.contains($0) } }
+    public init(charactersIn range: Range<Unicode.Scalar>) { self.init { range.contains($0) } }
 
     public func contains(_ member: Unicode.Scalar) -> Bool { predicate(member) }
 
     public var inverted: CharacterSet { CharacterSet { !self.predicate($0) } }
-    public func union(_ other: CharacterSet) -> CharacterSet { CharacterSet { self.predicate($0) || other.predicate($0) } }
-    public func intersection(_ other: CharacterSet) -> CharacterSet { CharacterSet { self.predicate($0) && other.predicate($0) } }
-    public func subtracting(_ other: CharacterSet) -> CharacterSet { CharacterSet { self.predicate($0) && !other.predicate($0) } }
+    public func union(_ other: CharacterSet) -> CharacterSet {
+        if let finite, let more = other.finite { return CharacterSet(scalars: finite.union(more)) }
+        return CharacterSet { self.predicate($0) || other.predicate($0) }
+    }
+    public func intersection(_ other: CharacterSet) -> CharacterSet {
+        if let finite { return CharacterSet(scalars: finite.filter(other.predicate)) }
+        if let more = other.finite { return CharacterSet(scalars: more.filter(predicate)) }
+        return CharacterSet { self.predicate($0) && other.predicate($0) }
+    }
+    public func subtracting(_ other: CharacterSet) -> CharacterSet {
+        if let finite { return CharacterSet(scalars: finite.filter { !other.predicate($0) }) }
+        return CharacterSet { self.predicate($0) && !other.predicate($0) }
+    }
     public mutating func insert(charactersIn string: String) { self = union(CharacterSet(charactersIn: string)) }
     public mutating func formUnion(_ other: CharacterSet) { self = union(other) }
-    public func isSuperset(of other: CharacterSet) -> Bool { false }
+
+    /// Whether every member is also in `other`. A set given only by its predicate is checked
+    /// against every scalar, which takes a moment.
+    public func isSubset(of other: CharacterSet) -> Bool {
+        if let finite { return finite.allSatisfy(other.predicate) }
+        return Self.everyScalar { !self.predicate($0) || other.predicate($0) }
+    }
+    public func isSuperset(of other: CharacterSet) -> Bool { other.isSubset(of: self) }
+    public func isDisjoint(with other: CharacterSet) -> Bool {
+        if let finite { return !finite.contains(where: other.predicate) }
+        if let more = other.finite { return !more.contains(where: predicate) }
+        return Self.everyScalar { !self.predicate($0) || !other.predicate($0) }
+    }
+    public var isEmpty: Bool { finite?.isEmpty ?? Self.everyScalar { !self.predicate($0) } }
+
+    /// Whether `test` holds for every Unicode scalar.
+    private static func everyScalar(_ test: (Unicode.Scalar) -> Bool) -> Bool {
+        for value in UInt32(0)...0x10FFFF {
+            guard let scalar = Unicode.Scalar(value) else { continue }
+            if !test(scalar) { return false }
+        }
+        return true
+    }
 
     public static let letters = CharacterSet { $0.properties.isAlphabetic }
     public static let uppercaseLetters = CharacterSet { $0.properties.isUppercase }
@@ -70,10 +103,7 @@ public struct CharacterSet: @unchecked Sendable {
 
 /// `["\""]`, as `trimmingCharacters(in:)` and `components(separatedBy:)` take a set.
 extension CharacterSet: ExpressibleByArrayLiteral {
-    public init(arrayLiteral elements: Unicode.Scalar...) {
-        let scalars = Set(elements)
-        self.init { scalars.contains($0) }
-    }
+    public init(arrayLiteral elements: Unicode.Scalar...) { self.init(scalars: Set(elements)) }
 }
 
 #endif
