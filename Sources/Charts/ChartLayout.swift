@@ -86,6 +86,8 @@ package struct _ChartModel {
     package var series: [(name: String, style: AnyShapeStyle)] = []
     package var seriesLabel: String?
     package var symbolsBySeries: [String: _SymbolShape] = [:]
+    /// A chart of sectors is a pie or donut: no axes or grid, the circle in the whole plot.
+    package var isPie: Bool { records.contains { $0.kind == .sector } }
 
     /// The categorical palette: the system colours in Swift Charts' order.
     package static let palette: [Color] = [.blue, .green, .orange, .purple, .red, .cyan, .yellow, .pink, .brown, .indigo, .mint, .teal]

@@ -182,6 +182,44 @@ import Charts
         #expect(texts[6].1.x == 284 && abs(texts[10].1.y - (16 - 7 + 11)) < 1)
     }
 
+    @Test func sectorsShareTheCircleClockwiseFromTheTop() {
+        let out = records {
+            SectorMark(angle: .value("Steps", 1), innerRadius: .ratio(0.5), angularInset: 2)
+            SectorMark(angle: .value("Steps", 1), innerRadius: .ratio(0.5), angularInset: 2)
+            SectorMark(angle: .value("Steps", 2), innerRadius: .ratio(0.5), angularInset: 2)
+        }.enumerated().map { entry -> _MarkRecord in var r = entry.element; r.index = entry.offset; return r }
+        #expect(out.map(\.kind) == [.sector, .sector, .sector] && out[0].innerRadius == .ratio(0.5) && out[0].angularInset == 2)
+        let spans = out.compactMap { _sectorSpan($0, records: out) }
+        #expect(spans.count == 3)
+        #expect(abs(spans[0].lowerBound + .pi / 2) < 1e-9 && abs(spans[0].upperBound) < 1e-9)
+        #expect(abs(spans[1].upperBound - .pi / 2) < 1e-9 && abs(spans[2].upperBound - 3 * .pi / 2) < 1e-9)
+        // A quarter ring from the top to the right between radii 50 and 100.
+        let quarter = _sectorPath(center: CGPoint(x: 100, y: 100), inner: 50, outer: 100, start: -.pi / 2, end: 0, inset: 0).boundingRect
+        #expect(abs(quarter.minX - 100) < 0.01 && abs(quarter.maxX - 200) < 0.01 && abs(quarter.minY) < 0.01 && abs(quarter.maxY - 100) < 0.01)
+        // An inset moves both edges in by half of it.
+        let inset = _sectorPath(center: CGPoint(x: 100, y: 100), inner: 50, outer: 100, start: -.pi / 2, end: 0, inset: 4).boundingRect
+        #expect(abs(inset.minX - 102) < 0.01 && abs(inset.maxY - 98) < 0.01)
+        #expect(_sectorRadius(.inset(10), full: 100, automatic: 0) == 90 && _sectorRadius(.fixed(30), full: 100, automatic: 0) == 30 && _sectorRadius(.automatic, full: 100, automatic: 0) == 0)
+    }
+
+    @Test func aPieChartPaintsItsSectorsWithoutAxes() {
+        let (_, commands) = render(Chart {
+            SectorMark(angle: .value("Steps", 3))
+            SectorMark(angle: .value("Steps", 1), innerRadius: .ratio(0.6))
+        }, size: CGSize(width: 200, height: 100))
+        let fills = commands.compactMap { command -> CGRect? in
+            if case .fillPath(let path, let color, _) = command, color.blue == 1 { return path.boundingRect }
+            return nil
+        }
+        #expect(fills.count == 2)
+        // The circle's radius is half the shorter side, centred in the plot: the first sector
+        // runs three quarters of the way round from the top, the second the last quarter.
+        #expect(abs(fills[0].minX - 50) < 0.01 && abs(fills[0].maxX - 150) < 0.01 && abs(fills[0].minY) < 0.01 && abs(fills[0].maxY - 100) < 0.01)
+        #expect(abs(fills[1].minX - 50) < 0.01 && abs(fills[1].maxX - 100) < 0.01 && abs(fills[1].maxY - 50) < 0.01)
+        let strokes = commands.filter { if case .strokePath = $0 { return true } else { return false } }
+        #expect(strokes.isEmpty && drawn(commands).isEmpty)
+    }
+
     @Test func horizontalBarsRuleAndAnnotation() {
         // charts/scales: inside labels, 4 pt corners at the value end only, a 0...100 domain
         // whose "100" label is dropped at the edge; the legend hidden.

@@ -1790,9 +1790,9 @@
           ]
         },
         {
-          "api": "NSAttributedString / NSString drawing (draw(at:), draw(in:), size(withAttributes:), boundingRect)",
+          "api": "NSAttributedString / NSString drawing (draw(at:), draw(in:), draw(with:options:), size(withAttributes:), boundingRect)",
           "status": "full",
-          "notes": "Per-range fonts and colours, underlines and strikethroughs in their own colours drawn as UIKit's string drawing does (unsnapped lines, a 1 pt minimum), the paragraph alignment, NSMutableAttributedString edits; measured through the text engine; open: the bold faces' line metrics (a half-point at 24 pt bold)",
+          "notes": "Per-range fonts and colours, underlines and strikethroughs in their own colours drawn as UIKit's string drawing does (unsnapped lines, a 1 pt minimum), the paragraph alignment, NSMutableAttributedString edits; measured through the text engine. objc-bridging (2026-11-23): draw(with:options:attributes:context:) wraps in the rectangle with usesLineFragmentOrigin and otherwise draws unwrapped from a baseline at its origin (SwiftUIExperiments' globe); open: the bold faces' line metrics (a half-point at 24 pt bold)",
           "fixtures": [
             "uikit/draw/text",
             "uikit/draw/rest"
@@ -2643,7 +2643,7 @@
         {
           "api": "BarMark / LineMark / PointMark / AreaMark / RuleMark / RectangleMark",
           "status": "partial",
-          "notes": "Measured on macOS 27: bars 70 % of a nominal band (the value end rounded by cornerRadius), 2 pt round-capped lines and rules, 8 pt points, solid areas, stacking by series, dodging by position(by:); SectorMark missing",
+          "notes": "Measured on macOS 27: bars 70 % of a nominal band (the value end rounded by cornerRadius), 2 pt round-capped lines and rules, 8 pt points, solid areas, stacking by series, dodging by position(by:). objc-bridging (2026-11-23): SectorMark draws pies and donuts, each sector a share of the angles' sum clockwise from the top between its inner and outer radii (ratio, fixed or inset), the edges moved in by half the angular inset, with no axes or grid (SwiftUIExperiments' walk charts); open: rounded sector corners and ChartProxy.angle(forValue:)",
           "fixtures": [
             "charts/bar",
             "charts/line",

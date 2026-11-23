@@ -271,6 +271,9 @@ struct _ChartPainter {
 
     /// The geometry, leaving the model's scales finished for the plot's lengths.
     package static func geometry(finishing model: inout _ChartModel, configuration: _ChartConfiguration, size: CGSize, labelHeight: CGFloat, labelWidth: (String) -> CGFloat) -> _ChartGeometry {
+        if model.isPie {
+            return _ChartGeometry(plot: CGRect(origin: .zero, size: size), labelHeight: labelHeight, xLabelsVisible: false, yLabelsVisible: false, yAxisLeading: false, yLabelsInside: false)
+        }
         let xVisible = configuration.xAxis.visibility != .hidden
         let yVisible = configuration.yAxis.visibility != .hidden
         let yPosition = configuration.yAxis.marks?.first?.position ?? .automatic
@@ -309,7 +312,7 @@ struct _ChartPainter {
         let plot = geometry.plot
         guard plot.width > 0, plot.height > 0 else { return }
 
-        paintGrid(geometry)
+        if !model.isPie { paintGrid(geometry) }
         var frames: [Int: CGRect] = [:]
         let ordered = model.records.indices.sorted { (model.records[$0].zIndex, $0) < (model.records[$1].zIndex, $1) }
         // Lines and areas join the records of a series; the others paint one by one.
@@ -330,9 +333,11 @@ struct _ChartPainter {
                 frames[i] = paintPoint(r, geometry: geometry); painted.insert(i)
             case .rule:
                 frames[i] = paintRule(r, geometry: geometry); painted.insert(i)
+            case .sector:
+                frames[i] = paintSector(r, geometry: geometry); painted.insert(i)
             }
         }
-        paintLabels(geometry)
+        if !model.isPie { paintLabels(geometry) }
         for (i, r) in model.records.enumerated() where !r.annotations.isEmpty {
             guard let frame = frames[i] else { continue }
             for (j, annotation) in r.annotations.enumerated() {
@@ -472,6 +477,23 @@ struct _ChartPainter {
         } else {
             body(context)
         }
+    }
+
+    /// A sector: its share of the sum of the sectors' angles, clockwise from the top in the
+    /// order the marks come, between its radii (each a fraction of the circle's radius with
+    /// `ratio`, points with `fixed`, or the radius less points with `inset`), the edges moved
+    /// in by half the angular inset, so neighbours are that far apart all along.
+    private func paintSector(_ r: _MarkRecord, geometry: _ChartGeometry) -> CGRect? {
+        guard let span = _sectorSpan(r, records: model.records) else { return nil }
+        let plot = geometry.plot
+        let center = CGPoint(x: plot.midX, y: plot.midY)
+        let full = min(plot.width, plot.height) / 2
+        let outer = max(_sectorRadius(r.outerRadius, full: full, automatic: full), 0)
+        let inner = min(max(_sectorRadius(r.innerRadius, full: full, automatic: 0), 0), outer)
+        guard outer > 0, span.upperBound > span.lowerBound else { return nil }
+        let path = _sectorPath(center: center, inner: inner, outer: outer, start: span.lowerBound, end: span.upperBound, inset: r.angularInset ?? 0)
+        withOpacity(r) { ctx in ctx.fill(path, with: shading(r), style: FillStyle(eoFill: true)) }
+        return path.boundingRect.offsetBy(dx: r.offset.width, dy: r.offset.height)
     }
 
     /// A bar or rectangle: a band on one axis, a value or range on the other.
@@ -759,5 +781,57 @@ func _interpolated(_ points: [CGPoint], method: InterpolationMethod) -> Path {
             path.addCurve(to: p2, control1: c1, control2: c2)
         }
     }
+    return path
+}
+
+// MARK: - Sectors
+
+/// A sector's start and end angles in radians, clockwise from the top: the running sum of the
+/// sectors' angle values (zero and negative values take no share) over their total.
+package func _sectorSpan(_ record: _MarkRecord, records: [_MarkRecord]) -> ClosedRange<Double>? {
+    let sectors = records.filter { $0.kind == .sector }
+    func share(_ r: _MarkRecord) -> Double { max(r.angle?.number ?? 0, 0) }
+    let total = sectors.reduce(0) { $0 + share($1) }
+    guard total > 0, let i = sectors.firstIndex(where: { $0.index == record.index }) else { return nil }
+    let before = sectors[..<i].reduce(0) { $0 + share($1) }
+    let top = -Double.pi / 2
+    let start = top + before / total * 2 * .pi
+    return start...(start + share(sectors[i]) / total * 2 * .pi)
+}
+
+/// A radius for a mark dimension against the circle's.
+package func _sectorRadius(_ dimension: MarkDimension, full: CGFloat, automatic: CGFloat) -> CGFloat {
+    switch dimension {
+    case .automatic: return automatic
+    case .fixed(let points): return points
+    case .ratio(let ratio): return full * ratio
+    case .inset(let points): return full - points
+    }
+}
+
+/// The ring segment between two radii and two angles (clockwise on screen), with each edge
+/// moved in by half `inset` points; a whole turn without an inset is the ring itself.
+package func _sectorPath(center: CGPoint, inner: CGFloat, outer: CGFloat, start: Double, end: Double, inset: CGFloat) -> Path {
+    var path = Path()
+    let sweep = end - start
+    if inset <= 0, sweep >= 2 * .pi - 1e-9 {
+        path.addEllipse(in: CGRect(x: center.x - outer, y: center.y - outer, width: 2 * outer, height: 2 * outer))
+        if inner > 0 { path.addEllipse(in: CGRect(x: center.x - inner, y: center.y - inner, width: 2 * inner, height: 2 * inner)) }
+        return path
+    }
+    let half = Double(max(inset, 0)) / 2
+    let outerTrim = half / Double(outer)
+    guard sweep > 2 * outerTrim else { return path }
+    path.addRelativeArc(center: center, radius: outer, startAngle: .radians(start + outerTrim), delta: .radians(sweep - 2 * outerTrim))
+    let innerTrim = inner > 0 ? half / Double(inner) : 0
+    if inner > 0, sweep > 2 * innerTrim {
+        path.addRelativeArc(center: center, radius: inner, startAngle: .radians(end - innerTrim), delta: .radians(-(sweep - 2 * innerTrim)))
+    } else {
+        // The edges meet before the centre: at the point half the inset from each edge.
+        let mid = (start + end) / 2
+        let distance = sweep < .pi ? half / Swift.max(_sin(sweep / 2), 1e-9) : 0
+        path.addLine(to: CGPoint(x: center.x + CGFloat(distance * _cos(mid)), y: center.y + CGFloat(distance * _sin(mid))))
+    }
+    path.closeSubpath()
     return path
 }
