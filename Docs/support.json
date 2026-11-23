@@ -2120,6 +2120,13 @@
           ]
         },
         {
+          "api": "Core Text typesetting (CTTypesetter, CTLine, CTRun, CTLineDraw, CGContext.textMatrix / textPosition)",
+          "status": "partial",
+          "notes": "For an app that lays out its own lines (Runestone, 2026-11-23): a typesetter measures an attributed string one grapheme cluster at a time in each range's UIFont through the text engine, with kerning and the paragraph's tab stops; it suggests word and cluster breaks for a width, cuts lines that report their width, ascent, descent and leading, the caret offset of a string index and the index nearest a point, and runs with positions, advances and string indices; CTLineDraw draws a line at the text position through the text matrix, upright in a context flipped for Core Text. Left to right only (no bidirectional reordering), one glyph per cluster, no CTFont or CTFramesetter",
+          "fixtures": [],
+          "noFixture": "Behaviour tests (UIKitWebTests TypesettingTests): the layout follows the text engine's advances, which a Core Text golden would compare against glyph advances the engine does not reproduce"
+        },
+        {
           "api": "UIGraphicsPDFRenderer / UIGraphicsPDFRendererContext / UIGraphicsPDFRendererFormat (pdfData, writePDF, beginPage)",
           "status": "partial",
           "notes": "pf-small-frameworks (2026-11-15): pages drawn a page at a time come out as a PDF 1.4 file any viewer opens, with paths, fills, strokes, clips, transforms, opacity and text in the standard Helvetica, Times and Courier faces, and the document information; the process keeps each page's recording, so PDFKit opens a file of ours as drawn (Basic-Car-Maintenance's report). Not done: images, shadows, filters and blurs in the file (left out), gradients (their middle colour), text outside WinAnsi (question marks), links and destinations",
