@@ -4,7 +4,7 @@
 // itself, so registering here checks that the file can be read and keeps a record of it: a
 // second registration of the same file fails with `alreadyRegistered`, a missing file with
 // `fileNotFound`, and unregistering a file that isn't registered with `notRegistered`, as
-// Apple's do. `CTFont` and the layout types aren't here.
+// Apple's do. The typesetter, lines and runs are in Typesetter.swift; `CTFont` isn't here.
 #if os(WASI)
 @_exported import WebFoundation
 

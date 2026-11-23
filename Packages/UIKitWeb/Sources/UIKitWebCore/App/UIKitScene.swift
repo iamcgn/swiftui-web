@@ -183,7 +183,8 @@ public final class UIKitScene: HostedScene {
 
     // MARK: Services the host installs
 
-    public var textEngine: any TextEngine = PlaceholderTextEngine()
+    /// What measures text; Core Text's typesetter (`TextTypesetter`) measures with it too.
+    public var textEngine: any TextEngine = PlaceholderTextEngine() { didSet { TextTypesetter.engine = textEngine } }
     public var assetCatalog: AssetCatalog = .empty { didSet { UIKitScene._catalog = assetCatalog; setNeedsFrame() } }
     /// The catalog as the image and colour initializers read it: Apple's `UIImage(named:)` and
     /// `UIColor(named:)` are callable from any context, and a wasm page has one thread.

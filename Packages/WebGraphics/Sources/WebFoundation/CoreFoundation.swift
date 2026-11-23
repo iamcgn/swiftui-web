@@ -121,6 +121,26 @@ public func CFGetTypeID(_ cf: CFTypeRef!) -> CFTypeID {
     }
 }
 
+/// A range of a CF string or array: where it starts and how many it covers (Core Text's string
+/// ranges, where a length of 0 runs to the end).
+public struct CFRange: Equatable, Sendable {
+    public var location: CFIndex
+    public var length: CFIndex
+    public init() { location = 0; length = 0 }
+    public init(location: CFIndex, length: CFIndex) {
+        self.location = location
+        self.length = length
+    }
+}
+public func CFRangeMake(_ loc: CFIndex, _ len: CFIndex) -> CFRange { CFRange(location: loc, length: len) }
+
+/// An attributed string, which an app passes `as CFAttributedString` (an identity coercion here).
+public typealias CFAttributedString = NSAttributedString
+public typealias CFMutableAttributedString = NSMutableAttributedString
+/// The length in UTF-16 units.
+public func CFAttributedStringGetLength(_ aStr: CFAttributedString!) -> CFIndex { aStr.length }
+public func CFAttributedStringGetString(_ aStr: CFAttributedString!) -> CFString! { aStr.string }
+
 // Implicitly unwrapped, as Apple's Swift overlay declares them.
 public let kCFBooleanTrue: CFBoolean! = true
 public let kCFBooleanFalse: CFBoolean! = false
