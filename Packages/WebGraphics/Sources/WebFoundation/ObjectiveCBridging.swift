@@ -43,8 +43,9 @@ open class _WebNSDictionary: NSObject, @unchecked Sendable {
     }
     public override convenience init() { self.init(entries: [:]) }
     public var count: Int { entries.count }
-    /// The value for the key, or nil (`object(forKey:)`).
-    open subscript(key: Any) -> Any? { (key as? AnyHashable).flatMap { entries[$0] } }
+    /// The value for the key, or nil (`object(forKey:)`). `@objc`, as Foundation's
+    /// `objectForKeyedSubscript:` is, so `item["Title"]` on `AnyObject` finds it (AcknowList).
+    @objc open subscript(key: Any) -> Any? { (key as? AnyHashable).flatMap { entries[$0] } }
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? _WebNSDictionary else { return false }
         return _webEntriesEqual(entries, other.entries)

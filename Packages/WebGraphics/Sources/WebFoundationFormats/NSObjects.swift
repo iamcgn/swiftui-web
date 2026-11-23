@@ -200,7 +200,12 @@ extension _WebNSArray: Sequence, _WebJSONCollection {
         precondition(elements.indices.contains(index), "*** -[NSArray objectAtIndex:]: index \(index) beyond bounds [0 .. \(count - 1)]")
         return elements[index]
     }
+    // `@objc` with the runtime, as Foundation's `objectAtIndexedSubscript:` is.
+    #if canImport(ObjectiveC)
+    @objc public subscript(index: Int) -> Any { object(at: index) }
+    #else
     public subscript(index: Int) -> Any { object(at: index) }
+    #endif
     public var firstObject: Any? { elements.first }
     public var lastObject: Any? { elements.last }
     public func contains(_ anObject: Any) -> Bool { elements.contains { _webValuesEqual($0, anObject) } }
