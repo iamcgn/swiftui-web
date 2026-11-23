@@ -295,7 +295,10 @@ extension UIKitScene {
     }
 
     func keyInputShadow(for view: UIView) -> HostKeyInputShadow {
-        if let shadow = keyInputShadows[ObjectIdentifier(view)]?.shadow { return shadow }
+        // An identifier outlives its view and may be reused by a new one, so a shadow counts
+        // only while it still belongs to this view; the rest are dropped.
+        if let entry = keyInputShadows[ObjectIdentifier(view)], entry.view.view === view { return entry.shadow }
+        keyInputShadows = keyInputShadows.filter { $0.value.view.view != nil }
         let shadow = HostKeyInputShadow()
         if let input = view as? any UITextInput {
             shadow.text = input.wholeText
