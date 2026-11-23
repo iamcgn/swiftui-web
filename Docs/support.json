@@ -71,7 +71,7 @@
         {
           "api": "EnvironmentValues / EnvironmentKey / @Entry / environment(_:_:) / transformEnvironment",
           "status": "full",
-          "notes": "@Entry on EnvironmentValues, FocusedValues and Transaction extensions (SwiftUIWebMacros); Tier B (Chromium) within tolerance dynamicTypeSize and displayScale follow the host (iOS Safari's -apple-system-body, devicePixelRatio; 2026-10-11).",
+          "notes": "@Entry on EnvironmentValues, FocusedValues and Transaction extensions (SwiftUIWebMacros), with a computed default as Apple's, so non-Sendable defaults compile in Swift 6 (2026-11-22); Tier B (Chromium) within tolerance dynamicTypeSize and displayScale follow the host (iOS Safari's -apple-system-body, devicePixelRatio; 2026-10-11).",
           "fixtures": [
             "text/styles",
             "dark/text",
@@ -214,7 +214,7 @@
         {
           "api": "Button",
           "status": "partial",
-          "notes": "bordered (default), borderedProminent, plain exact in layout; borderless approximate (grey label in a window); custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance; PrimitiveButtonStyle (the style owns the interaction), controlSize bezels (iOS measured: 31 / 38.5 / 54.5 pt capsules; macOS approximate), the destructive role's red label or capsule, the disabled looks (iOS measured; macOS 26.6's 30 % label), the pressed look unverified (2026-10-04)",
+          "notes": "bordered (default), borderedProminent, plain exact in layout; borderless approximate (grey label in a window); custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance; PrimitiveButtonStyle (the style owns the interaction; the standard styles named as primitive styles, and Button(configuration) inside one), controlSize bezels (iOS measured: 31 / 38.5 / 54.5 pt capsules; macOS approximate), the destructive role's red label or capsule, the disabled looks (iOS measured; macOS 26.6's 30 % label), the pressed look unverified (2026-10-04)",
           "fixtures": [
             "button/basic",
             "button/styles"
@@ -1844,7 +1844,7 @@
         {
           "api": "UITableView (plain, grouped, inset grouped)",
           "status": "partial",
-          "notes": "UITableViewController (2026-11-22): a table view of its style as its view, with the controller as data source and delegate through open methods a subclass overrides, the rows loaded on the first appearance and the selection cleared on each (clearsSelectionOnViewWillAppear), refreshControl; UITableViewCell.classForCoder() for registering cells. The row, header and footer geometry measured on the simulator (plain, grouped and inset grouped), recycling, selection through the delegate, automatic and self-sizing row heights, section index, pinned headers, tableHeaderView / tableFooterView, right-to-left layouts (mirrored, approximate); open: the lifted row's shadow",
+          "notes": "UITableViewController (2026-11-22): a table view of its style as its view (awakeFromNib and prepareForInterfaceBuilder on UIResponder do nothing, as no nib is loaded), with the controller as data source and delegate through open methods a subclass overrides, the rows loaded on the first appearance and the selection cleared on each (clearsSelectionOnViewWillAppear), refreshControl; UITableViewCell.classForCoder() for registering cells. The row, header and footer geometry measured on the simulator (plain, grouped and inset grouped), recycling, selection through the delegate, automatic and self-sizing row heights, section index, pinned headers, tableHeaderView / tableFooterView, right-to-left layouts (mirrored, approximate); open: the lifted row's shadow",
           "fixtures": [
             "uikit/table/rest",
             "uikit/table/rtl",

@@ -8,7 +8,13 @@ import SwiftUIWebHeadless
 extension EnvironmentValues {
     @Entry var accentWord: String = "plain"
     @Entry var entryDepth: Int = 1
+    // A non-Sendable class and a closure: Harbour's `ErrorHandler` and `PresentIndicatorAction`.
+    @Entry var entryCounter: EntryCounter = EntryCounter()
+    @Entry var entryAction: (String) -> Void = { _ in }
 }
+
+/// A non-Sendable class an `@Entry` defaults to.
+final class EntryCounter { var count = 0 }
 
 extension FocusedValues {
     @Entry var selectedName: String?
@@ -58,6 +64,15 @@ private struct Watcher: View {
         #expect(values.accentWord == "plain" && values.entryDepth == 1)
         values.accentWord = "bold"
         #expect(values.accentWord == "bold")
+        // A non-Sendable default compiles in the Swift 6 mode and is made afresh for each read, as on Apple.
+        let first = EnvironmentValues().entryCounter
+        first.count = 5
+        #expect(EnvironmentValues().entryCounter.count == 0)
+        var said: [String] = []
+        values.entryAction = { said.append($0) }
+        values.entryAction("hi")
+        EnvironmentValues().entryAction("unheard")
+        #expect(said == ["hi"])
         let log = Log()
         _ = runtime(Reader(log: log).environment(\.entryDepth, 4).environment(\.accentWord, "deep"))
         #expect(log.seen.last == "deep 4")

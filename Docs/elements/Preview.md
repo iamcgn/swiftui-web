@@ -55,3 +55,7 @@ property (`__Key_name`, an `EnvironmentKey`, `FocusedValueKey` or `TransactionKe
 accessors over the container's subscript. Environment and transaction entries need a default
 value; focused entries are optional and take none. Applied anywhere else, or without a type,
 the macro reports an error. `EntryMacroTests` use all three containers.
+
+The key's `defaultValue` is computed from the initializer on each read, as Apple's expansion
+is (2026-11-22). A stored `static let` of a non-Sendable type, such as a class or a closure, is
+shared mutable state, which the Swift 6 language mode rejects (Harbour's `ErrorHandler`).

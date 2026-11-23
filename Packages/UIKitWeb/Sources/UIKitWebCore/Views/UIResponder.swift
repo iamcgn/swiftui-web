@@ -55,6 +55,20 @@ open class UIResponder: UIResponderBase {
     /// The next object in the responder chain, or nil at the end.
     open var next: UIResponder? { nil }
 
+    /// Called on an object a nib or storyboard made, once its outlets are connected. Apple declares
+    /// these two on NSObject; nothing here loads nibs, so only a subclass's own `super` call
+    /// reaches them, and they do nothing (AcknowList's table controller overrides awakeFromNib).
+    /// Not on a Mac host, where AppKit already gives NSObject both.
+    #if !canImport(AppKit)
+    #if canImport(ObjectiveC)
+    @objc open func awakeFromNib() {}
+    @objc open func prepareForInterfaceBuilder() {}
+    #else
+    open func awakeFromNib() {}
+    open func prepareForInterfaceBuilder() {}
+    #endif
+    #endif
+
     /// The standard edit actions (`UIResponderStandardEditActions`): the defaults do nothing;
     /// text fields and text views act on their text and `UIPasteboard.general`
     /// (App/UIPasteboard.swift).
