@@ -93,6 +93,22 @@ private func filters(_ commands: [DisplayCommand]) -> [DisplayFilter] {
         #expect(commands.contains(.beginBlend(.multiply, bounds: CGRect(x: 0, y: 0, width: 2, height: 2))))
     }
 
+    /// Nuke applies `filter.copy() as? CIFilter` so that requests sharing a processor don't
+    /// share inputs: the copy keeps the name and inputs and changes on its own.
+    @Test func aCopyHasTheInputsAndChangesOnItsOwn() throws {
+        let controls = try #require(CIFilter(name: "CIColorControls"))
+        controls.setValue(2.0, forKey: kCIInputContrastKey)
+        let copy = try #require(controls.copy() as? CIFilter)
+        #expect(copy !== controls)
+        #expect(copy.name == "CIColorControls")
+        #expect(copy.value(forKey: kCIInputContrastKey) as? Double == 2)
+        copy.setValue(CIImage(cgImage: bitmap(1, 1)), forKey: kCIInputImageKey)
+        #expect(copy.outputImage != nil)
+        #expect(controls.outputImage == nil)
+        copy.setDefaults()
+        #expect(controls.value(forKey: kCIInputContrastKey) as? Double == 2)
+    }
+
     @Test func colorsAndVectors() {
         let color = CIColor(string: "0.5 0.25 1")
         #expect(color.red == 0.5 && color.green == 0.25 && color.blue == 1 && color.alpha == 1)
