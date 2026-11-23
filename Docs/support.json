@@ -214,7 +214,7 @@
         {
           "api": "Button",
           "status": "partial",
-          "notes": "bordered (default), borderedProminent, plain exact in layout; borderless approximate (grey label in a window); custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance; PrimitiveButtonStyle (the style owns the interaction; the standard styles named as primitive styles, and Button(configuration) inside one), controlSize bezels (iOS measured: 31 / 38.5 / 54.5 pt capsules; macOS approximate), the destructive role's red label or capsule, the disabled looks (iOS measured; macOS 26.6's 30 % label), the pressed look unverified (2026-10-04)",
+          "notes": "bordered (default), borderedProminent, plain exact in layout; borderless approximate (grey label in a window); custom ButtonStyle; press state; no roles/disabled; Tier B (Chromium) within tolerance; PrimitiveButtonStyle (the style owns the interaction; the standard styles are primitive styles, as SwiftUI's are, so BorderedButtonStyle() satisfies some PrimitiveButtonStyle (2026-11-23); Button(configuration) inside one), controlSize bezels (iOS measured: 31 / 38.5 / 54.5 pt capsules; macOS approximate), the destructive role's red label or capsule, the disabled looks (iOS measured; macOS 26.6's 30 % label), the pressed look unverified (2026-10-04)",
           "fixtures": [
             "button/basic",
             "button/styles"
@@ -2348,9 +2348,9 @@
           "noFixture": "Paths, not a screen; WasmFoundationTests."
         },
         {
-          "api": "DispatchQueue / DispatchGroup / DispatchWorkItem / DispatchTime",
+          "api": "DispatchQueue / DispatchGroup / DispatchWorkItem / DispatchTime / DispatchData",
           "status": "partial",
-          "notes": "There is no Dispatch on wasm: `main` and `global()` run `async` work on the main actor after the current turn through the host's executor, `asyncAfter` with monotonic and wall deadlines through `Task.sleep`, `sync` in place, groups notify when their count reaches zero, work items cancel; no concurrency (one thread), no barriers or semaphores (2026-10-12)",
+          "notes": "There is no Dispatch on wasm: `main` and `global()` run `async` work on the main actor after the current turn through the host's executor, `asyncAfter` with monotonic and wall deadlines through `Task.sleep`, `sync` in place, groups notify when their count reaches zero, work items cancel; `DispatchData` with Dispatch's initialisers, appends, copies, `enumerateBytes`, `subdata(in:)` and `region(location:)` over one region of bytes, so the no-copy initialisers copy and release the buffer at once (2026-11-23, SwiftNIO's ByteBuffer conversions in Thunderbird); no concurrency (one thread), no barriers or semaphores (2026-10-12)",
           "noFixture": "Scheduling, not a screen; WasmFoundationTests (the in-place forms), Examples/Launches' probe (a dispatched delay)."
         },
         {
@@ -2400,6 +2400,12 @@
           "status": "partial",
           "notes": "Answered in UTF-16 ranges over the String forms, as Apple's Foundation does (StyledTextKit's trimming, 2026-11-14).",
           "noFixture": "NSStringMethodsTests checks Apple's documented answers and runs against Foundation on macOS and Linux as well as on wasm."
+        },
+        {
+          "api": "NSMutableString / NSString.getBytes(_:maxLength:usedLength:encoding:options:range:remaining:) / rangeOfComposedCharacterSequence(at:) and (for:) / CharacterSet.isSubset(of:), isSuperset(of:), isDisjoint(with:) / Timer(timeInterval:repeats:block:) and the target-action initialiser / RunLoop.add(_:forMode:) / Timer.fire() / NSAttributedString()",
+          "status": "full",
+          "notes": "On wasm (2026-11-23), for text engines such as Runestone: a string edited in place in UTF-16 ranges; the bytes of a range in an encoding, whole characters only, with what is left over; edits widened to whole characters; subset tests that answer at once for sets built from strings and literals and check every scalar otherwise; timers made unscheduled and started by the run loop, every mode being the browser's loop.",
+          "noFixture": "Foundation API with nothing on screen; TextEngineFoundationTests checks Apple's answers and runs against Foundation on macOS and Linux as well as on wasm."
         },
         {
           "api": "NSData / NSMutableData / NSCopying / NSMutableCopying / Data.count setter / Data(count:)",
@@ -2488,7 +2494,7 @@
         {
           "api": "NSArray / NSCalendar date math / NSURLRequest / NSMutableURLRequest / NSMutableDictionary literals and setValue(_:forKey:) / SKError(_nsError:)",
           "status": "partial",
-          "notes": "Clendar's packages (2026-11-15): `array as NSArray` and `nsArray as! [String]` bridge, with count, object(at:), subarray(with:), adding and addingObjects(from:), contains, index(of:), componentsJoined(by:) and iteration; `(calendar as NSCalendar)` gives components(_:from:) and (_:from:to:options:), component(_:from:), range(of:in:for:) as an NSRange, ordinality, date(byAdding:) and the day tests over the Calendar it holds; NSMutableURLRequest changes a URLRequest and bridges back `as URLRequest`; NSMutableDictionary takes a dictionary literal and key-value coding, and JSONSerialization writes NSDictionary and NSArray objects; SKError is made from an NSError; UIButton.showsTouchWhenHighlighted is kept (no glow drawn) and CGMutablePath.addPath takes a UIBezierPath's cgPath. NSMutableArray, NSCalendar.Options matching and enumeration are not here. With the Objective-C runtime, NSURL's absoluteString, absoluteURL, path, scheme, host, lastPathComponent and isFileURL are @objc, so #keyPath can run through a URL property, as Hipstapaper's NSPredicate does (2026-11-21).",
+          "notes": "Clendar's packages (2026-11-15): `array as NSArray` and `nsArray as! [String]` bridge, with count, object(at:), subarray(with:), adding and addingObjects(from:), contains, index(of:), componentsJoined(by:) and iteration; `(calendar as NSCalendar)` gives components(_:from:) and (_:from:to:options:), component(_:from:), range(of:in:for:) as an NSRange, ordinality, date(byAdding:) and the day tests over the Calendar it holds; NSMutableURLRequest changes a URLRequest and bridges back `as URLRequest`; NSMutableDictionary takes a dictionary literal and key-value coding, and JSONSerialization writes NSDictionary and NSArray objects; SKError is made from an NSError; UIButton.showsTouchWhenHighlighted is kept (no glow drawn) and CGMutablePath.addPath takes a UIBezierPath's cgPath. NSMutableArray, NSCalendar.Options matching and enumeration are not here. With the Objective-C runtime, NSURL's absoluteString, absoluteURL, path, scheme, host, lastPathComponent and isFileURL are @objc, so #keyPath can run through a URL property, as Hipstapaper's NSPredicate does (2026-11-21). NSArray's isEqual(to:) and subscript and NSDictionary's isEqual(to:) and subscript are @objc with the runtime too, so a call or subscript on AnyObject finds them, as AcknowList's plist reading does (2026-11-22).",
           "noFixture": true
         },
         {
