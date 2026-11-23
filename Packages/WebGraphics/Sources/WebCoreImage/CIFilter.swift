@@ -34,7 +34,7 @@ public let kCICategoryGenerator = "CICategoryGenerator"
 public let kCICategoryGeometryAdjustment = "CICategoryGeometryAdjustment"
 
 /// An image filter: inputs set by key, and the image they make.
-open class CIFilter: CustomStringConvertible {
+open class CIFilter: CustomStringConvertible, NSCopying {
     struct Kind {
         let category: String
         let defaults: [String: Any]
@@ -68,6 +68,25 @@ open class CIFilter: CustomStringConvertible {
         name = "CIFilter"
         kind = nil
     }
+
+    private init(name: String, kind: Kind?, inputs: [String: Any]) {
+        self.name = name
+        self.kind = kind
+        self.inputs = inputs
+    }
+
+    /// A filter with the same name and inputs, which can change without changing this one
+    /// (Nuke applies a copy of a shared filter for each image). A subclass's copy is the
+    /// filter itself unless it overrides this: Swift can make an instance of an arbitrary
+    /// subclass only through a required initializer, which every app's subclass would then
+    /// have to declare.
+    open func copy(with zone: NSZone? = nil) -> Any {
+        guard kind != nil else { return self }
+        return CIFilter(name: name, kind: kind, inputs: inputs)
+    }
+
+    /// `copy(with: nil)`, as `NSObject` gives it on Apple platforms.
+    open func copy() -> Any { copy(with: nil) }
 
     open var inputKeys: [String] { inputs.keys.sorted() }
     open var outputKeys: [String] { [kCIOutputImageKey] }
