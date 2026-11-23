@@ -67,6 +67,20 @@ import WebFoundation
         #expect(kerned.width == 24)
     }
 
+    @Test func aTabOnALineThatStartsMidParagraphBreaksWhereItLands() {
+        let style = NSMutableParagraphStyle()
+        style.tabStops = []
+        style.defaultTabInterval = 40
+        let tabbed = typesetter(NSAttributedString(string: "zzzz a\tb", attributes: [.font: font, .paragraphStyle: style]))
+        // From the wrapped line's start, "a" ends at 10 and the tab reaches the stop at 40, so
+        // "b" (to 50) doesn't fit in 45, whatever the tab measured from the paragraph's start.
+        #expect(tabbed.lineBreak(from: 5, width: 45) == 2)
+        #expect(tabbed.clusterBreak(from: 5, width: 45) == 2)
+        let line = tabbed.line(location: 5, length: 3)
+        #expect(line.offset(of: 7) == 40)
+        #expect(line.width == 50)
+    }
+
     @Test func runsFollowTheAttributes() {
         let string = NSMutableAttributedString(string: "ab", attributes: [.font: font])
         string.append(NSAttributedString(string: "cd", attributes: [.font: UIFont.systemFont(ofSize: 10), .foregroundColor: UIColor.red]))

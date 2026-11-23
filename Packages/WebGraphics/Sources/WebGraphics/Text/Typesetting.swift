@@ -162,6 +162,14 @@ public final class TextTypesetter: @unchecked Sendable {
         return ((x / interval).rounded(.down) + 1) * interval
     }
 
+    /// A cluster's advance where it lands at `x` from its line's start: a tab reaches the next
+    /// stop from there, so breaking and laying out a line that starts mid-paragraph agree.
+    func advance(of cluster: TypesetCluster, at x: CGFloat) -> CGFloat {
+        guard cluster.length == 1, utf16[cluster.location] == 0x09 else { return cluster.advance }
+        let style = runs.isEmpty ? nil : runs[cluster.run].attributes[NSAttributedString.Key("NSParagraphStyle")] as? TypesettingParagraphStyle
+        return Self.tabStop(after: x, style: style) - x
+    }
+
     /// The index of the cluster that starts at or contains `location`.
     public func clusterIndex(at location: Int) -> Int {
         var low = 0, high = clusters.count
@@ -182,8 +190,9 @@ public final class TextTypesetter: @unchecked Sendable {
         while index < clusters.count {
             let cluster = clusters[index]
             if cluster.isLineSeparator { return cluster.end - start }
-            if end > start, x + cluster.advance > width + 0.001 { break }
-            x += cluster.advance
+            let advance = self.advance(of: cluster, at: x)
+            if end > start, x + advance > width + 0.001 { break }
+            x += advance
             end = cluster.end
             index += 1
         }
@@ -201,17 +210,18 @@ public final class TextTypesetter: @unchecked Sendable {
         while index < clusters.count {
             let cluster = clusters[index]
             if cluster.isLineSeparator { return cluster.end - start }
+            let advance = self.advance(of: cluster, at: x)
             if cluster.isWhitespace {
-                x += cluster.advance
+                x += advance
                 lastBreak = cluster.end
                 index += 1
                 continue
             }
-            if x + cluster.advance > width + 0.001, cluster.location > start {
+            if x + advance > width + 0.001, cluster.location > start {
                 if let lastBreak { return lastBreak - start }
                 return clusterBreak(from: start, width: width)
             }
-            x += cluster.advance
+            x += advance
             if breaksAfter(cluster) { lastBreak = cluster.end }
             index += 1
         }
@@ -290,11 +300,7 @@ public struct TypesetLine: @unchecked Sendable {
                                 positions: [], advances: [], indices: [], text: ""))
             }
             // A tab's advance depends on where it lands on this line.
-            var advance = cluster.advance
-            if cluster.length == 1, utf16[cluster.location] == 0x09 {
-                let style = source?.attributes[NSAttributedString.Key("NSParagraphStyle")] as? TypesettingParagraphStyle
-                advance = TextTypesetter.tabStop(after: x - offset, style: style) - (x - offset)
-            }
+            let advance = typesetter.advance(of: cluster, at: x - offset)
             var run = runs.removeLast()
             run.length += cluster.length
             run.positions.append(x)
