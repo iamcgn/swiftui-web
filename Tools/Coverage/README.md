@@ -95,7 +95,8 @@ that pins it, and show in the report with the package's name before the file.
 ## Which SDK
 
 The sweep builds with the Objective-C runtime wasm SDK of decision 0023 (swift-objc-wasm,
-macOS arm64 only, so those jobs run on macOS): it is what an app with `@objc`, `#selector` or
+macOS arm64 only, so those jobs run on a Mac: the self-hosted runner labelled `laptop-sweep`, one
+batch at a time, or GitHub's macOS runners when a dispatch sets `hosted`): it is what an app with `@objc`, `#selector` or
 NSObject subclasses ships with, and the packages apps pin use all three. A dispatch with
 `sdk: stock` builds with the plain wasm SDK on Linux instead. The report names the SDK under
 "The corpus"; totals from the two SDKs are not comparable. A dispatch's `show` input (a pattern
