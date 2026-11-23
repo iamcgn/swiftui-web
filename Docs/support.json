@@ -2343,7 +2343,7 @@
         {
           "api": "DispatchQueue / DispatchGroup / DispatchWorkItem / DispatchTime / DispatchData",
           "status": "partial",
-          "notes": "There is no Dispatch on wasm: `main` and `global()` run `async` work on the main actor after the current turn through the host's executor, `asyncAfter` with monotonic and wall deadlines through `Task.sleep`, `sync` in place, groups notify when their count reaches zero, work items cancel; `DispatchData` with Dispatch's initialisers, appends, copies, `enumerateBytes`, `subdata(in:)` and `region(location:)` over one region of bytes, so the no-copy initialisers copy and release the buffer at once (2026-11-23, SwiftNIO's ByteBuffer conversions in Thunderbird); no concurrency (one thread), no barriers or semaphores (2026-10-12)",
+          "notes": "There is no Dispatch on wasm: `main` and `global()` run `async` work on the main actor after the current turn through the host's executor, `asyncAfter` with monotonic and wall deadlines through `Task.sleep`, `sync` in place, groups notify when their count reaches zero, work items cancel; `DispatchData` with Dispatch's initialisers, appends, copies, `enumerateBytes`, `subdata(in:)` and `region(location:)` over one region of bytes; the no-copy initialisers copy the bytes and release the caller's buffer once the last copy of the value is gone, a custom block on its queue (2026-11-23, SwiftNIO's ByteBuffer conversions in Thunderbird); no concurrency (one thread), no barriers or semaphores (2026-10-12)",
           "noFixture": "Scheduling, not a screen; WasmFoundationTests (the in-place forms), Examples/Launches' probe (a dispatched delay)."
         },
         {
@@ -2401,9 +2401,9 @@
           "noFixture": "Foundation API with nothing on screen; TextEngineFoundationTests checks Apple's answers and runs against Foundation on macOS and Linux as well as on wasm; WasmEverydayFoundationTests checks the copy from an NSString."
         },
         {
-          "api": "NSData / NSMutableData / NSCopying / NSMutableCopying / Data.count setter / Data(count:)",
+          "api": "NSData / NSMutableData / NSCopying / NSMutableCopying / Data.count setter / Data(count:) / Data(bytesNoCopy:count:deallocator:)",
           "status": "full",
-          "notes": "On wasm: byte buffers over Data, bridged both ways (`body as Data`), equal by bytes; setting `count` truncates or pads with zeros.",
+          "notes": "On wasm: byte buffers over Data, bridged both ways (`body as Data`), equal by bytes; setting `count` truncates or pads with zeros. The no-copy initialiser (2026-11-23, SwiftNIO's ByteBuffer) copies the bytes and runs its deallocator once the last copy of the value is gone.",
           "noFixture": "Foundation API with nothing on screen; FoundationGapsTests holds it to Foundation on macOS and Linux and checks the wasm forms."
         },
         {
