@@ -3,11 +3,7 @@
 // replacements of the changed range with the selection following; a tap begins editing.
 import Testing
 @testable import UIKitWebCore
-#if os(WASI)
 import WebFoundation
-#else
-import Foundation
-#endif
 
 /// The simple form: a view that keeps a string.
 final class KeyInputView: UIView, UIKeyInput {

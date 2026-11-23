@@ -4,11 +4,7 @@
 // bar and key codes. The web draws no find navigator, selection handles, edit menu bar or
 // shortcut bar of its own here: these keep what the app sets and run what it calls, so a
 // search the app starts finds, counts and decorates its results.
-#if os(WASI)
-import WebFoundation
-#else
-import Foundation
-#endif
+import WebFoundation   // `Selector` where there is no Objective-C runtime
 
 // MARK: - Directions and the tokenizer
 
