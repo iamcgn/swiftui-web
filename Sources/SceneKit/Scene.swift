@@ -450,7 +450,7 @@ open class SCNLight {
 /// Changes grouped together (`begin` / `commit`): they take effect at once, with no implicit animation.
 @preconcurrency @MainActor
 public final class SCNTransaction {
-    public static var animationDuration: CFTimeInterval = 0
+    public static var animationDuration: TimeInterval = 0
     public static var animationTimingFunction: CAMediaTimingFunction?
     public static var disableActions = false
     public static var completionBlock: (@MainActor () -> Void)?

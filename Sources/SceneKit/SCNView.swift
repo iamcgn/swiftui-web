@@ -429,12 +429,14 @@ open class SCNView: UIView, SCNSceneRenderer {
     private func updateCameraControl() {
         if allowsCameraControl {
             guard panRecognizer == nil else { return }
-            let pan = UIPanGestureRecognizer(target: nil, action: nil)
-            pan.addTarget { [weak self] recognizer in self?.handlePan(recognizer as! UIPanGestureRecognizer) }
+            let pan = UIPanGestureRecognizer(handler: { [weak self] (recognizer: UIGestureRecognizer) in
+                if let pan = recognizer as? UIPanGestureRecognizer { self?.handlePan(pan) }
+            })
             addGestureRecognizer(pan)
             panRecognizer = pan
-            let pinch = UIPinchGestureRecognizer(target: nil, action: nil)
-            pinch.addTarget { [weak self] recognizer in self?.handlePinch(recognizer as! UIPinchGestureRecognizer) }
+            let pinch = UIPinchGestureRecognizer(handler: { [weak self] (recognizer: UIGestureRecognizer) in
+                if let pinch = recognizer as? UIPinchGestureRecognizer { self?.handlePinch(pinch) }
+            })
             addGestureRecognizer(pinch)
             pinchRecognizer = pinch
         } else {

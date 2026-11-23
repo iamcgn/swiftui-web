@@ -40,6 +40,8 @@ public struct SCNVector4: Hashable, Sendable {
     public init(_ x: CGFloat, _ y: CGFloat, _ z: CGFloat, _ w: CGFloat) { self.init(x: Float(x), y: Float(y), z: Float(z), w: Float(w)) }
     public init(_ x: Double, _ y: Double, _ z: Double, _ w: Double) { self.init(x: Float(x), y: Float(y), z: Float(z), w: Float(w)) }
     public init(x: Double, y: Double, z: Double, w: Double) { self.init(x: Float(x), y: Float(y), z: Float(z), w: Float(w)) }
+    public init(_ x: Int, _ y: Int, _ z: Int, _ w: Int) { self.init(x: Float(x), y: Float(y), z: Float(z), w: Float(w)) }
+    public init(x: Int, y: Int, z: Int, w: Int) { self.init(x: Float(x), y: Float(y), z: Float(z), w: Float(w)) }
 }
 
 public typealias SCNQuaternion = SCNVector4
@@ -171,9 +173,33 @@ extension NSValue {
     public convenience init(scnVector3 v: SCNVector3) { var v = v; self.init(bytes: &v, objCType: "{SCNVector3=fff}") }
     public convenience init(scnVector4 v: SCNVector4) { var v = v; self.init(bytes: &v, objCType: "{SCNVector4=ffff}") }
     public convenience init(scnMatrix4 v: SCNMatrix4) { var v = v; self.init(bytes: &v, objCType: "{SCNMatrix4=ffffffffffffffff}") }
-    public var scnVector3Value: SCNVector3 { var v = SCNVector3(); getValue(&v, size: MemoryLayout<SCNVector3>.size); return v }
-    public var scnVector4Value: SCNVector4 { var v = SCNVector4(); getValue(&v, size: MemoryLayout<SCNVector4>.size); return v }
-    public var scnMatrix4Value: SCNMatrix4 { var v = SCNMatrix4(); getValue(&v, size: MemoryLayout<SCNMatrix4>.size); return v }
+    public var scnVector3Value: SCNVector3 {
+        var v = SCNVector3()
+        #if canImport(Darwin)
+        getValue(&v, size: MemoryLayout<SCNVector3>.size)
+        #else
+        getValue(&v)
+        #endif
+        return v
+    }
+    public var scnVector4Value: SCNVector4 {
+        var v = SCNVector4()
+        #if canImport(Darwin)
+        getValue(&v, size: MemoryLayout<SCNVector4>.size)
+        #else
+        getValue(&v)
+        #endif
+        return v
+    }
+    public var scnMatrix4Value: SCNMatrix4 {
+        var v = SCNMatrix4()
+        #if canImport(Darwin)
+        getValue(&v, size: MemoryLayout<SCNMatrix4>.size)
+        #else
+        getValue(&v)
+        #endif
+        return v
+    }
 }
 #endif
 
@@ -235,7 +261,7 @@ struct _Quaternion: Hashable, Sendable {
         let q = w < 0 ? _Quaternion(x: -x, y: -y, z: -z, w: -w) : self
         let angle = 2 * _acosF(q.w)
         let s = (1 - q.w * q.w).squareRoot()
-        guard s > 1e-6 else { return SCNVector4(0, 0, 0, 0) }
+        guard s > 1e-6 else { return SCNVector4(x: Float(0), y: 0, z: 0, w: 0) }
         return SCNVector4(q.x / s, q.y / s, q.z / s, angle)
     }
 

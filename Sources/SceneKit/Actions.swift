@@ -251,25 +251,25 @@ final class _ActionRunner {
 }
 
 extension SCNNode {
-    open func runAction(_ action: SCNAction) { runAction(action, forKey: nil, completionHandler: nil) }
+    public func runAction(_ action: SCNAction) { runAction(action, forKey: nil, completionHandler: nil) }
 
-    open func runAction(_ action: SCNAction, completionHandler block: (@MainActor () -> Void)?) {
+    public func runAction(_ action: SCNAction, completionHandler block: (@MainActor () -> Void)?) {
         runAction(action, forKey: nil, completionHandler: block)
     }
 
-    open func runAction(_ action: SCNAction, forKey key: String?) { runAction(action, forKey: key, completionHandler: nil) }
+    public func runAction(_ action: SCNAction, forKey key: String?) { runAction(action, forKey: key, completionHandler: nil) }
 
-    open func runAction(_ action: SCNAction, forKey key: String?, completionHandler block: (@MainActor () -> Void)?) {
+    public func runAction(_ action: SCNAction, forKey key: String?, completionHandler block: (@MainActor () -> Void)?) {
         if let key { actions.removeAll { $0.key == key } }
         actions.append((key, action.makeRunner(), block))
         _SceneClock.shared.wake()
     }
 
-    open func removeAction(forKey key: String) { actions.removeAll { $0.key == key } }
-    open func removeAllActions() { actions.removeAll() }
-    open func action(forKey key: String) -> SCNAction? { actions.first { $0.key == key }?.runner.action }
-    open var hasActions: Bool { !actions.isEmpty }
-    open var actionKeys: [String] { actions.compactMap(\.key) }
+    public func removeAction(forKey key: String) { actions.removeAll { $0.key == key } }
+    public func removeAllActions() { actions.removeAll() }
+    public func action(forKey key: String) -> SCNAction? { actions.first { $0.key == key }?.runner.action }
+    public var hasActions: Bool { !actions.isEmpty }
+    public var actionKeys: [String] { actions.compactMap(\.key) }
 
     /// Steps this node's actions and its subtree's by `dt` seconds.
     func stepActions(_ dt: Double) {
