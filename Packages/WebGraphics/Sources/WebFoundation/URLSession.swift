@@ -218,6 +218,15 @@ open class URLResponse: _WebObjectBase, @unchecked Sendable {
         self.textEncodingName = textEncodingName
         super.init()
     }
+    /// An empty response, as `NSObject`'s `init()` gives Foundation's: no URL, no type, an unknown
+    /// length (OAuth2's data loader hands `HTTPURLResponse()` to an error it reports).
+    public override init() {
+        url = nil
+        mimeType = nil
+        expectedContentLength = -1
+        textEncodingName = nil
+        super.init()
+    }
     public var suggestedFilename: String? { url?.lastPathComponent }
     #if !canImport(ObjectiveC)
     // What `NSObject` gives a response under the runtime, overridable as there (OAuth2's
@@ -264,6 +273,13 @@ open class HTTPURLResponse: URLResponse, @unchecked Sendable {
             return String(scalars)
         }
         super.init(url: url, mimeType: mime, expectedContentLength: length, textEncodingName: nil)
+    }
+    /// An empty response with no status and no headers, as `HTTPURLResponse()` makes in Foundation.
+    public override init() {
+        statusCode = 0
+        headerFields = [:]
+        allHeaderFields = [:]
+        super.init()
     }
 
     /// A header's value, case-insensitively as HTTP headers are.

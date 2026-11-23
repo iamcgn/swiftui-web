@@ -1,6 +1,6 @@
 // Small wasm stand-ins the corpus reaches for: `Date.compare(_:)` answering this Foundation's
 // `ComparisonResult` (SwiftDate), NSCalendar's `range(of:start:interval:for:)` (SwiftDate's
-// `dateAtStartOf`), responses equal by identity (Networkable's `Equatable` error) and
+// `dateAtStartOf`), responses equal by identity (Networkable's `Equatable` error), empty responses (OAuth2) and
 // `CGColor.converted(to:intent:options:)` (GistHub's `hexString`).
 #if os(WASI)
 import Testing
@@ -52,6 +52,10 @@ import WebGraphics
         #expect(Set([one, one, other]).count == 2)
         let http = try #require(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil))
         #expect(http == http && (http as URLResponse) != one)
+        // OAuth2 reports a failed load with an empty response.
+        let empty = HTTPURLResponse()
+        #expect(empty.url == nil && empty.statusCode == 0 && empty.allHeaderFields.isEmpty && empty.mimeType == nil)
+        #expect(empty.value(forHTTPHeaderField: "Content-Type") == nil && URLResponse().expectedContentLength == -1)
     }
 
     @Test func colorsConvertBetweenSpaces() throws {
