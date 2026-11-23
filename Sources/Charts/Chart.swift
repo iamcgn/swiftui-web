@@ -488,8 +488,7 @@ struct _ChartPainter {
         let plot = geometry.plot
         let center = CGPoint(x: plot.midX, y: plot.midY)
         let full = min(plot.width, plot.height) / 2
-        let outer = max(_sectorRadius(r.outerRadius, full: full, automatic: full), 0)
-        let inner = min(max(_sectorRadius(r.innerRadius, full: full, automatic: 0), 0), outer)
+        let (inner, outer) = _sectorRadii(inner: r.innerRadius, outer: r.outerRadius, full: full)
         guard outer > 0, span.upperBound > span.lowerBound else { return nil }
         let path = _sectorPath(center: center, inner: inner, outer: outer, start: span.lowerBound, end: span.upperBound, inset: r.angularInset ?? 0)
         withOpacity(r) { ctx in ctx.fill(path, with: shading(r), style: FillStyle(eoFill: true)) }
@@ -800,6 +799,14 @@ package func _sectorSpan(_ record: _MarkRecord, records: [_MarkRecord]) -> Close
 }
 
 /// A radius for a mark dimension against the circle's.
+/// A sector's radii: the outer one against the plot's radius, the inner one against the outer
+/// one (a ratio of it, or an inset from it), as Swift Charts resolves them.
+package func _sectorRadii(inner: MarkDimension, outer: MarkDimension, full: CGFloat) -> (inner: CGFloat, outer: CGFloat) {
+    let outerRadius = max(_sectorRadius(outer, full: full, automatic: full), 0)
+    let innerRadius = min(max(_sectorRadius(inner, full: outerRadius, automatic: 0), 0), outerRadius)
+    return (innerRadius, outerRadius)
+}
+
 package func _sectorRadius(_ dimension: MarkDimension, full: CGFloat, automatic: CGFloat) -> CGFloat {
     switch dimension {
     case .automatic: return automatic

@@ -128,6 +128,8 @@ import WebGraphicsHeadless
 
     @Test func drawWithRectPlacesTheBaselineOrTheLineFragment() {
         let (scene, root) = scene()
+        // The goldens hold this phrase only under mixed fonts; uniform advances serve a placement test.
+        scene.textEngine = SyntheticTextEngine()
         final class TextView: UIView {
             override func draw(_ rect: CGRect) {
                 let attributes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 17), .foregroundColor: UIColor.black]

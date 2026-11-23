@@ -200,6 +200,11 @@ import Charts
         let inset = _sectorPath(center: CGPoint(x: 100, y: 100), inner: 50, outer: 100, start: -.pi / 2, end: 0, inset: 4).boundingRect
         #expect(abs(inset.minX - 102) < 0.01 && abs(inset.maxY - 98) < 0.01)
         #expect(_sectorRadius(.inset(10), full: 100, automatic: 0) == 90 && _sectorRadius(.fixed(30), full: 100, automatic: 0) == 30 && _sectorRadius(.automatic, full: 100, automatic: 0) == 0)
+        // The inner radius is resolved against the outer one, not the plot (#365).
+        #expect(_sectorRadii(inner: .ratio(0.5), outer: .fixed(40), full: 100).inner == 20 && _sectorRadii(inner: .ratio(0.5), outer: .fixed(40), full: 100).outer == 40)
+        #expect(_sectorRadii(inner: .inset(10), outer: .fixed(40), full: 100).inner == 30 && _sectorRadii(inner: .inset(10), outer: .fixed(40), full: 100).outer == 40)
+        #expect(_sectorRadii(inner: .ratio(0.6), outer: .automatic, full: 100).inner == 60 && _sectorRadii(inner: .ratio(0.6), outer: .automatic, full: 100).outer == 100)
+        #expect(_sectorRadii(inner: .fixed(80), outer: .ratio(0.5), full: 100).inner == 50 && _sectorRadii(inner: .fixed(80), outer: .ratio(0.5), full: 100).outer == 50)
     }
 
     @Test func aPieChartPaintsItsSectorsWithoutAxes() {
