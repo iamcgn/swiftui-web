@@ -11,6 +11,9 @@ public final class Timer: _WebObjectBase, @unchecked Sendable {
     public let timeInterval: TimeInterval
     public let repeats: Bool
     private var task: Task<Void, Never>?
+    /// What runs after each interval (nil for the frameworks' publishing timers).
+    private var action: (@Sendable (Timer) -> Void)?
+    private var scheduled = false
     public private(set) var isValid = true
 
     package init(timeInterval: TimeInterval, repeats: Bool) {
@@ -18,18 +21,40 @@ public final class Timer: _WebObjectBase, @unchecked Sendable {
         self.repeats = repeats
     }
 
+    /// A timer that runs `block` after each interval once it is added to a run loop
+    /// (`RunLoop.main.add(_:forMode:)`).
+    public convenience init(timeInterval interval: TimeInterval, repeats: Bool, block: @escaping @Sendable (Timer) -> Void) {
+        self.init(timeInterval: interval, repeats: repeats)
+        action = block
+    }
+
     @discardableResult
     public static func scheduledTimer(withTimeInterval interval: TimeInterval, repeats: Bool, block: @escaping @Sendable (Timer) -> Void) -> Timer {
-        let timer = Timer(timeInterval: interval, repeats: repeats)
-        timer.task = Task { @MainActor in
+        let timer = Timer(timeInterval: interval, repeats: repeats, block: block)
+        timer._schedule()
+        return timer
+    }
+
+    /// Starts the timer's intervals, once: a scheduled timer, or one added to a run loop.
+    func _schedule() {
+        guard !scheduled, isValid, let action else { return }
+        scheduled = true
+        let interval = timeInterval, repeats = repeats
+        task = Task { @MainActor in
             repeat {
                 try? await Task.sleep(nanoseconds: UInt64(max(interval, 0.001) * 1_000_000_000))
-                guard !Task.isCancelled, timer.isValid else { return }
-                block(timer)
-            } while repeats && timer.isValid
-            timer.isValid = false
+                guard !Task.isCancelled, self.isValid else { return }
+                action(self)
+            } while repeats && self.isValid
+            self.isValid = false
         }
-        return timer
+    }
+
+    /// Runs the timer's action now; a timer that doesn't repeat is then invalidated.
+    public func fire() {
+        guard isValid, let action else { return }
+        action(self)
+        if !repeats { invalidate() }
     }
 
     public func invalidate() {
@@ -46,17 +71,25 @@ public final class Timer: _WebObjectBase, @unchecked Sendable {
     }
     private var _userInfo: _Box<Any?>?
 
-    /// Sends `aSelector` to `target` after each interval, passing the timer when the selector
-    /// takes an argument (`tick:`), as Foundation's target-action timer does. The timer holds
-    /// the target until it is invalidated, as Foundation's does.
+    /// A timer that sends `aSelector` to `target` after each interval once it is added to a run
+    /// loop, passing the timer when the selector takes an argument (`tick:`), as Foundation's
+    /// target-action timer does. The timer holds the target until it is invalidated, as
+    /// Foundation's does.
+    public convenience init(timeInterval ti: TimeInterval, target aTarget: Any, selector aSelector: Selector,
+                            userInfo: Any?, repeats yesOrNo: Bool) {
+        let target = _Box(aTarget as AnyObject)
+        self.init(timeInterval: ti, repeats: yesOrNo) { timer in
+            _ = (target.value as? NSObject)?._send(aSelector, passing: timer)
+        }
+        self.userInfo = userInfo
+    }
+
+    /// The target-action timer, scheduled at once.
     @discardableResult
     public static func scheduledTimer(timeInterval ti: TimeInterval, target aTarget: Any, selector aSelector: Selector,
                                       userInfo: Any?, repeats yesOrNo: Bool) -> Timer {
-        let target = _Box(aTarget as AnyObject)
-        let timer = scheduledTimer(withTimeInterval: ti, repeats: yesOrNo) { timer in
-            _ = (target.value as? NSObject)?._send(aSelector, passing: timer)
-        }
-        timer.userInfo = userInfo
+        let timer = Timer(timeInterval: ti, target: aTarget, selector: aSelector, userInfo: userInfo, repeats: yesOrNo)
+        timer._schedule()
         return timer
     }
     #endif
@@ -72,6 +105,10 @@ public final class RunLoop: _WebObjectBase, @unchecked Sendable {
     }
     public static let main = RunLoop()
     public static var current: RunLoop { main }
+
+    /// Schedules `timer` (one made with an initialiser rather than `scheduledTimer`); every
+    /// mode is the browser's loop, and a timer added twice runs once.
+    public func add(_ timer: Timer, forMode mode: RunLoop.Mode) { timer._schedule() }
 }
 
 /// A notification: its name, an optional sender and user info.
