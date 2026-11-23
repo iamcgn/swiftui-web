@@ -23,6 +23,10 @@ open class UIWindow: UIView {
         }
     }
 
+    /// The window's undo manager, which its responders share unless one keeps its own.
+    open override var undoManager: UndoManager? { windowUndoManager }
+    private lazy var windowUndoManager = UndoManager()
+
     /// The window level (all windows share one plane in a browser page).
     open var windowLevel: Level = .normal
     open var screen: UIScreen { UIScreen.main }

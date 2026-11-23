@@ -51,6 +51,12 @@ public final class UIColor: UIObjectBase, @unchecked Sendable {
         self.init(_light: light, _dark: catalog.color(named: name, scheme: .dark, idiom: "iphone") ?? light)
     }
 
+    /// A colour set of an asset catalog: the app's one catalog, whichever bundle is named (a
+    /// package's `.module` resources are in it); the traits pick nothing, both appearances are kept.
+    public convenience init?(named name: String, in bundle: Bundle?, compatibleWith traitCollection: UITraitCollection?) {
+        self.init(named: name)
+    }
+
     /// A colour set of the app's asset catalog by its generated symbol (`UIColor(resource: .accent)`);
     /// clear when the catalog has no such set.
     @MainActor

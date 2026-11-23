@@ -95,6 +95,13 @@ open class UIResponder: UIResponderBase {
     open var textInputMode: UITextInputMode? { nil }
     /// The identifier under which the keyboard remembers its mode for this responder.
     open var textInputContextIdentifier: String? { nil }
+    /// The shortcut bar items above the keyboard (iPad). The web shows no shortcut bar; the
+    /// groups an app sets are kept.
+    open var inputAssistantItem: UITextInputAssistantItem { _inputAssistantItem }
+    private lazy var _inputAssistantItem = UITextInputAssistantItem()
+
+    /// The undo manager for this responder: the next responder's, up to the window's.
+    open var undoManager: UndoManager? { next?.undoManager }
 
     // MARK: Commands and menus (Events/Keyboard.swift, Containers/MenuBuilder.swift)
 

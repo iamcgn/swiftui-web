@@ -16,7 +16,16 @@ public enum UIGestureRecognizerState: Int, Sendable {
 open class UIGestureRecognizer: UIResponderBase {
     public typealias State = UIGestureRecognizerState
 
-    public private(set) var state: State = .possible
+    private var _state: State = .possible
+    private var applyingTransition = false
+    /// The recognizer's state. A subclass sets it to recognize (`state = .began`), as with
+    /// UIKit's `UIGestureRecognizerSubclass`, and may observe it (`override var state { didSet }`).
+    open var state: State {
+        get { _state }
+        set {
+            if applyingTransition { _state = newValue } else { transition(to: newValue) }
+        }
+    }
     public internal(set) weak var view: UIView?
     open var isEnabled = true
     open var cancelsTouchesInView = true
@@ -148,9 +157,18 @@ open class UIGestureRecognizer: UIResponderBase {
     /// The recognizers sharing a pinch (no touches carry them).
     var pinchPeers: [UIGestureRecognizer]?
 
+    /// Sets the state through `state`'s setter (so a subclass's observer sees it) without
+    /// starting another transition.
+    private func setStateApplying(_ newState: State) {
+        let outer = applyingTransition
+        applyingTransition = true
+        state = newState
+        applyingTransition = outer
+    }
+
     func applyTransition(to newState: State) {
         deferredState = nil
-        state = newState
+        setStateApplying(newState)
         if newState == .ended { hasRecognizedThisFrame = true }
         if newState == .began || newState == .ended { outcomeThisTouch = .recognized }
         if newState == .failed || newState == .cancelled { outcomeThisTouch = .failed }
@@ -163,7 +181,7 @@ open class UIGestureRecognizer: UIResponderBase {
         }
         if newState == .ended || newState == .cancelled || newState == .failed {
             // Recognizers reset after a frame; here at once, once the handlers have run.
-            state = .possible
+            setStateApplying(.possible)
             touches.removeAll()
             reset()
         }

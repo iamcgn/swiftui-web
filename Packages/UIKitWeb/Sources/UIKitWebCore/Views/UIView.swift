@@ -630,7 +630,13 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
         recognizer.view = nil
     }
 
+    // `@objc` with the runtime, as UIKit's is, so an app can override it from an extension
+    // (Runestone's `extension TextView: UIGestureRecognizerDelegate`).
+    #if canImport(ObjectiveC)
+    @objc open func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool { true }
+    #else
     open func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool { true }
+    #endif
 
     // MARK: Accessibility
 

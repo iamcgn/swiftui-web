@@ -85,6 +85,11 @@ open class UITextField: UIControl {
     open var autocapitalizationType: UITextAutocapitalizationType = .sentences
     open var autocorrectionType: UITextAutocorrectionType = .default
     open var spellCheckingType: UITextSpellCheckingType = .default
+    // Kept for the app; the browser's own smart punctuation and keyboard look apply.
+    open var smartQuotesType: UITextSmartQuotesType = .default
+    open var smartDashesType: UITextSmartDashesType = .default
+    open var smartInsertDeleteType: UITextSmartInsertDeleteType = .default
+    open var keyboardAppearance: UIKeyboardAppearance = .default
     open var enablesReturnKeyAutomatically = false
     open var textContentType: UITextContentType?
     open weak var delegate: (any UITextFieldDelegate)?
