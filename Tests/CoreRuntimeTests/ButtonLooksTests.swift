@@ -78,24 +78,29 @@ private struct PrimitiveStyled<S: PrimitiveButtonStyle>: View {
             PrimitiveStyled(style: .bordered) { counter.taps += 1 }._probe("bordered")
             PrimitiveStyled(style: .borderedProminent) { counter.taps += 1 }._probe("prominent")
             PrimitiveStyled(style: .plain) { counter.taps += 1 }._probe("plain")
+            // The concrete types are primitive styles too, as SwiftUI's are.
+            PrimitiveStyled(style: BorderedButtonStyle()) { counter.taps += 1 }._probe("explicit")
+            PrimitiveStyled(style: PlainButtonStyle()) {}._probe("explicitPlain")
             Button("OK") { counter.taps += 1 }.buttonStyle(PlainWrapping())._probe("wrapped")
             Button("OK") {}.buttonStyle(.bordered)._probe("direct")
             Button("OK") { counter.taps += 1 }.buttonStyle(Optional(PlainWrapping()))._probe("optional")
         })
-        // `.bordered` named as a primitive style draws the bordered bezel, the same as the
-        // `ButtonStyle` of that name; `.plain` and `Button(configuration)` draw the bare label.
+        // `.bordered` through a generic primitive style draws the bordered bezel, the same as
+        // `.buttonStyle(.bordered)`; `.plain` and `Button(configuration)` draw the bare label.
         #expect(runtime.probeFrames["bordered"]?.height == 24 && runtime.probeFrames["bordered"]?.width == 64)
+        #expect(runtime.probeFrames["explicit"]?.size == runtime.probeFrames["bordered"]?.size)
         #expect(runtime.probeFrames["prominent"]?.size == runtime.probeFrames["bordered"]?.size)
         #expect(runtime.probeFrames["direct"]?.size == runtime.probeFrames["bordered"]?.size)
         #expect(runtime.probeFrames["plain"]?.height == 16 && runtime.probeFrames["plain"]?.width == 40)
         #expect(runtime.probeFrames["wrapped"]?.size == runtime.probeFrames["plain"]?.size)
+        #expect(runtime.probeFrames["explicitPlain"]?.size == runtime.probeFrames["plain"]?.size)
         #expect(runtime.probeFrames["optional"]?.size == runtime.probeFrames["plain"]?.size)
-        for name in ["bordered", "plain", "wrapped", "optional"] {
+        for name in ["bordered", "plain", "wrapped", "optional", "explicit"] {
             let frame = runtime.probeFrames[name]!
             runtime.pointerDown(at: CGPoint(x: frame.midX, y: frame.midY))
             runtime.pointerUp(at: CGPoint(x: frame.midX, y: frame.midY))
         }
-        #expect(counter.taps == 4)
+        #expect(counter.taps == 5)
     }
 
     @Test func controlSizesChangeTheBezel() {
