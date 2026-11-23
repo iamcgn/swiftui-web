@@ -43,11 +43,17 @@ extension UITextInputTraits {
 /// of ours, and compares by identity, as UIKit's (NSObject) positions do.
 @preconcurrency @MainActor
 open class UITextPosition: Equatable {
-    private let _offset: Int?
+    // Set once, by the convenience initializer, before the position is shared.
+    nonisolated(unsafe) private var _offset: Int?
     /// The offset this position was made with (0 for an app's own subclass, which keeps its own).
     public var offset: Int { _offset ?? 0 }
-    public init(offset: Int) { _offset = offset }
-    public init() { _offset = nil }
+    /// `init()` is the one designated initializer, as UIKit's is, so an app's subclass
+    /// (`init(index:) { self.index = index }`) calls it implicitly.
+    public init() {}
+    public convenience init(offset: Int) {
+        self.init()
+        _offset = offset
+    }
     nonisolated public static func == (lhs: UITextPosition, rhs: UITextPosition) -> Bool {
         if let a = lhs._offset, let b = rhs._offset { return a == b }
         return lhs === rhs
@@ -58,17 +64,17 @@ open class UITextPosition: Equatable {
 /// starts from `init()` and overrides `start`, `end` and `isEmpty`, as with UIKit's.
 @preconcurrency @MainActor
 open class UITextRange: Equatable {
-    private let _start: UITextPosition?
-    private let _end: UITextPosition?
+    // Set once, by the convenience initializer, before the range is shared.
+    nonisolated(unsafe) private var _start: UITextPosition?
+    nonisolated(unsafe) private var _end: UITextPosition?
     open var start: UITextPosition { _start ?? UITextPosition(offset: 0) }
     open var end: UITextPosition { _end ?? UITextPosition(offset: 0) }
-    public init(start: UITextPosition, end: UITextPosition) {
+    /// `init()` is the one designated initializer, as with UITextPosition.
+    public init() {}
+    public convenience init(start: UITextPosition, end: UITextPosition) {
+        self.init()
         _start = start
         _end = end
-    }
-    public init() {
-        _start = nil
-        _end = nil
     }
     open var isEmpty: Bool { start == end }
     nonisolated public static func == (lhs: UITextRange, rhs: UITextRange) -> Bool {
