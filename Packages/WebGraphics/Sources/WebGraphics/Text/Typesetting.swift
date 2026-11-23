@@ -56,7 +56,7 @@ public struct TypesetRun: @unchecked Sendable {
 /// An attributed string measured cluster by cluster, from which lines are cut.
 public final class TextTypesetter: @unchecked Sendable {
     /// The engine that measures clusters; the UIKit scene installs its own. Without one a
-    /// cluster advances by 0.6 of its font's size.
+    /// cluster advances by 0.6 of its font's size. A typesetter measures on the main actor.
     nonisolated(unsafe) public static var engine: (any TextEngine)?
 
     /// Core Text's default font when a range names none (Helvetica 12; the system font here).
@@ -125,13 +125,16 @@ public final class TextTypesetter: @unchecked Sendable {
         self.clusters = clusters
     }
 
+    /// Text engines measure on the main actor, where a page's (and UIKit's) drawing runs.
     private static func measure(_ text: String, font: ResolvedFont) -> CGFloat {
-        guard let engine else { return font.size * 0.6 }
-        func width(_ text: String) -> CGFloat { engine.layout(text, font: font, width: nil).lines.first?.width ?? 0 }
-        // A line reports the ink of its last line, which a space has none of: a space's
-        // advance is what it adds between two letters.
-        if text.allSatisfy(\.isWhitespace) { return max(0, width("a" + text + "a") - width("aa")) }
-        return width(text)
+        MainActor.assumeIsolated {
+            guard let engine else { return font.size * 0.6 }
+            func width(_ text: String) -> CGFloat { engine.layout(text, font: font, width: nil).lines.first?.width ?? 0 }
+            // A line reports the ink of its last line, which a space has none of: a space's
+            // advance is what it adds between two letters.
+            if text.allSatisfy(\.isWhitespace) { return max(0, width("a" + text + "a") - width("aa")) }
+            return width(text)
+        }
     }
 
     private static func number(_ value: Any) -> CGFloat {
