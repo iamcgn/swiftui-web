@@ -129,12 +129,17 @@ public final class TextTypesetter: @unchecked Sendable {
     private static func measure(_ text: String, font: ResolvedFont) -> CGFloat {
         MainActor.assumeIsolated {
             guard let engine else { return font.size * 0.6 }
-            func width(_ text: String) -> CGFloat { engine.layout(text, font: font, width: nil).lines.first?.width ?? 0 }
             // A line reports the ink of its last line, which a space has none of: a space's
             // advance is what it adds between two letters.
-            if text.allSatisfy(\.isWhitespace) { return max(0, width("a" + text + "a") - width("aa")) }
-            return width(text)
+            if text.allSatisfy(\.isWhitespace) {
+                return max(0, width(of: "a" + text + "a", font: font, engine: engine) - width(of: "aa", font: font, engine: engine))
+            }
+            return width(of: text, font: font, engine: engine)
         }
+    }
+
+    @MainActor private static func width(of text: String, font: ResolvedFont, engine: any TextEngine) -> CGFloat {
+        engine.layout(text, font: font, width: nil).lines.first?.width ?? 0
     }
 
     private static func number(_ value: Any) -> CGFloat {
