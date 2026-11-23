@@ -140,9 +140,9 @@ private final class Box: @unchecked Sendable {
         #expect(Array(data.subdata(in: 1..<3)) == [2, 3])
 
         var out = [UInt8](repeating: 0, count: 3)
-        out.withUnsafeMutableBytes { buffer in _ = data.copyBytes(to: buffer, count: 3) }
+        out.withUnsafeMutableBytes { buffer in data.copyBytes(to: buffer, count: 3) }
         #expect(out == [1, 2, 3])
-        out.withUnsafeMutableBytes { buffer in _ = data.copyBytes(to: buffer, from: 4..<7) }
+        out.withUnsafeMutableBytes { buffer in data.copyBytes(to: buffer, from: 4..<7) }
         #expect(out == [5, 6, 7])
         var wide = [UInt8](repeating: 0, count: 10)
         let copied = wide.withUnsafeMutableBufferPointer { buffer in data.copyBytes(to: buffer, from: nil) }
