@@ -71,5 +71,19 @@ import UIKit
         layer.setValue(nil, forKey: "name")
         #expect(layer.name == nil && layer.value(forKey: "name") as? String == nil)
     }
+
+    /// A layer keeps whether it rasterizes and at what scale (SwiftUIExperiments' pixel
+    /// animations), by name and by key; the display list paints it the same either way.
+    @Test func aLayerKeepsItsRasterization() {
+        let layer = CALayer()
+        #expect(!layer.shouldRasterize && layer.rasterizationScale == 1)
+        layer.shouldRasterize = true
+        layer.rasterizationScale = 3
+        #expect(layer.value(forKey: "shouldRasterize") as? Bool == true)
+        #expect(layer.value(forKey: "rasterizationScale") as? CGFloat == 3)
+        layer.setValue(false, forKey: "shouldRasterize")
+        layer.setValue(2, forKey: "rasterizationScale")
+        #expect(!layer.shouldRasterize && layer.rasterizationScale == 2)
+    }
 }
 #endif

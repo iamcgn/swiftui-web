@@ -1235,6 +1235,12 @@
           ]
         },
         {
+          "api": "statusBarHidden / statusBar(hidden:) / persistentSystemOverlays",
+          "status": "full",
+          "notes": "objc-bridging (2026-11-23): a page has no status bar or home indicator, so a view that hides them lays out and draws as it would with them shown (SwiftUIExperiments' keys); UIKit's status bar manager answers for the strip above the safe area.",
+          "noFixture": "Nothing to draw or hide on a page."
+        },
+        {
           "api": "mask(alignment:_:) / mask(_:)",
           "status": "full",
           "notes": "The mask view's alpha clips the content (laid out like an overlay, drawn with an opaque black foreground as SwiftUI does); a mask group in the display list composited with destination-in in the browser and a CoreGraphics clip mask natively",
@@ -1605,6 +1611,12 @@
           "status": "partial",
           "notes": "pf-everyday-apis (2026-11-14): Core Animation's full 4x4 arithmetic with row vectors (Concat(a, b) applies a, then b), rotation about any axis, and the inverse (the transform itself when it has none). Layers paint the affine part, so a turn about the x or y axis shows as the flattened view of the turned plane (SwiftUIExperiments' swipe and text-scroll interactions, OldOS's camera preview). Not done: perspective (m34) and depth ordering",
           "noFixture": "Matrix arithmetic checked in UIKitWebTests; the flattened turn paints through the existing layer transform path."
+        },
+        {
+          "api": "CALayer shouldRasterize / rasterizationScale; ProjectionTransform(_: CATransform3D)",
+          "status": "full",
+          "notes": "objc-bridging (2026-11-23): a layer keeps whether it rasterizes and at what scale (SwiftUIExperiments' pixel animations); the display list is redrawn as vectors either way, so the output is the same. ProjectionTransform(_:) projects a Core Animation transform onto the view's plane (its x, y and w rows and columns), and projectionEffect divides the affine part through by w, so a perspective that moves a view back in depth shrinks it (SwiftUIExperiments' text scroll).",
+          "noFixture": "Values checked in UIKitWebTests and CoreRuntimeTests; painting goes through the existing projection and layer paths."
         },
         {
           "api": "Traits and appearance (traitCollection, traitOverrides, overrideUserInterfaceStyle, UITraitCollection.current, dark appearance)",
