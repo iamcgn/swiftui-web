@@ -630,10 +630,11 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
         recognizer.view = nil
     }
 
-    // `@objc` with the runtime, as UIKit's is, so an app can override it from an extension
-    // (Runestone's `extension TextView: UIGestureRecognizerDelegate`).
+    // `@objc dynamic` with the runtime, so an app can override it from an extension
+    // (Runestone's `extension TextView: UIGestureRecognizerDelegate`): a Swift class's member
+    // needs `dynamic` for that, where UIKit's, declared in Objective-C, doesn't.
     #if canImport(ObjectiveC)
-    @objc open func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool { true }
+    @objc dynamic open func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool { true }
     #else
     open func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool { true }
     #endif
