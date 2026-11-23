@@ -223,10 +223,10 @@ extension _WebNSArray: Sequence, _WebJSONCollection {
     public func addingObjects(from otherArray: [Any]) -> [Any] { elements + otherArray }
     /// The elements' descriptions joined by the separator.
     public func componentsJoined(by separator: String) -> String { elements.map { "\($0)" }.joined(separator: separator) }
-    // `@objc` with the runtime, as Foundation's is, so a call on `AnyObject` finds it: AcknowList
-    // filters an `[AnyObject]` plist with `item.isEqual(to: headerItem)`.
+    // `@objc` with the runtime under Foundation's selector (`isEqualToArray:`), so a call on
+    // `AnyObject` finds it: AcknowList filters an `[AnyObject]` plist with `item.isEqual(to:)`.
     #if canImport(ObjectiveC)
-    @objc public func isEqual(to otherArray: [Any]) -> Bool { _webIsEqual(to: otherArray) }
+    @objc(isEqualToArray:) public func isEqual(to otherArray: [Any]) -> Bool { _webIsEqual(to: otherArray) }
     #else
     public func isEqual(to otherArray: [Any]) -> Bool { _webIsEqual(to: otherArray) }
     #endif
@@ -260,10 +260,10 @@ extension _WebNSDictionary: Sequence, _WebJSONCollection {
     public func allKeys(for anObject: Any) -> [Any] {
         entries.filter { _webValuesEqual($0.value, anObject) }.map { $0.key.base }
     }
-    // `@objc` with the runtime, as Foundation's is, so a call on `AnyObject` finds it (AcknowList's
-    // `item.isEqual(to: headerItem)` with a `[String: String]`).
+    // `@objc` with the runtime under Foundation's selector (`isEqualToDictionary:`), so a call on
+    // `AnyObject` finds it (AcknowList's `item.isEqual(to: headerItem)` with a `[String: String]`).
     #if canImport(ObjectiveC)
-    @objc public func isEqual(to otherDictionary: [AnyHashable: Any]) -> Bool { _webEntriesEqual(entries, otherDictionary) }
+    @objc(isEqualToDictionary:) public func isEqual(to otherDictionary: [AnyHashable: Any]) -> Bool { _webEntriesEqual(entries, otherDictionary) }
     #else
     public func isEqual(to otherDictionary: [AnyHashable: Any]) -> Bool { _webEntriesEqual(entries, otherDictionary) }
     #endif
