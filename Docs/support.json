@@ -2341,9 +2341,9 @@
           "noFixture": "Paths, not a screen; WasmFoundationTests."
         },
         {
-          "api": "DispatchQueue / DispatchGroup / DispatchWorkItem / DispatchTime",
+          "api": "DispatchQueue / DispatchGroup / DispatchWorkItem / DispatchTime / DispatchData",
           "status": "partial",
-          "notes": "There is no Dispatch on wasm: `main` and `global()` run `async` work on the main actor after the current turn through the host's executor, `asyncAfter` with monotonic and wall deadlines through `Task.sleep`, `sync` in place, groups notify when their count reaches zero, work items cancel; no concurrency (one thread), no barriers or semaphores (2026-10-12)",
+          "notes": "There is no Dispatch on wasm: `main` and `global()` run `async` work on the main actor after the current turn through the host's executor, `asyncAfter` with monotonic and wall deadlines through `Task.sleep`, `sync` in place, groups notify when their count reaches zero, work items cancel; `DispatchData` with Dispatch's initialisers, appends, copies, `enumerateBytes`, `subdata(in:)` and `region(location:)` over one region of bytes, so the no-copy initialisers copy and release the buffer at once (2026-11-23, SwiftNIO's ByteBuffer conversions in Thunderbird); no concurrency (one thread), no barriers or semaphores (2026-10-12)",
           "noFixture": "Scheduling, not a screen; WasmFoundationTests (the in-place forms), Examples/Launches' probe (a dispatched delay)."
         },
         {

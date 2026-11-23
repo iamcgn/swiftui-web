@@ -127,6 +127,37 @@ private final class Box: @unchecked Sendable {
     }
     #endif
 
+    // SwiftNIO's ByteBuffer conversions: made from a buffer, appended to, copied out by count,
+    // by range and into a typed buffer, and walked region by region.
+    @Test func dispatchDataHoldsCopiesAndAppendsBytes() {
+        let bytes: [UInt8] = [1, 2, 3, 4, 5]
+        var data = bytes.withUnsafeBytes { DispatchData(bytes: $0) }
+        #expect(data.count == 5 && Array(data) == bytes && data[2] == 3)
+        let more: [UInt8] = [6, 7]
+        more.withUnsafeBytes { data.append($0) }
+        data.append(DispatchData.empty)
+        #expect(Array(data) == [1, 2, 3, 4, 5, 6, 7] && DispatchData.empty.isEmpty)
+        #expect(Array(data.subdata(in: 1..<3)) == [2, 3])
+
+        var out = [UInt8](repeating: 0, count: 3)
+        out.withUnsafeMutableBytes { buffer in _ = data.copyBytes(to: buffer, count: 3) }
+        #expect(out == [1, 2, 3])
+        out.withUnsafeMutableBytes { buffer in _ = data.copyBytes(to: buffer, from: 4..<7) }
+        #expect(out == [5, 6, 7])
+        var wide = [UInt8](repeating: 0, count: 10)
+        let copied = wide.withUnsafeMutableBufferPointer { buffer in data.copyBytes(to: buffer, from: nil) }
+        #expect(copied == 7 && Array(wide.prefix(7)) == Array(data))
+
+        var seen: [UInt8] = []
+        data.enumerateBytes({ buffer, offset, _ in
+            if offset == seen.count { seen.append(contentsOf: buffer) }
+        })
+        #expect(seen == Array(data))
+        #expect(data.withUnsafeBytes(body: { (pointer: UnsafePointer<UInt8>) in pointer[6] }) == 7)
+        let region = data.region(location: 0)
+        #expect(region.offset == 0 && region.data.count >= 1)
+    }
+
     @Test func percentEncodingAndSelectorNames() {
         #expect("a b&c".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) == "a%20b&c")
         #expect("a%20b".removingPercentEncoding == "a b")
