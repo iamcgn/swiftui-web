@@ -35,24 +35,28 @@ public class NSMutableString: NSString, @unchecked Sendable {
     }
 
     /// Replaces each occurrence of `target` in `searchRange`, answering how many it replaced.
+    /// A backwards search finds them from the end of the range; an anchored one takes only the
+    /// matches that run on from that end, one after another.
     @discardableResult
     public func replaceOccurrences(of target: String, with replacement: String, options: CompareOptions = [], range searchRange: NSRange) -> Int {
         guard !target.isEmpty else { return 0 }
-        var count = 0
+        let backwards = options.contains(.backwards)
         var remaining = searchRange
         var edits: [NSRange] = []
         while remaining.length > 0 {
-            let found = range(of: target, options: options.subtracting(.backwards), range: remaining)
+            let found = range(of: target, options: options, range: remaining)
             guard found.location != NSNotFound, found.length > 0 else { break }
             edits.append(found)
-            count += 1
-            let next = NSMaxRange(found)
-            remaining = NSRange(location: next, length: NSMaxRange(remaining) - next)
-            if options.contains(.anchored) { break }
+            if backwards {
+                remaining.length = found.location - remaining.location
+            } else {
+                let next = NSMaxRange(found)
+                remaining = NSRange(location: next, length: NSMaxRange(remaining) - next)
+            }
         }
         // From the end, so the earlier ranges stay where they were found.
-        for found in edits.reversed() { replaceCharacters(in: found, with: replacement) }
-        return count
+        for found in edits.sorted(by: { $0.location > $1.location }) { replaceCharacters(in: found, with: replacement) }
+        return edits.count
     }
 }
 

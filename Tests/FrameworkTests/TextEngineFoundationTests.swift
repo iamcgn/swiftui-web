@@ -25,6 +25,15 @@ private final class Count: @unchecked Sendable {
         #expect(text.isEqual(to: "Hello there!"))
         #expect(text.replaceOccurrences(of: "e", with: "E", options: [], range: NSRange(location: 0, length: text.length)) == 3)
         #expect(text.isEqual(to: "HEllo thErE!"))
+        // Backwards searches from the end; anchored takes only matches at that end, adjacent ones included.
+        let ends = NSMutableString(string: "aba")
+        #expect(ends.replaceOccurrences(of: "a", with: "X", options: [.anchored, .backwards], range: NSRange(location: 0, length: 3)) == 1)
+        #expect(ends.isEqual(to: "abX"))
+        let run = NSMutableString(string: "aaba")
+        #expect(run.replaceOccurrences(of: "a", with: "X", options: .anchored, range: NSRange(location: 0, length: 4)) == 2)
+        #expect(run.isEqual(to: "XXba"))
+        #expect(run.replaceOccurrences(of: "X", with: "-", options: .backwards, range: NSRange(location: 0, length: 4)) == 2)
+        #expect(run.isEqual(to: "--ba"))
         text.setString("abc")
         #expect(text.length == 3 && NSMutableString(capacity: 8).length == 0)
     }
