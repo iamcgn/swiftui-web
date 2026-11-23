@@ -164,9 +164,14 @@ jobs:
         # Swift 6.3.3 crashes compiling package manifests against Xcode 27's macOS 27 SDK (IRGen,
         # expanding ProcessInfo.environment's signature), so on the laptop the build uses an older
         # macOS SDK from the Command Line Tools or another Xcode. GitHub's macos-15 has one already.
+        # An SDK under the Command Line Tools makes xcrun pick their linker, which rejects the
+        # driver's -no_warn_duplicate_libraries, so Xcode's own linker goes first on PATH.
         if: ${{ !inputs.hosted }}
         run: |
           ls -d /Library/Developer/CommandLineTools/SDKs/*.sdk /Applications/Xcode*.app 2>/dev/null || true
+          XT="$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+          if [ -x "$XT/ld" ]; then echo "$XT" >> "$GITHUB_PATH"; "$XT/ld" -v 2>&1 | head -1; fi
+          echo "CLT linker: $(/Library/Developer/CommandLineTools/usr/bin/ld -v 2>&1 | head -1)" || true
           for s in /Library/Developer/CommandLineTools/SDKs/MacOSX26*.sdk /Library/Developer/CommandLineTools/SDKs/MacOSX15*.sdk \
                    /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26*.sdk \
                    /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15*.sdk; do
