@@ -160,6 +160,20 @@ jobs:
           swiftly install $SWIFT_VERSION --use --assume-yes
           swift sdk install "$OBJC_SDK_URL" --checksum "$OBJC_SDK_CHECKSUM"
           scripts/objc-sdk/add-api-notes.sh
+      - name: A macOS SDK that Swift 6.3.3 reads (the laptop-sweep Mac)
+        # Swift 6.3.3 crashes compiling package manifests against Xcode 27's macOS 27 SDK (IRGen,
+        # expanding ProcessInfo.environment's signature), so on the laptop the build uses an older
+        # macOS SDK from the Command Line Tools or another Xcode. GitHub's macos-15 has one already.
+        if: ${{ !inputs.hosted }}
+        run: |
+          ls -d /Library/Developer/CommandLineTools/SDKs/*.sdk /Applications/Xcode*.app 2>/dev/null || true
+          for s in /Library/Developer/CommandLineTools/SDKs/MacOSX26*.sdk /Library/Developer/CommandLineTools/SDKs/MacOSX15*.sdk \
+                   /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26*.sdk \
+                   /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15*.sdk; do
+            if [ -d "$s" ]; then echo "SDKROOT=$s" >> "$GITHUB_ENV"; echo "Using $s"; exit 0; fi
+          done
+          echo "::error::No macOS 15 or 26 SDK on this Mac; Swift 6.3.3 crashes on the macOS 27 SDK. Install the Command Line Tools for Xcode 26, or dispatch with hosted."
+          exit 1
       - uses: actions/download-artifact@v4
         with: { name: coverage-plan }
       - name: Clone this batch's apps
