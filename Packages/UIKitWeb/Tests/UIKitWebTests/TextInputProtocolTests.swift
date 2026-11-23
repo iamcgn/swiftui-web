@@ -199,7 +199,12 @@ final class FindDelegate: UIFindInteractionDelegate {
         #expect(UIKey(characters: "c", modifierFlags: .command).keyCode == .keyboardC)
         #expect(UIKey(characters: "0", modifierFlags: []).keyCode == .keyboard0)
         let view = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
-        UIMenuController.shared.menuItems = [UIMenuItem(title: "Replace", action: Selector("replace"))]
+        #if canImport(ObjectiveC)
+        let replace = NSSelectorFromString("replace")
+        #else
+        let replace = Selector("replace")
+        #endif
+        UIMenuController.shared.menuItems = [UIMenuItem(title: "Replace", action: replace)]
         UIMenuController.shared.showMenu(from: view, rect: CGRect(x: 1, y: 2, width: 3, height: 4))
         #expect(UIMenuController.shared.isMenuVisible)
         UIMenuController.shared.hideMenu(from: view)
