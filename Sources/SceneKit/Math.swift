@@ -21,8 +21,10 @@ public struct SCNVector3: Hashable, Sendable {
     public init(_ x: Float, _ y: Float, _ z: Float) { self.init(x: x, y: y, z: z) }
     public init(x: CGFloat, y: CGFloat, z: CGFloat) { self.init(x: Float(x), y: Float(y), z: Float(z)) }
     public init(_ x: CGFloat, _ y: CGFloat, _ z: CGFloat) { self.init(x: Float(x), y: Float(y), z: Float(z)) }
+    #if !os(WASI)   // CGFloat is Double there
     public init(_ x: Double, _ y: Double, _ z: Double) { self.init(x: Float(x), y: Float(y), z: Float(z)) }
     public init(x: Double, y: Double, z: Double) { self.init(x: Float(x), y: Float(y), z: Float(z)) }
+    #endif
     public init(_ x: Int, _ y: Int, _ z: Int) { self.init(x: Float(x), y: Float(y), z: Float(z)) }
     public init(x: Int, y: Int, z: Int) { self.init(x: Float(x), y: Float(y), z: Float(z)) }
 }
@@ -38,8 +40,10 @@ public struct SCNVector4: Hashable, Sendable {
     public init(_ x: Float, _ y: Float, _ z: Float, _ w: Float) { self.init(x: x, y: y, z: z, w: w) }
     public init(x: CGFloat, y: CGFloat, z: CGFloat, w: CGFloat) { self.init(x: Float(x), y: Float(y), z: Float(z), w: Float(w)) }
     public init(_ x: CGFloat, _ y: CGFloat, _ z: CGFloat, _ w: CGFloat) { self.init(x: Float(x), y: Float(y), z: Float(z), w: Float(w)) }
+    #if !os(WASI)   // CGFloat is Double there
     public init(_ x: Double, _ y: Double, _ z: Double, _ w: Double) { self.init(x: Float(x), y: Float(y), z: Float(z), w: Float(w)) }
     public init(x: Double, y: Double, z: Double, w: Double) { self.init(x: Float(x), y: Float(y), z: Float(z), w: Float(w)) }
+    #endif
     public init(_ x: Int, _ y: Int, _ z: Int, _ w: Int) { self.init(x: Float(x), y: Float(y), z: Float(z), w: Float(w)) }
     public init(x: Int, y: Int, z: Int, w: Int) { self.init(x: Float(x), y: Float(y), z: Float(z), w: Float(w)) }
 }
