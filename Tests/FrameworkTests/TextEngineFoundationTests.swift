@@ -89,9 +89,12 @@ private final class Count: @unchecked Sendable {
         #expect(count.current == 1)
     }
 
+    // Linux's Foundation has no initialiser without a string; Apple's and the wasm one do.
+    #if os(WASI) || canImport(Darwin)
     @Test func emptyAttributedStrings() {
         let text = NSMutableAttributedString()
         text.append(NSAttributedString(string: "a😀"))
         #expect(text.length == 3 && NSAttributedString().length == 0)
     }
+    #endif
 }
