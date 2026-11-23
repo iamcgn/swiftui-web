@@ -1,0 +1,66 @@
+# Scratch probe (not for merging): does `if #available` returning different types from a
+# `some P` function crash the stock 6.3.3 wasm compiler, as IceCubes' Env does with the objc SDK?
+name: Opaque availability probe
+on:
+  push:
+    branches: [claude/opaque-availability-probe]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    container: swift:6.3.3
+    steps:
+      - name: Install the wasm SDK
+        run: |
+          swift sdk install https://download.swift.org/swift-6.3.3-release/wasm-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_wasm.artifactbundle.tar.gz \
+            --checksum "$(curl -sL https://download.swift.org/swift-6.3.3-release/wasm-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_wasm.artifactbundle.tar.gz.sha256 | cut -d' ' -f1)" || \
+          swift sdk install https://download.swift.org/swift-6.3.3-release/wasm-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_wasm.artifactbundle.tar.gz
+          swift sdk list
+      - name: Variants
+        shell: bash
+        run: |
+          set +e
+          variant() {
+            name=$1; body=$2; flags=$3
+            rm -rf /tmp/p && mkdir -p /tmp/p/Sources/P && cd /tmp/p
+            printf '// swift-tools-version:6.0\nimport PackageDescription\nlet package = Package(name: "P", targets: [.target(name: "P")])\n' > Package.swift
+            printf '%s\n' "$body" > Sources/P/P.swift
+            out=$(swift build --swift-sdk swift-6.3.3-RELEASE_wasm $flags 2>&1); code=$?
+            echo "== $name: exit $code"
+            echo "$out" | grep -E "Assertion|error:|signal|Compiling|Build complete" | head -6
+            host=$(swift build $flags 2>&1); echo "   host (linux) exit $?"
+            cd /
+          }
+          base='public protocol P {}
+          public struct A: P { public init() {} }
+          public struct B: P { public init() {} }'
+          variant two-types "$base
+          public func f() -> some P {
+            if #available(iOS 17.4, *) { return B() } else { return A() }
+          }"
+          variant same-type "$base
+          public func f() -> some P {
+            if #available(iOS 17.4, *) { return A() } else { return A() }
+          }"
+          variant wasi-listed "$base
+          public func f() -> some P {
+            if #available(iOS 17.4, macOS 14, *) { return B() } else { return A() }
+          }"
+          variant extension-self "$base
+          extension A {
+            public func g() -> some P {
+              if #available(iOS 17.4, *) { return B() } else { return self }
+            }
+          }"
+          variant generic-wrapper "$base
+          public struct W<T: P>: P { public init(_ t: T) {} }
+          extension P {
+            public func h() -> some P {
+              if #available(iOS 17.4, *) { return W(self) } else { return self }
+            }
+          }"
+          variant two-types-Onone-wmo "$base
+          public func f() -> some P {
+            if #available(iOS 17.4, *) { return B() } else { return A() }
+          }" "-Xswiftc -wmo"
