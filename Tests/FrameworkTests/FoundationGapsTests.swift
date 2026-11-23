@@ -44,20 +44,22 @@ private final class ReleasedCount: @unchecked Sendable {
     /// SwiftNIO's `ByteBuffer` hands its storage over with a custom deallocator; the bytes read
     /// back through the value, and the deallocator runs once the last copy is gone.
     @Test func noCopyDataReleasesThroughItsDeallocator() {
-        let buffer = UnsafeMutableRawPointer.allocate(byteCount: 3, alignment: 1)
-        buffer.copyMemory(from: [7, 8, 9] as [UInt8], byteCount: 3)
+        // Larger than the bytes Foundation keeps inline, which it copies and releases at once.
+        let bytes = (0..<64).map { UInt8($0) }
+        let buffer = UnsafeMutableRawPointer.allocate(byteCount: 64, alignment: 1)
+        buffer.copyMemory(from: bytes, byteCount: 64)
         let released = ReleasedCount()
         do {
-            let data = Data(bytesNoCopy: buffer, count: 3, deallocator: .custom { pointer, count in
+            let data = Data(bytesNoCopy: buffer, count: 64, deallocator: .custom { pointer, count in
                 released.value = count
                 pointer.deallocate()
             })
             let copy = data
-            #expect(Array(data) == [7, 8, 9])
+            #expect(Array(data) == bytes)
             // Not while a copy still holds the buffer.
             withExtendedLifetime(copy) { #expect(released.value == 0) }
         }
-        #expect(released.value == 3)
+        #expect(released.value == 64)
 
         let unowned = UnsafeMutableRawPointer.allocate(byteCount: 2, alignment: 1)
         unowned.storeBytes(of: 0x0201, as: UInt16.self)
