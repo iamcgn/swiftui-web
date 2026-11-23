@@ -20,6 +20,10 @@ on:
         description: "Read `os(iOS)` as true in the apps' and packages' #if lines (decision 0025's rewrite), so their iOS branches compile"
         type: boolean
         default: false
+      hosted:
+        description: "Run the Objective-C sweep on GitHub's macOS runners instead of the self-hosted laptop-sweep Mac (when that Mac is offline)"
+        type: boolean
+        default: false
 env:
   SWIFT_VERSION: "6.3.3"
   WASM_SDK: swift-6.3.3-RELEASE_wasm
@@ -84,8 +88,8 @@ jobs:
   sweep:
     # The stock wasm SDK, on Linux: when a dispatch asks for it, and on a push.
     needs: plan
-    # A push (a change to the sweep itself) runs this Linux sweep: the Objective-C one takes seven
-    # macOS runners for hours, which CI's macos and browser jobs wait behind.
+    # A push (a change to the sweep itself) runs this Linux sweep: the Objective-C one runs its
+    # batches one after another on the one laptop-sweep Mac, which takes hours.
     if: inputs.sdk == 'stock' || github.event_name == 'push'
     runs-on: ubuntu-24.04
     container: swift:6.3.3
@@ -132,7 +136,12 @@ jobs:
     # so `@objc`, `#selector` and NSObject subclasses compile as they do in the apps' own builds.
     needs: plan
     if: github.event_name != 'push' && inputs.sdk != 'stock'
-    runs-on: macos-15
+    # On the self-hosted Mac labelled laptop-sweep, so its hours of batches leave GitHub's macOS
+    # runners to CI's macos and browser jobs. Only this workflow names that label, and it has no
+    # pull_request trigger, so no pull request (a fork's included) ever runs on that Mac. The
+    # runner's job-start hook removes its wasm SDKs, /tmp/corpus and /tmp/sweep, so every batch
+    # starts as clean as a hosted one. `hosted` puts the sweep back on GitHub's runners.
+    runs-on: ${{ inputs.hosted && 'macos-15' || fromJSON('["self-hosted", "laptop-sweep"]') }}
     timeout-minutes: 300
     strategy:
       fail-fast: false
@@ -142,8 +151,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: Toolchain and the Objective-C runtime wasm SDK
         run: |
-          brew install swiftly
-          swiftly init --assume-yes --skip-install --no-modify-profile
+          # The laptop already has swiftly; a hosted runner installs it.
+          if [ ! -f ~/.swiftly/env.sh ]; then
+            brew install swiftly
+            swiftly init --assume-yes --skip-install --no-modify-profile
+          fi
           . ~/.swiftly/env.sh
           swiftly install $SWIFT_VERSION --use --assume-yes
           swift sdk install "$OBJC_SDK_URL" --checksum "$OBJC_SDK_CHECKSUM"
