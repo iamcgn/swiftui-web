@@ -153,4 +153,36 @@ import UIKit
         press(scene, from: CGPoint(x: 50, y: 150), to: CGPoint(x: 130, y: 152), steps: 4)
         #expect(log == ["swipe ended"])
     }
+
+    @Test func aViewOverridingShouldBeginFromAnExtensionStopsItsRecognizers() {
+        let view = GatedView(frame: CGRect(x: 0, y: 0, width: 300, height: 300))
+        var taps = 0
+        let tap = UITapGestureRecognizer { _ in taps += 1 }
+        view.addGestureRecognizer(tap)
+        let scene = makeScene(view)
+        let p = CGPoint(x: 100, y: 100)
+        scene.pointerDown(at: p, type: .touch, time: 0); scene.pointerUp(at: p, time: 0.05)
+        #expect(taps == 0 && view.asked > 0)
+        view.allows = true
+        scene.pointerDown(at: p, type: .touch, time: 1); scene.pointerUp(at: p, time: 1.05)
+        #expect(taps == 1)
+    }
 }
+
+/// A view that decides in an extension whether its recognizers may begin, as Runestone's
+/// `TextView` does in its `UIGestureRecognizerDelegate` extension.
+final class GatedView: UIView {
+    var allows = false
+    var asked = 0
+    #if !canImport(ObjectiveC)
+    // Without the runtime a class's members can't be overridden from an extension.
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool { gate() }
+    #endif
+    fileprivate func gate() -> Bool { asked += 1; return allows }
+}
+
+#if canImport(ObjectiveC)
+extension GatedView: UIGestureRecognizerDelegate {
+    override public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool { gate() }
+}
+#endif
