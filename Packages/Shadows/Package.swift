@@ -15,7 +15,7 @@
 // where Linux's Foundation keeps them), `FoundationXML` (XMLParser, likewise) and
 // `UniformTypeIdentifiers` (`UTType`), `CommonCrypto` (the C digest and HMAC functions over
 // SwiftUIWeb's CryptoKit), `Compression` and `zlib` (the coders over WebFoundationFormats' formats),
-// `CoreText` (the font manager's registration calls), `Symbols` (the symbol effect types), `Accelerate` (vImage's buffers and box filter),
+// `CoreText` (the font manager's registration calls, and the typesetter, lines and runs over WebGraphics' `TextTypesetter`), `Symbols` (the symbol effect types), `Accelerate` (vImage's buffers and box filter),
 // `XCTest` (`XCTFail` and the test observation names that libraries use outside tests)
 // are here for the same reason as the rest, and so is
 // `CoreData` (WebCoreData; the app's models go through SwiftUIWeb's CoreDataModel plugin). With
@@ -193,7 +193,7 @@ let package = Package(
         ),
         .target(
             name: "CoreText",
-            dependencies: [.product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebGraphics", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(

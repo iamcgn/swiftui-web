@@ -80,6 +80,19 @@ public final class UIGraphicsRecordingContext {
     public func rotate(by angle: CGFloat) { state.ctm = CGAffineTransform(rotationAngle: angle).concatenating(state.ctm) }
     public func concatenate(_ transform: CGAffineTransform) { state.ctm = transform.concatenating(state.ctm) }
 
+    // MARK: Text
+
+    /// Where text drawn with Core Text goes (`CTLineDraw`): the text matrix maps text space
+    /// into user space, its translation is the text position, and, as in CoreGraphics, it is
+    /// not part of the graphics state that `saveGState` keeps.
+    public var textMatrix: CGAffineTransform = .identity
+    public var textPosition: CGPoint {
+        get { CGPoint(x: textMatrix.tx, y: textMatrix.ty) }
+        set { textMatrix.tx = newValue.x; textMatrix.ty = newValue.y }
+    }
+    /// Replaces the current transform while text space's commands are recorded.
+    func setTransformForText(_ transform: CGAffineTransform) { state.ctm = transform }
+
     public func setFillColor(_ color: CGColor) { if let rgba = RGBA(cgColor: color) { state.fill = rgba } }
     public func setStrokeColor(_ color: CGColor) { if let rgba = RGBA(cgColor: color) { state.stroke = rgba } }
     public func setFillColor(red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) { state.fill = RGBA(red: red, green: green, blue: blue, alpha: alpha) }
