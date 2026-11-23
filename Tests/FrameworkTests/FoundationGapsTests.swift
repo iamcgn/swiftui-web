@@ -6,6 +6,11 @@ import Testing
 import WebFoundation
 import WebFoundationFormats
 
+/// What a deallocator saw (a class, so a sendable closure can record it).
+private final class ReleasedCount: @unchecked Sendable {
+    var value = 0
+}
+
 @Suite struct FoundationGapsTests {
     @Test func comparisons() {
         #expect("abc".caseInsensitiveCompare("ABD") == .orderedAscending)
@@ -34,6 +39,32 @@ import WebFoundationFormats
         data.count = 3
         #expect(Array(data) == [1, 0, 0])
         #expect(Data(count: 2).count == 2)
+    }
+
+    /// SwiftNIO's `ByteBuffer` hands its storage over with a custom deallocator; the bytes read
+    /// back through the value, and the deallocator runs once the last copy is gone.
+    @Test func noCopyDataReleasesThroughItsDeallocator() {
+        // Larger than the bytes Foundation keeps inline, which it copies and releases at once.
+        let bytes = (0..<64).map { UInt8($0) }
+        let buffer = UnsafeMutableRawPointer.allocate(byteCount: 64, alignment: 1)
+        buffer.copyMemory(from: bytes, byteCount: 64)
+        let released = ReleasedCount()
+        do {
+            let data = Data(bytesNoCopy: buffer, count: 64, deallocator: .custom { pointer, count in
+                released.value = count
+                pointer.deallocate()
+            })
+            let copy = data
+            #expect(Array(data) == bytes)
+            // Not while a copy still holds the buffer.
+            withExtendedLifetime(copy) { #expect(released.value == 0) }
+        }
+        #expect(released.value == 64)
+
+        let unowned = UnsafeMutableRawPointer.allocate(byteCount: 2, alignment: 1)
+        unowned.storeBytes(of: 0x0201, as: UInt16.self)
+        #expect(Data(bytesNoCopy: unowned, count: 2, deallocator: .none).count == 2)
+        unowned.deallocate()
     }
 
     @Test func json5() throws {

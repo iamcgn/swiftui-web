@@ -3,6 +3,8 @@
 // does (`data[2..<4].startIndex` is 2; `Data(slice)` starts a fresh value at zero);
 // `String.Encoding` lives in StringEncoding.swift.
 #if os(WASI)
+import WASILibc
+
 public struct Data: Hashable, Sendable, Codable, CustomStringConvertible, CustomDebugStringConvertible,
                     RandomAccessCollection, MutableCollection, RangeReplaceableCollection {
     public typealias Index = Int
@@ -13,6 +15,8 @@ public struct Data: Hashable, Sendable, Codable, CustomStringConvertible, Custom
     public var bytes: [UInt8]
     /// The index of the first byte: zero, or where a slice began in its source.
     public private(set) var startIndex: Int = 0
+    /// A no-copy value's release, run once the last copy of the value is gone.
+    private var _release: _NoCopyRelease?
 
     public init() { bytes = [] }
     public init(_ bytes: [UInt8]) { self.bytes = bytes }
@@ -293,6 +297,32 @@ extension Data {
         public static let completeFileProtectionUntilFirstUserAuthentication = WritingOptions(rawValue: 0x40000000)
         public static let completeFileProtectionWhenUserInactive = WritingOptions(rawValue: 0x50000000)
         public static let fileProtectionMask = WritingOptions(rawValue: 0xf0000000)
+    }
+}
+
+/// The no-copy initialiser (SwiftNIO's `ByteBuffer` hands its storage to `Data` this way). A
+/// `Data` here is one array, so it copies the bytes in; the caller's buffer is released as
+/// Foundation releases it, once the last copy of the value is gone (at once when it is empty):
+/// `free` frees it, a custom deallocator runs, and `none`, `unmap` and `virtualMemory` leave it,
+/// as wasm maps no memory.
+extension Data {
+    public enum Deallocator {
+        case virtualMemory
+        case unmap
+        case free
+        case none
+        case custom((UnsafeMutableRawPointer, Int) -> Void)
+    }
+
+    public init(bytesNoCopy bytes: UnsafeMutableRawPointer, count: Int, deallocator: Deallocator) {
+        self.init(bytes: UnsafeRawPointer(bytes), count: count)
+        let release: () -> Void
+        switch deallocator {
+        case .free: release = { WASILibc.free(bytes) }
+        case .custom(let block): release = { block(bytes, count) }
+        case .virtualMemory, .unmap, .none: return
+        }
+        if count == 0 { release() } else { _release = _NoCopyRelease(release) }
     }
 }
 #endif

@@ -107,6 +107,29 @@ private final class Box: @unchecked Sendable {
         #expect(box.values.sorted() == [1, 2, 3, 4])
     }
 
+    /// A no-copy value keeps the caller's buffer until its last copy goes, then submits the
+    /// custom cleanup to the given queue, as Dispatch does.
+    @Test func noCopyDispatchDataReleasesOnItsQueueAfterTheLastCopy() async {
+        let released = Box()
+        let queue = DispatchQueue(label: "cleanup")
+        let key = DispatchSpecificKey<Int>()
+        queue.setSpecific(key: key, value: 1)
+        // Apple's cleanup block is sendable; the buffer is only freed there.
+        nonisolated(unsafe) let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 4, alignment: 1)
+        buffer.copyBytes(from: [1, 2, 3, 4] as [UInt8])
+        do {
+            let data = DispatchData(bytesNoCopy: UnsafeRawBufferPointer(buffer), deallocator: .custom(queue) {
+                released.append(DispatchQueue.getSpecific(key: key) ?? 0)
+                buffer.deallocate()
+            })
+            #expect(data.count == 4 && Array(data) == [1, 2, 3, 4])
+            for _ in 0..<5 { await pause() }
+            withExtendedLifetime(data) { #expect(released.values.isEmpty) }
+        }
+        for _ in 0..<400 where released.values.isEmpty { await pause() }
+        #expect(released.values == [1])
+    }
+
     #if !os(WASI)
     // A timer waits out real time, which the wasm test runner can't (see `pause()`).
     @Test func timersFireUntilCancelled() async {

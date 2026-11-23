@@ -15,6 +15,8 @@ public struct DispatchData: RandomAccessCollection, Sendable {
 
     /// The bytes, in order.
     fileprivate var _bytes: [UInt8]
+    /// A no-copy value's release, run once the last copy of the value is gone.
+    private var _release: _NoCopyRelease?
 
     fileprivate init(_bytes: [UInt8]) { self._bytes = _bytes }
 
@@ -45,16 +47,23 @@ public struct DispatchData: RandomAccessCollection, Sendable {
         self.init(bytesNoCopy: UnsafeRawBufferPointer(bytes), deallocator: deallocator)
     }
 
+    /// The bytes are copied in, and the caller's buffer is released as Dispatch releases it: once
+    /// the last copy of the value is gone (at once for an empty buffer), with a custom block
+    /// submitted to its queue (the default global queue when none is given).
     public init(bytesNoCopy bytes: UnsafeRawBufferPointer, deallocator: Deallocator = .free) {
         _bytes = Array(bytes)
+        let release: () -> Void
         switch deallocator {
         case .free:
-            if let base = bytes.baseAddress { WASILibc.free(UnsafeMutableRawPointer(mutating: base)) }
+            guard let base = bytes.baseAddress else { return }
+            release = { WASILibc.free(UnsafeMutableRawPointer(mutating: base)) }
         case .unmap:
-            break
-        case .custom(_, let block):
-            block()
+            return
+        case .custom(let queue, let block):
+            nonisolated(unsafe) let block = block
+            release = { (queue ?? .global()).async { block() } }
         }
+        if bytes.isEmpty { release() } else { _release = _NoCopyRelease(release) }
     }
 
     public var count: Int { _bytes.count }
@@ -178,5 +187,12 @@ public struct DispatchDataIterator: IteratorProtocol, Sequence {
         defer { _position += 1 }
         return _bytes[_position]
     }
+}
+/// Runs a no-copy buffer's release when the last value holding the buffer goes away
+/// (`DispatchData` and `Data` keep one when made with `bytesNoCopy`).
+final class _NoCopyRelease: @unchecked Sendable {
+    private let release: () -> Void
+    init(_ release: @escaping () -> Void) { self.release = release }
+    deinit { release() }
 }
 #endif
