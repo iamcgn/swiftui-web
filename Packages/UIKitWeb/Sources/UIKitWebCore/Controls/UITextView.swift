@@ -135,6 +135,11 @@ open class UITextView: UIScrollView, HostTextInput, UITextInput {
     open var autocapitalizationType: UITextAutocapitalizationType = .sentences
     open var autocorrectionType: UITextAutocorrectionType = .default
     open var spellCheckingType: UITextSpellCheckingType = .default
+    // Kept for the app; the browser's own smart punctuation and keyboard look apply.
+    open var smartQuotesType: UITextSmartQuotesType = .default
+    open var smartDashesType: UITextSmartDashesType = .default
+    open var smartInsertDeleteType: UITextSmartInsertDeleteType = .default
+    open var keyboardAppearance: UIKeyboardAppearance = .default
     open var textContentType: UITextContentType?
     /// The delegate is a text view delegate too (`UITextViewDelegate` refines the scroll
     /// view's, as in UIKit).

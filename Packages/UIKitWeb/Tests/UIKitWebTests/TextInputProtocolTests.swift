@@ -54,7 +54,163 @@ final class DocumentView: UIView, UITextInput {
     override var canBecomeFirstResponder: Bool { true }
 }
 
+/// An app's own position and range types, as Runestone's `IndexedPosition` and `IndexedRange`.
+final class IndexedPosition: UITextPosition {
+    let index: Int
+    init(index: Int) { self.index = index }
+}
+
+final class IndexedRange: UITextRange {
+    let range: NSRange
+    init(_ range: NSRange) { self.range = range }
+    override var start: UITextPosition { IndexedPosition(index: range.location) }
+    override var end: UITextPosition { IndexedPosition(index: range.location + range.length) }
+    override var isEmpty: Bool { range.length == 0 }
+}
+
+/// A document that only knows its own position types (UTF-16 offsets).
+final class IndexedDocumentView: UIView, UITextInput, UITextSearching {
+    var document = "one two three two"
+    var selected = NSRange(location: 0, length: 0)
+    var decorations: [String] = []
+    var inputDelegate: (any UITextInputDelegate)?
+    var hasText: Bool { !document.isEmpty }
+    private func index(_ position: UITextPosition) -> Int { (position as! IndexedPosition).index }
+    private func nsRange(_ range: UITextRange) -> NSRange { (range as! IndexedRange).range }
+    func insertText(_ text: String) { replace(IndexedRange(selected), withText: text) }
+    func deleteBackward() {}
+    func text(in range: UITextRange) -> String? { (document as NSString).substring(with: nsRange(range)) }
+    func replace(_ range: UITextRange, withText text: String) {
+        document = (document as NSString).replacingCharacters(in: nsRange(range), with: text)
+        selected = NSRange(location: nsRange(range).location + text.utf16.count, length: 0)
+    }
+    var selectedTextRange: UITextRange? {
+        get { IndexedRange(selected) }
+        set { selected = newValue.map(nsRange) ?? NSRange(location: 0, length: 0) }
+    }
+    var beginningOfDocument: UITextPosition { IndexedPosition(index: 0) }
+    var endOfDocument: UITextPosition { IndexedPosition(index: document.utf16.count) }
+    func textRange(from fromPosition: UITextPosition, to toPosition: UITextPosition) -> UITextRange? {
+        let a = index(fromPosition), b = index(toPosition)
+        return IndexedRange(NSRange(location: min(a, b), length: abs(b - a)))
+    }
+    func position(from position: UITextPosition, offset: Int) -> UITextPosition? {
+        let target = index(position) + offset
+        return target >= 0 && target <= document.utf16.count ? IndexedPosition(index: target) : nil
+    }
+    func offset(from: UITextPosition, to toPosition: UITextPosition) -> Int { index(toPosition) - index(from) }
+    func compare(_ position: UITextPosition, to other: UITextPosition) -> ComparisonResult {
+        index(position) < index(other) ? .orderedAscending : index(position) > index(other) ? .orderedDescending : .orderedSame
+    }
+    func caretRect(for position: UITextPosition) -> CGRect { .zero }
+    override var canBecomeFirstResponder: Bool { true }
+
+    // UITextSearching
+    func compare(_ foundRange: UITextRange, toRange: UITextRange, document: UITextSearchDocumentIdentifier?) -> ComparisonResult {
+        compare(foundRange.start, to: toRange.start)
+    }
+    func performTextSearch(queryString: String, options: UITextSearchOptions, resultAggregator: any UITextSearchAggregator<AnyHashable?>) {
+        let text = self.document as NSString
+        var from = 0
+        while true {
+            let found = text.range(of: queryString, options: options.stringCompareOptions, range: NSRange(location: from, length: text.length - from))
+            guard found.location != NSNotFound else { break }
+            resultAggregator.foundRange(IndexedRange(found), searchString: queryString, document: nil)
+            from = found.location + found.length
+        }
+        resultAggregator.finishedSearching()
+    }
+    func decorate(foundTextRange: UITextRange, document: UITextSearchDocumentIdentifier?, usingStyle style: UITextSearchFoundTextStyle) {
+        decorations.append("\(nsRange(foundTextRange).location) \(style)")
+    }
+    func clearAllDecoratedFoundText() { decorations.append("clear") }
+}
+
+/// A recognizer that recognizes by setting its own state, and watches it.
+final class SelfRecognizingTap: UITapGestureRecognizer {
+    var seen: [UIGestureRecognizer.State] = []
+    override var state: UIGestureRecognizer.State { didSet { seen.append(state) } }
+}
+
+/// Finds the document view for the find interaction.
+final class FindDelegate: UIFindInteractionDelegate {
+    let searchable: any UITextSearching
+    var began = 0
+    init(searchable: any UITextSearching) { self.searchable = searchable }
+    func findInteraction(_ interaction: UIFindInteraction, sessionFor view: UIView) -> UIFindSession? {
+        UITextSearchingFindSession(searchableObject: searchable)
+    }
+    func findInteraction(_ interaction: UIFindInteraction, didBegin session: UIFindSession) { began += 1 }
+}
+
 @Suite @MainActor struct TextInputProtocolTests {
+    @Test func anInputWithItsOwnPositionTypesTakesTheHostsTextAndSearches() {
+        let scene = UIKitScene.shared
+        scene.removeAllWindows()
+        scene.configureScreen(size: CGSize(width: 320, height: 400), scale: 2)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 400))
+        let controller = UIViewController()
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        let view = IndexedDocumentView(frame: CGRect(x: 10, y: 10, width: 200, height: 40))
+        controller.view.addSubview(view)
+        scene.layout(in: CGSize(width: 320, height: 400))
+        // The host's text and selection reach it as its own ranges.
+        scene.textField(view.semanticsIdentifier, focused: true)
+        scene.textField(view.semanticsIdentifier, didChange: "one two three two!")
+        #expect(view.document == "one two three two!" && view.selected == NSRange(location: 18, length: 0))
+        scene.textField(view.semanticsIdentifier, selectionStart: 4, end: 7)
+        #expect(view.selected == NSRange(location: 4, length: 3) && view.selectedRange == NSRange(location: 4, length: 3))
+        // The default string tokenizer finds words in its offsets.
+        let tokenizer = view.tokenizer
+        let word = tokenizer.rangeEnclosingPosition(IndexedPosition(index: 5), with: .word, inDirection: .storage(.forward)) as? IndexedRange
+        #expect(word?.range == NSRange(location: 4, length: 3))
+        let next = tokenizer.position(from: IndexedPosition(index: 5), toBoundary: .word, inDirection: UITextDirection(rawValue: UITextStorageDirection.forward.rawValue)) as? IndexedPosition
+        #expect(next?.index == 7)
+        #expect(tokenizer.isPosition(IndexedPosition(index: 4), atBoundary: .word, inDirection: .storage(.backward)))
+        // A find session collects, decorates and steps through the results.
+        let delegate = FindDelegate(searchable: view)
+        let find = UIFindInteraction(sessionDelegate: delegate)
+        view.addInteraction(find)
+        find.presentFindNavigator(showingReplace: false)
+        #expect(find.isFindNavigatorVisible && delegate.began == 1)
+        find.searchText = "two"
+        #expect(find.activeFindSession?.resultCount == 2)
+        #expect(view.decorations == ["clear", "4 found", "14 found", "4 highlighted"])
+        find.findNext()
+        #expect(find.activeFindSession?.highlightedResultIndex == 1 && view.decorations.suffix(2) == ["4 found", "14 highlighted"])
+        find.dismissFindNavigator()
+        #expect(!find.isFindNavigatorVisible)
+        // Equal ranges of the app's own type compare by identity, as NSObjects do.
+        #expect(IndexedRange(NSRange(location: 1, length: 1)) != IndexedRange(NSRange(location: 1, length: 1)))
+        #expect(UITextRange(start: UITextPosition(offset: 1), end: UITextPosition(offset: 2)) == UITextRange(start: UITextPosition(offset: 1), end: UITextPosition(offset: 2)))
+        scene.removeAllWindows()
+    }
+
+    @Test func aRecognizerSubclassSetsAndObservesItsState() {
+        var fired = 0
+        let tap = SelfRecognizingTap { _ in fired += 1 }
+        tap.state = .ended
+        // The app's transition runs the handler and resets, and the observer saw both.
+        #expect(fired == 1 && tap.seen == [.ended, .possible] && tap.state == .possible)
+    }
+
+    @Test func keysHaveHIDUsagesAndTheMenuControllerKeepsItsState() {
+        #expect(UIKey(characters: "", modifierFlags: [], key: .upArrow).keyCode == .keyboardUpArrow)
+        #expect(UIKey(characters: "c", modifierFlags: .command).keyCode == .keyboardC)
+        #expect(UIKey(characters: "0", modifierFlags: []).keyCode == .keyboard0)
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
+        UIMenuController.shared.menuItems = [UIMenuItem(title: "Replace", action: NSSelectorFromString("replace"))]
+        UIMenuController.shared.showMenu(from: view, rect: CGRect(x: 1, y: 2, width: 3, height: 4))
+        #expect(UIMenuController.shared.isMenuVisible)
+        UIMenuController.shared.hideMenu(from: view)
+        #expect(!UIMenuController.shared.isMenuVisible && UIMenuController.shared.menuItems?.first?.title == "Replace")
+        let style = NSMutableParagraphStyle()
+        style.tabStops = [NSTextTab(textAlignment: .left, location: 40)]
+        style.defaultTabInterval = 40
+        #expect(style.tabStops.map(\.location) == [40] && style.defaultTabInterval == 40 && style.baseWritingDirection == .natural)
+    }
+
     @Test func keyInputAndTextInputTakeTheHostsText() {
         let scene = UIKitScene.shared
         scene.removeAllWindows()

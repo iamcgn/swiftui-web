@@ -67,6 +67,16 @@ public enum UITextAutocapitalizationType: Int, Sendable {
 
 public enum UITextAutocorrectionType: Int, Sendable { case `default` = 0, no, yes }
 public enum UITextSpellCheckingType: Int, Sendable { case `default` = 0, no, yes }
+public enum UITextSmartQuotesType: Int, Sendable { case `default` = 0, no, yes }
+public enum UITextSmartDashesType: Int, Sendable { case `default` = 0, no, yes }
+public enum UITextSmartInsertDeleteType: Int, Sendable { case `default` = 0, no, yes }
+
+/// The keyboard's appearance (a page cannot style the person's keyboard; it is kept).
+public enum UIKeyboardAppearance: Int, Sendable {
+    case `default` = 0, dark, light
+    /// The older name of `dark`.
+    public static var alert: UIKeyboardAppearance { .dark }
+}
 
 /// The semantic kind of a text field's content (`textContentType`): the input element's
 /// `autocomplete` token.

@@ -9,11 +9,39 @@ import WebFoundation
 import Foundation
 #endif
 
-/// The paragraph attributes string drawing reads: the alignment and the line break mode.
+/// The writing direction of text (`UITextWritingDirection` is UIKit's other name for it).
+public enum NSWritingDirection: Int, Sendable {
+    case natural = -1, leftToRight = 0, rightToLeft = 1
+}
+
+/// A tab stop in a paragraph: its alignment and location.
+open class NSTextTab: @unchecked Sendable {
+    public struct OptionKey: RawRepresentable, Hashable, Sendable {
+        public let rawValue: String
+        public init(rawValue: String) { self.rawValue = rawValue }
+        /// The character set that ends a decimal or column-aligned tab's text.
+        public static let columnTerminators = OptionKey(rawValue: "NSTabColumnTerminatorsAttributeName")
+    }
+    public let alignment: NSTextAlignment
+    public let location: CGFloat
+    public let options: [OptionKey: Any]
+    public init(textAlignment alignment: NSTextAlignment, location: CGFloat, options: [OptionKey: Any] = [:]) {
+        self.alignment = alignment
+        self.location = location
+        self.options = options
+    }
+}
+
+/// The paragraph attributes string drawing reads: the alignment and the line break mode. The
+/// tab stops and the writing direction are kept for an app's own typesetting.
 open class NSParagraphStyle: @unchecked Sendable {
     public internal(set) var alignment: NSTextAlignment = .natural
     public internal(set) var lineBreakMode: NSLineBreakMode = .byWordWrapping
     public internal(set) var lineSpacing: CGFloat = 0
+    /// Twelve left tab stops every 28 points, as UIKit's default.
+    public internal(set) var tabStops: [NSTextTab] = (1...12).map { NSTextTab(textAlignment: .left, location: CGFloat($0) * 28) }
+    public internal(set) var defaultTabInterval: CGFloat = 0
+    public internal(set) var baseWritingDirection: NSWritingDirection = .natural
     public init() {}
     public static var `default`: NSParagraphStyle { NSParagraphStyle() }
     public func mutableCopy() -> Any {
@@ -21,6 +49,9 @@ open class NSParagraphStyle: @unchecked Sendable {
         copy.alignment = alignment
         copy.lineBreakMode = lineBreakMode
         copy.lineSpacing = lineSpacing
+        copy.tabStops = tabStops
+        copy.defaultTabInterval = defaultTabInterval
+        copy.baseWritingDirection = baseWritingDirection
         return copy
     }
 }
@@ -29,6 +60,18 @@ open class NSMutableParagraphStyle: NSParagraphStyle, @unchecked Sendable {
     open override var alignment: NSTextAlignment { get { super.alignment } set { super.alignment = newValue } }
     open override var lineBreakMode: NSLineBreakMode { get { super.lineBreakMode } set { super.lineBreakMode = newValue } }
     open override var lineSpacing: CGFloat { get { super.lineSpacing } set { super.lineSpacing = newValue } }
+    open override var tabStops: [NSTextTab] { get { super.tabStops } set { super.tabStops = newValue } }
+    open override var defaultTabInterval: CGFloat { get { super.defaultTabInterval } set { super.defaultTabInterval = newValue } }
+    open override var baseWritingDirection: NSWritingDirection { get { super.baseWritingDirection } set { super.baseWritingDirection = newValue } }
+}
+
+/// A shadow for drawn text (`NSAttributedString.Key.shadow`): its offset, blur and colour.
+open class NSShadow: @unchecked Sendable {
+    open var shadowOffset: CGSize = .zero
+    open var shadowBlurRadius: CGFloat = 0
+    /// The shadow's colour (a `UIColor`); nil draws black at a third opacity, as UIKit's does.
+    open var shadowColor: Any?
+    public init() {}
 }
 
 extension NSAttributedString {

@@ -38,25 +38,43 @@ extension UITextInputTraits {
     public var textContentType: UITextContentType? { nil }
 }
 
-/// A position in a text input's document (an offset in its characters here).
+/// A position in a text input's document (an offset in its characters here). An app's own
+/// position subclass (`IndexedPosition: UITextPosition`) starts from `init()`: it has no offset
+/// of ours, and compares by identity, as UIKit's (NSObject) positions do.
 @preconcurrency @MainActor
 open class UITextPosition: Equatable {
-    public let offset: Int
-    public init(offset: Int) { self.offset = offset }
-    nonisolated public static func == (lhs: UITextPosition, rhs: UITextPosition) -> Bool { lhs.offset == rhs.offset }
+    private let _offset: Int?
+    /// The offset this position was made with (0 for an app's own subclass, which keeps its own).
+    public var offset: Int { _offset ?? 0 }
+    public init(offset: Int) { _offset = offset }
+    public init() { _offset = nil }
+    nonisolated public static func == (lhs: UITextPosition, rhs: UITextPosition) -> Bool {
+        if let a = lhs._offset, let b = rhs._offset { return a == b }
+        return lhs === rhs
+    }
 }
 
-/// A range in a text input's document.
+/// A range in a text input's document. An app's own range subclass (`IndexedRange: UITextRange`)
+/// starts from `init()` and overrides `start`, `end` and `isEmpty`, as with UIKit's.
 @preconcurrency @MainActor
 open class UITextRange: Equatable {
-    public let start: UITextPosition
-    public let end: UITextPosition
+    private let _start: UITextPosition?
+    private let _end: UITextPosition?
+    open var start: UITextPosition { _start ?? UITextPosition(offset: 0) }
+    open var end: UITextPosition { _end ?? UITextPosition(offset: 0) }
     public init(start: UITextPosition, end: UITextPosition) {
-        self.start = start
-        self.end = end
+        _start = start
+        _end = end
     }
-    public var isEmpty: Bool { start.offset == end.offset }
-    nonisolated public static func == (lhs: UITextRange, rhs: UITextRange) -> Bool { lhs.start == rhs.start && lhs.end == rhs.end }
+    public init() {
+        _start = nil
+        _end = nil
+    }
+    open var isEmpty: Bool { start == end }
+    nonisolated public static func == (lhs: UITextRange, rhs: UITextRange) -> Bool {
+        if let ls = lhs._start, let le = lhs._end, let rs = rhs._start, let re = rhs._end { return ls == rs && le == re }
+        return lhs === rhs
+    }
 }
 
 public enum UITextStorageDirection: Int, Sendable { case forward, backward }
@@ -74,7 +92,8 @@ open class UITextSelectionRect {
     public init() {}
 }
 
-public enum UITextWritingDirection: Int, Sendable { case natural = -1, leftToRight, rightToLeft }
+/// UIKit's name for the writing direction (`NSWritingDirection`, Drawing/StringDrawing.swift).
+public typealias UITextWritingDirection = NSWritingDirection
 
 /// The full text input: positions, ranges, the selection and marked text.
 @preconcurrency @MainActor
@@ -95,6 +114,8 @@ public protocol UITextInput: UIKeyInput {
     func firstRect(for range: UITextRange) -> CGRect
     func closestPosition(to point: CGPoint) -> UITextPosition?
     var inputDelegate: (any UITextInputDelegate)? { get set }
+    /// Finds word, line and paragraph boundaries for the input (a string tokenizer by default).
+    var tokenizer: any UITextInputTokenizer { get }
 }
 
 extension UITextInput {
@@ -115,10 +136,13 @@ extension UITextInput {
     public func offset(from: UITextPosition, to toPosition: UITextPosition) -> Int { toPosition.offset - from.offset }
     public func firstRect(for range: UITextRange) -> CGRect { caretRect(for: range.start) }
     public func closestPosition(to point: CGPoint) -> UITextPosition? { endOfDocument }
-    /// The selection as a character range (helper).
+    public var tokenizer: any UITextInputTokenizer { UITextInputStringTokenizer(input: self) }
+    /// The selection as a character range (helper), measured with the input's own offsets.
     public var selectedRange: NSRange {
-        guard let range = selectedTextRange else { return NSRange(location: endOfDocument.offset, length: 0) }
-        return NSRange(location: range.start.offset, length: range.end.offset - range.start.offset)
+        let begin = beginningOfDocument
+        guard let range = selectedTextRange else { return NSRange(location: offset(from: begin, to: endOfDocument), length: 0) }
+        let start = offset(from: begin, to: range.start)
+        return NSRange(location: start, length: offset(from: begin, to: range.end) - start)
     }
 }
 
@@ -138,7 +162,13 @@ public final class UITextInteraction: UIInteraction {
     public let textInteractionMode: Mode
     public weak var textInput: (any UITextInput)?
     public private(set) weak var view: UIView?
+    /// Asked whether a tap may begin the interaction, and told when it begins and ends.
+    public weak var delegate: (any UITextInteractionDelegate)?
     private var tap: UITapGestureRecognizer?
+
+    /// The interaction's recognizers, for an app to make its own wait for them
+    /// (`require(toFail:)`): the tap that begins editing.
+    public var gesturesForFailureRequirements: [UIGestureRecognizer] { tap.map { [$0] } ?? [] }
 
     public init(for mode: Mode) { textInteractionMode = mode }
     public static func textInteraction(for mode: Mode) -> UITextInteraction { UITextInteraction(for: mode) }
@@ -151,8 +181,12 @@ public final class UITextInteraction: UIInteraction {
     public func didMove(to view: UIView?) {
         self.view = view
         guard let view, textInteractionMode == .editable else { return }
-        let recognizer = UITapGestureRecognizer(handler: { [weak view] _ in
-            guard let view, view.canBecomeFirstResponder else { return }
+        let recognizer = UITapGestureRecognizer(handler: { [weak self, weak view] tap in
+            guard let self, let view, view.canBecomeFirstResponder else { return }
+            if let delegate = self.delegate {
+                guard delegate.interactionShouldBegin(self, at: tap.location(in: view)) else { return }
+                delegate.interactionWillBegin(self)
+            }
             _ = view.becomeFirstResponder()
         })
         view.addGestureRecognizer(recognizer)
@@ -160,7 +194,36 @@ public final class UITextInteraction: UIInteraction {
     }
 }
 
+/// Asked whether a text interaction may begin at a point, and told when it begins and ends.
+@preconcurrency @MainActor
+public protocol UITextInteractionDelegate: AnyObject {
+    func interactionShouldBegin(_ interaction: UITextInteraction, at point: CGPoint) -> Bool
+    func interactionWillBegin(_ interaction: UITextInteraction)
+    func interactionDidEnd(_ interaction: UITextInteraction)
+}
+
+extension UITextInteractionDelegate {
+    public func interactionShouldBegin(_ interaction: UITextInteraction, at point: CGPoint) -> Bool { true }
+    public func interactionWillBegin(_ interaction: UITextInteraction) {}
+    public func interactionDidEnd(_ interaction: UITextInteraction) {}
+}
+
 // MARK: - The host relay
+
+extension UITextInput {
+    /// The range between two offsets from the document's start, made by the input.
+    func range(fromOffset lower: Int, toOffset upper: Int) -> UITextRange? {
+        let begin = beginningOfDocument
+        guard let start = position(from: begin, offset: lower), let end = position(from: begin, offset: upper) else { return nil }
+        return textRange(from: start, to: end)
+    }
+
+    /// The whole document's text.
+    var wholeText: String {
+        guard let all = textRange(from: beginningOfDocument, to: endOfDocument) else { return "" }
+        return text(in: all) ?? ""
+    }
+}
 
 /// The scene's bookkeeping for a `UIKeyInput`/`UITextInput` view: the text the host last had,
 /// so its next report becomes the typed or deleted characters.
@@ -184,13 +247,16 @@ extension UIKitScene {
             while prefix < oldChars.count, prefix < newChars.count, oldChars[prefix] == newChars[prefix] { prefix += 1 }
             var suffix = 0
             while suffix < oldChars.count - prefix, suffix < newChars.count - prefix, oldChars[oldChars.count - 1 - suffix] == newChars[newChars.count - 1 - suffix] { suffix += 1 }
-            let replaced = UITextRange(start: UITextPosition(offset: prefix), end: UITextPosition(offset: oldChars.count - suffix))
+            // Positions and ranges come from the input itself, so an app's own position and
+            // range subclasses (Runestone's `IndexedRange`) are what it is handed.
             let inserted = String(newChars[prefix..<(newChars.count - suffix)])
-            input.inputDelegate?.textWillChange(input)
-            input.replace(replaced, withText: inserted)
-            input.inputDelegate?.textDidChange(input)
+            if let replaced = input.range(fromOffset: prefix, toOffset: oldChars.count - suffix) {
+                input.inputDelegate?.textWillChange(input)
+                input.replace(replaced, withText: inserted)
+                input.inputDelegate?.textDidChange(input)
+            }
             let caret = prefix + inserted.count
-            input.selectedTextRange = UITextRange(start: UITextPosition(offset: caret), end: UITextPosition(offset: caret))
+            if let range = input.range(fromOffset: caret, toOffset: caret) { input.selectedTextRange = range }
         } else if let input = view as? any UIKeyInput {
             let oldChars = Array(old), newChars = Array(newText)
             var prefix = 0
@@ -207,12 +273,14 @@ extension UIKitScene {
         let shadow = keyInputShadow(for: view)
         let utf16 = Array(shadow.text.utf16)
         func characters(upTo offset: Int) -> Int { String(decoding: utf16.prefix(max(0, min(offset, utf16.count))), as: UTF16.self).count }
-        let range = UITextRange(start: UITextPosition(offset: characters(upTo: start)), end: UITextPosition(offset: characters(upTo: end)))
-        guard input.selectedTextRange != range else { return }
+        let lower = characters(upTo: start), upper = characters(upTo: end)
+        let current = input.selectedRange
+        guard input.selectedTextRange == nil || current.location != lower || current.length != upper - lower,
+              let range = input.range(fromOffset: lower, toOffset: upper) else { return }
         input.inputDelegate?.selectionWillChange(input)
         input.selectedTextRange = range
         input.inputDelegate?.selectionDidChange(input)
-        shadow.selection = NSRange(location: range.start.offset, length: range.end.offset - range.start.offset)
+        shadow.selection = NSRange(location: lower, length: upper - lower)
     }
 
     /// Return on a key-input view: a newline for `UITextInput` (its own document), nothing else.
@@ -224,7 +292,7 @@ extension UIKitScene {
         if let shadow = keyInputShadows[ObjectIdentifier(view)]?.shadow { return shadow }
         let shadow = HostKeyInputShadow()
         if let input = view as? any UITextInput {
-            shadow.text = input.text(in: UITextRange(start: input.beginningOfDocument, end: input.endOfDocument)) ?? ""
+            shadow.text = input.wholeText
         }
         keyInputShadows[ObjectIdentifier(view)] = (shadow, UIKitScene.WeakView(view: view))
         return shadow
@@ -237,7 +305,7 @@ extension UIKitScene {
         guard view is any UIKeyInput, view.canBecomeFirstResponder else { return nil }
         let shadow = keyInputShadow(for: view)
         if let input = view as? any UITextInput {
-            shadow.text = input.text(in: UITextRange(start: input.beginningOfDocument, end: input.endOfDocument)) ?? ""
+            shadow.text = input.wholeText
         }
         let traits = view as? any UITextInputTraits
         var info = TextInputInfo(text: shadow.text, placeholder: "", isSecure: traits?.isSecureTextEntry ?? false, textRect: view.convert(view.bounds, to: nil),
