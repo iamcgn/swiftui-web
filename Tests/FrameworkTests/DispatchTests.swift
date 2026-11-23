@@ -114,7 +114,8 @@ private final class Box: @unchecked Sendable {
         let queue = DispatchQueue(label: "cleanup")
         let key = DispatchSpecificKey<Int>()
         queue.setSpecific(key: key, value: 1)
-        let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 4, alignment: 1)
+        // Apple's cleanup block is sendable; the buffer is only freed there.
+        nonisolated(unsafe) let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 4, alignment: 1)
         buffer.copyBytes(from: [1, 2, 3, 4] as [UInt8])
         do {
             let data = DispatchData(bytesNoCopy: UnsafeRawBufferPointer(buffer), deallocator: .custom(queue) {
