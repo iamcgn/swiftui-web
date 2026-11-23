@@ -15,6 +15,8 @@ public struct Data: Hashable, Sendable, Codable, CustomStringConvertible, Custom
     public var bytes: [UInt8]
     /// The index of the first byte: zero, or where a slice began in its source.
     public private(set) var startIndex: Int = 0
+    /// A no-copy value's release, run once the last copy of the value is gone.
+    private var _release: _NoCopyRelease?
 
     public init() { bytes = [] }
     public init(_ bytes: [UInt8]) { self.bytes = bytes }
@@ -299,10 +301,10 @@ extension Data {
 }
 
 /// The no-copy initialiser (SwiftNIO's `ByteBuffer` hands its storage to `Data` this way). A
-/// `Data` here is one array, so it copies the bytes and releases the caller's buffer at once:
-/// `free` frees it, a custom deallocator runs, `none` leaves it, and `unmap` and
-/// `virtualMemory` leave it too, as wasm maps no memory. What the caller sees is Foundation's:
-/// the bytes stay readable through the value, and the buffer is the deallocator's to release.
+/// `Data` here is one array, so it copies the bytes in; the caller's buffer is released as
+/// Foundation releases it, once the last copy of the value is gone (at once when it is empty):
+/// `free` frees it, a custom deallocator runs, and `none`, `unmap` and `virtualMemory` leave it,
+/// as wasm maps no memory.
 extension Data {
     public enum Deallocator {
         case virtualMemory
@@ -314,11 +316,13 @@ extension Data {
 
     public init(bytesNoCopy bytes: UnsafeMutableRawPointer, count: Int, deallocator: Deallocator) {
         self.init(bytes: UnsafeRawPointer(bytes), count: count)
+        let release: () -> Void
         switch deallocator {
-        case .free: WASILibc.free(bytes)
-        case .custom(let release): release(bytes, count)
-        case .virtualMemory, .unmap, .none: break
+        case .free: release = { WASILibc.free(bytes) }
+        case .custom(let block): release = { block(bytes, count) }
+        case .virtualMemory, .unmap, .none: return
         }
+        if count == 0 { release() } else { _release = _NoCopyRelease(release) }
     }
 }
 #endif
