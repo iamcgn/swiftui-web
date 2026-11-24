@@ -1,0 +1,91 @@
+# One GPU timing run of both WebGL experiments on Corey's self-hosted Mac (label laptop-sweep),
+# which he approved on Nov 24, 2026. Runs only when Playwright/webgl/gpu-run.txt changes on a
+# claude/webgl-** push: no pull_request trigger, so no pull request ever runs here. Builds nothing:
+# it takes the SceneDemo bundles from run 45315538822 (this branch) and the app bundles from
+# run 45310558521 (claude/webgl-painter), and times them in Chromium on the Mac's GPU.
+name: WebGL GPU timings (laptop)
+on:
+  push:
+    branches: ['claude/webgl-**']
+    paths: ['Playwright/webgl/gpu-run.txt']
+permissions:
+  contents: read
+  actions: read
+concurrency: { group: webgl-gpu, cancel-in-progress: false }
+jobs:
+  gpu:
+    runs-on: [self-hosted, laptop-sweep]
+    timeout-minutes: 75
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/ms-playwright
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: { ref: claude/webgl-painter, path: painter, sparse-checkout: Playwright/webgl }
+      - uses: actions/download-artifact@v4
+        with: { pattern: 'bundle-scenedemo', path: scene-bundles, merge-multiple: true, run-id: '45315538822', github-token: "${{ github.token }}" }
+      - uses: actions/download-artifact@v4
+        with: { pattern: 'bundle-*', path: bundles, merge-multiple: true, run-id: '45310558521', github-token: "${{ github.token }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Playwright's Chromium (into the job's temp folder, removed with it)
+        run: |
+          cd Playwright && npm install && npx playwright install chromium
+          mkdir -p webgl-p && cp ../painter/Playwright/webgl/{perf.mjs,painter-gl.js,inject.sh} webgl-p/
+          sed -i '' "s|const browser = await chromium.launch({ args:|const browser = await chromium.launch({ channel: process.env.WEBGL_CHANNEL \|\| undefined, args:|" webgl-p/perf.mjs
+          grep -c "WEBGL_CHANNEL" webgl-p/perf.mjs
+          sysctl -n machdep.cpu.brand_string; system_profiler SPDisplaysDataType 2>/dev/null | grep -E "Chipset|Cores|Metal" | head -4 || true
+      - name: Which launch gets the GPU
+        id: pick
+        run: |
+          cd Playwright
+          pick=""
+          for cfg in "|" "|--use-angle=metal --ignore-gpu-blocklist --enable-gpu-rasterization" "chromium|" "chromium|--use-angle=metal --ignore-gpu-blocklist --enable-gpu-rasterization"; do
+            ch=${cfg%%|*}; a=${cfg#*|}
+            line=$(WEBGL_CHANNEL="$ch" WEBGL_CHROME_ARGS="$a" perl -e 'alarm shift; exec @ARGV' 90 node webgl/gpu-probe.mjs 2>&1 | tail -1) || true
+            echo "$line"
+            if [ -z "$pick" ] && echo "$line" | grep -q "WebGL2" && ! echo "$line" | grep -qiE "SwiftShader|no WebGL2"; then pick="$cfg"; fi
+          done
+          [ -n "$pick" ] || { echo "no launch reached the GPU; timing the default one"; pick="|"; }
+          echo "picked: $pick"
+          echo "channel=${pick%%|*}" >> "$GITHUB_OUTPUT"; echo "args=${pick#*|}" >> "$GITHUB_OUTPUT"
+      - name: SceneKit scenes, CPU against WebGL against the 2D fallback
+        env: { WEBGL_CHANNEL: "${{ steps.pick.outputs.channel }}", WEBGL_CHROME_ARGS: "${{ steps.pick.outputs.args }}" }
+        run: |
+          rm -rf served-plain served-all; cp -R scene-bundles/scenedemo served-plain
+          Playwright/webgl/inject.sh scene-bundles/scenedemo served-all blit
+          python3 -m http.server 8811 --bind 127.0.0.1 --directory served-plain >/dev/null 2>&1 & echo $! > pids
+          python3 -m http.server 8812 --bind 127.0.0.1 --directory served-all >/dev/null 2>&1 & echo $! >> pids
+          sleep 2; mkdir -p .build/webgl-gpu
+          cd Playwright
+          node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --out ../.build/webgl-gpu --json ../.build/webgl-gpu/scene.json || true
+          node webgl/scene.mjs "http://127.0.0.1:8812/index.html" --modes cpu,gl --label all --out ../.build/webgl-gpu --json ../.build/webgl-gpu/scene-all.json || true
+      - name: Paint times, Canvas2D against the WebGL painter
+        env: { WEBGL_CHANNEL: "${{ steps.pick.outputs.channel }}", WEBGL_CHROME_ARGS: "${{ steps.pick.outputs.args }}" }
+        run: |
+          port=8820; : > served.txt
+          for app in counter scrumdinger ember charts buttoncraft simplescores simpletodo gallery; do
+            [ -d "bundles/$app" ] || { echo "$app: no bundle"; continue; }
+            Playwright/webgl-p/inject.sh "bundles/$app" "served/$app-q" >/dev/null
+            python3 -m http.server $port --bind 127.0.0.1 --directory "served/$app-q" >/dev/null 2>&1 & echo $! >> pids
+            echo "$app $port" >> served.txt; port=$((port + 1))
+          done
+          sleep 2
+          q() { awk -v a="$1" '$1==a {print $2}' served.txt; }
+          run() { local app="$1"; shift; local p; p=$(q "$app"); [ -n "$p" ] || return 0; (cd Playwright && perl -e 'alarm shift; exec @ARGV' 600 node webgl-p/perf.mjs "http://127.0.0.1:$p/index.html$1" --label "$2" --json "../.build/webgl-gpu/$3.json" "${@:4}") || echo "perf $2 failed"; }
+          run counter "" "Counter" counter
+          run scrumdinger "?platform=ios" "Scrumdinger" scrumdinger
+          run ember "?platform=ios" "Ember (live Hacker News)" ember
+          run charts "?platform=ios" "Swift Charts Examples" charts
+          run buttoncraft "?platform=ios" "Buttoncraft" buttoncraft
+          run simplescores "?platform=ios" "SimpleScores" simplescores
+          run simpletodo "?platform=ios" "SimpleToDo" simpletodo
+          for fx in effects/blur effects/shadow effects/blend gradient/basic shape/stroke shape/path charts/line charts/area text/markdown list/basic scroll/long; do
+            run gallery "?fixture=$fx" "gallery $fx" "gallery-${fx//\//-}" --no-scroll
+          done
+      - name: Stop the local servers
+        if: always()
+        run: '[ -f pids ] && xargs kill < pids 2>/dev/null || true'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: webgl-gpu, path: .build/webgl-gpu, if-no-files-found: warn, retention-days: 14 }

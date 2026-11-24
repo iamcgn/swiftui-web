@@ -15,7 +15,7 @@ const modes = opt('--modes', 'cpu,gl,2d').split(',');
 const scenes = opt('--scenes', 'Spheres,Waves,Globe').split(',');
 const label = opt('--label', '');
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ args: (process.env.WEBGL_CHROME_ARGS || '').split(' ').filter(Boolean) });
+const browser = await chromium.launch({ channel: process.env.WEBGL_CHANNEL || undefined, args: (process.env.WEBGL_CHROME_ARGS || '').split(' ').filter(Boolean) });
 const stat = xs => { const s = xs.filter(x => x != null).sort((a, b) => a - b); return s.length ? { median: +s[Math.floor(s.length / 2)].toFixed(2), p90: +s[Math.floor(s.length * 0.9)].toFixed(2), max: +s[s.length - 1].toFixed(2), n: s.length } : null; };
 const withQuery = (u, q) => u + (u.includes('?') ? '&' : '?') + q;
 const results = [];
