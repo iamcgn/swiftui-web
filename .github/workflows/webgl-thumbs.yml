@@ -23,4 +23,6 @@ jobs:
       - run: |
           python3 -m http.server 8811 --bind 127.0.0.1 --directory scene-bundles/scenedemo >/dev/null 2>&1 &
           sleep 2; cd Playwright
+          for b in chromium webkit; do WEBGL_BROWSER=$b timeout 600 node webgl/texdebug.mjs "http://127.0.0.1:8811/index.html" || echo "texdebug $b failed"; done
+          [ -f webgl/thumbs-only-debug ] && exit 0
           for b in chromium webkit; do WEBGL_THUMBS=1 WEBGL_BROWSER=$b timeout 900 node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes cpu,gl,2d --out /tmp/t || echo "$b failed"; done
