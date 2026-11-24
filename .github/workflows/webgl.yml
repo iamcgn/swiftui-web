@@ -36,7 +36,7 @@ jobs:
         include:
           - { name: scenedemo, pkg: Examples/SceneDemo, flags: '', ref: '' }
           - { name: counter, pkg: Examples/Counter, flags: '', ref: '' }
-          - { name: counter-base, pkg: Examples/Counter, flags: '', ref: '33c1a76' }
+          - { name: counter-base, pkg: Examples/Counter, flags: '', ref: '33c1a766cc2e56b929e5cf07ada1ab06c8d4cb4c' }
     steps:
       - uses: actions/checkout@v4
         with: { ref: "${{ matrix.ref }}" }

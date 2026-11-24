@@ -97,6 +97,7 @@ public final class UIImage: UIObjectBase, @unchecked Sendable {
 
     /// The page file the image's pixels load from (SceneKit's textures): its bytes as a data
     /// URL, or the catalog's largest variant; nil for drawings and symbols.
+    @preconcurrency @MainActor
     public var _textureFile: String? {
         if drawing != nil || isSystemSymbol { return nil }
         if data != nil { return name }
