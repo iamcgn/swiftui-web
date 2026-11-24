@@ -168,11 +168,28 @@ import SwiftUIWebHeadless
         ball.position = SCNVector3(0, 0, -20)
         scene.rootNode.addChildNode(ball)
         let runtime = Runtime()
-        runtime.textEngine = MetricsTextEngine()
+        runtime.textEngine = SceneTextEngine()
         runtime.mount(SceneView(scene: scene).frame(width: 200, height: 100))
         runtime.layout(in: CGSize(width: 200, height: 100))
         let commands = runtime.render(scale: 2).commands.map(\.description)
         #expect(commands.contains { $0.contains("drawText(\"Hi\"") }, "\(commands)")
         #expect(commands.contains { $0.contains("#FFFF00") && $0.lowercased().contains("stroke") }, "\(commands)")
+    }
+}
+
+/// Lays text out at a fixed advance per character, so the scene's text has a size on every
+/// platform (the Charts tests' engine isn't built for wasm).
+private final class SceneTextEngine: TextEngine {
+    func layout(_ runs: [StyledRun], options: TextLayoutOptions, width: CGFloat?) -> TextLayout {
+        let string = runs.map(\.string).joined()
+        let size = runs.first?.font.size ?? 13
+        let w = CGFloat(string.count) * size * 0.6
+        let baseline = size * 0.8
+        let line = TextLayout.Line(range: string.startIndex..<string.endIndex, width: w, baseline: baseline, fragments: [TextLayout.Fragment(text: string, run: 0, x: 0, width: w)])
+        return TextLayout(size: CGSize(width: w, height: size * 1.2), firstBaseline: baseline, lastBaseline: baseline, lines: [line])
+    }
+
+    func metrics(for font: ResolvedFont) -> FontMetrics {
+        FontMetrics(lineHeight: font.size * 1.2, spacingBelow: 0, spacingAbove: 0, textToText: 0)
     }
 }
