@@ -23,6 +23,33 @@ import UIKit
         #expect(UIFont(descriptor: plain, size: 0).weight == .regular && !UIFont(descriptor: plain, size: 0).resolved.italic)
     }
 
+    /// Highlightr's theme fonts: a family and a face make a descriptor, and the face picks the
+    /// weight and slant; the system font's family name stands for the system font.
+    @Test func fontDescriptorsFromAttributes() {
+        let code = UIFont(name: "Courier", size: 14)!
+        let bold = UIFontDescriptor(fontAttributes: [UIFontDescriptor.AttributeName.family: code.familyName, UIFontDescriptor.AttributeName.face: "Bold"])
+        let boldFont = UIFont(descriptor: bold, size: code.pointSize)
+        #expect(boldFont.familyName == "Courier" && boldFont.weight == .bold && boldFont.pointSize == 14)
+        let italic = UIFont(descriptor: UIFontDescriptor(fontAttributes: [.family: code.familyName, .face: "Italic"]), size: 14)
+        #expect(italic.resolved.italic && italic.weight == .regular)
+        #expect(bold.fontAttributes[.face] as? String == "Bold")
+
+        let system = UIFontDescriptor(fontAttributes: [.family: UIFont.systemFont(ofSize: 17).familyName, .size: 17])
+        #expect(system.pointSize == 17 && system.symbolicTraits.isEmpty)
+        #expect(UIFontDescriptor(fontAttributes: [:]).pointSize == 12)
+        #expect(UIFontDescriptor(name: "Courier", size: 9).withFamily("Menlo").fontAttributes[.family] as? String == "Menlo")
+        #expect(UIFontDescriptor.AttributeName.family.rawValue == "NSFontFamilyAttribute")
+    }
+
+    /// Kingfisher's flip transitions are options `transition(with:)` takes; the change applies.
+    @Test func flipTransitionsApplyTheirChanges() {
+        let view = UIView()
+        var finished = false
+        UIView.transition(with: view, duration: 0, options: [.transitionFlipFromLeft, .curveEaseOut], animations: { view.alpha = 0.5 }) { finished = $0 }
+        #expect(view.alpha == 0.5 && finished)
+        #expect(UIView.AnimationOptions.transitionFlipFromBottom.rawValue == 7 << 20 && UIView.AnimationOptions.transitionFlipFromTop != .transitionFlipFromRight)
+    }
+
     @Test func aScrollViewTracksWhileAFingerIsDown() {
         let scroll = UIScrollView(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
         #expect(!scroll.isTracking)
