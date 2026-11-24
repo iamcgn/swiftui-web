@@ -315,6 +315,30 @@ def c_settings(target):
 QUOTED_INCLUDE = re.compile(r'^[ \t]*#[ \t]*include[ \t]*"([^"\n]+/[^"\n]+)"', re.M)
 
 
+WASI_POSIX_COMPAT = Path(__file__).resolve().parent / "wasi-posix-compat.h"
+# The calls wasi-posix-compat.h stands in for, each with what marks a package's own declaration.
+WASI_MISSING_CALLS = {"dup": re.compile(r'\bint[ \t]+dup[ \t]*\(')}
+
+
+def wasi_missing_calls(root: Path):
+    """The POSIX calls wasi-libc lacks that a C target's sources make without declaring them
+    (Runestone's vendored tree-sitter calls `dup`), which wasi-posix-compat.h supplies."""
+    found = set()
+    for f in files_under(root):
+        if not (f.is_file() and f.suffix in C_SOURCES | C_HEADERS):
+            continue
+        try:
+            text = f.read_text(errors="replace")
+        except OSError:
+            continue
+        for name, declared in WASI_MISSING_CALLS.items():
+            if declared.search(text):
+                return set()
+            if re.search(rf'(?<![A-Za-z0-9_.>]){name}[ \t]*\(', text):
+                found.add(name)
+    return found
+
+
 def vendored_quote_dirs(root: Path, public_headers: str, settings):
     """Folders of a C target that hold a header its own quoted includes name but cannot reach.
 
@@ -1460,11 +1484,16 @@ def cmd_prepare(args):
                 excludes = [e for e in t.get("exclude", []) if (dest_root / e).exists()]
                 quote_dirs = vendored_quote_dirs(dest_root, t["public_headers"], t["c_settings"])
                 settings = list(t["c_settings"])
+                flags = [x for d in quote_dirs for x in ("-iquote", str(d.resolve()))]
                 if quote_dirs:
-                    flags = [x for d in quote_dirs for x in ("-iquote", str(d.resolve()))]
-                    settings.append(f".unsafeFlags({json.dumps(flags)})")
                     print(f"{t['module']}: own headers on the quote path: "
                           + ", ".join(d.relative_to(dest_root).as_posix() or "." for d in quote_dirs), flush=True)
+                missing = wasi_missing_calls(dest_root)
+                if missing:
+                    flags += ["-include", str(WASI_POSIX_COMPAT)]
+                    print(f"{t['module']}: WASI stand-ins for " + ", ".join(sorted(missing)), flush=True)
+                if flags:
+                    settings.append(f".unsafeFlags({json.dumps(flags)})")
                 decls.append(
                     f'        .target(\n            name: "{t["module"]}",\n            dependencies: [{", ".join(json.dumps(d) for d in t["deps"])}],\n'
                     f'            path: "Sources/{t["module"]}",\n'

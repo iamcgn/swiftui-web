@@ -95,6 +95,15 @@ public final class UIImage: UIObjectBase, @unchecked Sendable {
         self.init(name: file, isSystemSymbol: false, scale: scale, size: CGSize(width: pixels.width / scale, height: pixels.height / scale), data: data, pixelSize: pixels)
     }
 
+    /// The page file the image's pixels load from (SceneKit's textures): its bytes as a data
+    /// URL, or the catalog's largest variant; nil for drawings and symbols.
+    @preconcurrency @MainActor
+    public var _textureFile: String? {
+        if drawing != nil || isSystemSymbol { return nil }
+        if data != nil { return name }
+        return UIKitScene.shared.assetCatalog.image(named: name)?.variants.max(by: { $0.scale < $1.scale })?.file
+    }
+
     /// An image that cycles through `images` over `duration` seconds in an image view.
     public static func animatedImage(with images: [UIImage], duration: TimeInterval) -> UIImage? {
         guard let first = images.first else { return nil }

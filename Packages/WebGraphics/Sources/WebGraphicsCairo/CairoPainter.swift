@@ -167,6 +167,8 @@ public final class CairoPainter {
                 drawImage(context, draw)
             case .drawBitmap(let bitmap, let rect):
                 drawBitmap(context, bitmap, rect)
+            case .drawMesh:
+                break   // no 3D renderer here: SceneKit draws its triangles as paths for this host
             }
         }
         for group in groups.reversed() { end(group, context) }
