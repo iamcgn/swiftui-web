@@ -214,6 +214,9 @@ extension NSString {
     @preconcurrency @MainActor public func boundingRect(with size: CGSize, options: NSStringDrawingOptions = [], attributes: [NSAttributedString.Key: Any]? = nil, context: NSStringDrawingContext? = nil) -> CGRect {
         string.boundingRect(with: size, options: options, attributes: attributes, context: context)
     }
+    @preconcurrency @MainActor public func draw(with rect: CGRect, options: NSStringDrawingOptions = [], attributes: [NSAttributedString.Key: Any]? = nil, context: NSStringDrawingContext? = nil) {
+        string.draw(with: rect, options: options, attributes: attributes, context: context)
+    }
 }
 #endif
 
@@ -237,6 +240,14 @@ extension StringProtocol {
     @preconcurrency @MainActor public func boundingRect(with size: CGSize, options: NSStringDrawingOptions = [], attributes: [NSAttributedString.Key: Any]? = nil, context: NSStringDrawingContext? = nil) -> CGRect {
         let width = size.width > 0 && size.width.isFinite ? size.width : nil
         return CGRect(origin: .zero, size: UIGraphicsRecordingContext.measure(String(self), style: StringDrawingStyle(attributes), width: width))
+    }
+
+    /// With `.usesLineFragmentOrigin`, draws the string wrapped in `rect` from its top-left
+    /// corner, as `draw(in:withAttributes:)` does; without it, draws the string unwrapped with
+    /// its first baseline at the rectangle's origin.
+    @preconcurrency @MainActor public func draw(with rect: CGRect, options: NSStringDrawingOptions = [], attributes: [NSAttributedString.Key: Any]? = nil, context: NSStringDrawingContext? = nil) {
+        let style = StringDrawingStyle(attributes)
+        UIGraphicsGetCurrentContext()?.drawString(String(self), style: style, options: options, in: rect)
     }
 }
 
@@ -267,6 +278,10 @@ extension NSAttributedString {
         let width = size.width > 0 && size.width.isFinite ? size.width : nil
         return CGRect(origin: .zero, size: UIGraphicsRecordingContext.measure(string, style: StringDrawingStyle(self), width: width))
     }
+    /// As the string's `draw(with:options:attributes:context:)`, in the string's own attributes.
+    @preconcurrency @MainActor public func draw(with rect: CGRect, options: NSStringDrawingOptions = [], context: NSStringDrawingContext? = nil) {
+        UIGraphicsGetCurrentContext()?.drawString(string, style: StringDrawingStyle(self), options: options, in: rect)
+    }
 }
 
 extension UIImage {
@@ -283,6 +298,17 @@ extension UIImage {
 }
 
 extension UIGraphicsRecordingContext {
+    /// `draw(with:options:…)`: wrapped in the rectangle from its top with the line-fragment
+    /// origin, else unwrapped with the first baseline at the rectangle's origin (its size unused).
+    @preconcurrency @MainActor func drawString(_ string: String, style: StringDrawingStyle, options: NSStringDrawingOptions, in rect: CGRect) {
+        if options.contains(.usesLineFragmentOrigin) {
+            drawString(string, style: style, at: rect.origin, width: rect.width, height: rect.height)
+        } else {
+            let font = style.styledRuns(for: string).map(\.font).max { $0.ascender < $1.ascender } ?? style.font
+            drawString(string, style: style, at: CGPoint(x: rect.minX, y: rect.minY - font.ascender), width: nil, height: nil)
+        }
+    }
+
     /// The string's laid-out size: the engine's width (unbounded, or wrapped to `width`) and
     /// the tallest font's line pitch per line.
     @preconcurrency @MainActor static func measure(_ string: String, style: StringDrawingStyle, width: CGFloat?) -> CGSize {
