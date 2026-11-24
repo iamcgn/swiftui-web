@@ -272,6 +272,19 @@ import SwiftUIWebHeadless
         let r = runtime(_TypedColumnFruits())
         #expect(r.probeFrames["typed1"]?.minY == 37 && r.probeFrames["typed3"]?.minY == 85)
     }
+
+    /// A column is `TableColumnContent` of its row and comparator, so it can be passed to a
+    /// generic function and kept in a property of opaque column content used in a table.
+    @Test func columnsAreTableColumnContent() {
+        func sortType<C: TableColumnContent>(_ column: C) -> Any.Type { C.TableColumnSortComparator.self }
+        func rowType<C: TableColumnContent>(_ column: C) -> Any.Type { C.TableRowValue.self }
+        let color: TableColumn<Fruit, Never, Text, Text> = TableColumn("Color") { Text($0.color) }
+        #expect(sortType(color) == Never.self && rowType(color) == Fruit.self)
+        #expect(sortType(TableColumn("Name", value: \Fruit.name)) == KeyPathComparator<Fruit>.self)
+        let r = runtime(_OpaqueColumnFruits())
+        #expect(r.probeFrames["opaque1"]?.minY == 37 && r.probeFrames["opaque3"]?.minY == 85)
+        #expect(r.semanticsTree().contains { $0.role == .group && $0.label == "Name, Color" })
+    }
 }
 
 /// A table whose columns are properties typed the way Hipstapaper names them.
@@ -281,6 +294,20 @@ struct _TypedColumnFruits: View {
         TableColumn("Name") { fruit in
             if fruit.count > 10 { Text(fruit.name).bold()._probe("typed\(fruit.id)") } else { Text(fruit.name)._probe("typed\(fruit.id)") }
         }
+    }
+    var body: some View {
+        Table(TableTests.fruits) {
+            nameColumn
+            TableColumn("Color", value: \.color)
+        }
+    }
+}
+
+/// A table whose first column is a property of opaque column content, as SwiftUI documents
+/// factoring columns out.
+struct _OpaqueColumnFruits: View {
+    private var nameColumn: some TableColumnContent<TableTests.Fruit, Never> {
+        TableColumn("Name") { (fruit: TableTests.Fruit) in Text(fruit.name)._probe("opaque\(fruit.id)") }
     }
     var body: some View {
         Table(TableTests.fruits) {
