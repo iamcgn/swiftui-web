@@ -61,8 +61,8 @@ jobs:
           t() { perl -e 'alarm shift; exec @ARGV' 900 "$@"; }
           # Second run (live-texture fix, run 45348830119's bundle): Firefox in a window, as headless
           # Firefox hung at launch on this Mac; WebKit again for the Globe fix.
-          WEBGL_HEADED=1 WEBGL_BROWSER=firefox t node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes cpu,gl,2d,nogl --label headed --out ../.build/webgl-browsers --json ../.build/webgl-browsers/mac-firefox-headed.json || echo "firefox headed failed"
-          WEBGL_BROWSER=webkit t node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes cpu,gl --scenes Globe --out ../.build/webgl-browsers --json ../.build/webgl-browsers/mac-webkit-globe.json || echo "webkit failed"
+          MOZ_DISABLE_CONTENT_SANDBOX=1 MOZ_DISABLE_GPU_SANDBOX=1 MOZ_DISABLE_RDD_SANDBOX=1 MOZ_DISABLE_SOCKET_PROCESS_SANDBOX=1 MOZ_DISABLE_GMP_SANDBOX=1 MOZ_DISABLE_UTILITY_SANDBOX=1 WEBGL_FF_NOSANDBOX=1 WEBGL_BROWSER=firefox t node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes cpu,gl,2d,nogl --label nosandbox --out ../.build/webgl-browsers --json ../.build/webgl-browsers/mac-firefox-nosandbox.json || echo "firefox nosandbox failed"
+          MOZ_DISABLE_CONTENT_SANDBOX=1 MOZ_DISABLE_GPU_SANDBOX=1 MOZ_DISABLE_RDD_SANDBOX=1 MOZ_DISABLE_SOCKET_PROCESS_SANDBOX=1 MOZ_DISABLE_GMP_SANDBOX=1 MOZ_DISABLE_UTILITY_SANDBOX=1 WEBGL_FF_NOSANDBOX=1 WEBGL_HEADED=1 WEBGL_BROWSER=firefox t node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes cpu,gl,2d,nogl --label headed --out ../.build/webgl-browsers --json ../.build/webgl-browsers/mac-firefox-headed.json || echo "firefox headed failed"
       - name: Scenes in Safari (safaridriver)
         run: cd Playwright && perl -e 'alarm shift; exec @ARGV' 900 node webgl/safari.mjs "http://127.0.0.1:8811/index.html" --out ../.build/webgl-browsers --json ../.build/webgl-browsers/mac-safari.json || echo "safari failed"
       - name: Stop the local server

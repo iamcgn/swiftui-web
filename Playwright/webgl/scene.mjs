@@ -23,7 +23,7 @@ const label = opt('--label', '');
 mkdirSync(out, { recursive: true });
 const which = process.env.WEBGL_BROWSER || 'chromium';
 const headless = process.env.WEBGL_HEADED !== '1';
-const browser = which === 'firefox' ? await firefox.launch({ headless })
+const browser = which === 'firefox' ? await firefox.launch({ headless, firefoxUserPrefs: process.env.WEBGL_FF_NOSANDBOX === '1' ? { 'security.sandbox.content.level': 0, 'webgl.force-enabled': true } : {} })
   : which === 'webkit' ? await webkit.launch({ headless })
   : await chromium.launch({ headless, channel: process.env.WEBGL_CHANNEL || undefined, args: (process.env.WEBGL_CHROME_ARGS || '').split(' ').filter(Boolean) });
 const context = await browser.newContext({ viewport: { width: 1000, height: 760 }, deviceScaleFactor: 2 });
