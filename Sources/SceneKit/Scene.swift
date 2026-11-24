@@ -111,8 +111,12 @@ open class SCNNode {
     open var worldPosition: SCNVector3 {
         get { let m = worldTransform; return SCNVector3(m.m41, m.m42, m.m43) }
         set {
-            guard let parent else { position = newValue; return }
-            position = SCNMatrix4Invert(parent.worldTransform).transformPoint(newValue)
+            let target = parent.map { SCNMatrix4Invert($0.worldTransform).transformPoint(newValue) } ?? newValue
+            guard pivot != SCNMatrix4Identity else { position = target; return }
+            // The pivot's undoing moves the origin before this node's turn and scale apply.
+            let origin = SCNMatrix4Invert(pivot).transformPoint(SCNVector3(0, 0, 0))
+            let moved = Self.compose(position: SCNVector3(0, 0, 0), rotation: quaternion, scale: scale).transformPoint(origin)
+            position = SCNVector3(target.x - moved.x, target.y - moved.y, target.z - moved.z)
         }
     }
 

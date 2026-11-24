@@ -2948,7 +2948,7 @@
         {
           "api": "SCNScene / SCNNode / SCNView / SceneView / SCNGeometry shapes / SCNText / SCNMaterial / SCNLight / SCNCamera / SCNAction / SCNVector3 / SCNMatrix4 (SceneKit)",
           "status": "approximate",
-          "notes": "Drawn on the CPU: each triangle projected through the camera, back faces culled, the rest painted far to near with flat Lambert shading; actions and Core Animation animations on nodes play each frame; camera control orbits and zooms. No depth buffer, textures, shadows, physics or scene files.",
+          "notes": "Drawn on the CPU: each triangle projected through the camera, back faces culled, the rest painted far to near with flat Lambert shading; actions and Core Animation animations on nodes play each frame; camera control orbits and zooms; the simd vectors, matrices, quaternions and functions SceneKit brings, and the nodes' simd properties (2026-11-24). No depth buffer, textures, shadows, physics or scene files.",
           "fixtures": [],
           "noFixture": "The scenes apps draw move each frame; CoreRuntimeTests SceneKitTests hold the transforms, actions, animations, projection, hit testing and the painted faces."
         }
