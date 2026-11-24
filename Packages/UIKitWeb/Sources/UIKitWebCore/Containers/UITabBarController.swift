@@ -66,7 +66,7 @@ open class UITabBarController: UIViewController {
         }
     }
 
-    public override init(nibName: String? = nil, bundle: Any? = nil) {
+    public override init(nibName: String? = nil, bundle: Bundle? = nil) {
         super.init(nibName: nibName, bundle: bundle)
         tabBar.controller = self
     }

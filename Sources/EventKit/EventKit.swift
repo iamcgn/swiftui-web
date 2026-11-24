@@ -12,6 +12,13 @@ import CoreGraphics
 #else
 import WebGraphics   // CGColor, a calendar's colour
 #endif
+import CoreLocation  // CLLocation, a structured location's place
+
+extension Notification.Name {
+    /// Posted when the store's calendars or events change. A page's store holds none, so it is
+    /// never posted; an app observes it to refresh.
+    public static let EKEventStoreChanged = Notification.Name("EKEventStoreChangedNotification")
+}
 
 /// The kinds of entity an event store holds.
 public enum EKEntityType: UInt, Sendable {
@@ -107,8 +114,53 @@ public final class EKCalendar: @unchecked Sendable, Hashable {
     public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 }
 
-/// The base of events and reminders: what they have in common.
-open class EKCalendarItem: @unchecked Sendable {
+/// How often a recurring event repeats.
+public enum EKRecurrenceFrequency: Int, Sendable {
+    case daily = 0, weekly, monthly, yearly
+}
+
+/// When a recurrence stops: after a date or a number of occurrences.
+public final class EKRecurrenceEnd: NSObject, @unchecked Sendable {
+    public let endDate: Date?
+    public let occurrenceCount: Int
+    private init(endDate: Date?, occurrenceCount: Int) {
+        self.endDate = endDate
+        self.occurrenceCount = occurrenceCount
+        super.init()
+    }
+    public convenience init(end endDate: Date) { self.init(endDate: endDate, occurrenceCount: 0) }
+    public convenience init(occurrenceCount: Int) { self.init(endDate: nil, occurrenceCount: occurrenceCount) }
+}
+
+/// A rule an event repeats by: every `interval` days, weeks, months or years, until its end.
+public final class EKRecurrenceRule: NSObject, @unchecked Sendable {
+    public let frequency: EKRecurrenceFrequency
+    public let interval: Int
+    public var recurrenceEnd: EKRecurrenceEnd?
+    public var calendarIdentifier: String { "gregorian" }
+    public init(recurrenceWith type: EKRecurrenceFrequency, interval: Int, end: EKRecurrenceEnd?) {
+        frequency = type
+        self.interval = interval
+        recurrenceEnd = end
+        super.init()
+    }
+}
+
+/// A place an event is at: a title, and a point on the map with a radius around it when known.
+public final class EKStructuredLocation: NSObject, @unchecked Sendable {
+    public var title: String?
+    public var geoLocation: CLLocation?
+    /// The radius around the point, in metres; 0 for the system's default.
+    public var radius: Double = 0
+    public init(title: String) {
+        self.title = title
+        super.init()
+    }
+}
+
+/// The base of events and reminders: what they have in common. An NSObject, as EventKit's
+/// objects are (Then's `then` reaches an event through NSObject).
+open class EKCalendarItem: NSObject, @unchecked Sendable {
     public var calendar: EKCalendar!
     public var title: String! = ""
     public var location: String?
@@ -116,8 +168,13 @@ open class EKCalendarItem: @unchecked Sendable {
     public var url: URL?
     public var calendarItemIdentifier: String { identifier }
     public var hasNotes: Bool { notes?.isEmpty == false }
+    /// The rules the item repeats by: none until the app adds one.
+    public var recurrenceRules: [EKRecurrenceRule]?
+    public var hasRecurrenceRules: Bool { recurrenceRules?.isEmpty == false }
+    public func addRecurrenceRule(_ rule: EKRecurrenceRule) { recurrenceRules = (recurrenceRules ?? []) + [rule] }
+    public func removeRecurrenceRule(_ rule: EKRecurrenceRule) { recurrenceRules?.removeAll { $0 === rule } }
     let identifier = UUID().uuidString
-    init() {}
+    override init() { super.init() }
 }
 
 /// An event in a calendar.
@@ -127,6 +184,8 @@ public final class EKEvent: EKCalendarItem, @unchecked Sendable {
     public var isAllDay = false
     public var eventIdentifier: String! { identifier }
     public var timeZone: TimeZone?
+    /// Where the event is, with a point on the map when the app gives one.
+    public var structuredLocation: EKStructuredLocation?
 
     /// A new event for `eventStore`, in no calendar until one is set.
     public init(eventStore: EKEventStore) { super.init() }

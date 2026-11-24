@@ -8,7 +8,7 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
     /// Focus moved to or from a view of this controller (Events/Keyboard.swift).
     open func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {}
 
-    public init(nibName: String? = nil, bundle: Any? = nil) {
+    public init(nibName: String? = nil, bundle: Bundle? = nil) {
         super.init()
     }
 
