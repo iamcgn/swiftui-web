@@ -83,4 +83,33 @@ import Testing
         #expect(close(node.simdPosition, simd_float3(-10, 0, 0)))
         #expect(close(node.simdWorldFront, simd_float3(-1, 0, 0)))
     }
+
+    /// A translated pivot is undone before the node's own transform, so the world transform
+    /// and position the app assigns read back as assigned (#376).
+    @Test func worldTransformsRoundTripThroughAPivot() {
+        var pivot = matrix_identity_float4x4
+        pivot.columns.3 = simd_float4(2, 0, 0, 1)
+        var world = matrix_identity_float4x4
+        world.columns.3 = simd_float4(10, 0, 0, 1)
+
+        let node = SCNNode()
+        node.simdPivot = pivot
+        node.simdWorldTransform = world
+        #expect(close(node.simdWorldPosition, simd_float3(10, 0, 0)))
+        #expect(close(node.simdPosition, simd_float3(12, 0, 0)))
+
+        let parent = SCNNode()
+        parent.simdPosition = simd_float3(0, 5, 0)
+        parent.simdOrientation = simd_quatf(angle: .pi / 2, axis: simd_float3(0, 0, 1))
+        parent.addChildNode(node)
+        node.simdOrientation = simd_quatf(angle: .pi / 3, axis: simd_float3(0, 1, 0))
+        node.simdWorldTransform = world
+        let back = node.simdWorldTransform
+        #expect(close(simd_float3(back.columns.3.x, back.columns.3.y, back.columns.3.z), simd_float3(10, 0, 0)))
+        #expect(close(simd_float3(back.columns.0.x, back.columns.0.y, back.columns.0.z), simd_float3(1, 0, 0)))
+
+        node.simdOrientation = simd_quatf(angle: .pi / 3, axis: simd_float3(0, 1, 0))
+        node.simdWorldPosition = simd_float3(-3, 4, 7)
+        #expect(close(node.simdWorldPosition, simd_float3(-3, 4, 7)))
+    }
 }

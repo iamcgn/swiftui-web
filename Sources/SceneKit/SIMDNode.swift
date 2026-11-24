@@ -80,8 +80,11 @@ extension SCNNode {
     public var simdWorldTransform: simd_float4x4 {
         get { simd_float4x4(worldTransform) }
         set {
+            // The world transform is the pivot undone, then the local transform, then the
+            // parents': so the local one is the pivot, then the world one, then the parents' undone.
             let world = SCNMatrix4(newValue)
-            transform = parent.map { SCNMatrix4Mult(world, SCNMatrix4Invert($0.worldTransform)) } ?? world
+            let local = parent.map { SCNMatrix4Mult(world, SCNMatrix4Invert($0.worldTransform)) } ?? world
+            transform = pivot == SCNMatrix4Identity ? local : SCNMatrix4Mult(pivot, local)
         }
     }
 
