@@ -118,8 +118,13 @@ public struct ProjectionTransform: Equatable, Sendable {
     public var isIdentity: Bool { self == ProjectionTransform() }
     public var isAffine: Bool { m13 == 0 && m23 == 0 && m33 == 1 }
 
-    /// The affine part (the perspective terms dropped): what the painters can apply.
-    public var affine: CGAffineTransform { CGAffineTransform(a: m11, b: m12, c: m21, d: m22, tx: m31, ty: m32) }
+    /// The affine part (the perspective terms dropped): what the painters can apply. It is
+    /// divided through by `m33`, the w a point gets without perspective terms, so a projection
+    /// that only moves a view in depth scales it as `applying(_:)` does.
+    public var affine: CGAffineTransform {
+        let w = m33 != 0 ? m33 : 1
+        return CGAffineTransform(a: m11 / w, b: m12 / w, c: m21 / w, d: m22 / w, tx: m31 / w, ty: m32 / w)
+    }
 
     public func concatenating(_ rhs: ProjectionTransform) -> ProjectionTransform {
         var r = ProjectionTransform()
