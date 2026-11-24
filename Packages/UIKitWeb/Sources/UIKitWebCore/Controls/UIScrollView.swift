@@ -46,6 +46,30 @@ open class UIScrollView: UIView {
     public enum KeyboardDismissMode: Int, Sendable { case none = 0, onDrag, interactive }
 
     open var contentSize = CGSize.zero { didSet { clampOffset(); setNeedsDisplay() } }
+
+    /// The guide for the scrolled content: its leading and top edges are the content's origin,
+    /// and the size constraints give it (a subview pinned to its four edges, say) becomes
+    /// `contentSize` at each layout pass.
+    public var contentLayoutGuide: UILayoutGuide {
+        if let guide = layoutState.contentGuide { return guide }
+        let guide = UILayoutGuide()
+        guide.identifier = "UIScrollView-contentLayoutGuide"
+        guide.isScrollContent = true
+        guide.attach(to: self)
+        layoutState.contentGuide = guide
+        setNeedsLayout()
+        return guide
+    }
+
+    /// The guide for the scroll view's own frame, untouched by scrolling: content made as wide
+    /// as it scrolls only vertically.
+    public var frameLayoutGuide: UILayoutGuide {
+        systemGuide(&layoutState.frameGuide, insets: { view in
+            // The guide sits over the visible part of the content: at the bounds origin.
+            let origin = view.bounds.origin
+            return UIEdgeInsets(top: origin.y, left: origin.x, bottom: -origin.y, right: -origin.x)
+        })
+    }
     open var contentInset = UIEdgeInsets.zero { didSet { clampOffset() } }
     /// The content inset plus the safe area the scroll view lies under, per
     /// `contentInsetAdjustmentBehavior`: `.never` adds nothing, `.always` the whole safe area,

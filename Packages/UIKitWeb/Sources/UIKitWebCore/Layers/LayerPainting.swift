@@ -115,6 +115,8 @@ extension CALayer {
             gradient.paintGradient(into: &list, context: child)
         } else if let text = self as? CATextLayer {
             text.paintText(into: &list, context: child)
+        } else if let emitter = self as? CAEmitterLayer {
+            emitter.paintParticles(into: &list, context: child)
         }
         #if !canImport(CoreGraphics) || os(WASI)
         let paintedContents = paintContents(into: &list, in: rect)
