@@ -89,6 +89,7 @@ jobs:
           for _ in $(seq 1 30); do curl -sf http://127.0.0.1:8766/index.html >/dev/null && break; sleep 1; done
       - name: Tier B (${{ matrix.variant }})
         run: |
+          mkdir -p .build/webgl
           cd Playwright
           node tier-b.mjs "http://127.0.0.1:8766/index.html" --browser chromium --out "../.build/webgl/tierb-${{ matrix.variant }}" 2>&1 | tee "../.build/tierb-${{ matrix.variant }}.log" || true
           echo "--- summary"; grep -E 'renders within tolerance|^FAIL .*no frame|WebGL painter' "../.build/tierb-${{ matrix.variant }}.log" | head -40 || true
