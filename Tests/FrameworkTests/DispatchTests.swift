@@ -160,6 +160,32 @@ private final class Box: @unchecked Sendable {
         #expect(released.values == [1])
     }
 
+    @Test func sliceOfConcatenationLetsGoOfBuffersOutsideIt() async {
+        let released = Box()
+        nonisolated(unsafe) let first = UnsafeMutableRawBufferPointer.allocate(byteCount: 3, alignment: 1)
+        nonisolated(unsafe) let second = UnsafeMutableRawBufferPointer.allocate(byteCount: 3, alignment: 1)
+        first.copyBytes(from: [1, 2, 3] as [UInt8])
+        second.copyBytes(from: [4, 5, 6] as [UInt8])
+        var slice: DispatchData?
+        do {
+            var joined = DispatchData(bytesNoCopy: UnsafeRawBufferPointer(first), deallocator: .custom(DispatchQueue(label: "first")) {
+                released.append(1)
+                first.deallocate()
+            })
+            joined.append(DispatchData(bytesNoCopy: UnsafeRawBufferPointer(second), deallocator: .custom(DispatchQueue(label: "second")) {
+                released.append(2)
+                second.deallocate()
+            }))
+            slice = joined.subdata(in: 1..<3)
+        }
+        for _ in 0..<400 where released.values.isEmpty { await pause() }
+        #expect(released.values == [2])
+        #expect(slice.map { Array($0) } == [2, 3] as [UInt8])
+        slice = nil
+        for _ in 0..<400 where released.values.count < 2 { await pause() }
+        #expect(released.values == [2, 1])
+    }
+
     #if !os(WASI)
     // A timer waits out real time, which the wasm test runner can't (see `pause()`).
     @Test func timersFireUntilCancelled() async {

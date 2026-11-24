@@ -15,10 +15,11 @@ public struct DispatchData: RandomAccessCollection, Sendable {
 
     /// The bytes, in order.
     fileprivate var _bytes: [UInt8]
-    /// The no-copy buffers these bytes came from, each released once the last value holding it
-    /// is gone: a slice or an append holds its source's, as Dispatch's subranges and
-    /// concatenations hold the regions they came from.
-    private var _releases: [_NoCopyRelease] = []
+    /// The no-copy buffers these bytes came from, with the bytes each one supplied, each released
+    /// once the last value holding it is gone: an append holds its source's, and a slice holds
+    /// only those whose bytes it keeps, as Dispatch's concatenations hold their regions and its
+    /// subranges skip the regions outside them.
+    private var _releases: [(bytes: Range<Int>, token: _NoCopyRelease)] = []
 
     fileprivate init(_bytes: [UInt8]) { self._bytes = _bytes }
 
@@ -65,7 +66,7 @@ public struct DispatchData: RandomAccessCollection, Sendable {
             nonisolated(unsafe) let block = block
             release = { (queue ?? .global()).async { block() } }
         }
-        if bytes.isEmpty { release() } else { _releases = [_NoCopyRelease(release)] }
+        if bytes.isEmpty { release() } else { _releases = [(0..<bytes.count, _NoCopyRelease(release))] }
     }
 
     public var count: Int { _bytes.count }
@@ -112,8 +113,11 @@ public struct DispatchData: RandomAccessCollection, Sendable {
 
     public mutating func append(_ other: DispatchData) {
         guard !other._bytes.isEmpty else { return }
+        let offset = _bytes.count
         _bytes.append(contentsOf: other._bytes)
-        _releases.append(contentsOf: other._releases)
+        for held in other._releases {
+            _releases.append(((held.bytes.lowerBound + offset)..<(held.bytes.upperBound + offset), held.token))
+        }
     }
 
     public mutating func append<SourceType>(_ buffer: UnsafeBufferPointer<SourceType>) {
@@ -171,7 +175,10 @@ public struct DispatchData: RandomAccessCollection, Sendable {
     /// The bytes in `range`, as a value of their own.
     public func subdata(in range: Range<Index>) -> DispatchData {
         var slice = DispatchData(_bytes: Array(_bytes[range]))
-        if !range.isEmpty { slice._releases = _releases }
+        for held in _releases where held.bytes.overlaps(range) {
+            let kept = held.bytes.clamped(to: range)
+            slice._releases.append(((kept.lowerBound - range.lowerBound)..<(kept.upperBound - range.lowerBound), held.token))
+        }
         return slice
     }
 
