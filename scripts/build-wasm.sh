@@ -82,6 +82,4 @@ done
 # The full SF Symbol layout table (sw-symbols): fetched by the host on the first symbol outside
 # the built-in set.
 cp "$ROOT/Fixtures/Goldens/symbol/metrics-full.txt" "$BUNDLE/assets/symbol-metrics.txt"
-# The WebGL painter (decision 0026): loaded by the host after start, so it adds nothing to the wasm.
-cp "$ROOT/Packages/WebGraphics/Web/painter-gl.js" "$BUNDLE/assets/painter-gl.js"
 echo "Bundle: $PKG/$BUNDLE"

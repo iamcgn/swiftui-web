@@ -27,7 +27,7 @@ async function open(name, { launchArgs = [], query = '' }) {
   page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text().slice(0, 300)); });
   await page.goto(query ? withQuery(url, query) : url, { waitUntil: 'commit', timeout: 180000 });
   await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 180000 });
-  // The host loads the painter after start: wait for it (or for its absence to be settled).
+  // The host installs the painter when the browser has WebGL2: wait for it (or its absence).
   await page.waitForFunction(() => window.__swiftuiwebGL !== undefined || !window.WebGL2RenderingContext, null, { timeout: 30000 }).catch(() => {});
   const plus = page.locator('button[aria-label="+"]');
   for (let k = 0; k < 4; k++) {

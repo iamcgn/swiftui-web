@@ -1,12 +1,15 @@
+// The WebGL2 painter (decision 0026), kept as a Swift string like PainterScript so an app needs
+// nothing but its wasm bundle. `CanvasHost` installs it after PainterScript when the browser has
+// WebGL2; it wraps the bridge's `paint` and takes the frames Canvas2D is slow at.
+enum PainterGLScript {
+    static let source = #"""
 // The WebGL2 painter for DisplayListEncoder's flat format: the same ops PainterScript's
 // Canvas2D decoder paints, drawn on the GPU instead (decision 0026).
 //
-// It ships beside the wasm (scripts/build-wasm.sh copies it into the bundle's assets) and the
-// host loads it after the first frame, so the wasm carries only the loader and a page without
-// the file, or without WebGL2, paints with Canvas2D as before. It wraps the bridge's `paint`
-// (published by PainterScript as `window.__swiftuiweb`, before or after this script runs), so
-// the app's main canvas is drawn by WebGL2 while everything else (text measurement, drag
-// previews, `rasterize`, AsyncImage state) stays Canvas2D.
+// It wraps the bridge's `paint` (published by PainterScript as `window.__swiftuiweb`, before or
+// after this script runs), so the app's main canvas is drawn by WebGL2 while everything else
+// (text measurement, drag previews, `rasterize`, AsyncImage state) stays Canvas2D. Without
+// WebGL2 it leaves the bridge alone.
 //
 // Modes (`?webgl=` in the page URL, or `window.__swiftuiwebGLConfig.mode`):
 //   auto     (default) a WebGL canvas over the 2D canvas, used for the frames Canvas2D is slow
@@ -1852,3 +1855,5 @@
     };
   }
 })();
+"""#
+}
