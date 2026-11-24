@@ -25,7 +25,7 @@ async function pickScene(page, scene) {
   await page.waitForTimeout(800);
 }
 
-async function run(name, { launchArgs = [], query = '', scene = 'Spheres', check }) {
+async function run(name, { launchArgs = ['--enable-unsafe-swiftshader', '--use-angle=swiftshader'], query = '', scene = 'Spheres', check }) {
   const browser = await chromium.launch({ args: launchArgs });
   const page = await browser.newPage({ viewport: { width: 1000, height: 760 }, deviceScaleFactor: 2 });
   const errors = [];
