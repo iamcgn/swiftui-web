@@ -49,3 +49,16 @@ speed here says nothing; the Mac run covers that and real Safari).
 - Drawings compared by eye (small screenshots in the logs): WebGL is the closest to SceneKit.
   It draws the cube's checker texture, the whole floor and the Globe's letters; today's CPU
   path and the 2D fallback draw the cube flat, the floor as a band, and the Globe plain grey.
+
+## Firefox and WebKit on the M1 Pro (Nov 24, Mac runs 45344603844 to 45379895022)
+
+- WebKit 26 (Safari's engine) on the Apple GPU, with the texture fix: Spheres 11 -> 60 fps,
+  Waves 60 fps, and the Globe now shows its letters at 40 fps (CPU 60 fps; the p90 frame gap of
+  50 ms is the PNG encode of the 2048x1024 texture every 0.1 s, so uploading the rasterised
+  canvas straight to WebGL is the next step if the Globe matters).
+- Firefox 142 could not be driven on this runner at all: headless, headed and with every
+  Firefox sandbox switched off, it hangs at launch (`sandbox_extension_issue_file_to_process
+  ... Operation not permitted` on plugin-container.app). The runner is a launchd service with
+  no window session, so this says nothing about Firefox's WebGL; Firefox on macOS normally has
+  WebGL2 on Metal. To check it for real, open the gallery's scene page in Firefox by hand.
+- Real Safari (safaridriver) needs `safaridriver --enable` run once by an admin on the Mac.
