@@ -2938,6 +2938,13 @@
           "notes": "A page has no place search, so every search fails after the call returns with MKError.serverFailure, as Apple's does when its service can't be reached, and a completer's delegate hears the same with no completions; requests, responses, completions, categories, filters, map items and placemarks (a CLPlacemark with a coordinate and a one-line title) are complete values.",
           "fixtures": [],
           "noFixture": "No fixture can show a search: with no search service every search fails, which leaves the page as it was; CoreRuntimeTests MapSearchTests holds the failures and the values."
+        },
+        {
+          "api": "SCNScene / SCNNode / SCNView / SceneView / SCNGeometry shapes / SCNText / SCNMaterial / SCNLight / SCNCamera / SCNAction / SCNVector3 / SCNMatrix4 (SceneKit)",
+          "status": "approximate",
+          "notes": "Drawn on the CPU: each triangle projected through the camera, back faces culled, the rest painted far to near with flat Lambert shading; actions and Core Animation animations on nodes play each frame; camera control orbits and zooms. No depth buffer, textures, shadows, physics or scene files.",
+          "fixtures": [],
+          "noFixture": "The scenes apps draw move each frame; CoreRuntimeTests SceneKitTests hold the transforms, actions, animations, projection, hit testing and the painted faces."
         }
       ]
     }
