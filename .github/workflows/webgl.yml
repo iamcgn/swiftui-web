@@ -74,7 +74,7 @@ jobs:
         run: cd Playwright && npm install && npx playwright install --with-deps chromium
       - name: Sizes (Counter with and without the drawMesh plumbing)
         run: |
-          for f in bundles/*/.build/wasm/plugins/PackageToJS/outputs/Package/*.wasm; do node -e 'const z=require("zlib"),f=require("fs").readFileSync(process.argv[1]);console.log(`${process.argv[1].split("/")[1]}: ${f.length} bytes wasm, ${z.brotliCompressSync(f,{params:{[z.constants.BROTLI_PARAM_QUALITY]:11}}).length} brotli`)' "$f"; done
+          node Playwright/webgl/wasm-size.mjs bundles/*/.build/wasm/plugins/PackageToJS/outputs/Package/*.wasm
           node -e 'const z=require("zlib"),fs=require("fs"),s=fs.readFileSync("Sources/SceneKit/MeshScript.swift","utf8");console.log(`mesh renderer JS: ${s.length} bytes, ${z.brotliCompressSync(Buffer.from(s)).length} brotli (in SceneKit apps only)`)'
       - name: Serve the demo (plain, and with the WebGL painter for everything)
         run: |

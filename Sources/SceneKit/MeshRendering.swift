@@ -151,13 +151,13 @@ struct _MeshWriter {
             if let at = files.firstIndex(of: file) { texture = Double(at) } else { texture = Double(files.count); files.append(file) }
             diffuse = (1, 1, 1, 1)
         }
-        let emission = m.emission.contents == nil ? (0.0, 0.0, 0.0, 0.0) : (m.emission.rgba ?? (0, 0, 0, 0))
+        let emission: (Double, Double, Double, Double) = m.emission.contents == nil ? (0, 0, 0, 0) : (m.emission.rgba.map { ($0.r, $0.g, $0.b, $0.a) } ?? (0, 0, 0, 0))
         let e = Double(m.emission.intensity)
-        let multiply = m.multiply.contents == nil ? (1.0, 1.0, 1.0, 1.0) : (m.multiply.rgba ?? (1, 1, 1, 1))
+        let multiply: (Double, Double, Double, Double) = m.multiply.contents == nil ? (1, 1, 1, 1) : (m.multiply.rgba.map { ($0.r, $0.g, $0.b, $0.a) } ?? (1, 1, 1, 1))
         meshes += [cull, m.fillMode == .lines || wireframe ? 1 : 0, lit ? 1 : 0,
                    diffuse.r * k, diffuse.g * k, diffuse.b * k, diffuse.a,
                    emission.0 * e, emission.1 * e, emission.2 * e,
-                   multiply.r, multiply.g, multiply.b,
+                   multiply.0, multiply.1, multiply.2,
                    Double(m.transparency) * opacity, texture,
                    Double(m.diffuse.wrapS.rawValue), Double(m.diffuse.wrapT.rawValue), Double(order)]
     }
