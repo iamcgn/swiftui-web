@@ -133,3 +133,9 @@ clean build to the next.
 `scripts/build-wasm.sh` now passes `-Xfrontend -disable-incremental-llvm-codegen`, so no object
 carries one. Two clean builds (the `Size reproducibility` workflow) are now byte-identical, and
 Counter is 12,271,427 raw, **3,138,675 brotli** (7,053 bytes under the budget, which is unchanged).
+
+## 2026-11-24: the budget is 4 MiB
+Corey raised Counter's budget from 3,145,728 to 4,194,304 bytes brotli when WebGL became the
+painter for all drawing (decision 0026): Counter was about 13 KB under 3 MiB and the WebGL
+painter alone is about 21 KB. The gate (`scripts/size-gate.sh`) and the rest of this decision
+stay as they are; UIKitCounter and UIKitSettings share the default.
