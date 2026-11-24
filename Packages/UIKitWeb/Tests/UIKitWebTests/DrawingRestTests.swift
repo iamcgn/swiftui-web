@@ -126,6 +126,45 @@ import WebGraphicsHeadless
         #expect(NSMutableAttributedString(string: "ab").length == 2)
     }
 
+    @Test func drawWithRectPlacesTheBaselineOrTheLineFragment() {
+        let (scene, root) = scene()
+        // The goldens hold this phrase only under mixed fonts; uniform advances serve a placement test.
+        scene.textEngine = SyntheticTextEngine()
+        final class TextView: UIView {
+            override func draw(_ rect: CGRect) {
+                let attributes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 17), .foregroundColor: UIColor.black]
+                let ascender = UIFont.systemFont(ofSize: 17).ascender
+                "Mixed runs under struck".draw(at: CGPoint(x: 10, y: 10), withAttributes: attributes)
+                // Without the line-fragment origin the rectangle's origin is the baseline.
+                "Mixed runs under struck".draw(with: CGRect(x: 10, y: 60 + ascender, width: 0, height: 0), options: [], attributes: attributes, context: nil)
+                "Mixed runs under struck".draw(in: CGRect(x: 10, y: 110, width: 260, height: 40), withAttributes: attributes)
+                "Mixed runs under struck".draw(with: CGRect(x: 10, y: 160, width: 260, height: 40), options: .usesLineFragmentOrigin, attributes: attributes, context: nil)
+                #if canImport(AppKit)
+                // On a Mac host AppKit's own NSAttributedString.draw(with:options:context:) takes
+                // the call and draws outside this context, so the string with the same attributes
+                // stands in for it there.
+                "Mixed runs under struck".draw(with: CGRect(x: 10, y: 210 + ascender, width: 0, height: 0), options: [], attributes: attributes, context: nil)
+                #else
+                NSAttributedString(string: "Mixed runs under struck", attributes: attributes).draw(with: CGRect(x: 10, y: 210 + ascender, width: 0, height: 0), options: [], context: nil)
+                #endif
+            }
+        }
+        let view = TextView(frame: CGRect(x: 0, y: 0, width: 280, height: 260))
+        view.backgroundColor = .clear
+        root.addSubview(view)
+        let list = scene.render(scale: 2, background: false)
+        let origins = list.commands.compactMap { command -> CGPoint? in
+            if case .drawText(_, _, let origin, _) = command { return origin } else { return nil }
+        }
+        #expect(origins.count >= 5 && origins.count % 5 == 0)
+        guard origins.count >= 5, origins.count % 5 == 0 else { return }
+        let n = origins.count / 5
+        let first = Array(origins[0..<n]), second = Array(origins[n..<2 * n]), third = Array(origins[2 * n..<3 * n]), fourth = Array(origins[3 * n..<4 * n]), fifth = Array(origins[4 * n..<5 * n])
+        for (a, b) in zip(first, second) { #expect(abs(a.x - b.x) < 0.001 && abs(b.y - a.y - 50) < 0.001) }
+        for (a, b) in zip(third, fourth) { #expect(abs(a.x - b.x) < 0.001 && abs(b.y - a.y - 50) < 0.001) }
+        for (a, b) in zip(first, fifth) { #expect(abs(a.x - b.x) < 0.001 && abs(b.y - a.y - 200) < 0.001) }
+    }
+
     @Test func cgPathsBuildSubstratePaths() {
         let path = CGMutablePath()
         path.move(to: CGPoint(x: 0, y: 0))

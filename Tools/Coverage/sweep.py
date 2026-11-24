@@ -994,16 +994,48 @@ def describe_app(entry, root: Path, work: Path = None):
                         imported.add(m.group(3))
             t["deps"] = sorted({d for d in t["deps"] if d not in remote_modules}
                                | {n for n in remote_modules if n in imported or n.replace("-", "_") in imported})
-    # Only the package targets the app's own targets reach are built.
+    # Only the package targets the app's own targets reach are built. A local package neither the
+    # Xcode project links (`productName = ...`) nor the app's files import is one Xcode never
+    # builds (OldOS keeps a vendored SwiftUIReorderableForEach folder it doesn't use), so its
+    # targets start no reach; one the used packages depend on is still reached through them.
     by = {t["module"]: t for t in targets}
-    reach, todo = set(), [t["module"] for t in targets if not t.get("remote")]
+    roots = [t for t in targets if not t.get("remote")]
+    app_targets = [t for t in targets if t.get("app") and t["source_root"] == "."]
+    projects = [f for f in root.rglob("project.pbxproj")
+                if not excluded(f.relative_to(root), extra) and ".build" not in f.relative_to(root).parts]
+    if app_targets and projects:
+        linked = set()
+        for f in projects:
+            linked.update(m.group(1).strip('"') for m in PRODUCT_NAME.finditer(f.read_text(errors="replace")))
+        imported = set()
+        for t in app_targets:
+            for f in t["files"]:
+                for line in (root / f).read_text(errors="replace").splitlines():
+                    m = IMPORT.match(line)
+                    if m:
+                        imported.add(m.group(3))
+        used_dirs = {"."}
+        for p in packages:
+            if not p["dump"]:
+                continue
+            names = {t["name"] for t in p["dump"]["targets"]} | {prod["name"] for prod in p["dump"].get("products", [])}
+            if names & linked or (names | {n.replace("-", "_") for n in names}) & imported:
+                used_dirs.add(p["dir"])
+        unused = sorted({t["package_dir"] for t in roots if "package_dir" in t and t["package_dir"] not in used_dirs})
+        for d in unused:
+            notes.append(f"{d}: local package the project neither links nor imports; started no build")
+        dropped = {t["module"] for t in roots if t.get("package_dir", ".") not in used_dirs}
+        for t in app_targets:
+            t["deps"] = [d for d in t["deps"] if d not in dropped]
+        roots = [t for t in roots if t.get("package_dir", ".") in used_dirs]
+    reach, todo = set(), [t["module"] for t in roots]
     while todo:
         n = todo.pop()
         if n in reach or n not in by:
             continue
         reach.add(n)
         todo.extend(by[n]["deps"])
-    targets = [t for t in targets if not t.get("remote") or t["module"] in reach]
+    targets = [t for t in targets if t["module"] in reach or any(t is r for r in roots)]
     for t in targets:
         if t["executable"] and not t.get("app"):
             t["skip"] = True
@@ -1263,6 +1295,7 @@ DECL_NAME = re.compile(r'name: "([^"]+)"')
 # itself: on iOS `import UIKit` or `import SwiftUI` makes the module name visible, here neither
 # can re-export the Foundation shadow (it lives in Packages/Shadows, which depends on them).
 FOUNDATION_QUALIFIED = re.compile(r"(?<![\w.])Foundation\.[A-Za-z_]")
+PRODUCT_NAME = re.compile(r"\bproductName = (\"[^\"\n]*\"|[^;\s]+);")
 IMPORTS_FOUNDATION = re.compile(r"^\s*(?:@\w+\s+)*import\s+(?:\w+\s+)?Foundation\b", re.M)
 # Such a target imports the shadow implicitly, as the app's own manifest would (README, "Naming
 # Foundation"); only those targets, so Combine and the rest of what the shadow re-exports stay
