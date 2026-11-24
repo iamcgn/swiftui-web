@@ -5,6 +5,11 @@
 // photo library (Photos), so an app that fetches a picked item's identifier finds its asset.
 import SwiftUI
 import Photos
+#if os(WASI)
+// Apple's PhotosUI brings UniformTypeIdentifiers' `UTType` with it, so a file that imports only
+// PhotosUI names it (Kingfisher's `PHPickerResultImageDataProvider`, a content type of `.image`).
+@_exported import struct WebGraphics.UTType
+#endif
 
 // MARK: - Filters
 
