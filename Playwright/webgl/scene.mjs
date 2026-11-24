@@ -42,7 +42,15 @@ for (const scene of scenes) {
     await page.goto(q ? withQuery(url, q) : url, { waitUntil: 'commit' });
     await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 180000 });
     await page.waitForTimeout(1000);
-    const clicked = scene === 'Spheres' ? true : await clickLabel(page, scene);
+    let clicked = scene === 'Spheres' ? true : false;
+    if (!clicked) {
+      // The segmented picker is one radiogroup element: click its segment by position.
+      const names = ['Spheres', 'Waves', 'Globe'];
+      const box = await page.locator('[role="radiogroup"]').first().boundingBox().catch(() => null);
+      if (box) { await page.mouse.click(box.x + box.width * (names.indexOf(scene) + 0.5) / names.length, box.y + box.height / 2); await page.waitForTimeout(400); }
+      const sel = await page.evaluate(() => [...document.querySelectorAll('[role="radiogroup"]')].map(e => e.getAttribute('aria-valuetext')).find(v => v !== null) ?? null);
+      clicked = sel === scene || (await clickLabel(page, scene));
+    }
     await page.waitForTimeout(2500);
     await page.evaluate(() => {
       const d = window.__swiftuiwebDebug; window.__sceneFrames = []; window.__raf = [];
