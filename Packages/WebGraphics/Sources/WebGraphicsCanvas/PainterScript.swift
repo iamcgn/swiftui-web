@@ -101,6 +101,14 @@ enum PainterScript {
         img.src = absolute || file.startsWith('data:') || file.startsWith('/') ? file : base + file;
         return null;
       }
+      // A data-URL image its only user let go of (SceneKit's live textures): dropped, loaded or not.
+      image.forget = function (file) {
+        const entry = images.get(file);
+        if (!entry) return;
+        if (!entry.ready && !entry.failed) pending--;
+        entry.img.onload = null; entry.img.onerror = null; entry.img.src = '';
+        images.delete(file);
+      };
       // AsyncImage: a load no view needs any more is dropped (the element's source cleared), so
       // a later request starts over.
       function imageCancel(url) {

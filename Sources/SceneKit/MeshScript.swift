@@ -14,6 +14,10 @@ window.__swiftuiwebMesh = (function () {
   let canvas = null, gl = null, failed = false, frame = 0;
   let prog = null, loc = null;
   const geoms = new Map(), textures = new Map();
+  // Per material slot (mesh and element): the texture file drawn last, and one still loading.
+  // A live texture (contents replaced every 0.1 s) keeps showing its last image while the next
+  // decodes, and replaced data URLs are let go here and in the painter's image cache.
+  const slots = new Map();
   const stats = { frames: 0, gl: 0, fallback: 0, ms: 0, meshes: 0, triangles: 0, uploads: 0, renderer: '' };
 
   const VS = `#version 300 es
@@ -89,7 +93,7 @@ void main() {
       }
       const info = gl.getExtension('WEBGL_debug_renderer_info');
       stats.renderer = info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
-      canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); gl = null; failed = true; geoms.clear(); textures.clear(); });
+      canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); gl = null; failed = true; geoms.clear(); textures.clear(); slots.clear(); });
     } catch (e) {
       console.warn('SwiftUIWeb: SceneKit draws without WebGL (' + (e && e.message) + ')');
       gl = null; failed = true;
@@ -166,6 +170,14 @@ void main() {
     stats.uploads++;
     return tex;
   }
+  // A texture file no slot draws any more: its GL texture and, for a data URL, the painter's
+  // decoded image (a live texture would otherwise keep every image it ever showed).
+  function retire(file, image) {
+    for (const s of slots.values()) if (s.file === file || s.loading === file) return;
+    const t = textures.get(file);
+    if (t) { gl.deleteTexture(t.tex); textures.delete(file); }
+    if (file.startsWith('data:') && image && image.forget) image.forget(file);
+  }
   function wrap(mode) { return mode === 2 ? gl.REPEAT : mode === 4 ? gl.MIRRORED_REPEAT : gl.CLAMP_TO_EDGE; }
 
   // Draws the payload into the scene canvas at pw × ph pixels for a w × h point view.
@@ -239,7 +251,7 @@ void main() {
         }
         const mat = el.mat;
         const transparent = mat[13] * mat[6] < 0.999;
-        draws.push({ gm, ge, mat, model: m, lines, transparent, order: mat[17], depth: -c[2] });
+        draws.push({ gm, ge, mat, model: m, lines, transparent, order: mat[17], depth: -c[2], slot: mesh.id + ':' + e });
         triangles += el.ni / 3;
       });
     });
@@ -249,7 +261,23 @@ void main() {
       gl.bindVertexArray(d.gm.vao);
       gl.uniformMatrix4fv(loc.u_model, false, new Float32Array(d.model));
       const file = mat[14] >= 0 ? files[mat[14]] : null;
-      const tex = file ? texture(file, image) : null;
+      let tex = null;
+      if (file) {
+        // One load at a time per slot: a file that arrives while an older one decodes is skipped
+        // (the next frame brings a newer one), and the slot draws its last texture meanwhile.
+        const s = slots.get(d.slot) || { file: null, loading: null };
+        slots.set(d.slot, s);
+        const take = (f) => { const old = s.file; s.file = f; if (s.loading === f) s.loading = null; if (old && old !== f) retire(old, image); };
+        if (s.loading && s.loading !== file) {
+          if (texture(s.loading, image)) take(s.loading);
+          else if (frame - s.since > 120) { const f = s.loading; s.loading = null; retire(f, image); }   // failed or stuck
+        }
+        if (file === s.file || !s.loading || s.loading === file) {
+          tex = texture(file, image);
+          if (tex) take(file); else if (s.loading !== file) { s.loading = file; s.since = frame; }
+        }
+        if (!tex && s.file) { const last = textures.get(s.file); if (last) { last.used = frame; tex = last.tex; } }
+      }
       if (file && !tex) gl.uniform4f(loc.u_diffuse, 0.5 * mat[3], 0.5 * mat[3], 0.5 * mat[3], 1);   // loading: mid grey
       else gl.uniform4f(loc.u_diffuse, mat[3], mat[4], mat[5], mat[6]);
       gl.uniform1f(loc.u_tex, tex ? 1 : 0);
