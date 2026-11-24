@@ -36,6 +36,7 @@ OURS = {
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit", "Contacts",
     "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit", "Symbols", "Compression", "zlib", "Translation", "_Translation_SwiftUI", "JavaScriptCore",
     "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "QuickLook", "LinkPresentation", "XCTest",
+    "SceneKit",
 }
 # `Builtin` is the compiler's own module (swift-collections imports it with the BuiltinModule
 # feature). `XCTest` is the shadow's (Packages/Shadows): the wasm SDK's own can't be read beside
@@ -309,6 +310,42 @@ def c_settings(target):
                     if entry not in out:
                         out.append(entry)
     return out
+
+
+QUOTED_INCLUDE = re.compile(r'^[ \t]*#[ \t]*include[ \t]*"([^"\n]+/[^"\n]+)"', re.M)
+
+
+def vendored_quote_dirs(root: Path, public_headers: str, settings):
+    """Folders of a C target that hold a header its own quoted includes name but cannot reach.
+
+    Apple's SDKs ship some C libraries' headers (ICU's unicode/umachine.h, for one), so a
+    vendored C library can write `#include "unicode/umachine.h"` from inside its own
+    unicode folder and still build in Xcode, where the include falls through to the SDK.
+    The wasm SDK has no such headers, so the build stops though the package carries its
+    own copy. Each such folder goes on the quote path only (-iquote), so angle includes
+    and the system headers stay as they are."""
+    search = [root / public_headers]
+    for entry in settings:
+        m = re.match(r'\.headerSearchPath\((".*")\)$', entry)
+        if m:
+            search.append(root / json.loads(m.group(1)))
+    files = [f for f in files_under(root) if f.is_file() and f.suffix in C_SOURCES | C_HEADERS]
+    dirs = []
+    for f in files:
+        try:
+            text = f.read_text(errors="replace")
+        except OSError:
+            continue
+        for inc in QUOTED_INCLUDE.findall(text):
+            if (f.parent / inc).exists() or any((d / inc).exists() for d in search + dirs):
+                continue
+            for h in files:
+                if h.as_posix().endswith("/" + inc):
+                    base = Path(h.as_posix()[: -len(inc) - 1])
+                    if base not in dirs and (base / inc).is_file():
+                        dirs.append(base)
+                        break
+    return dirs
 
 
 def dependency_names(dep):
@@ -1236,6 +1273,7 @@ WEB_PRODUCTS = [
     ("NaturalLanguage", "SwiftUIWeb"),
     ("QuickLook", "SwiftUIWeb"),
     ("LinkPresentation", "SwiftUIWeb"),
+    ("SceneKit", "SwiftUIWeb"),
     ("UIKit", "UIKitWeb"),
     ("Foundation", "Shadows"),
     ("Combine", "Shadows"),
@@ -1420,12 +1458,19 @@ def cmd_prepare(args):
                 if skip_objc:
                     (dest_root / "_sweep_shim.c").write_text("/* The sweep builds this Objective-C shim's headers only. */\n")
                 excludes = [e for e in t.get("exclude", []) if (dest_root / e).exists()]
+                quote_dirs = vendored_quote_dirs(dest_root, t["public_headers"], t["c_settings"])
+                settings = list(t["c_settings"])
+                if quote_dirs:
+                    flags = [x for d in quote_dirs for x in ("-iquote", str(d.resolve()))]
+                    settings.append(f".unsafeFlags({json.dumps(flags)})")
+                    print(f"{t['module']}: own headers on the quote path: "
+                          + ", ".join(d.relative_to(dest_root).as_posix() or "." for d in quote_dirs), flush=True)
                 decls.append(
                     f'        .target(\n            name: "{t["module"]}",\n            dependencies: [{", ".join(json.dumps(d) for d in t["deps"])}],\n'
                     f'            path: "Sources/{t["module"]}",\n'
                     + (f'            exclude: [{", ".join(json.dumps(e) for e in excludes)}],\n' if excludes else "")
                     + f'            publicHeadersPath: {json.dumps(t["public_headers"])},\n'
-                    + f'            cSettings: [{", ".join(t["c_settings"])}]\n        ),'
+                    + f'            cSettings: [{", ".join(settings)}]\n        ),'
                 )
                 continue
             # SwiftPM gives each package its own -package-name, so `package` declarations stay
