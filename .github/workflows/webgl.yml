@@ -1,13 +1,12 @@
-# The WebGL painter experiment (Playwright/webgl): builds the gallery and the apps the stock
-# wasm SDK builds, then runs each twice in headless Chromium on Linux — painted by Canvas2D as
-# today, and by Playwright/webgl/painter-gl.js, a WebGL2 painter loaded beside the bundle (no
-# Swift change, nothing added to the wasm) — and compares: Tier B against the goldens both ways,
-# the two runs' screenshots pixel by pixel, the apps' probes, paint times, and the fallback
-# without WebGL. Ubuntu runners only, so it never takes a Mac runner from CI.
+# The SceneKit WebGL experiment (Playwright/webgl/scene.mjs): builds Examples/SceneDemo and
+# Counter (with this branch's drawMesh plumbing, and at PR 366's head without it), then draws
+# each scene in headless Chromium on Linux by SceneKit's CPU path, the WebGL mesh renderer and
+# its no-WebGL fallback, also under painter-gl.js (the WebGL painter for everything), and with
+# WebGL switched off. Ubuntu runners only, so it never takes a Mac runner from CI.
 #
 # Playwright/webgl/reuse-run.txt, when it holds a run id, skips the builds and takes that run's
 # bundles: the quick loop while only the painter changes.
-name: WebGL painter experiment
+name: WebGL SceneKit experiment
 on:
   push:
     branches: ['claude/webgl-**']
@@ -35,17 +34,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: gallery, pkg: Examples/Gallery, flags: '--debug' }
-          - { name: counter, pkg: Examples/Counter, flags: '' }
-          - { name: scrumdinger, pkg: Apps, flags: '--debug --product Scrumdinger' }
-          - { name: ember, pkg: Apps, flags: '--product Ember' }
-          - { name: charts, pkg: Apps, flags: '--product ChartsExamples' }
-          - { name: buttoncraft, pkg: Apps, flags: '--debug --product Buttoncraft' }
-          - { name: simplescores, pkg: Apps, flags: '--debug --product SimpleScores' }
-          - { name: simpletodo, pkg: Apps, flags: '--debug --product SimpleToDo' }
+          - { name: scenedemo, pkg: Examples/SceneDemo, flags: '', ref: '' }
+          - { name: counter, pkg: Examples/Counter, flags: '', ref: '' }
+          - { name: counter-base, pkg: Examples/Counter, flags: '', ref: '33c1a76' }
     steps:
       - uses: actions/checkout@v4
-        with: { submodules: "${{ matrix.pkg == 'Apps' }}" }
+        with: { ref: "${{ matrix.ref }}" }
       - name: Tools
         run: scripts/apt-install.sh python3
       - name: Install wasm SDK
@@ -65,74 +59,11 @@ jobs:
       - uses: actions/upload-artifact@v4
         with: { name: "bundle-${{ matrix.name }}", path: bundles, include-hidden-files: true, if-no-files-found: error, retention-days: 14 }
 
-  tier-b:
+  scene:
     needs: [plan, build]
     if: ${{ !cancelled() && (needs.build.result == 'success' || needs.build.result == 'skipped' || needs.build.result == 'failure') }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
-    strategy:
-      fail-fast: false
-      matrix:
-        variant: [canvas2d, webgl]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with: { name: bundle-gallery, path: bundles, run-id: "${{ needs.plan.outputs.reuse || github.run_id }}", github-token: "${{ github.token }}" }
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - name: Playwright
-        run: cd Playwright && npm install && npx playwright install --with-deps chromium
-      - name: Serve the gallery (${{ matrix.variant }})
-        run: |
-          if [ "${{ matrix.variant }}" = webgl ]; then Playwright/webgl/inject.sh bundles/gallery served blit; else cp -R bundles/gallery served; fi
-          python3 -m http.server 8766 --bind 127.0.0.1 --directory served >/dev/null 2>&1 &
-          for _ in $(seq 1 30); do curl -sf http://127.0.0.1:8766/index.html >/dev/null && break; sleep 1; done
-      - name: Tier B (${{ matrix.variant }})
-        run: |
-          cd Playwright
-          node tier-b.mjs "http://127.0.0.1:8766/index.html" --browser chromium --out "../.build/webgl/tierb-${{ matrix.variant }}" 2>&1 | tee "../.build/tierb-${{ matrix.variant }}.log" || true
-          echo "--- summary"; grep -E 'renders within tolerance|^FAIL .*no frame|WebGL painter' "../.build/tierb-${{ matrix.variant }}.log" | head -40 || true
-          mkdir -p ../.build/webgl && cp "../.build/tierb-${{ matrix.variant }}.log" ../.build/webgl/
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with: { name: "tierb-${{ matrix.variant }}", path: .build/webgl, include-hidden-files: true, if-no-files-found: warn, retention-days: 14 }
-
-  diff:
-    needs: tier-b
-    if: ${{ !cancelled() }}
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with: { pattern: 'tierb-*', path: .build/webgl, merge-multiple: true }
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - run: cd Playwright && npm install
-      - name: Tier B, Canvas2D against WebGL
-        run: |
-          for v in canvas2d webgl; do echo "$v: $(grep -E 'renders within tolerance' .build/webgl/tierb-$v.log | tail -1)"; done
-          # Renders where only one painter is within Tier B's tolerance of the golden.
-          node -e '
-            const fs = require("fs");
-            const a = JSON.parse(fs.readFileSync(".build/webgl/tierb-canvas2d/report.json")), b = JSON.parse(fs.readFileSync(".build/webgl/tierb-webgl/report.json"));
-            const m = new Map(b.map(r => [r.name, r]));
-            let worse = 0, better = 0, framesDiffer = 0;
-            for (const r of a) { const s = m.get(r.name); if (!s) continue;
-              if (JSON.stringify(r.frames) !== JSON.stringify(s.frames)) framesDiffer++;
-              if (r.pixelOK && !s.pixelOK) { worse++; console.log("  only Canvas2D within tolerance: " + r.name + " (" + (r.pixelDiff*100).toFixed(2) + "% vs " + (s.pixelDiff*100).toFixed(2) + "%)"); }
-              if (!r.pixelOK && s.pixelOK) { better++; console.log("  only WebGL within tolerance: " + r.name); } }
-            console.log(`against the goldens: ${worse} renders pass with Canvas2D only, ${better} with WebGL only; probe frames differ in ${framesDiffer}`);
-          '
-          node Playwright/webgl/diff.mjs .build/webgl/tierb-canvas2d .build/webgl/tierb-webgl --out .build/webgl-diff --worst 24 --json .build/webgl-diff/summary.json
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with: { name: webgl-diff, path: .build/webgl-diff, include-hidden-files: true, if-no-files-found: warn, retention-days: 14 }
-
-  apps:
-    needs: [plan, build]
-    if: ${{ !cancelled() && (needs.build.result == 'success' || needs.build.result == 'skipped' || needs.build.result == 'failure') }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -141,73 +72,34 @@ jobs:
         with: { node-version: 20 }
       - name: Playwright
         run: cd Playwright && npm install && npx playwright install --with-deps chromium
-      - name: The painter's size, and Chromium's WebGL here
+      - name: Sizes (Counter with and without the drawMesh plumbing)
         run: |
-          node -e 'const z=require("zlib"),f=require("fs").readFileSync("Playwright/webgl/painter-gl.js");console.log(`painter-gl.js: ${f.length} bytes, ${z.brotliCompressSync(f).length} brotli, ${z.gzipSync(f,{level:9}).length} gzip (JavaScript beside the bundle: the wasm is unchanged)`)'
           for f in bundles/*/.build/wasm/plugins/PackageToJS/outputs/Package/*.wasm; do node -e 'const z=require("zlib"),f=require("fs").readFileSync(process.argv[1]);console.log(`${process.argv[1].split("/")[1]}: ${f.length} bytes wasm, ${z.brotliCompressSync(f,{params:{[z.constants.BROTLI_PARAM_QUALITY]:11}}).length} brotli`)' "$f"; done
-          cd Playwright && node -e '
-            const { chromium } = require("playwright");
-            (async () => { const b = await chromium.launch(); const p = await b.newPage();
-              console.log(await p.evaluate(() => { const c = document.createElement("canvas").getContext("webgl2"); if (!c) return "no WebGL2";
-                const d = c.getExtension("WEBGL_debug_renderer_info"); return "WebGL2: " + (d ? c.getParameter(d.UNMASKED_RENDERER_WEBGL) : c.getParameter(c.RENDERER)) + ", max samples " + c.getParameter(c.MAX_SAMPLES); }));
-              await b.close(); })();'
-      - name: Serve each app three ways (Canvas2D, WebGL blitted into the canvas, WebGL by query)
+          node -e 'const z=require("zlib"),fs=require("fs"),s=fs.readFileSync("Sources/SceneKit/MeshScript.swift","utf8");console.log(`mesh renderer JS: ${s.length} bytes, ${z.brotliCompressSync(Buffer.from(s)).length} brotli (in SceneKit apps only)`)'
+      - name: Serve the demo (plain, and with the WebGL painter for everything)
         run: |
-          port=8800
-          : > served.txt; mkdir -p served
-          for app in counter scrumdinger ember charts buttoncraft simplescores simpletodo gallery; do
-            [ -d "bundles/$app" ] || { echo "$app: no bundle (its build failed)"; continue; }
-            cp -R "bundles/$app" "served/$app-2d"
-            Playwright/webgl/inject.sh "bundles/$app" "served/$app-gl" blit
-            Playwright/webgl/inject.sh "bundles/$app" "served/$app-q"
-            for v in 2d gl q; do
-              python3 -m http.server $port --bind 127.0.0.1 --directory "served/$app-$v" >/dev/null 2>&1 &
-              echo "$app $v $port" >> served.txt; port=$((port + 1))
-            done
-          done
-          sleep 2; cat served.txt
-      - name: WebGL unavailable falls back to Canvas2D
+          cp -R bundles/scenedemo served-plain
+          Playwright/webgl/inject.sh bundles/scenedemo served-all blit
+          python3 -m http.server 8811 --bind 127.0.0.1 --directory served-plain >/dev/null 2>&1 &
+          python3 -m http.server 8812 --bind 127.0.0.1 --directory served-all >/dev/null 2>&1 &
+          sleep 2
+      - name: Scenes, CPU against WebGL against the no-WebGL fallback
         run: |
-          p=$(awk '$1=="counter" && $2=="q" {print $3}' served.txt)
-          cd Playwright && node webgl/fallback.mjs "http://127.0.0.1:$p/index.html" || true
-      - name: Paint times, Canvas2D against WebGL
+          mkdir -p .build/webgl-scene
+          cd Playwright
+          node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --out ../.build/webgl-scene --json ../.build/webgl-scene/plain.json || true
+          node webgl/scene.mjs "http://127.0.0.1:8812/index.html" --modes cpu,gl --label all --out ../.build/webgl-scene --json ../.build/webgl-scene/all.json || true
+      - name: WebGL switched off
         run: |
-          mkdir -p .build/webgl-perf
-          q() { awk -v a="$1" '$1==a && $2=="q" {print $3}' served.txt; }
-          run() { local app="$1"; shift; local p; p=$(q "$app"); [ -n "$p" ] || return 0; (cd Playwright && node webgl/perf.mjs "http://127.0.0.1:$p/index.html$1" --label "$2" --json "../.build/webgl-perf/$3.json" "${@:4}") || echo "perf $2 failed"; }
-          run counter "" "Counter" counter
-          run scrumdinger "?platform=ios" "Scrumdinger" scrumdinger
-          run ember "?platform=ios" "Ember (live Hacker News)" ember
-          run charts "?platform=ios" "Swift Charts Examples" charts
-          run buttoncraft "?platform=ios" "Buttoncraft" buttoncraft
-          run simplescores "?platform=ios" "SimpleScores" simplescores
-          run simpletodo "?platform=ios" "SimpleToDo" simpletodo
-          for fx in effects/blur effects/shadow effects/blend gradient/basic shape/stroke shape/path charts/line charts/area text/markdown list/basic scroll/long; do
-            run gallery "?fixture=$fx" "gallery $fx" "gallery-${fx//\//-}" --no-scroll
-          done
-      - name: The apps' probes, Canvas2D and WebGL
+          cd Playwright
+          WEBGL_CHROME_ARGS="--disable-3d-apis" node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes gl --label nowebgl --out ../.build/webgl-scene --json ../.build/webgl-scene/nowebgl.json || true
+          WEBGL_CHROME_ARGS="--disable-3d-apis" node webgl/scene.mjs "http://127.0.0.1:8812/index.html" --modes gl --label all-nowebgl --scenes Spheres --out ../.build/webgl-scene --json ../.build/webgl-scene/all-nowebgl.json || true
+      - name: Counter still paints
         run: |
-          mkdir -p .build/webgl-apps
-          probe() { awk -v a="$1" -v v="$2" '$1==a && $2==v {print $3}' served.txt; }
-          for pair in scrumdinger:scrumdinger-probe ember:ember-probe charts:charts-probe buttoncraft:buttoncraft-probe simplescores:simplescores-probe simpletodo:simpletodo-probe; do
-            app=${pair%%:*}; script=${pair#*:}
-            for v in 2d gl; do
-              p=$(probe "$app" "$v"); [ -n "$p" ] || continue
-              echo "=== $app ($v)"
-              (cd Playwright && timeout 900 node "$script.mjs" "http://127.0.0.1:$p/index.html?platform=ios" --out "../.build/webgl-apps/$app-$v" > "../.build/webgl-apps/$app-$v.log" 2>&1; echo "exit $?" >> "../.build/webgl-apps/$app-$v.log") || true
-              tail -4 ".build/webgl-apps/$app-$v.log"
-              [ -f ".build/webgl-apps/$app-$v/report.json" ] && node -e 'const r=require(process.argv[1]); console.log("full_app_pass=" + r.full_app_pass + (r.problems && r.problems.length ? " problems: " + JSON.stringify(r.problems).slice(0, 600) : ""))' "$PWD/.build/webgl-apps/$app-$v/report.json" || true
-            done
-            [ -d ".build/webgl-apps/$app-2d" ] && [ -d ".build/webgl-apps/$app-gl" ] && node Playwright/webgl/diff.mjs ".build/webgl-apps/$app-2d" ".build/webgl-apps/$app-gl" --out ".build/webgl-apps/$app-diff" --worst 4 || true
-          done
-          p=$(probe counter gl); [ -n "$p" ] && (cd Playwright && node counter.mjs "http://127.0.0.1:$p/index.html" --shot ../.build/webgl-apps/counter-gl.png) || true
+          cp -R bundles/counter served-counter
+          python3 -m http.server 8813 --bind 127.0.0.1 --directory served-counter >/dev/null 2>&1 &
+          sleep 1
+          cd Playwright && node counter.mjs "http://127.0.0.1:8813/index.html" --shot ../.build/webgl-scene/counter.png || true
       - uses: actions/upload-artifact@v4
         if: always()
-        with:
-          name: webgl-apps
-          path: |
-            .build/webgl-perf
-            .build/webgl-apps
-          include-hidden-files: true
-          if-no-files-found: warn
-          retention-days: 14
+        with: { name: webgl-scene, path: .build/webgl-scene, include-hidden-files: true, if-no-files-found: warn, retention-days: 14 }

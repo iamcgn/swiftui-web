@@ -1727,6 +1727,40 @@
               drawBitmapOp(bitmap, bx, by, bw, bh);
               break;
             }
+            case 25: {
+              // A 3D scene (SceneKit): its renderer draws it into a canvas of its own, shown here as a texture.
+              const mx = buf[i++], my = buf[i++], mw = buf[i++], mh = buf[i++];
+              const nf = buf[i++];
+              const files = [];
+              for (let k = 0; k < nf; k++) files.push(strings[buf[i++]]);
+              const nv = buf[i++];
+              const mesh = window.__swiftuiwebMesh;
+              if (mesh && mesh.render) {
+                const s = scaleOf(layer.state.m);
+                const pw = Math.max(1, Math.min(4096, Math.round(mw * s))), ph = Math.max(1, Math.min(4096, Math.round(mh * s)));
+                const drawn = mesh.render(buf, i, nv, files, mw, mh, pw, ph, (f) => { const e = image(f); return e ? e.img : null; });
+                if (drawn) {
+                  flush();
+                  const tex = gl.createTexture();
+                  gl.bindTexture(gl.TEXTURE_2D, tex);
+                  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+                  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, drawn);
+                  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+                  frameTextures.push(tex);
+                  useTexture(tex, false);
+                  kind = 2; cr = cg = cb = 0; ca = 1;
+                  const box = emptyBox();
+                  quad(layer.state.m, mx, my, mw, mh, 0, 0, 1, 1, box);
+                  markPainted(box, 1);
+                } else {
+                  stats.meshFallback = (stats.meshFallback || 0) + 1;
+                }
+              }
+              i += nv;
+              break;
+            }
             default: throw new Error('unknown display op ' + op + ' at ' + (i - 1));
           }
         }
