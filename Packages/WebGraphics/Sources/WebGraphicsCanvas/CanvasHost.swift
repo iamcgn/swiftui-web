@@ -176,6 +176,15 @@ public final class CanvasSceneHost {
             symbolMetricsClosures = [loaded, toText]
             _ = JSObject.global.fetch?(assetBase + "symbol-metrics.txt").object?.then?(toText).object?.then?(loaded)
         }
+        // The WebGL painter (`assets/painter-gl.js`, decision 0026): a script beside the wasm that
+        // takes the main canvas's frames where Canvas2D is slow. Until it has loaded, and without
+        // it or WebGL2, Canvas2D paints every frame.
+        if window.__swiftuiwebGL.isUndefined, !window.WebGL2RenderingContext.isUndefined,
+           let head = document.head.object, let script = document.createElement!("script").object {
+            script.src = .string(assetBase + "painter-gl.js")
+            script.async = .boolean(true)
+            _ = head.appendChild!(script)
+        }
         // A recorded drawing becomes PNG data through a canvas of its own (`UIImage.pngData()`).
         let painterBridge = bridge
         scene.imageRasterizer = { list, size, scale in

@@ -7,7 +7,7 @@ set -euo pipefail
 SRC="$1"; DST="$2"; MODE="${3:-}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 rm -rf "$DST"; mkdir -p "$(dirname "$DST")"; cp -R "$SRC" "$DST"
-cp "$HERE/painter-gl.js" "$DST/painter-gl.js"
+cp "$HERE/../../Packages/WebGraphics/Web/painter-gl.js" "$DST/painter-gl.js"
 TAG='<script src="./painter-gl.js"></script>'
 [[ -n "$MODE" ]] && TAG="<script>window.__swiftuiwebGLConfig = { mode: '$MODE' };</script>$TAG"
 python3 - "$DST/index.html" "$TAG" <<'PY'

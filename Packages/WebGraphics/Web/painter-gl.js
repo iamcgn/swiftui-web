@@ -1,19 +1,26 @@
-// An experimental WebGL2 painter for DisplayListEncoder's flat format: the same ops
-// PainterScript's Canvas2D decoder paints, drawn on the GPU instead.
+// The WebGL2 painter for DisplayListEncoder's flat format: the same ops PainterScript's
+// Canvas2D decoder paints, drawn on the GPU instead (decision 0026).
 //
-// It is a shim, so the experiment needs no change to the Swift side and adds nothing to an
-// app's wasm: loaded before the app starts, it traps the assignment of `window.__swiftuiweb`
-// (PainterScript publishing its bridge) and wraps the bridge's `paint`, so the app's main
-// canvas is drawn by WebGL2 while everything else (text measurement, drag previews,
-// `rasterize`, AsyncImage state) stays Canvas2D. Without WebGL2 it leaves the bridge alone.
+// It ships beside the wasm (scripts/build-wasm.sh copies it into the bundle's assets) and the
+// host loads it after the first frame, so the wasm carries only the loader and a page without
+// the file, or without WebGL2, paints with Canvas2D as before. It wraps the bridge's `paint`
+// (published by PainterScript as `window.__swiftuiweb`, before or after this script runs), so
+// the app's main canvas is drawn by WebGL2 while everything else (text measurement, drag
+// previews, `rasterize`, AsyncImage state) stays Canvas2D.
 //
 // Modes (`?webgl=` in the page URL, or `window.__swiftuiwebGLConfig.mode`):
-//   overlay  (default) a WebGL canvas laid over the 2D canvas, which stays clear
-//   blit     WebGL draws offscreen and the frame is copied into the 2D canvas (one drawImage)
-//   2d       the shim is installed but Canvas2D paints (for like-for-like timing)
+//   auto     (default) a WebGL canvas over the 2D canvas, used for the frames Canvas2D is slow
+//            at: a frame goes to WebGL when Canvas2D's measured time for one of its size passes
+//            `switchMs` (4 ms) and back below `backMs` (2 ms), so simple screens keep Canvas2D's
+//            lower fixed cost. Software WebGL (SwiftShader, llvmpipe) is not used.
+//   overlay  WebGL for every frame, over the 2D canvas, which stays clear (software WebGL too)
+//   blit     WebGL draws offscreen and each frame is copied into the 2D canvas (one drawImage)
+//   2d       installed, but Canvas2D paints (for like-for-like timing)
 //   off      not installed
-// `?webglSamples=N` sets the MSAA sample count (default 4; 1 turns multisampling off) and
-// `?webglSync` makes both painters wait for their pixels before returning their time.
+// `?webglSamples=N` sets the MSAA sample count (default 4; 1 turns multisampling off),
+// `?webglSync` makes both painters wait for their pixels before returning their time,
+// `?webglSoftware` lets auto use software WebGL, `?webglSwitchMs=N` sets switchMs, and
+// `?webglBench` keeps each frame for `__swiftuiwebGL.bench(n)`.
 //
 // How it draws:
 //   - Rects and rounded rects in an axis-aligned space: a signed-distance quad (analytic edges).
@@ -28,16 +35,22 @@
 //   - Gradients: in the fragment shader, with the stops in a ramp texture.
 //   - Groups (opacity, shadow, filter, blend, mask): a multisampled offscreen target each,
 //     resolved and composited back; blurs are separable Gaussians, blend modes the W3C formulas.
+//   - SceneKit's mesh op: drawn by SceneKit's own renderer (`__swiftuiwebMesh`), shown as a texture.
 (function () {
   'use strict';
   if (window.__swiftuiwebGL) return;
   const query = new URLSearchParams(location.search);
   const config = Object.assign({
-    mode: query.get('webgl') || 'overlay',
+    mode: query.get('webgl') || 'auto',
     samples: Number(query.get('webglSamples') || 4),
     sync: query.has('webglSync'),
+    software: query.has('webglSoftware'),
+    bench: query.has('webglBench') || query.has('webglSync'),
+    switchMs: query.has('webglSwitchMs') ? Number(query.get('webglSwitchMs')) : 4,
+    backMs: 2,
   }, window.__swiftuiwebGLConfig || {});
-  const info = { mode: config.mode, active: false, reason: '', renderer: '', samples: 0, frames: 0, glFrames: 0, fallbacks: 0, lastMs: 0, stats: {}, errors: [], targets: 0, targetBytes: 0 };
+  const auto = config.mode === 'auto';
+  const info = { mode: config.mode, active: false, reason: '', renderer: '', samples: 0, frames: 0, glFrames: 0, fallbacks: 0, switches: 0, using: '2d', cost2d: 0, lastMs: 0, stats: {}, errors: [], targets: 0, targetBytes: 0 };
   window.__swiftuiwebGL = info;
   if (config.mode === 'off' || config.mode === '0') { info.reason = 'off'; return; }
 
@@ -46,7 +59,9 @@
   let imageHandler = null;
   let glPending = 0;
 
-  let bridgeValue;
+  // The bridge may be published already (the host loads this script after its first frame).
+  let bridgeValue = window.__swiftuiweb;
+  if (bridgeValue && typeof bridgeValue.paint === 'function' && !bridgeValue.__gl) bridgeValue = wrap(bridgeValue);
   Object.defineProperty(window, '__swiftuiweb', {
     configurable: true, enumerable: true,
     get() { return bridgeValue; },
@@ -56,6 +71,8 @@
   function wrap(bridge) {
     const original = bridge.paint;
     let mainCanvas = null, painter = null, unavailable = false, last = null;
+    // auto: Canvas2D's smoothed time per op, how many frames measured it, and which painter has the screen.
+    let perOp = 0, measured = 0, usingGL = !auto, sinceMeasure = 0;
     // bench(n): repaints the last frame n times with each painter, waiting for its pixels each
     // time (so the GPU's work counts), and returns the paint times: the same content both ways.
     info.bench = function (n) {
@@ -89,19 +106,32 @@
         painter = createPainter(canvas, ctx);
         if (!painter) unavailable = true;
       }
-      if (main) last = { ctx, buf: Float64Array.from(buf), strings: strings.slice(), dpr, w, h, bitmaps };
-      if (!main || !painter) {
+      if (main && config.bench) last = { ctx, buf: Float64Array.from(buf), strings: strings.slice(), dpr, w, h, bitmaps };
+      let gl = main && painter;
+      if (gl && auto) {
+        // Canvas2D's cost for a frame of this size, from the Canvas2D frames measured so far
+        // (ms per op, smoothed); WebGL above switchMs, Canvas2D again below backMs. Every 240th
+        // WebGL frame is a Canvas2D one, so the estimate follows the screen.
+        const estimate = perOp * buf.length;
+        info.cost2d = estimate;
+        if (!usingGL && measured >= 2 && estimate > config.switchMs) { usingGL = true; info.switches++; }
+        else if (usingGL && estimate < config.backMs) { usingGL = false; info.switches++; painter.hide(); }
+        if (usingGL && ++sinceMeasure >= 240) { sinceMeasure = 0; painter.hide(); gl = false; }
+        else gl = usingGL;
+      }
+      if (!gl) {
         const t0 = performance.now();
         let ms = original.call(this, ctx, buf, strings, dpr, w, h, bitmaps);
         if (main) {
           if (config.sync) { ctx.getImageData(0, 0, 1, 1); ms = performance.now() - t0; }
-          info.frames++; info.lastMs = ms;
+          info.frames++; info.lastMs = ms; info.using = '2d';
+          if (buf.length > 0 && ms >= 0) { const sample = ms / buf.length; perOp = measured ? perOp * 0.7 + sample * 0.3 : sample; measured++; }
         }
         return ms;
       }
       try {
         const ms = painter.paint(buf, strings, dpr, w, h, bitmaps);
-        info.frames++; info.glFrames++; info.lastMs = ms;
+        info.frames++; info.glFrames++; info.lastMs = ms; info.using = 'webgl';
         return ms;
       } catch (e) {
         // This frame falls back to Canvas2D; the next one tries WebGL again.
@@ -362,6 +392,9 @@
   }`;
 
   // ---------------------------------------------------------------------------------------
+  function probeSoftware() {
+    try { const c = document.createElement('canvas').getContext('webgl2'); if (!c) return false; const l = c.getExtension('WEBGL_lose_context'); if (l) l.loseContext(); return true; } catch (e) { return false; }
+  }
   function createPainter(canvas2d, ctx2d) {
     const overlay = config.mode !== 'blit';
     const glCanvas = document.createElement('canvas');
@@ -371,11 +404,19 @@
       canvas2d.after(glCanvas);
     }
     let gl = null;
-    try { gl = glCanvas.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: false, powerPreference: 'high-performance' }); } catch (e) { gl = null; }
-    if (!gl) { info.reason = 'WebGL2 unavailable'; glCanvas.remove(); return null; }
+    // auto takes no software WebGL: SwiftShader draws busy screens many times slower than Canvas2D.
+    const hardwareOnly = auto && !config.software;
+    try { gl = glCanvas.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: false, powerPreference: 'high-performance', failIfMajorPerformanceCaveat: hardwareOnly }); } catch (e) { gl = null; }
+    if (!gl) { info.reason = hardwareOnly && probeSoftware() ? 'software WebGL only' : 'WebGL2 unavailable'; glCanvas.remove(); return null; }
     info.active = true;
     const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
     info.renderer = String(debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+    // Some browsers create a software context despite the caveat flag: name the renderer.
+    if (hardwareOnly && /swiftshader|llvmpipe|softpipe|software|basic render/i.test(info.renderer)) {
+      info.reason = 'software WebGL only'; info.active = false; glCanvas.remove();
+      const lose = gl.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext();
+      return null;
+    }
     const samples = Math.max(1, Math.min(config.samples | 0 || 1, gl.getParameter(gl.MAX_SAMPLES)));
     info.samples = samples;
     let twoDDirty = true;   // the 2D canvas may hold a Canvas2D frame (before the first, after a fallback)
