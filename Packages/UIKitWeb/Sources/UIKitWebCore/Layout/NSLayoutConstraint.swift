@@ -452,6 +452,9 @@ open class UILayoutGuide {
     /// A system guide's insets from the owning view's bounds, when it is one (the safe area or
     /// layout margins guide); nil for a guide the app made.
     var systemInsets: (@MainActor (UIView) -> UIEdgeInsets)?
+    /// A scroll view's content guide: its origin is the content's, and the size the
+    /// constraints give it becomes the scroll view's `contentSize`.
+    var isScrollContent = false
 
     public init() {}
 
@@ -575,7 +578,7 @@ extension UIView {
     /// A layout guide representing an area with a readable width within the view.
     public var readableContentGuide: UILayoutGuide { layoutMarginsGuide }
 
-    private func systemGuide(_ slot: inout UILayoutGuide?, insets: @escaping @MainActor (UIView) -> UIEdgeInsets) -> UILayoutGuide {
+    func systemGuide(_ slot: inout UILayoutGuide?, insets: @escaping @MainActor (UIView) -> UIEdgeInsets) -> UILayoutGuide {
         if let guide = slot { return guide }
         let guide = UILayoutGuide()
         guide.systemInsets = insets
