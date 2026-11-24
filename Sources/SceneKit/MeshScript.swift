@@ -303,6 +303,8 @@ void main() {
       for (const [file, t] of textures) if (frame - t.used > 600) { gl.deleteTexture(t.tex); textures.delete(file); }
     }
     stats.meshes = draws.length; stats.triangles = triangles;
+    // Counted here so frames the WebGL painter asks for directly count too.
+    stats.gl++; stats.frames++;
     return canvas;
   }
 
@@ -388,9 +390,8 @@ void main() {
     const pw = Math.max(1, Math.min(4096, Math.round(w * scale))), ph = Math.max(1, Math.min(4096, Math.round(h * scale)));
     let drawn = null;
     try { drawn = render(buf, i, nv, files, w, h, pw, ph, image); } catch (e) { console.error('SwiftUIWeb: SceneKit WebGL frame failed', e); drawn = null; }
-    if (drawn) { ctx.drawImage(drawn, 0, 0, pw, ph, x, y, w, h); stats.gl++; }
-    else { draw2D(ctx, buf, i, x, y, w, h); stats.fallback++; }
-    stats.frames++;
+    if (drawn) ctx.drawImage(drawn, 0, 0, pw, ph, x, y, w, h);
+    else { draw2D(ctx, buf, i, x, y, w, h); stats.fallback++; stats.frames++; }
     stats.ms = performance.now() - started;
   }
 

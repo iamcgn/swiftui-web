@@ -124,6 +124,9 @@ jobs:
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8765/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node counter.mjs http://127.0.0.1:8765/index.html --shot ../.build/counter.png)
           scripts/size-gate.sh Examples/Counter
+          # The WebGL painter (decision 0026): auto leaves software WebGL alone, forced WebGL
+          # matches Canvas2D, auto switches on a slow frame, and the fallbacks paint.
+          (cd Playwright && node webgl-painter-probe.mjs http://127.0.0.1:8765/index.html --out ../.build/apps/webgl-painter)
       - name: SceneKit through WebGL (Examples/SceneDemo) — meshes on the GPU, the 2D fallback with WebGL off, the CPU path, the Globe's live texture
         run: |
           . ~/.swiftly/env.sh
