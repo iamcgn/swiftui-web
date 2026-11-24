@@ -6,6 +6,7 @@
 // Every case: no page errors, and a screenshot in --out.
 //   node scenekit-webgl-probe.mjs <url> [--out dir]
 import { chromium } from 'playwright';
+import { webglLaunch } from './webgl-launch.mjs';
 import { PNG } from 'pngjs';
 import { mkdirSync, writeFileSync } from 'node:fs';
 const args = process.argv.slice(2);
@@ -25,8 +26,12 @@ async function pickScene(page, scene) {
   await page.waitForTimeout(800);
 }
 
-async function run(name, { launchArgs = ['--enable-unsafe-swiftshader', '--use-angle=swiftshader'], query = '', scene = 'Spheres', check }) {
-  const browser = await chromium.launch({ args: launchArgs });
+// CI's Mac VMs have no GPU of their own: launch Chromium the way webgl-launch.mjs found to give WebGL2.
+const launch = await webglLaunch();
+console.log(`SceneKit WebGL probe launches Chromium as: ${launch.name} (${launch.renderer})`);
+
+async function run(name, { extraArgs = [], query = '', scene = 'Spheres', check }) {
+  const browser = await chromium.launch({ headless: launch.headless, args: [...launch.args, ...extraArgs] });
   const page = await browser.newPage({ viewport: { width: 1000, height: 760 }, deviceScaleFactor: 2 });
   const errors = [];
   page.on('pageerror', e => errors.push(String(e).slice(0, 300)));
@@ -66,7 +71,7 @@ await run('WebGL draws the meshes', {
   check: (b, a, s) => !a ? 'no mesh renderer on the page' : !a.active ? 'WebGL not active' : a.gl <= b.gl ? 'no WebGL frames' : a.triangles <= 0 ? 'no triangles' : drawn(s),
 });
 await run('WebGL turned off: the 2D fallback draws', {
-  launchArgs: ['--disable-3d-apis'],
+  extraArgs: ['--disable-3d-apis'],
   check: (b, a, s) => !a ? 'no mesh renderer on the page' : a.active ? 'WebGL active with 3D APIs off' : a.fallback <= b.fallback ? 'no fallback frames' : drawn(s),
 });
 await run('?mesh=cpu: the CPU path draws', {
