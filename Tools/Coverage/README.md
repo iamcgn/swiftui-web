@@ -91,7 +91,11 @@ wasm, so files with it compile their other branch (the report counts them; the w
 plugins (code generators such as swift-openapi-generator's), binary targets and
 Objective-C targets are not built. C targets build with the SDK's clang; a quoted include of a
 header that Apple's SDKs also ship (ICU's `unicode/umachine.h`, which Runestone's vendored
-tree-sitter reaches that way) is found in the package's own copy, through `-iquote` only. A package's errors count toward the first app of its batch
+tree-sitter reaches that way) is found in the package's own copy, through `-iquote` only. A C
+target that calls a POSIX function wasi-libc leaves out because WASI can't do it (`dup`,
+which the same tree-sitter calls from a debug printer) gets `wasi-posix-compat.h`
+force-included: the call builds and fails at run time with `ENOSYS`, as upstream tree-sitter's
+WASI build does. A target that declares the function itself is left alone. A package's errors count toward the first app of its batch
 that pins it, and show in the report with the package's name before the file.
 
 ## Which SDK
