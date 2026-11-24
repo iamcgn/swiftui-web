@@ -1,0 +1,76 @@
+# The SceneKit WebGL backend in Firefox and Safari (Corey's ask, Nov 24, 2026): the SceneDemo
+# bundle from run 45315538822 drawn by the CPU path, the WebGL mesh renderer, the 2D fallback
+# and with WebGL switched off (nogl), in Chromium, Firefox and WebKit (Playwright's builds), and
+# on the Mac also in Safari itself through safaridriver. Runs only when
+# Playwright/webgl/browsers-run.txt changes on a claude/webgl-** push (the branch
+# claude/webgl-gpu, which has no pull request). The Linux job checks the scripts on a hosted
+# runner first; the Mac job (Corey's laptop-sweep runner) runs only after it.
+name: WebGL browsers (Firefox, Safari)
+on:
+  push:
+    branches: ['claude/webgl-**']
+    paths: ['Playwright/webgl/browsers-run.txt']
+permissions:
+  contents: read
+  actions: read
+concurrency: { group: webgl-gpu, cancel-in-progress: false }
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { pattern: 'bundle-scenedemo', path: scene-bundles, merge-multiple: true, run-id: '45315538822', github-token: "${{ github.token }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Playwright with Firefox and WebKit
+        run: cd Playwright && npm install && npm install --no-save playwright@1.56 && npx playwright install --with-deps chromium firefox webkit
+      - name: Scenes in each browser
+        run: |
+          python3 -m http.server 8811 --bind 127.0.0.1 --directory scene-bundles/scenedemo >/dev/null 2>&1 &
+          sleep 2; mkdir -p .build/webgl-browsers; cd Playwright
+          for b in chromium firefox webkit; do
+            WEBGL_BROWSER=$b timeout 900 node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes cpu,gl,2d,nogl --out ../.build/webgl-browsers --json ../.build/webgl-browsers/linux-$b.json || echo "$b failed"
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: webgl-browsers-linux, path: .build/webgl-browsers, if-no-files-found: warn, retention-days: 14 }
+
+  mac:
+    needs: linux
+    runs-on: [self-hosted, laptop-sweep]
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { pattern: 'bundle-scenedemo', path: scene-bundles, merge-multiple: true, run-id: '45315538822', github-token: "${{ github.token }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Playwright with Firefox and WebKit (into the job's temp folder, removed with it)
+        run: |
+          echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/ms-playwright" >> "$GITHUB_ENV"
+          export PLAYWRIGHT_BROWSERS_PATH="$RUNNER_TEMP/ms-playwright"
+          cd Playwright && npm install && npm install --no-save playwright@1.56 && npx playwright install chromium firefox webkit
+          sw_vers; sysctl -n machdep.cpu.brand_string
+          /Applications/Safari.app/Contents/MacOS/Safari --version 2>/dev/null || defaults read /Applications/Safari.app/Contents/Info CFBundleShortVersionString || true
+      - name: Scenes in Chromium, Firefox and WebKit
+        run: |
+          python3 -m http.server 8811 --bind 127.0.0.1 --directory scene-bundles/scenedemo >/dev/null 2>&1 & echo $! > pids
+          sleep 2; mkdir -p .build/webgl-browsers; cd Playwright
+          t() { perl -e 'alarm shift; exec @ARGV' 900 "$@"; }
+          for b in chromium firefox webkit; do
+            WEBGL_BROWSER=$b t node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes cpu,gl,2d,nogl --out ../.build/webgl-browsers --json ../.build/webgl-browsers/mac-$b.json 2>&1 | tee ../.build/webgl-browsers/mac-$b.txt || echo "$b failed"
+            if head -3 ../.build/webgl-browsers/mac-$b.txt | grep -qiE "^browser .*(no WebGL2|llvmpipe|swiftshader|software|basic render)"; then
+              echo "$b headless has no GPU WebGL; trying a window"
+              WEBGL_HEADED=1 WEBGL_BROWSER=$b t node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes cpu,gl,2d,nogl --label headed --out ../.build/webgl-browsers --json ../.build/webgl-browsers/mac-$b-headed.json || echo "$b headed failed"
+            fi
+          done
+      - name: Scenes in Safari (safaridriver)
+        run: cd Playwright && perl -e 'alarm shift; exec @ARGV' 900 node webgl/safari.mjs "http://127.0.0.1:8811/index.html" --out ../.build/webgl-browsers --json ../.build/webgl-browsers/mac-safari.json || echo "safari failed"
+      - name: Stop the local server
+        if: always()
+        run: '[ -f pids ] && xargs kill < pids 2>/dev/null || true'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: webgl-browsers-mac, path: .build/webgl-browsers, if-no-files-found: warn, retention-days: 14 }
