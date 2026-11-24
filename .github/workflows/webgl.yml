@@ -71,7 +71,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - name: Playwright
-        run: cd Playwright && npm install && npx playwright install --with-deps chromium
+        run: cd Playwright && npm install && npm install --no-save playwright@1.56 && npx playwright install --with-deps chromium firefox webkit
       - name: Sizes (Counter with and without the drawMesh plumbing)
         run: |
           node Playwright/webgl/wasm-size.mjs bundles/*/.build/wasm/plugins/PackageToJS/outputs/Package/*.wasm
@@ -89,6 +89,11 @@ jobs:
           cd Playwright
           node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --out ../.build/webgl-scene --json ../.build/webgl-scene/plain.json || true
           node webgl/scene.mjs "http://127.0.0.1:8812/index.html" --modes cpu,gl --label all --out ../.build/webgl-scene --json ../.build/webgl-scene/all.json || true
+      - name: Globe texture trace, and every scene in Chromium, WebKit and Firefox (small screenshots in the log)
+        run: |
+          cd Playwright
+          for b in chromium webkit; do WEBGL_BROWSER=$b timeout 600 node webgl/texdebug.mjs "http://127.0.0.1:8811/index.html" || echo "texdebug $b failed"; done
+          for b in chromium webkit firefox; do WEBGL_THUMBS=1 WEBGL_BROWSER=$b timeout 900 node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes cpu,gl,2d --label $b --out ../.build/webgl-scene || echo "$b failed"; done
       - name: WebGL switched off
         run: |
           cd Playwright
