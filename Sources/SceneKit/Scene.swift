@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 import UIKit
 #if canImport(QuartzCore)
-import QuartzCore   // CACurrentMediaTime on a Mac host
+import func QuartzCore.CACurrentMediaTime   // only the clock; the layer types are UIKit's
 #endif
 
 /// A container for the node hierarchy and global properties that together form a displayable 3D scene.

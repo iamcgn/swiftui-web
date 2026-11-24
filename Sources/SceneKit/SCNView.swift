@@ -10,7 +10,7 @@ import Foundation
 import SwiftUI
 import UIKit
 #if canImport(QuartzCore)
-import QuartzCore   // CACurrentMediaTime on a Mac host
+import func QuartzCore.CACurrentMediaTime   // only the clock; the layer types are UIKit's
 #endif
 
 public enum SCNAntialiasingMode: UInt, Sendable { case none = 0, multisampling2X, multisampling4X, multisampling8X, multisampling16X }
