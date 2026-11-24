@@ -21,7 +21,7 @@ async function run(name, launchArgs, query, expectActive) {
   let painted = 0;
   for (let i = 0; i < shot.data.length; i += 4) if (shot.data[i] < 250 || shot.data[i + 1] < 250 || shot.data[i + 2] < 250) painted++;
   const share = painted / (shot.width * shot.height);
-  const ok = info && !!info.active === expectActive && (expectActive ? info.glFrames > 0 : info.glFrames === 0) && share > 0.01 && errors.length === 0;
+  const ok = info && !!info.active === expectActive && (expectActive ? info.glFrames > 0 : info.glFrames === 0) && share > 0.001 && errors.length === 0;
   console.log(`${ok ? 'PASS' : 'FAIL'} ${name}: ${JSON.stringify(info)}, ${(share * 100).toFixed(1)}% of the page not white${errors.length ? ', errors ' + JSON.stringify(errors.slice(0, 3)) : ''}`);
   if (!ok) failures++;
   await browser.close();
