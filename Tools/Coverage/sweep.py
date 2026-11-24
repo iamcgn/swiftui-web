@@ -1801,6 +1801,19 @@ def rewrite_sources(mapping, work, app_name, strip, ios=False):
                 Path(dest).write_text(text)
 
 
+def source_line(path, line, width=200):
+    """The text of `line` (1-based) in `path`, stripped and cut to `width`, or "" when unreadable."""
+    try:
+        with open(path, errors="replace") as f:
+            for n, text in enumerate(f, 1):
+                if n == int(line):
+                    text = text.strip()
+                    return text if len(text) <= width else text[:width] + " …"
+    except (OSError, ValueError):
+        pass
+    return ""
+
+
 def cmd_run(args):
     plan = json.loads(Path(args.plan).read_text())
     pkg = Path(args.pkg).resolve()
@@ -1881,6 +1894,7 @@ def cmd_run(args):
                                **({"package": where["package"]} if where.get("package") else {})})
             # Kept for the log alone (--show), so the results' error rows stay as they were.
             notes = notes_of(out) if args.show else {}
+            error_sources = [source_line(e["raw"][0], e["raw"][1]) if args.show else "" for e in errors]
             error_notes = [notes.get(e.pop("raw"), [])[:8] for e in errors]
             ok = code == 0
             if not ok:
@@ -1901,8 +1915,12 @@ def cmd_run(args):
             if args.show and re.search(args.show, f"{app['name']} {t['module']}"):
                 # The whole list in the job log, for a module a change is aimed at (the
                 # artifacts hold it too, but a log is what every reader can open).
-                for e, these in zip(errors, error_notes):
+                for e, these, text in zip(errors, error_notes, error_sources):
                     print(f"  {e['file']}:{e['line']}: {e['msg']}")
+                    if text:
+                        # The line itself, as the sweep built it, since the app's source is
+                        # in no artifact a reader of the log can open.
+                        print(f"      | {text}")
                     for note in these:
                         print(f"      {note}")
                 # A module that failed with no error of the app's (a compiler crash, say) shows

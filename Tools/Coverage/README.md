@@ -107,7 +107,7 @@ NSObject subclasses ships with, and the packages apps pin use all three. A dispa
 `sdk: stock` builds with the plain wasm SDK on Linux instead. The report names the SDK under
 "The corpus"; totals from the two SDKs are not comparable. A dispatch's `show` input (a pattern
 of `App Module` names, like `Kingfisher`) prints every error of the modules it matches to the
-sweep job's log (`run --show`), for work aimed at one package, each with the compiler's located `note:` lines that follow it (an ambiguous name's "found this candidate in module" notes).
+sweep job's log (`run --show`), for work aimed at one package, each with the source line it points at (as the sweep built it, after its import rewrites) and the compiler's located `note:` lines that follow it (an ambiguous name's "found this candidate in module" notes).
 
 ## Running it by hand
 
