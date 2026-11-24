@@ -80,6 +80,25 @@ and sweeps clockwise. `CATextLayer`: `string` (a `String` or an attributed strin
 default Core Animation font, lines `lineHeight` apart; `Fixtures/UIKit/TextMetrics` records
 the strings. Open: attributed runs beyond their plain text, `allowsFontSubpixelQuantization`.
 
+## CAEmitterLayer and CAEmitterCell (2026-11-24)
+
+`Layers/CAEmitterLayer.swift`. While an emitter layer has cells to emit or particles alive it
+joins the scene's clock, as an animating activity indicator does. Each frame every enabled
+cell gives birth at `birthRate` (times the layer's) a second, the births spread over the
+frame; a particle starts at a point of the emitter shape (`point`: `emitterPosition`; `line`:
+along `emitterSize.width`; `rectangle`: inside, or on the edge for the `outline` mode;
+`circle`: inside the circle of diameter `emitterSize.width`, or on it), leaves at `velocity`
+in the direction `emissionLongitude` (radians from the x axis, y down as in UIKit), moves
+under `xAcceleration` and `yAcceleration`, and scales, fades, recolours and spins at
+`scaleSpeed`, `alphaSpeed`, the colour speeds and `spin` until `lifetime` is up. Each value
+varies uniformly by its range either side (`emissionRange` either side of the longitude, so
+π emits all round); the random numbers come from the layer's `seed`. The layer's `birthRate`,
+`lifetime`, `velocity`, `scale` and `spin` multiply the cells'. A particle draws the cell's
+`contents` CGImage, its size the image's pixels over `contentsScale` times the particle's
+scale, centred on the particle, turned by its angle, at its alpha; `renderMode` `oldestLast`
+draws the newest underneath. At most 4,000 particles live at once. Open: a particle's own
+`emitterCells`, tinting the contents by the colour, `emissionLatitude` and depth, cell timing.
+
 ## CADisplayLink (2026-10-09)
 
 `Layers/CADisplayLink.swift`. `CADisplayLink(target:handler:)` and `CADisplayLink(handler:)`
