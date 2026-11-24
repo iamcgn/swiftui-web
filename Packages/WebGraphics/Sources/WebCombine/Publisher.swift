@@ -340,6 +340,12 @@ public struct NotificationCenterPublisher: Publisher {
     public let name: Notification.Name
     public let object: AnyObject?
 
+    public init(center: NotificationCenter, name: Notification.Name, object: AnyObject? = nil) {
+        self.center = center
+        self.name = name
+        self.object = object
+    }
+
     @MainActor public func _subscribe(_ receive: @escaping @MainActor (Notification) -> Void,
                                       _ complete: @escaping @MainActor (Subscribers.Completion<Never>) -> Void) -> AnyCancellable {
         let token = center.addObserver(forName: name, object: object, queue: nil) { notification in
@@ -362,3 +368,12 @@ extension NotificationCenter {
         NotificationCenterPublisher(center: self, name: name, object: object)
     }
 }
+
+#if !canImport(Darwin)
+extension NotificationCenter {
+    /// Combine's name for the publisher type, as apps spell it in a stored property or a return
+    /// type (Clendar's `AppEvents`: `NotificationCenter.Publisher`). Apple's Foundation declares it
+    /// itself, so this is only where Foundation is the stand-in.
+    public typealias Publisher = NotificationCenterPublisher
+}
+#endif
