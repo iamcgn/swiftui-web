@@ -139,7 +139,8 @@ import WebGraphicsHeadless
                 "Mixed runs under struck".draw(with: CGRect(x: 10, y: 60 + ascender, width: 0, height: 0), options: [], attributes: attributes, context: nil)
                 "Mixed runs under struck".draw(in: CGRect(x: 10, y: 110, width: 260, height: 40), withAttributes: attributes)
                 "Mixed runs under struck".draw(with: CGRect(x: 10, y: 160, width: 260, height: 40), options: .usesLineFragmentOrigin, attributes: attributes, context: nil)
-                NSAttributedString(string: "Mixed runs under struck", attributes: attributes).draw(with: CGRect(x: 10, y: 210 + ascender, width: 0, height: 0), options: [], context: nil)
+                // Leaving out the context picks this one over AppKit's on a Mac host, which requires it.
+                NSAttributedString(string: "Mixed runs under struck", attributes: attributes).draw(with: CGRect(x: 10, y: 210 + ascender, width: 0, height: 0), options: [])
             }
         }
         let view = TextView(frame: CGRect(x: 0, y: 0, width: 280, height: 260))
