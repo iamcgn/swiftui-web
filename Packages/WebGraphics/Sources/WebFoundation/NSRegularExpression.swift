@@ -41,6 +41,9 @@ public class _WebNSString: _WebObjectBase, ExpressibleByStringLiteral, @unchecke
         string = ""
         super.init()
     }
+    /// `NSMutableString(string: other)` with an `NSString`, as Foundation's `-initWithString:` takes
+    /// one (Runestone keeps its text this way); a literal still picks the `String` form.
+    public convenience init(string aString: _WebNSString) { self.init(string: aString.string) }
     /// `let key: NSString = "name"`, as Foundation's bridged string takes a literal.
     public required convenience init(stringLiteral value: String) { self.init(string: value) }
     public required convenience init(extendedGraphemeClusterLiteral value: String) { self.init(string: value) }
