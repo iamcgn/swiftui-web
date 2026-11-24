@@ -207,7 +207,7 @@ struct GlobeView: UIViewRepresentable {
                     .paragraphStyle: paragraphStyle,
                     .foregroundColor: UIColor.white.withAlphaComponent(Bool.random() ? 0.1 : 1.0)
                 ]
-                randomString.draw(with: CGRect(x: randomX, y: randomY, width: 20, height: 20), options: .usesLineFragmentOrigin, attributes: attrs, context: nil)
+                randomString.draw(in: CGRect(x: randomX, y: randomY, width: 20, height: 20), withAttributes: attrs)
             }
         }
     }
