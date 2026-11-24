@@ -46,7 +46,7 @@ public final class Timer: _WebObjectBase, @unchecked Sendable {
                 guard !Task.isCancelled, self.isValid else { return }
                 action(self)
             } while repeats && self.isValid
-            self.isValid = false
+            self.invalidate()
         }
     }
 
@@ -57,10 +57,16 @@ public final class Timer: _WebObjectBase, @unchecked Sendable {
         if !repeats { invalidate() }
     }
 
+    /// Stops the timer and lets go of its block, and of a target-action timer's target and
+    /// `userInfo`, as Foundation's invalidation does.
     public func invalidate() {
         isValid = false
         task?.cancel()
         task = nil
+        action = nil
+        #if canImport(ObjectiveC)
+        _userInfo = nil
+        #endif
     }
 
     #if canImport(ObjectiveC)

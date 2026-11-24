@@ -98,6 +98,24 @@ private final class Count: @unchecked Sendable {
         #expect(count.current == 1)
     }
 
+    #if os(WASI)
+    /// Invalidating a timer lets go of its block and what the block holds, as Foundation's
+    /// invalidation releases a timer's target.
+    @Test func invalidatedTimersLetGoOfTheirBlock() {
+        final class Held: Sendable {}
+        weak var probe: Held?
+        let timer: Timer
+        do {
+            let held = Held()
+            probe = held
+            timer = Timer(timeInterval: 60, repeats: false) { _ in withExtendedLifetime(held) {} }
+        }
+        #expect(probe != nil && timer.isValid)
+        timer.invalidate()
+        #expect(probe == nil && !timer.isValid)
+    }
+    #endif
+
     // Linux's Foundation has no initialiser without a string; Apple's and the wasm one do.
     #if os(WASI) || canImport(Darwin)
     @Test func emptyAttributedStrings() {
