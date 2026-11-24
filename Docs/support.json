@@ -1235,6 +1235,12 @@
           ]
         },
         {
+          "api": "statusBarHidden / statusBar(hidden:) / persistentSystemOverlays",
+          "status": "full",
+          "notes": "objc-bridging (2026-11-23): a page has no status bar or home indicator, so a view that hides them lays out and draws as it would with them shown (SwiftUIExperiments' keys); UIKit's status bar manager answers for the strip above the safe area.",
+          "noFixture": "Nothing to draw or hide on a page."
+        },
+        {
           "api": "mask(alignment:_:) / mask(_:)",
           "status": "full",
           "notes": "The mask view's alpha clips the content (laid out like an overlay, drawn with an opaque black foreground as SwiftUI does); a mask group in the display list composited with destination-in in the browser and a CoreGraphics clip mask natively",
@@ -1607,6 +1613,12 @@
           "noFixture": "Matrix arithmetic checked in UIKitWebTests; the flattened turn paints through the existing layer transform path."
         },
         {
+          "api": "CALayer shouldRasterize / rasterizationScale; ProjectionTransform(_: CATransform3D)",
+          "status": "full",
+          "notes": "objc-bridging (2026-11-23): a layer keeps whether it rasterizes and at what scale (SwiftUIExperiments' pixel animations); the display list is redrawn as vectors either way, so the output is the same. ProjectionTransform(_:) projects a Core Animation transform onto the view's plane (its x, y and w rows and columns), and projectionEffect divides the affine part through by w, so a perspective that moves a view back in depth shrinks it (SwiftUIExperiments' text scroll).",
+          "noFixture": "Values checked in UIKitWebTests and CoreRuntimeTests; painting goes through the existing projection and layer paths."
+        },
+        {
           "api": "Traits and appearance (traitCollection, traitOverrides, overrideUserInterfaceStyle, UITraitCollection.current, dark appearance)",
           "status": "partial",
           "notes": "The window's style, a hosted tree's overrides (style, size classes, layout direction, content size category), traitCollectionDidChange down the tree; open: overrideUserInterfaceStyle on a view, registerForTraitChanges",
@@ -1760,7 +1772,7 @@
         {
           "api": "UITextView",
           "status": "full",
-          "notes": "Wrapped body text with the 8 pt container insets and 5 pt fragment padding, scrolling, editing through the substrate's multi-line input, delegate callbacks, sizeThatFits, attributed runs, links (attributed and detected) opening through the delegate, the selection painted while editing, exclusion paths, the Helvetica 12 default font; open: the browser's selection in selectedRange, keyboard avoidance. UIKeyInput/UITextInput/UITextInteraction (2026-10-12): an app's own text views take the host's text element, the host's reports relayed as inserts and deletes or replacements of the changed range with the selection following. An input's own position and range subclasses (Runestone's IndexedPosition and IndexedRange) are what the relay hands it, made by its own position(from:offset:) and textRange(from:to:); the default string tokenizer (UITextInputStringTokenizer, UITextDirection), UIFindInteraction with UITextSearchingFindSession (the search runs, results are decorated and stepped through; the web draws no find navigator), UITextSelectionDisplayInteraction, UIMenuController and UIMenuItem (kept, no menu drawn), UITextInteraction's delegate, UIKey.keyCode, undoManager on responders, inputAssistantItem, a gesture recognizer subclass setting and observing its state, NSParagraphStyle tab stops and base writing direction, NSShadow (2026-11-23)",
+          "notes": "Wrapped body text with the 8 pt container insets and 5 pt fragment padding, scrolling, editing through the substrate's multi-line input, delegate callbacks, sizeThatFits, attributed runs, links (attributed and detected) opening through the delegate, the selection painted while editing, exclusion paths, the Helvetica 12 default font; open: the browser's selection in selectedRange, keyboard avoidance. UIKeyInput/UITextInput/UITextInteraction (2026-10-12): an app's own text views take the host's text element, the host's reports relayed as inserts and deletes or replacements of the changed range with the selection following. An input's own position and range subclasses (Runestone's IndexedPosition and IndexedRange) are what the relay hands it, made by its own position(from:offset:) and textRange(from:to:); the default string tokenizer (UITextInputStringTokenizer, UITextDirection), UIFindInteraction with UITextSearchingFindSession (the search runs, results are decorated and stepped through; the web draws no find navigator), UITextSelectionDisplayInteraction, UIMenuController and UIMenuItem (kept, no menu drawn), UITextInteraction's delegate, UIKey.keyCode, undoManager on responders, inputAssistantItem, a gesture recognizer subclass setting and observing its state, NSParagraphStyle tab stops and base writing direction, NSShadow (2026-11-23); typingAttributes (what is typed next takes them; a moved selection takes those of the text it is in) and scrollRangeToVisible(_:) (2026-11-24)",
           "fixtures": [
             "uikit/textview/basic",
             "uikit/textview/heights",
@@ -1790,9 +1802,9 @@
           ]
         },
         {
-          "api": "NSAttributedString / NSString drawing (draw(at:), draw(in:), size(withAttributes:), boundingRect)",
+          "api": "NSAttributedString / NSString drawing (draw(at:), draw(in:), draw(with:options:), size(withAttributes:), boundingRect)",
           "status": "full",
-          "notes": "Per-range fonts and colours, underlines and strikethroughs in their own colours drawn as UIKit's string drawing does (unsnapped lines, a 1 pt minimum), the paragraph alignment, NSMutableAttributedString edits; measured through the text engine; open: the bold faces' line metrics (a half-point at 24 pt bold)",
+          "notes": "Per-range fonts and colours, underlines and strikethroughs in their own colours drawn as UIKit's string drawing does (unsnapped lines, a 1 pt minimum), the paragraph alignment, NSMutableAttributedString edits; measured through the text engine. objc-bridging (2026-11-23): draw(with:options:attributes:context:) wraps in the rectangle with usesLineFragmentOrigin and otherwise draws unwrapped from a baseline at its origin (SwiftUIExperiments' globe); open: the bold faces' line metrics (a half-point at 24 pt bold)",
           "fixtures": [
             "uikit/draw/text",
             "uikit/draw/rest"
@@ -1831,7 +1843,7 @@
         {
           "api": "UIScrollView",
           "status": "partial",
-          "notes": "Content size and offset, insets and the safe-area adjustment (a view controller's first scroll view adjusted even when short), wheel scrolling, finger pans with momentum, rubber banding and paging, the indicators and their insets, delegate callbacks, UIRefreshControl (a pull past 60 starts a refresh and sends valueChanged, the content resting under the spinner until endRefreshing; beginRefreshing, attributedTitle, tintColor), zooming (viewForZooming, zoomScale, zoom(to:), a pinch about its centre, the zoom callbacks), keyboardDismissMode on a drag, scroll-to-top through UIKitScene.scrollToTop(); open: zoom bouncing, the interactive keyboard dismissal",
+          "notes": "Content size and offset, insets and the safe-area adjustment (a view controller's first scroll view adjusted even when short), wheel scrolling, finger pans with momentum, rubber banding and paging, the indicators and their insets, delegate callbacks, UIRefreshControl (a pull past 60 starts a refresh and sends valueChanged, the content resting under the spinner until endRefreshing; beginRefreshing, attributedTitle, tintColor), zooming (viewForZooming, zoomScale, zoom(to:), a pinch about its centre, the zoom callbacks), keyboardDismissMode on a drag, scroll-to-top through UIKitScene.scrollToTop(), contentLayoutGuide (the size its constraints solve to becomes contentSize) and frameLayoutGuide (the visible rectangle, 2026-11-24); open: zoom bouncing, the interactive keyboard dismissal",
           "fixtures": [
             "uikit/scroll/refresh",
             "uikit/scroll/zoom",
@@ -2178,6 +2190,12 @@
           "fixtures": [
             "uikit/layer/content"
           ]
+        },
+        {
+          "api": "CAEmitterLayer / CAEmitterCell",
+          "status": "partial",
+          "notes": "Particles born at each cell's birth rate from the emitter's point, line, rectangle or circle (its outline or inside), moving at their velocity under the cell's acceleration, scaling, fading, recolouring and spinning at the cell's speeds until their lifetime ends, every value varied by its range from the layer's seed, the layer's multipliers applied; drawn as the cell's contents image at the particle's scale, angle and alpha on the scene's clock (2026-11-24); open: a particle's own emitterCells, the colour tint of the contents, emissionLatitude and the third dimension, cell timing (beginTime, duration)",
+          "noFixture": "Motion is not a still: ScrollGuidesEmitterTests holds the particles' births, paths and retirement on the headless clock."
         },
         {
           "api": "UIViewPropertyAnimator",
@@ -2643,7 +2661,7 @@
         {
           "api": "BarMark / LineMark / PointMark / AreaMark / RuleMark / RectangleMark",
           "status": "partial",
-          "notes": "Measured on macOS 27: bars 70 % of a nominal band (the value end rounded by cornerRadius), 2 pt round-capped lines and rules, 8 pt points, solid areas, stacking by series, dodging by position(by:); SectorMark missing",
+          "notes": "Measured on macOS 27: bars 70 % of a nominal band (the value end rounded by cornerRadius), 2 pt round-capped lines and rules, 8 pt points, solid areas, stacking by series, dodging by position(by:). objc-bridging (2026-11-23): SectorMark draws pies and donuts, each sector a share of the angles' sum clockwise from the top between its inner and outer radii (ratio, fixed or inset), the edges moved in by half the angular inset, with no axes or grid (SwiftUIExperiments' walk charts); open: rounded sector corners and ChartProxy.angle(forValue:)",
           "fixtures": [
             "charts/bar",
             "charts/line",
@@ -2926,6 +2944,13 @@
           "notes": "A page has no place search, so every search fails after the call returns with MKError.serverFailure, as Apple's does when its service can't be reached, and a completer's delegate hears the same with no completions; requests, responses, completions, categories, filters, map items and placemarks (a CLPlacemark with a coordinate and a one-line title) are complete values.",
           "fixtures": [],
           "noFixture": "No fixture can show a search: with no search service every search fails, which leaves the page as it was; CoreRuntimeTests MapSearchTests holds the failures and the values."
+        },
+        {
+          "api": "SCNScene / SCNNode / SCNView / SceneView / SCNGeometry shapes / SCNText / SCNMaterial / SCNLight / SCNCamera / SCNAction / SCNVector3 / SCNMatrix4 (SceneKit)",
+          "status": "approximate",
+          "notes": "Drawn on the CPU: each triangle projected through the camera, back faces culled, the rest painted far to near with flat Lambert shading; actions and Core Animation animations on nodes play each frame; camera control orbits and zooms. No depth buffer, textures, shadows, physics or scene files.",
+          "fixtures": [],
+          "noFixture": "The scenes apps draw move each frame; CoreRuntimeTests SceneKitTests hold the transforms, actions, animations, projection, hit testing and the painted faces."
         }
       ]
     }

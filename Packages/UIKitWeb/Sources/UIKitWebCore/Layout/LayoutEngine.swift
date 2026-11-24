@@ -47,11 +47,23 @@ final class LayoutEngine {
 
     /// A guide the app made (`addLayoutGuide`) is a rectangle of its own in its owner's space,
     /// placed only by the constraints on it; the system guides stay insets of their owner.
+    /// A scroll view's content guide is one too, its origin pinned to the content's.
     private func addGuides(of view: UIView) {
-        for guide in view.layoutState.guides where guide.systemInsets == nil {
+        let own = view.layoutState.guides + [view.layoutState.contentGuide].compactMap { $0 }
+        for guide in own where guide.systemInsets == nil {
             let v = variables(for: guide)
             solver.add(LayoutConstraintRow(expression: LinearExpression(v.width), relation: .greaterThanOrEqual, strength: LayoutStrength.required))
             solver.add(LayoutConstraintRow(expression: LinearExpression(v.height), relation: .greaterThanOrEqual, strength: LayoutStrength.required))
+            if guide.isScrollContent {
+                solver.add(LayoutConstraintRow(expression: LinearExpression(v.x), relation: .equal, strength: LayoutStrength.required))
+                solver.add(LayoutConstraintRow(expression: LinearExpression(v.y), relation: .equal, strength: LayoutStrength.required))
+                // A side nothing constrains keeps the size the app set: the weakest wish, so any
+                // constraint on the guide (or the content's hugging) outweighs it.
+                if let scroll = view as? UIScrollView {
+                    solver.add(LayoutConstraintRow(expression: LinearExpression(v.width, constant: -Double(scroll.contentSize.width)), relation: .equal, strength: LayoutStrength.weight(priority: 1)))
+                    solver.add(LayoutConstraintRow(expression: LinearExpression(v.height, constant: -Double(scroll.contentSize.height)), relation: .equal, strength: LayoutStrength.weight(priority: 1)))
+                }
+            }
             guides.append(guide)
         }
     }
@@ -213,6 +225,10 @@ final class LayoutEngine {
             let x = round(solver.value(of: v.x)), y = round(solver.value(of: v.y))
             let right = round(solver.value(of: v.x) + solver.value(of: v.width)), bottom = round(solver.value(of: v.y) + solver.value(of: v.height))
             guide.layoutFrame = CGRect(x: x, y: y, width: max(0, right - x), height: max(0, bottom - y))
+            // The content guide's solved size is what the scroll view scrolls over.
+            if guide.isScrollContent, let scroll = guide.owningView as? UIScrollView, scroll.contentSize != guide.layoutFrame.size {
+                scroll.contentSize = guide.layoutFrame.size
+            }
         }
     }
 
@@ -255,6 +271,9 @@ final class ViewLayoutState {
     var guides: [UILayoutGuide] = []
     var safeAreaGuide: UILayoutGuide?
     var marginsGuide: UILayoutGuide?
+    /// A scroll view's content and frame guides, made when first asked for.
+    var contentGuide: UILayoutGuide?
+    var frameGuide: UILayoutGuide?
     var needsUpdateConstraints = true
 }
 

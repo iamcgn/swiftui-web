@@ -1,4 +1,4 @@
-// The marks: bars, lines, points, areas, rules and rectangles, each an init per combination of
+// The marks: bars, lines, points, areas, rules, rectangles and sectors, each an init per combination of
 // dimensions Swift Charts offers (a value, a start and end, or none on an axis).
 #if os(WASI)
 import WebFoundation
@@ -163,5 +163,19 @@ public struct RectangleMark: _RecordMark {
     /// A span between two y values across the plot's whole width.
     public init<Y: Plottable>(yStart: PlottableValue<Y>, yEnd: PlottableValue<Y>) {
         var r = _MarkRecord(kind: .rectangle); r.setYRange(yStart, yEnd); _record = r
+    }
+}
+
+/// A sector of a pie or donut chart: a share of the circle in proportion to its angle value.
+public struct SectorMark: _RecordMark {
+    public let _record: _MarkRecord
+
+    public init<V: Plottable>(angle: PlottableValue<V>, innerRadius: MarkDimension = .automatic, outerRadius: MarkDimension = .automatic, angularInset: CGFloat? = nil) {
+        var r = _MarkRecord(kind: .sector)
+        r.angle = angle.plotValue
+        r.innerRadius = innerRadius
+        r.outerRadius = outerRadius
+        r.angularInset = angularInset
+        _record = r
     }
 }

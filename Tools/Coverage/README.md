@@ -88,8 +88,10 @@ Known limits: SwiftPM stops at a module whose dependency failed, so a modular ap
 those of its lowest broken modules (the report marks the rest blocked); `#if os(iOS)` is false on
 wasm, so files with it compile their other branch (the report counts them; the workflow's
 `ios` input reads it as true instead, as decision 0025 builds an app); build-tool
-plugins (code generators such as swift-openapi-generator's), binary targets and C or
-Objective-C targets are not built. A package's errors count toward the first app of its batch
+plugins (code generators such as swift-openapi-generator's), binary targets and
+Objective-C targets are not built. C targets build with the SDK's clang; a quoted include of a
+header that Apple's SDKs also ship (ICU's `unicode/umachine.h`, which Runestone's vendored
+tree-sitter reaches that way) is found in the package's own copy, through `-iquote` only. A package's errors count toward the first app of its batch
 that pins it, and show in the report with the package's name before the file.
 
 ## Which SDK

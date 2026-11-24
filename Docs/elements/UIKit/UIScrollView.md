@@ -84,6 +84,15 @@ either, so the fixture moves the content down by the control's height as an app 
   right inset of 4 (the simulator's bar: x 190 in 200). The simulator placed the top of an
   inset bar 3 above its 10 pt inset (y 7); UIKitWeb keeps it at the inset (approximate).
 
+## Layout guides (2026-11-24)
+
+`contentLayoutGuide` is the scrolled content: its leading and top edges are the content's
+origin, and the width and height its constraints solve to (a subview pinned to its four edges,
+say) become `contentSize` at each layout pass. A scroll view whose content guide no
+constraint names keeps the content size it was given. `frameLayoutGuide` is the visible
+rectangle, in the content's coordinates at the current offset: content made as wide as the
+frame guide scrolls only vertically.
+
 ## Open
 
 Zoom bouncing past the limits, the interactive keyboard dismissal, the inset bar's 3 pt

@@ -23,6 +23,7 @@ let package = Package(
         .library(name: "SwiftUI", targets: ["SwiftUI"]),
         .library(name: "Charts", targets: ["Charts"]),
         .library(name: "MapKit", targets: ["MapKit"]),
+        .library(name: "SceneKit", targets: ["SceneKit"]),
         .library(name: "AVFoundation", targets: ["AVFoundation"]),
         .library(name: "AVFAudio", targets: ["AVFAudio"]),
         .library(name: "AVKit", targets: ["AVKit"]),
@@ -109,6 +110,9 @@ let package = Package(
         .target(name: "CoreLocationHost", swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "CoreLocation", dependencies: ["CoreLocationHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "MapKit", dependencies: ["SwiftUI", "CoreLocation"], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Scene graphs drawn by projecting their triangles on the CPU, far to near, with flat shading.
+        .target(name: "SceneKit", dependencies: ["SwiftUI", .product(name: "UIKit", package: "UIKitWeb"), .product(name: "WebFoundation", package: "WebGraphics")],
+                swiftSettings: [.treatAllWarnings(as: .error)]),
         // Audio (AVFAudio, which the browser host links), and the player and the camera (AVFoundation,
         // which re-exports AVFAudio as Apple's does). The camera's preview is a CALayer (UIKitWebCore's);
         // its host hook is a module of its own so the host links no capture code (decision 0006).
@@ -319,7 +323,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", .product(name: "UserNotifications", package: "UIKitWeb"), "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "QuickLook", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", "LanguageMode5Fixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", .product(name: "UserNotifications", package: "UIKitWeb"), "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "QuickLook", "SceneKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", "LanguageMode5Fixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // A Swift 5 language mode type for the tests, as packages built in that mode (swift-perception)
