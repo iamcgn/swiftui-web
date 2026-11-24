@@ -3,7 +3,7 @@
 // shadow makes true (SwiftNIO's NIOCore converts its `ByteBuffer` to and from one). Dispatch
 // keeps a data value as regions of memory it may share; here it is one array of bytes, so
 // there is one region, `region(location:)` answers the whole value, and the no-copy
-// initialisers copy the bytes and release the caller's buffer at once. The methods are
+// initialisers copy the bytes and release the caller's buffer once no value holds it. The methods are
 // Dispatch's (swift-corelibs-libdispatch's Data.swift), deprecated forms included.
 #if os(WASI)
 import WASILibc
@@ -15,8 +15,10 @@ public struct DispatchData: RandomAccessCollection, Sendable {
 
     /// The bytes, in order.
     fileprivate var _bytes: [UInt8]
-    /// A no-copy value's release, run once the last copy of the value is gone.
-    private var _release: _NoCopyRelease?
+    /// The no-copy buffers these bytes came from, each released once the last value holding it
+    /// is gone: a slice or an append holds its source's, as Dispatch's subranges and
+    /// concatenations hold the regions they came from.
+    private var _releases: [_NoCopyRelease] = []
 
     fileprivate init(_bytes: [UInt8]) { self._bytes = _bytes }
 
@@ -63,7 +65,7 @@ public struct DispatchData: RandomAccessCollection, Sendable {
             nonisolated(unsafe) let block = block
             release = { (queue ?? .global()).async { block() } }
         }
-        if bytes.isEmpty { release() } else { _release = _NoCopyRelease(release) }
+        if bytes.isEmpty { release() } else { _releases = [_NoCopyRelease(release)] }
     }
 
     public var count: Int { _bytes.count }
@@ -109,7 +111,9 @@ public struct DispatchData: RandomAccessCollection, Sendable {
     }
 
     public mutating func append(_ other: DispatchData) {
+        guard !other._bytes.isEmpty else { return }
         _bytes.append(contentsOf: other._bytes)
+        _releases.append(contentsOf: other._releases)
     }
 
     public mutating func append<SourceType>(_ buffer: UnsafeBufferPointer<SourceType>) {
@@ -166,7 +170,9 @@ public struct DispatchData: RandomAccessCollection, Sendable {
 
     /// The bytes in `range`, as a value of their own.
     public func subdata(in range: Range<Index>) -> DispatchData {
-        DispatchData(_bytes: Array(_bytes[range]))
+        var slice = DispatchData(_bytes: Array(_bytes[range]))
+        if !range.isEmpty { slice._releases = _releases }
+        return slice
     }
 
     /// The region holding the byte at `location`, and that region's offset: here the whole value.

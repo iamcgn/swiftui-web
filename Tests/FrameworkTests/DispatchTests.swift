@@ -130,6 +130,36 @@ private final class Box: @unchecked Sendable {
         #expect(released.values == [1])
     }
 
+    /// A slice or an append of a no-copy value holds the caller's buffer as well, as Dispatch's
+    /// subranges and concatenations hold the region they came from: the cleanup waits for the
+    /// derived value, not only the original.
+    @Test(arguments: ["slice", "append"]) func noCopyDispatchDataIsHeldByWhatIsMadeFromIt(_ kind: String) async {
+        let released = Box()
+        nonisolated(unsafe) let buffer = UnsafeMutableRawBufferPointer.allocate(byteCount: 4, alignment: 1)
+        buffer.copyBytes(from: [1, 2, 3, 4] as [UInt8])
+        var derived: DispatchData?
+        do {
+            let source = DispatchData(bytesNoCopy: UnsafeRawBufferPointer(buffer), deallocator: .custom(DispatchQueue(label: "cleanup")) {
+                released.append(1)
+                buffer.deallocate()
+            })
+            if kind == "slice" {
+                derived = source.subdata(in: 1..<3)
+            } else {
+                var destination = ([9, 9] as [UInt8]).withUnsafeBytes { DispatchData(bytes: $0) }
+                destination.append(source)
+                derived = destination
+            }
+        }
+        for _ in 0..<5 { await pause() }
+        #expect(released.values.isEmpty)
+        let expected: [UInt8] = kind == "slice" ? [2, 3] : [9, 9, 1, 2, 3, 4]
+        #expect(derived.map { Array($0) } == expected)
+        derived = nil
+        for _ in 0..<400 where released.values.isEmpty { await pause() }
+        #expect(released.values == [1])
+    }
+
     #if !os(WASI)
     // A timer waits out real time, which the wasm test runner can't (see `pause()`).
     @Test func timersFireUntilCancelled() async {
