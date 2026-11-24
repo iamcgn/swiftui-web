@@ -32,3 +32,20 @@ Headless Chromium 129 on the laptop-sweep runner, WebGL2 on ANGLE (Apple M1 Pro,
 - WebGL turns the heavy scene from unusable into smooth and cuts frame work 2-30x elsewhere.
 - Globe stutters because its live texture is re-uploaded (77 uploads in the run): fix before
   adopting. Same numbers with the WebGL painter for everything injected.
+
+## Firefox and WebKit (Nov 24, Linux runs 45336356878 and 45348830119)
+
+Playwright 1.56: Chromium 141, Firefox 142, WebKit 26, headless on Linux (software GPUs, so
+speed here says nothing; the Mac run covers that and real Safari).
+
+- WebKit: WebGL2 works (Apple GPU path in WebKit's build); meshes, depth, lighting and the
+  cube's texture draw as in Chromium. The Globe's live texture never showed: it changes every
+  0.1 s and each new PNG took longer to decode than the next took to arrive. Fixed in this
+  branch (one load at a time per material, the last texture drawn meanwhile, replaced images
+  let go, which also stops the painter's cache from growing): WebKit now uploads 19 textures
+  in 4 s instead of 2.
+- Firefox: headless Firefox on Linux has no WebGL2, and the scene falls back to the 2D drawing
+  by itself with no errors, the same as Chromium with WebGL switched off.
+- Drawings compared by eye (small screenshots in the logs): WebGL is the closest to SceneKit.
+  It draws the cube's checker texture, the whole floor and the Globe's letters; today's CPU
+  path and the 2D fallback draw the cube flat, the floor as a band, and the Globe plain grey.
