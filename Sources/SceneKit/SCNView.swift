@@ -9,6 +9,9 @@ import Foundation
 #endif
 import SwiftUI
 import UIKit
+#if canImport(QuartzCore)
+import QuartzCore   // CACurrentMediaTime on a Mac host
+#endif
 
 public enum SCNAntialiasingMode: UInt, Sendable { case none = 0, multisampling2X, multisampling4X, multisampling8X, multisampling16X }
 

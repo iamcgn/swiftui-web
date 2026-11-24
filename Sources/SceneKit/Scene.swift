@@ -8,6 +8,9 @@ import Foundation
 #endif
 import SwiftUI
 import UIKit
+#if canImport(QuartzCore)
+import QuartzCore   // CACurrentMediaTime on a Mac host
+#endif
 
 /// A container for the node hierarchy and global properties that together form a displayable 3D scene.
 @preconcurrency @MainActor
