@@ -1,6 +1,6 @@
 // The everyday API batch's Foundation fills on wasm (Docs/coverage.md): `Scanner`, `NSNumber`,
-// `Calendar.dateInterval(of:for:)`, `String(localized:)` with `LocalizedStringResource`, and
-// `NSUbiquitousKeyValueStore` over its own defaults suite.
+// `Calendar.dateInterval(of:for:)`, `String(localized:)` with `LocalizedStringResource`,
+// `NSUbiquitousKeyValueStore` over its own defaults suite, and `NSString(string:)` from another `NSString`.
 #if os(WASI)
 import Testing
 import WebFoundation
@@ -66,6 +66,14 @@ import WebFoundation
         #expect(String(localized: "Plain \(number)") == "Plain 7")
         let value: String.LocalizationValue = "Order \(number, specifier: "%d")"
         #expect(String(localized: value) == "Order 7")
+    }
+
+    @Test func stringsCopyFromAnotherNSString() {
+        let source: NSString = "a😀b"
+        let copy = NSMutableString(string: source)
+        copy.append("c")
+        #expect(copy.length == 5 && copy.isEqual(to: "a😀bc") && source.length == 4)
+        #expect(NSString(string: copy).isEqual(to: "a😀bc") && NSMutableString(string: "x").length == 1)
     }
 
     @Test func ubiquitousStoreKeepsValues() {
