@@ -308,7 +308,7 @@ struct _Projection {
 }
 
 /// A light as it shines in a frame.
-private struct _FrameLight {
+struct _FrameLight {
     var type: SCNLight.LightType
     var color: (r: Double, g: Double, b: Double)
     var position: SCNVector3
@@ -348,6 +348,9 @@ open class SCNView: UIView, SCNSceneRenderer {
     var drawnGeneration = -1
     private var painted: [_Painted] = []
     private var lastProjection: _Projection?
+    /// Set while a hit test or snapshot needs the triangles projected here.
+    private var paintsOnCPU = false
+    private var paintedOnCPU = true
     private var orbitNode: SCNNode?
     private var panRecognizer: UIPanGestureRecognizer?
     private var pinchRecognizer: UIPinchGestureRecognizer?
@@ -373,6 +376,8 @@ open class SCNView: UIView, SCNSceneRenderer {
     /// The view drawn into an image.
     open func snapshot() -> UIImage {
         let renderer = UIGraphicsImageRenderer(size: bounds.size)
+        paintsOnCPU = true
+        defer { paintsOnCPU = false }
         return renderer.image { _ in self.draw(self.bounds) }
     }
 
@@ -523,9 +528,11 @@ open class SCNView: UIView, SCNSceneRenderer {
 
     /// The nodes drawn under a point in the last frame, nearest first.
     open func hitTest(_ point: CGPoint, options: [SCNHitTestOption: Any]? = nil) -> [SCNHitTestResult] {
-        if drawnGeneration != _SceneClock.shared.generation || painted.isEmpty {
+        if drawnGeneration != _SceneClock.shared.generation || painted.isEmpty || !paintedOnCPU {
             let renderer = UIGraphicsImageRenderer(size: bounds.size)
+            paintsOnCPU = true
             _ = renderer.image { _ in self.draw(self.bounds) }
+            paintsOnCPU = false
         }
         var hits: [(Double, SCNHitTestResult)] = []
         var seen = Set<ObjectIdentifier>()
@@ -566,6 +573,7 @@ open class SCNView: UIView, SCNSceneRenderer {
     open override func draw(_ rect: CGRect) {
         drawnGeneration = _SceneClock.shared.generation
         painted = []
+        paintedOnCPU = !DisplayMesh.hostRenders || paintsOnCPU
         guard let scene, let context = UIGraphicsGetCurrentContext() else { return }
         let time = CACurrentMediaTime()
         delegate?.renderer(self, willRenderScene: scene, atTime: time)
@@ -577,15 +585,31 @@ open class SCNView: UIView, SCNSceneRenderer {
         lastProjection = projection
         let lights = frameLights(scene, projection: projection, time: time)
         var items: [_Painted] = []
-        collect(scene.rootNode, parentWorld: SCNMatrix4Identity, parentOpacity: 1, time: time,
-                projection: projection, lights: lights, into: &items)
+        if DisplayMesh.hostRenders && !paintsOnCPU {
+            // The browser draws the triangles (WebGL, MeshScript.swift); text and paths are
+            // still painted here, over them.
+            DisplayMesh.script = _meshScript
+            var mesh = _MeshWriter(projection: projection, lights: lights, zFar: (resolvedPointOfView()?.camera ?? SCNCamera()).zFar,
+                                   wireframe: debugOptions.contains(.renderAsWireframe))
+            mesh.collect(scene.rootNode, parentWorld: SCNMatrix4Identity, parentOpacity: 1, time: time)
+            context._recordMesh(mesh.finish(), in: bounds)
+            for (node, world, opacity) in mesh.flat {
+                let geometry = node.geometry!
+                let materials = geometry.materials.isEmpty ? [geometry.firstMaterial!] : geometry.materials
+                collectFlat(geometry, node: node, world: world, material: materials[0], opacity: opacity,
+                            projection: projection, lights: lights, into: &items)
+            }
+        } else {
+            collect(scene.rootNode, parentWorld: SCNMatrix4Identity, parentOpacity: 1, time: time,
+                    projection: projection, lights: lights, into: &items)
+        }
         items.sort { $0.order != $1.order ? $0.order < $1.order : $0.depth > $1.depth }
         painted = items
         for item in items { paint(item, in: context) }
         delegate?.renderer(self, didRenderScene: scene, atTime: time)
     }
 
-    private func frameLights(_ scene: SCNScene, projection: _Projection, time: Double) -> [_FrameLight] {
+    func frameLights(_ scene: SCNScene, projection: _Projection, time: Double) -> [_FrameLight] {
         var lights: [_FrameLight] = []
         func visit(_ node: SCNNode, _ parent: SCNMatrix4) {
             let world = SCNMatrix4Mult(node.localTransform(at: time), parent)

@@ -93,6 +93,9 @@ public final class CanvasSceneHost {
             _ = document.head.object!.appendChild!(script)
         }
         bridge = window.__swiftuiweb.object!
+        // 3D scenes (SceneKit) are drawn by a renderer the module that makes them supplies.
+        // `?mesh=cpu` keeps SceneKit's own CPU drawing (for comparison).
+        DisplayMesh.hostRenders = !(window.location.search.string ?? "").contains("mesh=cpu")
         container = document.getElementById!("app").object ?? document.body.object!
         // iOS Safari exposes the user's text size through the `-apple-system-body` font keyword:
         // the computed size of a probe span is the body style's point size at the current
@@ -1166,6 +1169,14 @@ public final class CanvasSceneHost {
     /// milliseconds (the rest of the phase is the encode and the bridge).
     @discardableResult
     private func paint(_ list: DisplayList) -> Double {
+        if !meshScriptInstalled, let source = DisplayMesh.script {
+            meshScriptInstalled = true
+            if window.__swiftuiwebMesh.isUndefined {
+                let script = document.createElement!("script").object!
+                script.textContent = .string(source)
+                _ = document.head.object!.appendChild!(script)
+            }
+        }
         let encoded = DisplayListEncoder.encode(list, font: DisplayListEncoder.cssFont)
         lastOpCount = list.commands.count
         let buffer = JSTypedArray<Double>(encoded.ops)
@@ -1182,6 +1193,7 @@ public final class CanvasSceneHost {
         return bridge.paint!(context, buffer, strings, dpr, width, height, bitmaps).number ?? 0
     }
     private var lastOpCount = 0
+    private var meshScriptInstalled = false
 
     /// Mirrors the scene's host elements into the elements layer: a clipping wrapper at the
     /// visible frame holding the element at the element's own frame.

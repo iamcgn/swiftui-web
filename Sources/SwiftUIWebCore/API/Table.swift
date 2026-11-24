@@ -390,6 +390,18 @@ extension TableColumn where Sort == Never, Label == Text {
     }
 }
 
+/// A column is column content of its row value and comparator, as SwiftUI's is, so a column
+/// can be passed where `TableColumnContent` is asked for, or kept in a property of
+/// `some TableColumnContent<Row, Sort>` and used in a table. It makes itself as its one column.
+extension TableColumn: TableColumnContent {
+    public typealias TableRowValue = RowValue
+    public typealias TableColumnSortComparator = Sort
+    public var tableColumnBody: Never { return fatalError() }
+    nonisolated public static func _makeContent(content: _GraphValue<TableColumn>, inputs: _TableColumnInputs) -> _TableColumnOutputs {
+        _TableColumnOutputs(columns: [content.value()._column])
+    }
+}
+
 /// A result builder that creates table column content from closures.
 @resultBuilder
 public struct TableColumnBuilder<RowValue: Identifiable, Sort> {
@@ -400,6 +412,15 @@ public struct TableColumnBuilder<RowValue: Identifiable, Sort> {
     /// A column of any sort, content and label type, sortable or not: an unsortable column
     /// sits in a sortable table too.
     public static func buildExpression<S, C, L>(_ column: TableColumn<RowValue, S, C, L>) -> [_AnyTableColumn<RowValue>] { [column._column] }
+    /// Other column content of the table's rows (a property of `some TableColumnContent<Row,
+    /// Sort>`): the columns it makes.
+    public static func buildExpression<Content: TableColumnContent>(_ content: Content) -> [_AnyTableColumn<RowValue>] where Content.TableRowValue == RowValue {
+        var columns: [_AnyTableColumn<RowValue>] = []
+        for column in Content._makeContent(content: _GraphValue { content }, inputs: _TableColumnInputs()).columns {
+            if let column = column as? _AnyTableColumn<RowValue> { columns.append(column) }
+        }
+        return columns
+    }
     public static func buildExpression<D, I>(_ columns: TableColumnForEach<D, I, RowValue>) -> [_AnyTableColumn<RowValue>] { columns.columns }
     public static func buildExpression(_ group: Group<[_AnyTableColumn<RowValue>]>) -> [_AnyTableColumn<RowValue>] { group.content }
     public static func buildOptional(_ columns: [_AnyTableColumn<RowValue>]?) -> [_AnyTableColumn<RowValue>] { columns ?? [] }

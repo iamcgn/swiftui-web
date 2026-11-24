@@ -466,8 +466,8 @@
         {
           "api": "TableColumnContent / TableRowContent / TableColumnBuilder<RowValue, Sort> / _GraphValue",
           "status": "partial",
-          "notes": "The content protocols typed by their row value and sort comparator, with Never as empty content, so packages declare their own conformances (swift-perception's WithPerceptionTracking forwards _makeContent to its content). Table still takes its builder's TableColumn and TableRow lists: a custom content type is not yet placed in a table (2026-11-09).",
-          "noFixture": "Protocol shape with nothing new on screen; ContentProtocolsTests checks a forwarding wrapper's conformance and that empty content makes no columns."
+          "notes": "The content protocols typed by their row value and sort comparator, with Never as empty content, so packages declare their own conformances (swift-perception's WithPerceptionTracking forwards _makeContent to its content). TableColumn is column content of its row and comparator, so a column passes to a generic function and a property of some TableColumnContent<Row, Sort> is placed in a table as the columns it makes (2026-11-24). Rows still come from TableRow lists: custom row content is not yet placed in a table.",
+          "noFixture": "Protocol shape with nothing new on screen; ContentProtocolsTests checks a forwarding wrapper's conformance and that empty content makes no columns; TableTests checks a column's conformance and an opaque column property laid out in a table."
         },
         {
           "api": "ColorPicker(_:selection:supportsOpacity:) / ColorPicker(selection:label:) (Color and CGColor selections)",
@@ -2948,7 +2948,7 @@
         {
           "api": "SCNScene / SCNNode / SCNView / SceneView / SCNGeometry shapes / SCNText / SCNMaterial / SCNLight / SCNCamera / SCNAction / SCNVector3 / SCNMatrix4 (SceneKit)",
           "status": "approximate",
-          "notes": "Drawn on the CPU: each triangle projected through the camera, back faces culled, the rest painted far to near with flat Lambert shading; actions and Core Animation animations on nodes play each frame; camera control orbits and zooms. No depth buffer, textures, shadows, physics or scene files.",
+          "notes": "Drawn on the CPU: each triangle projected through the camera, back faces culled, the rest painted far to near with flat Lambert shading; actions and Core Animation animations on nodes play each frame; camera control orbits and zooms; the simd vectors, matrices, quaternions and functions SceneKit brings, and the nodes' simd properties (2026-11-24). No depth buffer, textures, shadows, physics or scene files.",
           "fixtures": [],
           "noFixture": "The scenes apps draw move each frame; CoreRuntimeTests SceneKitTests hold the transforms, actions, animations, projection, hit testing and the painted faces."
         }
