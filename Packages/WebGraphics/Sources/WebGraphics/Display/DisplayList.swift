@@ -49,6 +49,22 @@ public struct DisplayFont: Hashable, Sendable {
     }
 }
 
+/// A 3D scene a host draws itself (SceneKit through WebGL): its meshes, materials, lights and
+/// camera packed as numbers, and the image files its textures name. The layout is the SceneKit
+/// module's and its renderer's (Sources/SceneKit/MeshScript.swift); a host that has no renderer
+/// for it paints nothing.
+public struct DisplayMesh: Equatable, Sendable {
+    public var values: [Double]
+    public var files: [String]
+    public init(values: [Double], files: [String] = []) { self.values = values; self.files = files }
+    /// Whether this host draws meshes (set by the browser host); otherwise SceneKit draws its
+    /// triangles as paths.
+    nonisolated(unsafe) public static var hostRenders = false
+    /// The renderer's JavaScript, set by the module that makes meshes; the browser host runs it
+    /// once before it paints the first mesh.
+    nonisolated(unsafe) public static var script: String?
+}
+
 /// A bitmap drawn by value: `width × height` straight-alpha RGBA pixels, row-major (a mesh
 /// gradient rasterised at the paint scale). Equality compares the pixels.
 public struct DisplayBitmap: Equatable, Sendable {
@@ -134,6 +150,8 @@ public enum DisplayCommand: Equatable, Sendable {
     case drawImage(ImageDraw)
     /// Draws a bitmap by value stretched into `rect` (absolute coordinates).
     case drawBitmap(DisplayBitmap, rect: CGRect)
+    /// A 3D scene drawn by the host into `rect` (the view's bounds).
+    case drawMesh(DisplayMesh, rect: CGRect)
 }
 
 /// The flat command list a painter consumes for one frame (decision 0002).
@@ -159,7 +177,7 @@ public struct DisplayList: Equatable, Sendable {
             case .strokePath(let path, let style, _), .strokeGradient(let path, let style, _):
                 add(path.strokedPath(style).boundingRect)
             case .drawImage(let draw): add(draw.rect)
-            case .drawBitmap(_, let rect): add(rect)
+            case .drawBitmap(_, let rect), .drawMesh(_, let rect): add(rect)
             case .backdropBlur(_, let bounds, _, _): add(bounds)
             default: break
             }
@@ -231,6 +249,8 @@ extension DisplayCommand: CustomStringConvertible {
             return text + ")"
         case .drawBitmap(let bitmap, let rect):
             return "drawBitmap(\(bitmap.width)x\(bitmap.height) \(r(rect)))"
+        case .drawMesh(let mesh, let rect):
+            return "drawMesh(\(mesh.values.count) values \(r(rect)))"
         }
     }
 }

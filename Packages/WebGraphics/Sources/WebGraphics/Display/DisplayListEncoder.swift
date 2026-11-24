@@ -33,6 +33,8 @@ public enum DisplayOp: Double, Sendable {
     case backdropBlur = 23
     /// bitmap index (into the side table), rect
     case drawBitmap = 24
+    /// rect, file count, file string indices, value count, values: a 3D scene (DisplayMesh)
+    case drawMesh = 25
 }
 
 /// Path element tags inside an encoded path: tag, then coordinates.
@@ -144,6 +146,10 @@ public enum DisplayListEncoder {
                 out.ops += [DisplayOp.drawBitmap.rawValue, Double(out.bitmaps.count)]
                 out.bitmaps.append(bitmap)
                 rect(r)
+            case .drawMesh(let mesh, let r):
+                out.ops.append(DisplayOp.drawMesh.rawValue); rect(r)
+                out.ops.append(Double(mesh.files.count)); for file in mesh.files { out.ops.append(intern(file)) }
+                out.ops.append(Double(mesh.values.count)); out.ops += mesh.values
             }
         }
         return out
@@ -266,6 +272,11 @@ public enum DisplayListDecoder {
             case .drawBitmap:
                 let bitmap = encoded.bitmaps[Int(next())]
                 out.append("drawBitmap \(bitmap.width)x\(bitmap.height) \(f(rect()))")
+            case .drawMesh:
+                let r = rect()
+                let files = (0..<Int(next())).map { _ in encoded.strings[Int(next())] }
+                let n = Int(next()); i += n
+                out.append("drawMesh \(f(r)) \(n) values\(files.isEmpty ? "" : " " + files.joined(separator: ","))")
             }
         }
         return out

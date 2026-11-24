@@ -220,6 +220,8 @@ public final class CoreGraphicsPainter {
                 drawImage(draw, in: ctx)
             case .drawBitmap(let bitmap, let rect):
                 if let image = Self.image(bitmap) { draw(image, in: rect, ctx: ctx) }
+            case .drawMesh:
+                break   // no 3D renderer here: SceneKit draws its triangles as paths for this host
             }
         }
         ctx.restoreGState()
