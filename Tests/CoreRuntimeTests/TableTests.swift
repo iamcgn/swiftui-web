@@ -279,8 +279,10 @@ import SwiftUIWebHeadless
         func sortType<C: TableColumnContent>(_ column: C) -> Any.Type { C.TableColumnSortComparator.self }
         func rowType<C: TableColumnContent>(_ column: C) -> Any.Type { C.TableRowValue.self }
         let color: TableColumn<Fruit, Never, Text, Text> = TableColumn("Color") { Text($0.color) }
-        #expect(sortType(color) == Never.self && rowType(color) == Fruit.self)
-        #expect(sortType(TableColumn("Name", value: \Fruit.name)) == KeyPathComparator<Fruit>.self)
+        #expect(ObjectIdentifier(sortType(color)) == ObjectIdentifier(Never.self))
+        #expect(ObjectIdentifier(rowType(color)) == ObjectIdentifier(Fruit.self))
+        let name: TableColumn<Fruit, KeyPathComparator<Fruit>, Text, Text> = TableColumn("Name", value: \.name)
+        #expect(ObjectIdentifier(sortType(name)) == ObjectIdentifier(KeyPathComparator<Fruit>.self))
         let r = runtime(_OpaqueColumnFruits())
         #expect(r.probeFrames["opaque1"]?.minY == 37 && r.probeFrames["opaque3"]?.minY == 85)
         #expect(r.semanticsTree().contains { $0.role == .group && $0.label == "Name, Color" })
