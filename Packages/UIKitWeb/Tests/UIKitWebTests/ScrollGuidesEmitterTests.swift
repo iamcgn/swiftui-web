@@ -66,6 +66,31 @@ import WebGraphics
         #expect(scroll.contentSize == CGSize(width: 200, height: 900))
     }
 
+    /// Reading the content guide with nothing constraining it leaves the size the app set: the
+    /// guide's frame is that rectangle, and the offset stays (#375).
+    @Test func anUnconstrainedContentGuideKeepsTheGivenSize() {
+        let window = window()
+        let scroll = UIScrollView(frame: CGRect(x: 0, y: 0, width: 200, height: 300))
+        scroll.contentSize = CGSize(width: 200, height: 900)
+        window.addSubview(scroll)
+        scroll.contentOffset = CGPoint(x: 0, y: 100)
+        let badge = UIView()
+        badge.translatesAutoresizingMaskIntoConstraints = false
+        scroll.addSubview(badge)
+        NSLayoutConstraint.activate([
+            badge.trailingAnchor.constraint(equalTo: scroll.frameLayoutGuide.trailingAnchor, constant: -10),
+            badge.bottomAnchor.constraint(equalTo: scroll.frameLayoutGuide.bottomAnchor, constant: -10),
+            badge.widthAnchor.constraint(equalToConstant: 20),
+            badge.heightAnchor.constraint(equalToConstant: 20),
+        ])
+        _ = scroll.contentLayoutGuide
+        window.layoutIfNeeded()
+        #expect(scroll.contentSize == CGSize(width: 200, height: 900))
+        #expect(scroll.contentLayoutGuide.layoutFrame == CGRect(x: 0, y: 0, width: 200, height: 900))
+        #expect(scroll.contentOffset == CGPoint(x: 0, y: 100))
+        #expect(badge.frame == CGRect(x: 170, y: 370, width: 20, height: 20))
+    }
+
     /// The drag-delete prototype's keyboard: the attributes set are what is typed next, until
     /// the selection moves.
     @Test func typedTextTakesTheTypingAttributes() {

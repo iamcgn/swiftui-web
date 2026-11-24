@@ -57,6 +57,12 @@ final class LayoutEngine {
             if guide.isScrollContent {
                 solver.add(LayoutConstraintRow(expression: LinearExpression(v.x), relation: .equal, strength: LayoutStrength.required))
                 solver.add(LayoutConstraintRow(expression: LinearExpression(v.y), relation: .equal, strength: LayoutStrength.required))
+                // A side nothing constrains keeps the size the app set: the weakest wish, so any
+                // constraint on the guide (or the content's hugging) outweighs it.
+                if let scroll = view as? UIScrollView {
+                    solver.add(LayoutConstraintRow(expression: LinearExpression(v.width, constant: -Double(scroll.contentSize.width)), relation: .equal, strength: LayoutStrength.weight(priority: 1)))
+                    solver.add(LayoutConstraintRow(expression: LinearExpression(v.height, constant: -Double(scroll.contentSize.height)), relation: .equal, strength: LayoutStrength.weight(priority: 1)))
+                }
             }
             guides.append(guide)
         }
