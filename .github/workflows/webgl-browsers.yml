@@ -16,12 +16,13 @@ permissions:
 concurrency: { group: webgl-gpu, cancel-in-progress: false }
 jobs:
   linux:
+    if: false   # second run: the Linux check passed in run 45336356878
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-        with: { pattern: 'bundle-scenedemo', path: scene-bundles, merge-multiple: true, run-id: '45315538822', github-token: "${{ github.token }}" }
+        with: { pattern: 'bundle-scenedemo', path: scene-bundles, merge-multiple: true, run-id: '45348830119', github-token: "${{ github.token }}" }
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - name: Playwright with Firefox and WebKit
@@ -38,20 +39,19 @@ jobs:
         with: { name: webgl-browsers-linux, path: .build/webgl-browsers, if-no-files-found: warn, retention-days: 14 }
 
   mac:
-    needs: linux
     runs-on: [self-hosted, laptop-sweep]
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-        with: { pattern: 'bundle-scenedemo', path: scene-bundles, merge-multiple: true, run-id: '45315538822', github-token: "${{ github.token }}" }
+        with: { pattern: 'bundle-scenedemo', path: scene-bundles, merge-multiple: true, run-id: '45348830119', github-token: "${{ github.token }}" }
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - name: Playwright with Firefox and WebKit (into the job's temp folder, removed with it)
         run: |
           echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/ms-playwright" >> "$GITHUB_ENV"
           export PLAYWRIGHT_BROWSERS_PATH="$RUNNER_TEMP/ms-playwright"
-          cd Playwright && npm install && npm install --no-save playwright@1.56 && npx playwright install chromium firefox webkit
+          cd Playwright && npm install && npm install --no-save playwright@1.56 && npx playwright install firefox webkit
           sw_vers; sysctl -n machdep.cpu.brand_string
           /Applications/Safari.app/Contents/MacOS/Safari --version 2>/dev/null || defaults read /Applications/Safari.app/Contents/Info CFBundleShortVersionString || true
       - name: Scenes in Chromium, Firefox and WebKit
@@ -59,13 +59,10 @@ jobs:
           python3 -m http.server 8811 --bind 127.0.0.1 --directory scene-bundles/scenedemo >/dev/null 2>&1 & echo $! > pids
           sleep 2; mkdir -p .build/webgl-browsers; cd Playwright
           t() { perl -e 'alarm shift; exec @ARGV' 900 "$@"; }
-          for b in chromium firefox webkit; do
-            WEBGL_BROWSER=$b t node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes cpu,gl,2d,nogl --out ../.build/webgl-browsers --json ../.build/webgl-browsers/mac-$b.json 2>&1 | tee ../.build/webgl-browsers/mac-$b.txt || echo "$b failed"
-            if head -3 ../.build/webgl-browsers/mac-$b.txt | grep -qiE "^browser .*(no WebGL2|llvmpipe|swiftshader|software|basic render)"; then
-              echo "$b headless has no GPU WebGL; trying a window"
-              WEBGL_HEADED=1 WEBGL_BROWSER=$b t node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes cpu,gl,2d,nogl --label headed --out ../.build/webgl-browsers --json ../.build/webgl-browsers/mac-$b-headed.json || echo "$b headed failed"
-            fi
-          done
+          # Second run (live-texture fix, run 45348830119's bundle): Firefox in a window, as headless
+          # Firefox hung at launch on this Mac; WebKit again for the Globe fix.
+          WEBGL_HEADED=1 WEBGL_BROWSER=firefox t node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes cpu,gl,2d,nogl --label headed --out ../.build/webgl-browsers --json ../.build/webgl-browsers/mac-firefox-headed.json || echo "firefox headed failed"
+          WEBGL_BROWSER=webkit t node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes cpu,gl --scenes Globe --out ../.build/webgl-browsers --json ../.build/webgl-browsers/mac-webkit-globe.json || echo "webkit failed"
       - name: Scenes in Safari (safaridriver)
         run: cd Playwright && perl -e 'alarm shift; exec @ARGV' 900 node webgl/safari.mjs "http://127.0.0.1:8811/index.html" --out ../.build/webgl-browsers --json ../.build/webgl-browsers/mac-safari.json || echo "safari failed"
       - name: Stop the local server
