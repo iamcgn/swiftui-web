@@ -150,3 +150,15 @@ extension NSUnderlineStyle: _UIKitTextAttribute {
         if name == "NSStrikethrough" { modifiers.strikethrough = .some(Text.LineStyle(pattern: pattern)) }
     }
 }
+
+extension ProjectionTransform {
+    /// The projection of a Core Animation transform onto the view's plane: its x, y and w
+    /// rows and columns, the depth ones dropped (SwiftUIExperiments' text scroll builds its
+    /// perspective with `CATransform3D` and hands it to `projectionEffect`).
+    public init(_ m: CATransform3D) {
+        self.init()
+        m11 = m.m11; m12 = m.m12; m13 = m.m14
+        m21 = m.m21; m22 = m.m22; m23 = m.m24
+        m31 = m.m41; m32 = m.m42; m33 = m.m44
+    }
+}
