@@ -5,10 +5,11 @@
 //   - auto switches to WebGL when Canvas2D is slow (switch threshold 0 ms, software allowed);
 //   - WebGL turned off in Chromium (--disable-3d-apis) and ?webgl=off paint with Canvas2D.
 // Each case clicks "+" so the page paints after the painter has loaded, and checks for no page
-// errors and a painted page. CI's Mac VMs have no GPU, and Chromium gives no WebGL at all there
-// unless SwiftShader is allowed, so every case but the 3D-off one launches with it.
+// errors and a painted page. Every case but the 3D-off one launches Chromium the way
+// webgl-launch.mjs found to give WebGL2 on this machine (CI's Mac VMs have no GPU of their own).
 //   node webgl-painter-probe.mjs <url> [--out dir]
 import { chromium } from 'playwright';
+import { webglLaunch } from './webgl-launch.mjs';
 import { PNG } from 'pngjs';
 import { mkdirSync, writeFileSync } from 'node:fs';
 const args = process.argv.slice(2);
@@ -16,13 +17,14 @@ const url = args[0];
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
 const out = opt('--out', '../.build/webgl-painter');
 mkdirSync(out, { recursive: true });
-const SOFTWARE_GL = ['--enable-unsafe-swiftshader', '--use-angle=swiftshader'];
 const withQuery = (u, q) => u + (u.includes('?') ? '&' : '?') + q;
+const launch = await webglLaunch();
+console.log(`WebGL probe launches Chromium as: ${launch.name} (${launch.renderer})`);
 const report = [];
 let failures = 0;
 
-async function open(name, { launchArgs = SOFTWARE_GL, query = '' }) {
-  const browser = await chromium.launch({ args: launchArgs });
+async function open(name, { extraArgs = [], query = '' }) {
+  const browser = await chromium.launch({ headless: launch.headless, args: [...launch.args, ...extraArgs] });
   const page = await browser.newPage({ viewport: { width: 600, height: 400 }, deviceScaleFactor: 2 });
   const errors = [];
   page.on('pageerror', e => errors.push(String(e).slice(0, 300)));
@@ -90,7 +92,7 @@ record('auto: a slow frame goes to WebGL (threshold 0 ms)', switching,
   !switching.info ? 'painter not loaded' : !switching.info.active ? `WebGL not active (${switching.info.reason})` :
   switching.info.switches < 1 || switching.info.glFrames === 0 ? 'auto never switched to WebGL' : '');
 
-const off = await open('no-3d', { launchArgs: ['--disable-3d-apis'] });
+const off = await open('no-3d', { extraArgs: ['--disable-3d-apis'] });
 record('WebGL turned off in Chromium: Canvas2D paints', off,
   off.info && (off.info.active || off.info.glFrames > 0) ? 'WebGL used with 3D APIs off' : '');
 
