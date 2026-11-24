@@ -312,6 +312,42 @@ def c_settings(target):
     return out
 
 
+QUOTED_INCLUDE = re.compile(r'^[ \t]*#[ \t]*include[ \t]*"([^"\n]+/[^"\n]+)"', re.M)
+
+
+def vendored_quote_dirs(root: Path, public_headers: str, settings):
+    """Folders of a C target that hold a header its own quoted includes name but cannot reach.
+
+    Apple's SDKs ship some C libraries' headers (ICU's unicode/umachine.h, for one), so a
+    vendored C library can write `#include "unicode/umachine.h"` from inside its own
+    unicode folder and still build in Xcode, where the include falls through to the SDK.
+    The wasm SDK has no such headers, so the build stops though the package carries its
+    own copy. Each such folder goes on the quote path only (-iquote), so angle includes
+    and the system headers stay as they are."""
+    search = [root / public_headers]
+    for entry in settings:
+        m = re.match(r'\.headerSearchPath\((".*")\)$', entry)
+        if m:
+            search.append(root / json.loads(m.group(1)))
+    files = [f for f in files_under(root) if f.is_file() and f.suffix in C_SOURCES | C_HEADERS]
+    dirs = []
+    for f in files:
+        try:
+            text = f.read_text(errors="replace")
+        except OSError:
+            continue
+        for inc in QUOTED_INCLUDE.findall(text):
+            if (f.parent / inc).exists() or any((d / inc).exists() for d in search + dirs):
+                continue
+            for h in files:
+                if h.as_posix().endswith("/" + inc):
+                    base = Path(h.as_posix()[: -len(inc) - 1])
+                    if base not in dirs and (base / inc).is_file():
+                        dirs.append(base)
+                        break
+    return dirs
+
+
 def dependency_names(dep):
     """(kind, name, package) for a dump-package target dependency."""
     for kind in ("target", "byName", "product"):
@@ -994,16 +1030,48 @@ def describe_app(entry, root: Path, work: Path = None):
                         imported.add(m.group(3))
             t["deps"] = sorted({d for d in t["deps"] if d not in remote_modules}
                                | {n for n in remote_modules if n in imported or n.replace("-", "_") in imported})
-    # Only the package targets the app's own targets reach are built.
+    # Only the package targets the app's own targets reach are built. A local package neither the
+    # Xcode project links (`productName = ...`) nor the app's files import is one Xcode never
+    # builds (OldOS keeps a vendored SwiftUIReorderableForEach folder it doesn't use), so its
+    # targets start no reach; one the used packages depend on is still reached through them.
     by = {t["module"]: t for t in targets}
-    reach, todo = set(), [t["module"] for t in targets if not t.get("remote")]
+    roots = [t for t in targets if not t.get("remote")]
+    app_targets = [t for t in targets if t.get("app") and t["source_root"] == "."]
+    projects = [f for f in root.rglob("project.pbxproj")
+                if not excluded(f.relative_to(root), extra) and ".build" not in f.relative_to(root).parts]
+    if app_targets and projects:
+        linked = set()
+        for f in projects:
+            linked.update(m.group(1).strip('"') for m in PRODUCT_NAME.finditer(f.read_text(errors="replace")))
+        imported = set()
+        for t in app_targets:
+            for f in t["files"]:
+                for line in (root / f).read_text(errors="replace").splitlines():
+                    m = IMPORT.match(line)
+                    if m:
+                        imported.add(m.group(3))
+        used_dirs = {"."}
+        for p in packages:
+            if not p["dump"]:
+                continue
+            names = {t["name"] for t in p["dump"]["targets"]} | {prod["name"] for prod in p["dump"].get("products", [])}
+            if names & linked or (names | {n.replace("-", "_") for n in names}) & imported:
+                used_dirs.add(p["dir"])
+        unused = sorted({t["package_dir"] for t in roots if "package_dir" in t and t["package_dir"] not in used_dirs})
+        for d in unused:
+            notes.append(f"{d}: local package the project neither links nor imports; started no build")
+        dropped = {t["module"] for t in roots if t.get("package_dir", ".") not in used_dirs}
+        for t in app_targets:
+            t["deps"] = [d for d in t["deps"] if d not in dropped]
+        roots = [t for t in roots if t.get("package_dir", ".") in used_dirs]
+    reach, todo = set(), [t["module"] for t in roots]
     while todo:
         n = todo.pop()
         if n in reach or n not in by:
             continue
         reach.add(n)
         todo.extend(by[n]["deps"])
-    targets = [t for t in targets if not t.get("remote") or t["module"] in reach]
+    targets = [t for t in targets if t["module"] in reach or any(t is r for r in roots)]
     for t in targets:
         if t["executable"] and not t.get("app"):
             t["skip"] = True
@@ -1263,6 +1331,7 @@ DECL_NAME = re.compile(r'name: "([^"]+)"')
 # itself: on iOS `import UIKit` or `import SwiftUI` makes the module name visible, here neither
 # can re-export the Foundation shadow (it lives in Packages/Shadows, which depends on them).
 FOUNDATION_QUALIFIED = re.compile(r"(?<![\w.])Foundation\.[A-Za-z_]")
+PRODUCT_NAME = re.compile(r"\bproductName = (\"[^\"\n]*\"|[^;\s]+);")
 IMPORTS_FOUNDATION = re.compile(r"^\s*(?:@\w+\s+)*import\s+(?:\w+\s+)?Foundation\b", re.M)
 # Such a target imports the shadow implicitly, as the app's own manifest would (README, "Naming
 # Foundation"); only those targets, so Combine and the rest of what the shadow re-exports stay
@@ -1389,12 +1458,19 @@ def cmd_prepare(args):
                 if skip_objc:
                     (dest_root / "_sweep_shim.c").write_text("/* The sweep builds this Objective-C shim's headers only. */\n")
                 excludes = [e for e in t.get("exclude", []) if (dest_root / e).exists()]
+                quote_dirs = vendored_quote_dirs(dest_root, t["public_headers"], t["c_settings"])
+                settings = list(t["c_settings"])
+                if quote_dirs:
+                    flags = [x for d in quote_dirs for x in ("-iquote", str(d.resolve()))]
+                    settings.append(f".unsafeFlags({json.dumps(flags)})")
+                    print(f"{t['module']}: own headers on the quote path: "
+                          + ", ".join(d.relative_to(dest_root).as_posix() or "." for d in quote_dirs), flush=True)
                 decls.append(
                     f'        .target(\n            name: "{t["module"]}",\n            dependencies: [{", ".join(json.dumps(d) for d in t["deps"])}],\n'
                     f'            path: "Sources/{t["module"]}",\n'
                     + (f'            exclude: [{", ".join(json.dumps(e) for e in excludes)}],\n' if excludes else "")
                     + f'            publicHeadersPath: {json.dumps(t["public_headers"])},\n'
-                    + f'            cSettings: [{", ".join(t["c_settings"])}]\n        ),'
+                    + f'            cSettings: [{", ".join(settings)}]\n        ),'
                 )
                 continue
             # SwiftPM gives each package its own -package-name, so `package` declarations stay

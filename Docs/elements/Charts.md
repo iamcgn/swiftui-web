@@ -29,7 +29,8 @@ glyphs are the same, the axis and mark geometry follows the measurements below.
 | `chartXScale` / `chartYScale(range: .plotDimension(...))` | accepted, the padding is not applied |
 | Temporal axes: the domain is the data's extent; ticks at years, months, days or hours by the span, labelled "2026", "Jan", "12", "3 PM" | implemented (approximate: Swift Charts' label formats vary with the span) |
 | `chartScrollableAxes`, `chartXSelection`, `chartGesture`, `chartXVisibleDomain`, the accessibility modifiers, `clipShape`, `shadow`, `blur` on marks | accepted, no effect |
-| `SectorMark` (pies), `MapKit`-style `chartPlotStyle` gestures, log scales, `AxisTick` rendering, `MarkStackingMethod` other than standard, label collision handling beyond dropping the one past the plot's end | missing |
+| `SectorMark`: pies and donuts, each sector a share of the angles' sum clockwise from the top, its outer radius as a ratio of the plot's radius, points or an inset, its inner radius the same against the outer one, neighbours twice the angular inset apart, no axes or grid | implemented (rounded sector corners and `ChartProxy.angle(forValue:)` open) |
+| `MapKit`-style `chartPlotStyle` gestures, log scales, `AxisTick` rendering, `MarkStackingMethod` other than standard, label collision handling beyond dropping the one past the plot's end | missing |
 
 ## The measurements (macOS 27, `charts/*` goldens)
 

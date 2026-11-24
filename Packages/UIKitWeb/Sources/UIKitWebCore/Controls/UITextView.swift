@@ -85,6 +85,22 @@ open class UITextView: UIScrollView, HostTextInput, UITextInput {
         }
     }
     private var storedAttributedText: NSAttributedString?
+
+    /// The attributes text typed next takes: the ones set, else those of the character before
+    /// the caret (the first character's at the start), else the view's font and colour.
+    /// Changing the selection drops the ones set.
+    open var typingAttributes: [NSAttributedString.Key: Any] {
+        get {
+            if let storedTypingAttributes { return storedTypingAttributes }
+            if let storedAttributedText, storedAttributedText.length > 0 {
+                let location = min(max(0, selectedRange.location - 1), storedAttributedText.length - 1)
+                return storedAttributedText.attributes(at: location, effectiveRange: nil)
+            }
+            return [.font: resolvedFont, .foregroundColor: textColor ?? UIColor.label]
+        }
+        set { storedTypingAttributes = newValue }
+    }
+    private var storedTypingAttributes: [NSAttributedString.Key: Any]?
     private var settingAttributedText = false
     /// The font; nil draws UIKit's default, Helvetica 12 (its iOS metrics: 13.8 pt lines).
     open var font: UIFont? { didSet { textDidChange() } }
@@ -97,6 +113,8 @@ open class UITextView: UIScrollView, HostTextInput, UITextInput {
     open var selectedRange = NSRange(location: 0, length: 0) {
         didSet {
             guard selectedRange != oldValue else { return }
+            // A new selection takes the attributes of the text it is in, as UIKit's does.
+            storedTypingAttributes = nil
             setNeedsDisplay()
             textViewDelegate?.textViewDidChangeSelection(self)
         }
@@ -246,8 +264,15 @@ open class UITextView: UIScrollView, HostTextInput, UITextInput {
     private func replaceCharacters(in range: NSRange, with replacement: String) {
         let utf16 = Array((text ?? "").utf16)
         let start = max(0, min(range.location, utf16.count)), end = max(start, min(range.location + range.length, utf16.count))
-        let updated = String(decoding: utf16[..<start], as: UTF16.self) + replacement + String(decoding: utf16[end...], as: UTF16.self)
-        text = updated
+        if storedAttributedText != nil || storedTypingAttributes != nil {
+            // Attributed text keeps its runs; what is typed takes the typing attributes.
+            let attributes = typingAttributes
+            let edited = NSMutableAttributedString(attributedString: attributedText)
+            edited.replaceCharacters(in: NSRange(location: start, length: end - start), with: NSAttributedString(string: replacement, attributes: attributes))
+            attributedText = edited
+        } else {
+            text = String(decoding: utf16[..<start], as: UTF16.self) + replacement + String(decoding: utf16[end...], as: UTF16.self)
+        }
         selectedRange = NSRange(location: start + replacement.utf16.count, length: 0)
         textViewDelegate?.textViewDidChange(self)
     }
@@ -773,6 +798,14 @@ open class UITextView: UIScrollView, HostTextInput, UITextInput {
         let line = layout.lines[index]
         return CGRect(x: textContainerInset.left + layout.x(of: offset, inLine: index), y: textContainerInset.top + line.fragmentRect.minY,
                       width: 2, height: line.fragmentRect.height)
+    }
+
+    /// Scrolls so the start and end of `range` (UTF-16 offsets) are in view.
+    open func scrollRangeToVisible(_ range: NSRange) {
+        let length = (text ?? "").utf16.count
+        let start = max(0, min(range.location, length)), end = max(start, min(range.location + range.length, length))
+        let rect = caretRect(for: UITextPosition(offset: start)).union(caretRect(for: UITextPosition(offset: end)))
+        scrollRectToVisible(rect, animated: false)
     }
 
     /// The rectangle the range takes on its first line (view coordinates).

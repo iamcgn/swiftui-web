@@ -36,6 +36,10 @@ public struct NSRange: Hashable, Sendable, CustomStringConvertible {
 
 public let NSNotFound = Int.max
 
+/// A UTF-16 code unit, the type NSString's characters come in (`character(at:)`, keyboard
+/// key handlers comparing a typed character).
+public typealias unichar = UInt16
+
 extension Range where Bound == String.Index {
     /// The string range an `NSRange` of UTF-16 units covers, nil when it falls outside or splits a character.
     public init?<S: StringProtocol>(_ range: NSRange, in string: S) {

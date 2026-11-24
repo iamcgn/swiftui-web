@@ -27,7 +27,7 @@ extension Never: ChartContent {
 }
 
 /// The kinds of mark.
-public enum _MarkKind: Sendable { case bar, line, point, area, rule, rectangle }
+public enum _MarkKind: Sendable { case bar, line, point, area, rule, rectangle, sector }
 
 /// A mark's resolved values and style.
 public struct _MarkRecord {
@@ -63,6 +63,11 @@ public struct _MarkRecord {
     package var offset: CGSize = .zero
     package var annotations: [_Annotation] = []
     package var zIndex: Double = 0
+    /// A sector's share of the circle and its radii and inset (`SectorMark`).
+    package var angle: _PlotValue?
+    package var innerRadius: MarkDimension = .automatic
+    package var outerRadius: MarkDimension = .automatic
+    package var angularInset: CGFloat?
     /// Where the record came from, for stable annotation ids.
     package var index = 0
 

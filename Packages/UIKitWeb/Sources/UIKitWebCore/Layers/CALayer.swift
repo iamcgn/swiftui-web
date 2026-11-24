@@ -297,6 +297,11 @@ open class CALayer: CALayerBase {
     /// transparent layer's shadow path casts nothing (open).
     open var shadowPath: Path? { didSet { setNeedsDisplay() } }
     open var contentsScale: CGFloat = 2
+    /// Whether Core Animation caches the layer's composite as a bitmap, and the scale it caches
+    /// at (SwiftUIExperiments' pixel animations rasterize at the screen's scale). The display
+    /// list is redrawn as vectors either way, so neither changes what is painted.
+    open var shouldRasterize = false
+    open var rasterizationScale: CGFloat = 1
     /// The layer's image (a `CGImage`), drawn in its bounds by `contentsGravity` after its
     /// background and in place of its view's own content (LayerPainting.swift).
     open var contents: Any? { didSet { setNeedsDisplay() } }
@@ -386,6 +391,8 @@ open class CALayer: CALayerBase {
         case "shadowRadius": return .some(shadowRadius)
         case "contents": return .some(contents)
         case "contentsScale": return .some(contentsScale)
+        case "shouldRasterize": return .some(shouldRasterize)
+        case "rasterizationScale": return .some(rasterizationScale)
         case "name": return .some(name)
         default: return nil
         }
@@ -413,6 +420,8 @@ open class CALayer: CALayerBase {
         case "shadowRadius": if let v = Self.number(value) { shadowRadius = v }
         case "contents": contents = value
         case "contentsScale": if let v = Self.number(value) { contentsScale = v }
+        case "shouldRasterize": if let v = Self.flag(value) { shouldRasterize = v }
+        case "rasterizationScale": if let v = Self.number(value) { rasterizationScale = v }
         case "name": if value == nil || value is String { name = value as? String }
         default: return false
         }
