@@ -1,6 +1,7 @@
 # One GPU timing run of both WebGL experiments on Corey's self-hosted Mac (label laptop-sweep),
 # which he approved on Nov 24, 2026. Runs only when Playwright/webgl/gpu-run.txt changes on a
-# claude/webgl-** push: no pull_request trigger, so no pull request ever runs here. Builds nothing:
+# claude/webgl-** push (the branch claude/webgl-gpu, which has no pull request): no pull_request
+# trigger, so no pull request ever runs here. Builds nothing:
 # it takes the SceneDemo bundles from run 45315538822 (this branch) and the app bundles from
 # run 45310558521 (claude/webgl-painter), and times them in Chromium on the Mac's GPU.
 name: WebGL GPU timings (laptop)
@@ -16,8 +17,6 @@ jobs:
   gpu:
     runs-on: [self-hosted, laptop-sweep]
     timeout-minutes: 75
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/ms-playwright
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4
@@ -30,6 +29,8 @@ jobs:
         with: { node-version: 20 }
       - name: Playwright's Chromium (into the job's temp folder, removed with it)
         run: |
+          echo "PLAYWRIGHT_BROWSERS_PATH=$RUNNER_TEMP/ms-playwright" >> "$GITHUB_ENV"
+          export PLAYWRIGHT_BROWSERS_PATH="$RUNNER_TEMP/ms-playwright"
           cd Playwright && npm install && npx playwright install chromium
           mkdir -p webgl-p && cp ../painter/Playwright/webgl/{perf.mjs,painter-gl.js,inject.sh} webgl-p/
           sed -i '' "s|const browser = await chromium.launch({ args:|const browser = await chromium.launch({ channel: process.env.WEBGL_CHANNEL \|\| undefined, args:|" webgl-p/perf.mjs
