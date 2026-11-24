@@ -5,7 +5,8 @@
 //   - auto switches to WebGL when Canvas2D is slow (switch threshold 0 ms, software allowed);
 //   - WebGL turned off in Chromium (--disable-3d-apis) and ?webgl=off paint with Canvas2D.
 // Each case clicks "+" so the page paints after the painter has loaded, and checks for no page
-// errors and a painted page.
+// errors and a painted page. CI's Mac VMs have no GPU, and Chromium gives no WebGL at all there
+// unless SwiftShader is allowed, so every case but the 3D-off one launches with it.
 //   node webgl-painter-probe.mjs <url> [--out dir]
 import { chromium } from 'playwright';
 import { PNG } from 'pngjs';
@@ -15,11 +16,12 @@ const url = args[0];
 const opt = (n, d) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
 const out = opt('--out', '../.build/webgl-painter');
 mkdirSync(out, { recursive: true });
+const SOFTWARE_GL = ['--enable-unsafe-swiftshader', '--use-angle=swiftshader'];
 const withQuery = (u, q) => u + (u.includes('?') ? '&' : '?') + q;
 const report = [];
 let failures = 0;
 
-async function open(name, { launchArgs = [], query = '' }) {
+async function open(name, { launchArgs = SOFTWARE_GL, query = '' }) {
   const browser = await chromium.launch({ args: launchArgs });
   const page = await browser.newPage({ viewport: { width: 600, height: 400 }, deviceScaleFactor: 2 });
   const errors = [];
