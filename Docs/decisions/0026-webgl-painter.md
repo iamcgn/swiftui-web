@@ -6,7 +6,7 @@ Status: accepted
 ## Context
 
 Every view is drawn by PainterScript's Canvas2D decoder of the flat display list. A WebGL2
-painter for the same list (`Packages/WebGraphics/Web/painter-gl.js`) was measured on an M1 Pro
+painter for the same list (now `PainterGLScript.swift` in WebGraphicsCanvas) was measured on an M1 Pro
 (Playwright/webgl/RESULTS.md): busy screens paint 3-5x faster (Ember 38 → 8 ms, Buttoncraft
 12 → 2.4 ms, Scrumdinger 6.6 → 2.1 ms), simple ones about 1 ms slower (Counter 0.9 → 2.5 ms),
 and software WebGL (SwiftShader, which CI and GPU-less machines get) is many times slower than

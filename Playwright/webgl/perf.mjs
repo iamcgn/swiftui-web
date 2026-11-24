@@ -1,5 +1,5 @@
-// Paint time, Canvas2D against WebGL, on a page whose index.html loads painter-gl.js (inject.sh
-// with no mode). Two measures:
+// Paint time, Canvas2D against WebGL, on any app page (the painter is in the bundle; inject.sh fixes
+// a mode). Two measures:
 //   bench   the page's last frame repainted 30 times by each painter, waiting for the pixels
 //           each time: the same content both ways, nothing else in the time.
 //   scroll  a wheel burst over the page, each painter in turn (?webgl=2d, ?webgl=overlay, both

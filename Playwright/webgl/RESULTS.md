@@ -12,7 +12,7 @@ so the timings below say nothing about a real GPU.
   Scrumdinger's probe timed out in both modes.
 - Text: drawn with Canvas2D into textures, so glyphs match (text-heavy screens differ 0.01-0.2%).
 - Fallback: WebGL off or unavailable falls back to Canvas2D on the first frame.
-- Size: painter-gl.js 92,147 bytes, 21,519 brotli, beside the bundle.
+- Size: the painter is 92,147 bytes, 21,519 brotli (in the experiment it sat beside the bundle; it now ships in the wasm, decision 0026).
 - Speed on SwiftShader, same frame x30: Canvas2D 0.1-5 ms for most screens, WebGL 28 ms-2.2 s;
   Ember 190 ms vs 4.8 s. Needs a real GPU to judge.
 
