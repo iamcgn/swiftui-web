@@ -59,6 +59,15 @@ const compare = (a, b) => {
   return { mean: +(sum / (a.cells.length / 3)).toFixed(1), worst: +max.toFixed(0) };
 };
 const shots = {};
+// WEBGL_THUMBS=1 prints each screenshot shrunk 8x as base64 PNG, for reading back from the log.
+const thumb = buf => {
+  const p = PNG.sync.read(buf), f = 8, w = Math.floor(p.width / f), h = Math.floor(p.height / f), t = new PNG({ width: w, height: h });
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) for (let k = 0; k < 4; k++) {
+    let v = 0; for (let j = 0; j < f; j++) for (let i = 0; i < f; i++) v += p.data[((y * f + j) * p.width + x * f + i) * 4 + k];
+    t.data[(y * w + x) * 4 + k] = Math.round(v / (f * f));
+  }
+  return PNG.sync.write(t).toString('base64');
+};
 const stat = xs => { const s = xs.filter(x => x != null).sort((a, b) => a - b); return s.length ? { median: +s[Math.floor(s.length / 2)].toFixed(2), p90: +s[Math.floor(s.length * 0.9)].toFixed(2), max: +s[s.length - 1].toFixed(2), n: s.length } : null; };
 const withQuery = (u, q) => u + (u.includes('?') ? '&' : '?') + q;
 const results = [];
@@ -133,6 +142,7 @@ for (const scene of scenes) {
     const g = grid(buf); shots[scene + mode] = g; res.covered = +g.fg.toFixed(3);
     if (mode !== 'cpu' && shots[scene + 'cpu']) res.vsCpu = compare(shots[scene + 'cpu'], g);
     res.browser = which;
+    if (process.env.WEBGL_THUMBS === '1') console.log(`thumb ${which}-${scene.toLowerCase()}-${mode} ${thumb(buf)}`);
     results.push(res);
     const s = v => v ? `${v.median}/${v.p90}` : '-';
     console.log(`${scene.padEnd(8)} ${(mode + (label ? '+' + label : '')).padEnd(8)} ${String(res.fps).padStart(5)} fps  gap med/p90 ${s(res.frameGap)} ms  frame ${s(res.frameMs)}  render ${s(res.render)}  encode ${s(res.encode)}  paint ${s(res.paint)}  ops ${res.ops?.median ?? '-'}` +

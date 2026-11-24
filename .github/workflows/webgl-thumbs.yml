@@ -1,0 +1,26 @@
+# Linux only: SceneDemo in Chromium and WebKit with each screenshot printed small into the log,
+# so the drawings can be compared by eye without downloading artifacts. Runs only when
+# Playwright/webgl/thumbs-run.txt changes on a claude/webgl-** push.
+name: WebGL thumbnails (Linux)
+on:
+  push:
+    branches: ['claude/webgl-**']
+    paths: ['Playwright/webgl/thumbs-run.txt']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  thumbs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { pattern: 'bundle-scenedemo', path: scene-bundles, merge-multiple: true, run-id: '45315538822', github-token: "${{ github.token }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: cd Playwright && npm install && npm install --no-save playwright@1.56 && npx playwright install --with-deps chromium webkit
+      - run: |
+          python3 -m http.server 8811 --bind 127.0.0.1 --directory scene-bundles/scenedemo >/dev/null 2>&1 &
+          sleep 2; cd Playwright
+          for b in chromium webkit; do WEBGL_THUMBS=1 WEBGL_BROWSER=$b timeout 900 node webgl/scene.mjs "http://127.0.0.1:8811/index.html" --modes cpu,gl,2d --out /tmp/t || echo "$b failed"; done
