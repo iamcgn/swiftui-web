@@ -101,6 +101,14 @@ enum PainterScript {
         img.src = absolute || file.startsWith('data:') || file.startsWith('/') ? file : base + file;
         return null;
       }
+      // A data-URL image its only user let go of (SceneKit's live textures): dropped, loaded or not.
+      image.forget = function (file) {
+        const entry = images.get(file);
+        if (!entry) return;
+        if (!entry.ready && !entry.failed) pending--;
+        entry.img.onload = null; entry.img.onerror = null; entry.img.src = '';
+        images.delete(file);
+      };
       // AsyncImage: a load no view needs any more is dropped (the element's source cleared), so
       // a later request starts over.
       function imageCancel(url) {
@@ -692,6 +700,20 @@ enum PainterScript {
               const bx = buf[i++], by = buf[i++], bw = buf[i++], bh = buf[i++];
               drawBitmap(ctx, bitmap, bx, by, bw, bh);
               if (box) unionDeviceBox(ctx, box, bx, by, bx + bw, by + bh, 0);
+              break;
+            }
+            case 25: {
+              // A 3D scene drawn by the renderer its module installed (SceneKit's WebGL
+              // renderer); without one the scene's rect stays empty.
+              const mx = buf[i++], my = buf[i++], mw = buf[i++], mh = buf[i++];
+              const nf = buf[i++];
+              const files = [];
+              for (let k = 0; k < nf; k++) files.push(strings[buf[i++]]);
+              const nv = buf[i++];
+              const mesh = window.__swiftuiwebMesh;
+              if (mesh) mesh.draw(ctx, buf, i, nv, files, mx, my, mw, mh, dpr, image);
+              i += nv;
+              if (box) unionDeviceBox(ctx, box, mx, my, mx + mw, my + mh, 0);
               break;
             }
             case 16: {

@@ -124,6 +124,13 @@ jobs:
           for i in $(seq 1 60); do curl -sf http://127.0.0.1:8765/index.html >/dev/null && break; sleep 1; done
           (cd Playwright && node counter.mjs http://127.0.0.1:8765/index.html --shot ../.build/counter.png)
           scripts/size-gate.sh Examples/Counter
+      - name: SceneKit through WebGL (Examples/SceneDemo) — meshes on the GPU, the 2D fallback with WebGL off, the CPU path, the Globe's live texture
+        run: |
+          . ~/.swiftly/env.sh
+          scripts/build-wasm.sh Examples/SceneDemo
+          python3 -m http.server 8786 --bind 127.0.0.1 --directory Examples/SceneDemo >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8786/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node scenekit-webgl-probe.mjs http://127.0.0.1:8786/index.html --out ../.build/apps/scenekit-webgl)
       - name: Core Data through SwiftUI's trait (decision 0024) — a view importing only SwiftUI, a predicate importing only Foundation, saves and a reload
         run: |
           . ~/.swiftly/env.sh
