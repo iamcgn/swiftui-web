@@ -144,6 +144,9 @@ open class SCNGeometry {
     open var subdivisionLevel = 0
     open var wantsAdaptiveSubdivision = false
     private var cachedMesh: (key: [Float], vertices: [SCNVector3], triangles: [_Triangle])?
+    /// The mesh packed for the browser's renderer (MeshRendering.swift), and its identity there.
+    var _meshPack: _MeshPack?
+    let _meshID = _MeshPack.nextID()
 
     public init() {}
 

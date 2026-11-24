@@ -694,6 +694,20 @@ enum PainterScript {
               if (box) unionDeviceBox(ctx, box, bx, by, bx + bw, by + bh, 0);
               break;
             }
+            case 25: {
+              // A 3D scene drawn by the renderer its module installed (SceneKit's WebGL
+              // renderer); without one the scene's rect stays empty.
+              const mx = buf[i++], my = buf[i++], mw = buf[i++], mh = buf[i++];
+              const nf = buf[i++];
+              const files = [];
+              for (let k = 0; k < nf; k++) files.push(strings[buf[i++]]);
+              const nv = buf[i++];
+              const mesh = window.__swiftuiwebMesh;
+              if (mesh) mesh.draw(ctx, buf, i, nv, files, mx, my, mw, mh, dpr, image);
+              i += nv;
+              if (box) unionDeviceBox(ctx, box, mx, my, mx + mw, my + mh, 0);
+              break;
+            }
             case 16: {
               i = readPath(ctx, buf, i);
               ctx.lineWidth = buf[i++];

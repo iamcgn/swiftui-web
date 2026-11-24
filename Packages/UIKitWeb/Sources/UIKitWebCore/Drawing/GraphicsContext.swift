@@ -340,6 +340,10 @@ public final class UIGraphicsRecordingContext {
         }
     }
 
+    /// Records a 3D scene the host draws itself over `rect`, in the context's coordinates
+    /// (SceneKit's SCNView when the host renders meshes).
+    public func _recordMesh(_ mesh: DisplayMesh, in rect: CGRect) { record([.drawMesh(mesh, rect: rect)], bounds: rect) }
+
     /// What has been recorded, with what is still open closed (as `finish` would close it).
     var closedCommands: [DisplayCommand] {
         var out = commands
@@ -474,6 +478,7 @@ extension UIView.DrawingCache {
                 draw.rect = draw.rect.offsetBy(dx: offset.x, dy: offset.y)
                 result.append(.drawImage(draw))
             case .drawBitmap(let bitmap, let rect): result.append(.drawBitmap(bitmap, rect: rect.offsetBy(dx: offset.x, dy: offset.y)))
+            case .drawMesh(let mesh, let rect): result.append(.drawMesh(mesh, rect: rect.offsetBy(dx: offset.x, dy: offset.y)))
             }
         }
         return result
