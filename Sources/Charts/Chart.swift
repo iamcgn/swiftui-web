@@ -817,7 +817,9 @@ package func _sectorRadius(_ dimension: MarkDimension, full: CGFloat, automatic:
 }
 
 /// The ring segment between two radii and two angles (clockwise on screen), with each edge
-/// moved in by half `inset` points; a whole turn without an inset is the ring itself.
+/// moved in by `inset` points, so two neighbours with the same inset sit twice it apart (as in
+/// Apple's charts, where an inset of 1.5 leaves a 3-point gap); a whole turn without an inset
+/// is the ring itself.
 package func _sectorPath(center: CGPoint, inner: CGFloat, outer: CGFloat, start: Double, end: Double, inset: CGFloat) -> Path {
     var path = Path()
     let sweep = end - start
@@ -826,17 +828,17 @@ package func _sectorPath(center: CGPoint, inner: CGFloat, outer: CGFloat, start:
         if inner > 0 { path.addEllipse(in: CGRect(x: center.x - inner, y: center.y - inner, width: 2 * inner, height: 2 * inner)) }
         return path
     }
-    let half = Double(max(inset, 0)) / 2
-    let outerTrim = half / Double(outer)
+    let edge = Double(max(inset, 0))
+    let outerTrim = edge / Double(outer)
     guard sweep > 2 * outerTrim else { return path }
     path.addRelativeArc(center: center, radius: outer, startAngle: .radians(start + outerTrim), delta: .radians(sweep - 2 * outerTrim))
-    let innerTrim = inner > 0 ? half / Double(inner) : 0
+    let innerTrim = inner > 0 ? edge / Double(inner) : 0
     if inner > 0, sweep > 2 * innerTrim {
         path.addRelativeArc(center: center, radius: inner, startAngle: .radians(end - innerTrim), delta: .radians(-(sweep - 2 * innerTrim)))
     } else {
-        // The edges meet before the centre: at the point half the inset from each edge.
+        // The edges meet before the centre: at the point the inset away from each edge.
         let mid = (start + end) / 2
-        let distance = sweep < .pi ? half / Swift.max(_sin(sweep / 2), 1e-9) : 0
+        let distance = sweep < .pi ? edge / Swift.max(_sin(sweep / 2), 1e-9) : 0
         path.addLine(to: CGPoint(x: center.x + CGFloat(distance * _cos(mid)), y: center.y + CGFloat(distance * _sin(mid))))
     }
     path.closeSubpath()

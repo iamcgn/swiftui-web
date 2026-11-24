@@ -196,9 +196,13 @@ import Charts
         // A quarter ring from the top to the right between radii 50 and 100.
         let quarter = _sectorPath(center: CGPoint(x: 100, y: 100), inner: 50, outer: 100, start: -.pi / 2, end: 0, inset: 0).boundingRect
         #expect(abs(quarter.minX - 100) < 0.01 && abs(quarter.maxX - 200) < 0.01 && abs(quarter.minY) < 0.01 && abs(quarter.maxY - 100) < 0.01)
-        // An inset moves both edges in by half of it.
+        // An inset moves both edges in by all of it.
         let inset = _sectorPath(center: CGPoint(x: 100, y: 100), inner: 50, outer: 100, start: -.pi / 2, end: 0, inset: 4).boundingRect
-        #expect(abs(inset.minX - 102) < 0.01 && abs(inset.maxY - 98) < 0.01)
+        #expect(abs(inset.minX - 104) < 0.01 && abs(inset.maxY - 96) < 0.01)
+        // Two neighbours with an inset of 1.5 leave a 3-point gap along their shared edge (#369).
+        let upper = _sectorPath(center: CGPoint(x: 100, y: 100), inner: 50, outer: 100, start: -.pi / 2, end: 0, inset: 1.5).boundingRect
+        let lower = _sectorPath(center: CGPoint(x: 100, y: 100), inner: 50, outer: 100, start: 0, end: .pi / 2, inset: 1.5).boundingRect
+        #expect(abs(lower.minY - upper.maxY - 3) < 0.01)
         #expect(_sectorRadius(.inset(10), full: 100, automatic: 0) == 90 && _sectorRadius(.fixed(30), full: 100, automatic: 0) == 30 && _sectorRadius(.automatic, full: 100, automatic: 0) == 0)
         // The inner radius is resolved against the outer one, not the plot (#365).
         #expect(_sectorRadii(inner: .ratio(0.5), outer: .fixed(40), full: 100).inner == 20 && _sectorRadii(inner: .ratio(0.5), outer: .fixed(40), full: 100).outer == 40)
