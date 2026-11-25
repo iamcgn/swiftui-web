@@ -145,6 +145,34 @@ open class MKMapView: UIView {
         set { region.center = newValue }
     }
 
+    /// How the map should be drawn (iOS 16); kept as set, the backdrop doesn't change with it yet.
+    open var preferredConfiguration: MKMapConfiguration = MKStandardMapConfiguration()
+    /// The points of interest the map shows.
+    open var pointOfInterestFilter: MKPointOfInterestFilter?
+    private var cameraPitch: CGFloat = 0
+    private var cameraHeading: CLLocationDirection = 0
+
+    /// The camera the map is seen through: its centre and distance follow the region, and setting
+    /// it moves the region there (the distance spans the map's height).
+    open var camera: MKMapCamera {
+        get {
+            let camera = MKMapCamera(_region: region)
+            camera.pitch = cameraPitch
+            camera.heading = cameraHeading
+            return camera
+        }
+        set {
+            cameraPitch = newValue.pitch
+            cameraHeading = newValue.heading
+            let distance = newValue.centerCoordinateDistance
+            let aspect = bounds.height > 0 ? Double(bounds.width / bounds.height) : 1
+            region = MKCoordinateRegion(center: newValue.centerCoordinate, latitudinalMeters: distance,
+                                        longitudinalMeters: distance * aspect)
+        }
+    }
+
+    open func setCamera(_ camera: MKMapCamera, animated: Bool) { self.camera = camera }
+
     public override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = UIColor(red: 242 / 255, green: 239 / 255, blue: 233 / 255, alpha: 1)
