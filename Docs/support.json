@@ -45,7 +45,7 @@
         {
           "api": "EmptyView / TupleView / Group / _ConditionalContent / Optional",
           "status": "partial",
-          "notes": "Structural nodes transparent to layout; Group forwards its modifiers to each child (layout/group-modifier), EmptyView takes no room",
+          "notes": "Structural nodes transparent to layout; Group forwards its modifiers to each child (layout/group-modifier), EmptyView takes no room; Group also holds toolbar content and commands: its items join the enclosing toolbar and its menus the scene's commands (2026-11-25, Mlem)",
           "fixtures": [
             "layout/group-modifier",
             "foreach/empty"
@@ -71,7 +71,7 @@
         {
           "api": "EnvironmentValues / EnvironmentKey / @Entry / environment(_:_:) / transformEnvironment",
           "status": "full",
-          "notes": "@Entry on EnvironmentValues, FocusedValues and Transaction extensions (SwiftUIWebMacros), with a computed default as Apple's, so non-Sendable defaults compile in Swift 6 (2026-11-22); Tier B (Chromium) within tolerance dynamicTypeSize and displayScale follow the host (iOS Safari's -apple-system-body, devicePixelRatio; 2026-10-11).",
+          "notes": "@Entry on EnvironmentValues, FocusedValues and Transaction extensions (SwiftUIWebMacros), with a computed default as Apple's, so non-Sendable defaults compile in Swift 6 (2026-11-22); Tier B (Chromium) within tolerance dynamicTypeSize and displayScale follow the host (iOS Safari's -apple-system-body, devicePixelRatio; 2026-10-11). an optional @Entry with no initializer defaults to nil, as Apple's (2026-11-25, Mlem)",
           "fixtures": [
             "text/styles",
             "dark/text",
@@ -167,7 +167,7 @@
         {
           "api": "lineLimit / multilineTextAlignment / truncationMode / lineSpacing (View + EnvironmentValues)",
           "status": "partial",
-          "notes": "All lineLimit overloads (lower bounds reserve lines); truncation at character granularity with spaces dropped next to the ellipsis; alignment shifts lines by drawn width; a text under height pressure keeps floor(height / pitch) lines and truncates the last; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting) Right-to-left (2026-10-09): leading and trailing alignment follow the layout direction (layout/rtl-text; the ellipsis of a truncated right-aligned line sits as in a left-to-right one, approximate).",
+          "notes": "All lineLimit overloads (lower bounds reserve lines); truncation at character granularity with spaces dropped next to the ellipsis; alignment shifts lines by drawn width; a text under height pressure keeps floor(height / pitch) lines and truncates the last; Tier B (Chromium) exact frames on all 17 text fixtures, pixels ≤ 1.9 % (system-font fallbacks 4.7 %); WebKit exact frames, text pixels ≤ 1.1 %; Firefox exact frames, pixels ≤ 3.5 % (hinting) Right-to-left (2026-10-09): leading and trailing alignment follow the layout direction (layout/rtl-text; the ellipsis of a truncated right-aligned line sits as in a left-to-right one, approximate). EnvironmentValues._lineHeightMultiple is stored, not applied (2026-11-25, Mlem)",
           "fixtures": [
             "text/line-limit",
             "text/truncation",
@@ -300,7 +300,7 @@
         {
           "api": "Picker (title, string, custom label) / PickerStyle (automatic, menu, segmented, radioGroup, inline, palette) / pickerStyle / tag",
           "status": "partial",
-          "notes": "macOS pop-up button, segmented control and radio group geometry measured; segmented and radio selection by press; the pop-up opens a menu through the presentation layer (approximate look); text options only in the pop-up and segmented styles; Picker(sources:) with agreeing and mixed sources, tag(includeOptional:), image and Label options shown as themselves, dividers and section headers in the pop-up's menu, the focused segmented ring (2026-10-04; macOS 26.6 stretches pickers to the proposal and shrinks them, kept out of the goldens)",
+          "notes": "macOS pop-up button, segmented control and radio group geometry measured; segmented and radio selection by press; the pop-up opens a menu through the presentation layer (approximate look); text options only in the pop-up and segmented styles; Picker(sources:) with agreeing and mixed sources, tag(includeOptional:), image and Label options shown as themselves, dividers and section headers in the pop-up's menu, the focused segmented ring (2026-10-04; macOS 26.6 stretches pickers to the proposal and shrinks them, kept out of the goldens); a LocalizedStringResource title (2026-11-25, Mlem)",
           "fixtures": [
             "picker/basic",
             "picker/forms",
@@ -379,7 +379,7 @@
         {
           "api": "Gradient / LinearGradient / RadialGradient / AngularGradient / EllipticalGradient / MeshGradient / HierarchicalShapeStyle / AnyShapeStyle, ShapeStyle.in / opacity / levels (fills, strokes, backgrounds, text, symbols, template images, Canvas shading) / TintShapeStyle (.tint)",
           "status": "full",
-          "notes": "Display-list gradient ops painted by Canvas2D, stops blended in Oklab (≤ 0.08 % pixels); text foreground gradients through an offscreen mask; Canvas gradient shadings; .primary keeps the inherited style. Elliptical gradients (radii as fractions of the bounds), mesh gradients rasterised into a bitmap at the paint scale (bicubic patches, device or perceptual colours; ≤ 0.84 % against SwiftUI), in(_:), opacity and the hierarchical levels (0.5 / 0.25 / 0.18 / 0.18) on gradients, gradients on symbols and template images (2026-10-11); .tint is the environment's tint, the accent colour unless tint(_:) sets one (2026-10-31). Open: animating a mesh, Bézier control points, a mesh in text",
+          "notes": "Display-list gradient ops painted by Canvas2D, stops blended in Oklab (≤ 0.08 % pixels); text foreground gradients through an offscreen mask; Canvas gradient shadings; .primary keeps the inherited style. Elliptical gradients (radii as fractions of the bounds), mesh gradients rasterised into a bitmap at the paint scale (bicubic patches, device or perceptual colours; ≤ 0.84 % against SwiftUI), in(_:), opacity and the hierarchical levels (0.5 / 0.25 / 0.18 / 0.18) on gradients, gradients on symbols and template images (2026-10-11); .tint is the environment's tint, the accent colour unless tint(_:) sets one (2026-10-31). Open: animating a mesh, Bézier control points, a mesh in text; the static ShapeStyle.opacity(_:) is the foreground style at that opacity (`.background(.opacity(0.2), in: .capsule)`, 2026-11-25, Mlem)",
           "fixtures": [
             "gradient/basic",
             "gradient/text",
@@ -827,7 +827,7 @@
         {
           "api": "searchable (text, isPresented, tokens, prompt) / isSearching / dismissSearch / searchSuggestions / searchCompletion / searchScopes / searchPresentationToolbarBehavior",
           "status": "partial",
-          "notes": "macOS: a search field at the trailing end of the window toolbar when the host paints chrome (a magnifier, token tags and a plain text field in a 36 pt capsule), an approximate scope row under the bar and a suggestion menu under the field while presented. iOS 26: the field in a 46 pt capsule at the bottom of the navigation stack; presented (the field's focus or an isPresented binding), the bar hides, a cancel circle appears, suggestions replace the content as an accent-coloured plain list and an active scope bar takes a 44 pt band at the top; tokens as grey tags; completions set the query or add a token; isSearching follows the presentation; suggestedTokens, searchToolbarBehavior(.minimize) and navigationBarDrawer accepted (Docs/elements/Toolbar.md, 2026-10-04); the suggestedTokens forms, with or without isPresented, take the tokens and show suggestions through searchSuggestions (2026-11-18)",
+          "notes": "macOS: a search field at the trailing end of the window toolbar when the host paints chrome (a magnifier, token tags and a plain text field in a 36 pt capsule), an approximate scope row under the bar and a suggestion menu under the field while presented. iOS 26: the field in a 46 pt capsule at the bottom of the navigation stack; presented (the field's focus or an isPresented binding), the bar hides, a cancel circle appears, suggestions replace the content as an accent-coloured plain list and an active scope bar takes a 44 pt band at the top; tokens as grey tags; completions set the query or add a token; isSearching follows the presentation; suggestedTokens, searchToolbarBehavior(.minimize) and navigationBarDrawer accepted (Docs/elements/Toolbar.md, 2026-10-04); the suggestedTokens forms, with or without isPresented, take the tokens and show suggestions through searchSuggestions (2026-11-18); SearchFieldPlacement.toolbarPrincipal (iOS 26) lands where every placement does (2026-11-25)",
           "fixtures": [
             "toolbar/searchable",
             "ios/search/basic",
@@ -1101,9 +1101,9 @@
           ]
         },
         {
-          "api": "listSectionSeparator / listSectionSeparatorTint / listItemTint",
+          "api": "listSectionSeparator / listSectionSeparatorTint / listItemTint / sectionIndexLabel / listSectionIndexVisibility",
           "status": "stub",
-          "notes": "Stored only",
+          "notes": "Stored only; sectionIndexLabel and listSectionIndexVisibility (iOS 26) are accepted; no list draws a section index here (2026-11-25, Mlem)",
           "fixtures": [
             "list/modifiers"
           ]
@@ -1289,7 +1289,7 @@
         {
           "api": "gesture / highPriorityGesture / simultaneousGesture / GestureMask / DragGesture / LongPressGesture / TapGesture / SpatialTapGesture / MagnifyGesture / RotateGesture / MagnificationGesture / RotationGesture / onLongPressGesture / sequenced / simultaneously / exclusively / GestureState / updating / map",
           "status": "full",
-          "notes": "Recognisers fed by the press events of the deepest interactive node (highPriorityGesture takes the press first, simultaneousGesture ancestors share it, GestureMask honoured); drags report local or global values with velocity, long presses tick on the animation clock, taps count within 0.35 s and SpatialTapGesture reports where the last one landed, local or global; pinches from control-wheel events, Safari gesture events and two touches reach the magnify and rotate gestures; GestureState applies the updating and reset transactions (Docs/elements/Gestures.md)",
+          "notes": "Recognisers fed by the press events of the deepest interactive node (highPriorityGesture takes the press first, simultaneousGesture ancestors share it, GestureMask honoured); drags report local or global values with velocity, long presses tick on the animation clock, taps count within 0.35 s and SpatialTapGesture reports where the last one landed, local or global; pinches from control-wheel events, Safari gesture events and two touches reach the magnify and rotate gestures; GestureState applies the updating and reset transactions (Docs/elements/Gestures.md); gesture(_:isEnabled:) and its high-priority and simultaneous forms: a disabled gesture leaves presses to the subviews, as the subviews mask does (2026-11-25, Mlem)",
           "fixtures": [
             "gesture/basic",
             "gesture/pinch"
@@ -2374,7 +2374,7 @@
         {
           "api": "FileManager / Data(contentsOf:) / Data.write(to:) on file: URLs",
           "status": "partial",
-          "notes": "The app's files live in memory under `file:` URLs (`_MemoryFiles`, the store `memory:` drops already use): `FileManager.default` with `urls(for:in:)` (/Documents, /Library, caches, application support), `temporaryDirectory`, `fileExists`, `contents(atPath:)`, `createFile`, `createDirectory`, `removeItem`, `copyItem`, `moveItem`, `contentsOfDirectory`, `attributesOfItem` and `setAttributes` (size, type, creation and modification dates), `enumerator(at:)` and `enumerator(atPath:)`, `FileHandle` (read, append, seek and truncate; the standard output and error handles print to the console), `InputStream` and `OutputStream` over data, memory or a file; files outside /tmp and the caches go to the host after every write as base64 (`_hostStore`), which the browser host keeps in localStorage under `swiftuiweb.files<path>`, so a saved document is there after a reload (a few MB in all: localStorage's quota); no file coordination, and streams are synchronous (2026-11-03)",
+          "notes": "The app's files live in memory under `file:` URLs (`_MemoryFiles`, the store `memory:` drops already use): `FileManager.default` with `urls(for:in:)` (/Documents, /Library, caches, application support), `temporaryDirectory`, `fileExists`, `contents(atPath:)`, `createFile`, `createDirectory`, `removeItem`, `copyItem`, `moveItem`, `contentsOfDirectory`, `attributesOfItem` and `setAttributes` (size, type, creation and modification dates), `enumerator(at:)` and `enumerator(atPath:)`, `FileHandle` (read, append, seek and truncate; the standard output and error handles print to the console), `InputStream` and `OutputStream` over data, memory or a file; files outside /tmp and the caches go to the host after every write as base64 (`_hostStore`), which the browser host keeps in localStorage under `swiftuiweb.files<path>`, so a saved document is there after a reload (a few MB in all: localStorage's quota); no file coordination, and streams are synchronous (2026-11-03); Data(contentsOf:options:) takes the reading options (mappedIfSafe, uncached, alwaysMapped) and has nothing to map, the file being in memory, and UniformTypeIdentifiers' URL.appendingPathComponent(_:conformingTo:) and appendingPathExtension(for:) add the type's filename extension, or a directory's slash (2026-11-25, Mlem)",
           "noFixture": "Storage, not a screen; WasmFoundationTests round-trips a document through a host store."
         },
         {

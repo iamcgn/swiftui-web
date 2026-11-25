@@ -196,24 +196,6 @@ struct _DocumentWindow<Document: FileDocument, Content: View>: View {
 }
 
 extension UTType {
-    /// The file extension for the common types (the download's name, the open panel's filter).
-    public var preferredFilenameExtension: String? {
-        switch identifier {
-        case "public.plain-text", "public.utf8-plain-text", "public.text": return "txt"
-        case "public.json": return "json"
-        case "public.png": return "png"
-        case "public.jpeg": return "jpg"
-        case "public.rtf": return "rtf"
-        case "public.html": return "html"
-        case "public.xml": return "xml"
-        case "public.comma-separated-values-text": return "csv"
-        default:
-            // An exported type's identifier ends with its extension by convention ("com.example.notes").
-            let last = identifier.split(separator: ".").last.map(String.init)
-            return identifier.hasPrefix("public.") || identifier.hasPrefix("com.apple.") ? nil : last
-        }
-    }
-
     // rtf, html and commaSeparatedText are WebGraphics' own: declaring them here too makes
     // `.commaSeparatedText` ambiguous in a module that sees both.
     public static let xml = UTType(_declared: "public.xml")

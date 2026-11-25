@@ -279,6 +279,11 @@ extension ShapeStyle where Self == ForegroundStyle {
     nonisolated public static func shadow(_ style: ShadowStyle) -> _ShadowShapeStyle<ForegroundStyle> {
         ForegroundStyle().shadow(style)
     }
+
+    /// The foreground style at an opacity (`.background(.opacity(0.2), in: .capsule)`).
+    nonisolated public static func opacity(_ opacity: Double) -> _ModifiedGradientStyle<ForegroundStyle> {
+        ForegroundStyle().opacity(opacity)
+    }
 }
 
 /// A style composited with a blend mode (`.blue.blendMode(.plusDarker)`): a shape it fills or

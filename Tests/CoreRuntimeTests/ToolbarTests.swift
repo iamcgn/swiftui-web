@@ -7,6 +7,16 @@ import SwiftUIWebHeadless
 #if !os(WASI)
 @MainActor private final class Counter { var taps = 0 }
 
+/// Toolbar items returned in a `Group` (Mlem's `MarkAllAsReadButton`).
+private struct GroupedItems: ToolbarContent {
+    var body: some ToolbarContent {
+        Group {
+            ToolbarItem(placement: .navigation) { Button("Back") {} }
+            ToolbarItem(placement: .primaryAction) { Button("Action") {} }
+        }
+    }
+}
+
 @Suite @MainActor struct ToolbarTests {
     private static let bold13 = ResolvedFont(family: "system", size: 13, weight: .semibold, italic: false, textStyle: nil)
     private static let bold15 = ResolvedFont(family: "system", size: 15, weight: .semibold, italic: false, textStyle: nil)
@@ -44,6 +54,15 @@ import SwiftUIWebHeadless
             runtime.pointerUp(at: CGPoint(x: frame.midX, y: frame.midY))
         }
         #expect(counter.taps == 1)
+    }
+
+    @Test func groupedItemsJoinTheBar() {
+        let runtime = runtime(Color.red.toolbar {
+            GroupedItems()
+            ToolbarItemGroup { Button("One") {} }
+        })
+        #expect(runtime.toolbarItems.map(\.placement) == [.navigation, .primaryAction, .automatic])
+        #expect(runtime.semanticsTree().contains { $0.label == "Action" })
     }
 
     @Test func itemsAreCollectedAndTheBarLaysOutAboveTheContent() {

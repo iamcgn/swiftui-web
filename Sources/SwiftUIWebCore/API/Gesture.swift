@@ -443,6 +443,20 @@ extension View {
         modifier(_GestureModifier(gesture: gesture, priority: .simultaneous, mask: mask))
     }
 
+    /// Attaches a gesture that responds only while `isEnabled` (the subviews' gestures respond
+    /// either way, as with the `.subviews` mask).
+    nonisolated public func gesture<G: Gesture>(_ gesture: G, isEnabled: Bool) -> some View {
+        self.gesture(gesture, including: isEnabled ? .all : .subviews)
+    }
+
+    nonisolated public func highPriorityGesture<G: Gesture>(_ gesture: G, isEnabled: Bool) -> some View {
+        highPriorityGesture(gesture, including: isEnabled ? .all : .subviews)
+    }
+
+    nonisolated public func simultaneousGesture<G: Gesture>(_ gesture: G, isEnabled: Bool) -> some View {
+        simultaneousGesture(gesture, including: isEnabled ? .all : .subviews)
+    }
+
     /// Runs `action` after a press held for `minimumDuration`; `onPressingChanged` follows the press.
     nonisolated public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = 10,
                                               perform action: @escaping () -> Void,
