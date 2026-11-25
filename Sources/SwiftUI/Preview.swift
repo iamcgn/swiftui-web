@@ -207,6 +207,23 @@ extension View {
     nonisolated public func previewLayout(_ value: PreviewLayout) -> some View { self }
     /// Names a `PreviewProvider` preview (accepted).
     nonisolated public func previewDisplayName(_ value: String?) -> some View { self }
+    /// Gives a `PreviewProvider` preview a context, such as WidgetKit's widget size (accepted).
+    nonisolated public func previewContext<C: PreviewContext>(_ value: C) -> some View { self }
+}
+
+/// A key for a value a preview context holds.
+public protocol PreviewContextKey {
+    associatedtype Value
+    static var defaultValue: Value { get }
+}
+
+/// What a preview runs in, beyond its device and layout (WidgetKit's `WidgetPreviewContext`).
+public protocol PreviewContext {
+    subscript<Key: PreviewContextKey>(key: Key.Type) -> Key.Value { get }
+}
+
+extension PreviewContext {
+    public subscript<Key: PreviewContextKey>(key: Key.Type) -> Key.Value { Key.defaultValue }
 }
 
 // MARK: - Discovery

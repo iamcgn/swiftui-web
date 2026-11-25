@@ -29,6 +29,9 @@ import WebFoundation
         #expect(data.count == 2)
         let error: CFError = NSError(domain: "keychain", code: -25300)
         #expect(error.code == -25300)
+        // Clendar's app name: `Bundle.main.object(forInfoDictionaryKey: kCFBundleNameKey as String)`.
+        #expect(kCFBundleNameKey as String == "CFBundleName" && kCFBundleVersionKey as String == "CFBundleVersion")
+        #expect(kCFBundleIdentifierKey as String == "CFBundleIdentifier")
     }
     #endif
 }

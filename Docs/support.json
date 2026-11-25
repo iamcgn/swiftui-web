@@ -2763,7 +2763,7 @@
         {
           "api": "WidgetCenter / WidgetFamily / TimelineEntry / Timeline (WidgetKit)",
           "status": "stub",
-          "notes": "pf-small-frameworks (2026-10-31): an app's calls to its widgets (reloadAllTimelines, reloadTimelines(ofKind:), currentConfigurations) are accepted and report no configured widgets, since a page has no home screen; the timeline types are values, so code shared with a widget extension compiles. Widgets themselves (Widget, WidgetConfiguration) are not rendered",
+          "notes": "pf-small-frameworks (2026-10-31): an app's calls to its widgets (reloadAllTimelines, reloadTimelines(ofKind:), currentConfigurations) are accepted and report no configured widgets, since a page has no home screen; the timeline types are values, so code shared with a widget extension compiles. Widgets themselves (Widget, WidgetConfiguration) are not rendered. A widget view's `PreviewProvider` names its size with `.previewContext(WidgetPreviewContext(family:))`, which is kept (Clendar's widget previews, 2026-11-25)",
           "noFixture": "Nothing to draw: FrameworkTests call the center and build a timeline"
         },
         {
@@ -2927,6 +2927,18 @@
           "status": "partial",
           "notes": "pf-small-frameworks (2026-11-01): intents run when the app runs them. A parameter holds what the app set, else its default, else nil when optional; perform() and calling the intent return its result; entities, their @Property values, their queries and app enums show themselves as declared. A button or toggle made with an intent runs perform() when pressed. Parameter summaries (When, Switch, Case) and shortcut phrases keep their text. Asking the user for a value, a choice or a confirmation throws, since a web page has no Siri or Shortcuts to ask; donations and shortcuts are kept but nothing reads them, and SiriTipView and ShortcutsLink show nothing. DisplayRepresentation.Image(systemName:isTemplate:) takes an optional, nil drawing a template (SFSafeSymbols, 2026-11-15)",
           "noFixture": "Nothing to draw: AppIntentsTests run intents, read parameters, entities and summaries, and press intent buttons and toggles"
+        },
+        {
+          "api": "INShortcut / INIntent / INInteraction / INVoiceShortcut / INVoiceShortcutCenter / INPreferences / NSUserActivity.suggestedInvocationPhrase (Intents)",
+          "status": "stub",
+          "notes": "2026-11-25: a page has no Siri, so Siri authorization is denied, donations and shortcut suggestions are accepted and go nowhere, and the voice shortcuts are the ones the user added through IntentsUI's sheets since the page opened (kept in memory, not across reloads). A shortcut is an intent or a user activity, as Apple's Swift enum is; an activity's suggested phrase and shortcut availability are kept. The module re-exports Foundation",
+          "noFixture": "Nothing to draw: CoreRuntimeTests (IntentsUITests) check the denied authorization, donations and suggestions"
+        },
+        {
+          "api": "INUIAddVoiceShortcutButton / INUIAddVoiceShortcutViewController / INUIEditVoiceShortcutViewController and their delegates (IntentsUI)",
+          "status": "partial",
+          "notes": "2026-11-25: the Add to Siri button in its six styles, showing \"Add to Siri\" or the recorded phrase; pressing it hands its delegate the add sheet (no phrase yet) or the edit sheet. The sheets are UIKit controllers with a navigation bar: the add sheet has the phrase prefilled with the app's suggestion, a line saying Siri isn't available in the browser, Cancel and Add; the edit sheet has Cancel, Done and Delete Phrase. Add and Done keep the phrase with INVoiceShortcutCenter and report it to the delegate, so the app's flow finishes; Siri never hears it. The module re-exports Intents and UIKit",
+          "noFixture": "Checked by CoreRuntimeTests (IntentsUITests) and by compiling Clendar's Siri shortcut screen in the coverage sweep"
         },
         {
           "api": "WebView / WebPage (WebKit)",
