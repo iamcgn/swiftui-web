@@ -158,3 +158,23 @@ private struct RawStored: View {
     }
 }
 #endif
+
+#if os(WASI)
+/// UniformTypeIdentifiers' URL methods and the reading options (Mlem's settings files).
+@Suite struct WasmTypedURLTests {
+    @Test func urlsTakeTheTypesFilenameExtension() throws {
+        let root = URL(fileURLWithPath: "/Documents")
+        #expect(root.appendingPathComponent("Accounts", conformingTo: .json).lastPathComponent == "Accounts.json")
+        #expect(root.appendingPathComponent("notes.JSON", conformingTo: .json).lastPathComponent == "notes.JSON")
+        #expect(root.appendingPathComponent("Settings", conformingTo: .directory).hasDirectoryPath)
+        #expect(root.appendingPathComponent("Plain", conformingTo: .data).lastPathComponent == "Plain")
+        var picture = root.appendingPathComponent("Picture")
+        picture.appendPathExtension(for: .png)
+        #expect(picture.lastPathComponent == "Picture.png")
+        let file = root.appendingPathComponent("blob")
+        try Data([1, 2]).write(to: file)
+        #expect(try Data(contentsOf: file, options: .mappedIfSafe) == Data([1, 2]))
+        try FileManager.default.removeItem(at: file)
+    }
+}
+#endif

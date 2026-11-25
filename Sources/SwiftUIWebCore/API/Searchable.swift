@@ -12,6 +12,8 @@ public struct SearchFieldPlacement: Hashable, Sendable {
     public static let toolbar = SearchFieldPlacement(name: "toolbar")
     public static let sidebar = SearchFieldPlacement(name: "sidebar")
     public static let navigationBarDrawer = SearchFieldPlacement(name: "navigationBarDrawer")
+    /// iOS 26: the field in the toolbar's principal place.
+    public static let toolbarPrincipal = SearchFieldPlacement(name: "toolbarPrincipal")
 
     /// iOS: the field in the navigation bar's drawer; the display mode is accepted.
     public static func navigationBarDrawer(displayMode: NavigationBarDrawerDisplayMode) -> SearchFieldPlacement {
