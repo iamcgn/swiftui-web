@@ -141,7 +141,7 @@ public struct ImmediateScheduler: Scheduler, Sendable {
     }
 }
 
-#if !canImport(Darwin)
+#if !(canImport(Darwin) && !os(WASI))
 // MARK: - DispatchQueue
 
 extension DispatchQueue: Scheduler {

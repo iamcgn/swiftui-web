@@ -141,7 +141,7 @@ public final class UIApplication: UIResponder {
     /// that may run in an app extension, where `shared` is unavailable, reaches it this way
     /// (RevenueCat's `UIApplication.value(forKey: "sharedApplication")`).
     /// (On Apple platforms the class object answers through Foundation's own key-value coding.)
-    #if !canImport(Darwin)
+    #if !(canImport(Darwin) && !os(WASI))
     nonisolated public class func value(forKey key: String) -> Any? {
         guard key == "sharedApplication" else { return nil }
         return MainActor.assumeIsolated { shared }

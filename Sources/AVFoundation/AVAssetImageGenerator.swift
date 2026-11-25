@@ -192,7 +192,7 @@ extension NSValue {
     /// The time this value holds.
     public var timeValue: CMTime {
         var seconds = Double.nan
-        #if canImport(Darwin)
+        #if canImport(Darwin) && !os(WASI)
         getValue(&seconds, size: MemoryLayout<Double>.size)
         #else
         getValue(&seconds)

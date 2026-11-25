@@ -291,7 +291,7 @@ public final class NotificationToken: NSObjectProtocol {
 
 #endif
 
-#if !canImport(Darwin)
+#if !(canImport(Darwin) && !os(WASI))
 
 /// The identifier an activity's saved copies are deleted by.
 public typealias NSUserActivityPersistentIdentifier = String

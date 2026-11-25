@@ -221,7 +221,7 @@ open class CSSearchableIndex: @unchecked Sendable {
     open func fetchLastClientState() async throws -> Data? { locked { clientState } }
 }
 
-#if !canImport(Darwin)
+#if !(canImport(Darwin) && !os(WASI))
 extension NSUserActivity {
     /// What search shows of the activity.
     public var contentAttributeSet: CSSearchableItemAttributeSet? {

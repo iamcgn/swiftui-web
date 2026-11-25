@@ -6,7 +6,7 @@
 // Foundation's closes at the end of the run loop pass. Selector and invocation registration
 // (`registerUndo(withTarget:selector:object:)`, `prepare(withInvocationTarget:)`) is not kept:
 // there is no Objective-C runtime to send them through.
-#if !canImport(Darwin)
+#if !(canImport(Darwin) && !os(WASI))
 #if !os(WASI)
 import Foundation
 #endif

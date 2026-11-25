@@ -172,7 +172,7 @@ extension NSValue {
     public var scnVector4Value: SCNVector4 { (_webValue?.base as? SCNVector4) ?? SCNVector4() }
     public var scnMatrix4Value: SCNMatrix4 { (_webValue?.base as? SCNMatrix4) ?? SCNMatrix4Identity }
 }
-#elseif canImport(Darwin)
+#elseif canImport(Darwin) && !os(WASI)
 extension NSValue {
     public convenience init(scnVector3 v: SCNVector3) { var v = v; self.init(bytes: &v, objCType: "{SCNVector3=fff}") }
     public convenience init(scnVector4 v: SCNVector4) { var v = v; self.init(bytes: &v, objCType: "{SCNVector4=ffff}") }

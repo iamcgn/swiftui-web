@@ -114,7 +114,7 @@ public struct Fail<Output, Failure: Error>: Publisher {
     }
 }
 
-#if !canImport(Darwin)
+#if !(canImport(Darwin) && !os(WASI))
 // Apple's Combine declares this beside `Just` and `Fail`; on Apple platforms it is Combine's.
 extension Result {
     /// A publisher of the result: its value and then finished, or its error (Alamofire's
@@ -369,7 +369,7 @@ extension NotificationCenter {
     }
 }
 
-#if !canImport(Darwin)
+#if !(canImport(Darwin) && !os(WASI))
 extension NotificationCenter {
     /// Combine's name for the publisher type, as apps spell it in a stored property or a return
     /// type (Clendar's `AppEvents`: `NotificationCenter.Publisher`). Apple's Foundation declares it

@@ -16,7 +16,8 @@
 // `UniformTypeIdentifiers` (`UTType`), `CommonCrypto` (the C digest and HMAC functions over
 // SwiftUIWeb's CryptoKit), `Compression` and `zlib` (the coders over WebFoundationFormats' formats),
 // `CoreText` (the font manager's registration calls, and the typesetter, lines and runs over WebGraphics' `TextTypesetter`), `Symbols` (the symbol effect types), `Accelerate` (vImage's buffers and box filter),
-// `XCTest` (`XCTFail` and the test observation names that libraries use outside tests)
+// `XCTest` (`XCTFail` and the test observation names that libraries use outside tests),
+// `Darwin` (the C library, the unfair lock and the mach clock)
 // are here for the same reason as the rest, and so is
 // `CoreData` (WebCoreData; the app's models go through SwiftUIWeb's CoreDataModel plugin). With
 // `CoreGraphics` importable on wasm, SwiftUIWeb's own sources test for Apple's with
@@ -43,6 +44,7 @@ let package = Package(
         .library(name: "Security", targets: ["Security"]),
         .library(name: "SafariServices", targets: ["SafariServices"]),
         .library(name: "os", targets: ["os"]),
+        .library(name: "Darwin", targets: ["Darwin"]),
         .library(name: "OSLog", targets: ["OSLog"]),
         .library(name: "CoreGraphics", targets: ["CoreGraphics"]),
         .library(name: "ImageIO", targets: ["ImageIO"]),
@@ -131,6 +133,13 @@ let package = Package(
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(name: "OSSubmodules"),
+        .target(
+            name: "Darwin",
+            // Apple's own on Apple platforms; this one is wasm only, its C half included.
+            dependencies: [.target(name: "DarwinShims", condition: .when(platforms: [.wasi]))],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(name: "DarwinShims"),
         .target(
             name: "OSLog",
             dependencies: ["os", "Foundation"],

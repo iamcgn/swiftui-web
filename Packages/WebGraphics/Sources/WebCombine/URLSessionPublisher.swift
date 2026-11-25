@@ -1,7 +1,7 @@
 // `URLSession.dataTaskPublisher(for:)`: a request's data and response as one value, or its
 // `URLError`. The request starts when a subscriber arrives and is cancelled with the
 // subscription, as Combine's does. Apple's Foundation declares its own with Combine.
-#if !canImport(Darwin)
+#if !(canImport(Darwin) && !os(WASI))
 import WebFoundation
 #if canImport(FoundationNetworking) && !os(WASI)
 import FoundationNetworking   // Linux keeps URLSession here

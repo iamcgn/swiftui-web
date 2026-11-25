@@ -167,7 +167,7 @@ extension View {
 /// The text an item provider carries, for a drag started by `onDrag` (Foundation's providers
 /// load asynchronously, so the native host's drag carries none).
 func _itemProviderText(_ provider: NSItemProvider) -> String {
-    #if canImport(Darwin)
+    #if canImport(Darwin) && !os(WASI)
     return ""
     #else
     return provider._text ?? ""
@@ -242,7 +242,7 @@ extension _TransferItem {
 extension NSItemProvider {
     /// Registers a value (bytes, text, a URL, a file's URL) under the type.
     package func _register(_ value: Any, as type: UTType) {
-        #if canImport(Darwin)
+        #if canImport(Darwin) && !os(WASI)
         let data: Data?
         if let bytes = value as? Data { data = bytes }
         else if let text = value as? String { data = Data(text.utf8) }
@@ -259,7 +259,7 @@ extension NSItemProvider {
     }
 }
 
-#if !canImport(Darwin)
+#if !(canImport(Darwin) && !os(WASI))
 /// Why an item provider could not load a representation.
 public struct _ItemProviderError: Error, CustomStringConvertible {
     public let description: String

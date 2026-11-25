@@ -4,7 +4,7 @@
 // the browser host keeps in localStorage as it does `UserDefaults.standard`. Nothing ever
 // changes it externally, so `didChangeExternallyNotification` is never posted.
 // Final, unlike Apple's, so a wasm build drops the methods an app never calls (the size gate).
-#if !canImport(Darwin)
+#if !(canImport(Darwin) && !os(WASI))
 #if !os(WASI)
 import Foundation
 #endif

@@ -485,7 +485,7 @@ open class PHPickerViewController: UIViewController {
     }
 }
 
-#if !canImport(Darwin)
+#if !(canImport(Darwin) && !os(WASI))
 extension NSItemProvider {
     /// Whether the provider has an image to load as `UIImage`.
     public func canLoadObject(ofClass aClass: UIImage.Type) -> Bool {

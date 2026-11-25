@@ -36,7 +36,7 @@ OURS = {
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit", "EventKitUI", "Contacts",
     "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit", "Symbols", "Compression", "zlib", "Translation", "_Translation_SwiftUI", "JavaScriptCore",
     "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "QuickLook", "LinkPresentation", "XCTest",
-    "SceneKit",
+    "SceneKit", "Darwin",
 }
 # `Builtin` is the compiler's own module (swift-collections imports it with the BuiltinModule
 # feature). `XCTest` is the shadow's (Packages/Shadows): the wasm SDK's own can't be read beside
@@ -1307,6 +1307,7 @@ WEB_PRODUCTS = [
     ("Security", "Shadows"),
     ("SafariServices", "Shadows"),
     ("os", "Shadows"),
+    ("Darwin", "Shadows"),
     ("OSLog", "Shadows"),
     ("CoreGraphics", "Shadows"),
     ("CoreImage", "Shadows"),

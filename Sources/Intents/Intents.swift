@@ -70,7 +70,7 @@ public enum INShortcut: Hashable, @unchecked Sendable {
     public func hash(into hasher: inout Hasher) { hasher.combine(_object) }
 }
 
-#if canImport(Darwin)
+#if canImport(Darwin) && !os(WASI)
 import ObjectiveC
 #endif
 
@@ -90,7 +90,7 @@ extension NSUserActivity {
 
 enum _IntentsSlot: String { case phrase = "Intents.suggestedInvocationPhrase", availability = "Intents.shortcutAvailability" }
 
-#if canImport(Darwin)
+#if canImport(Darwin) && !os(WASI)
 // Apple's Foundation activity has no slot for other frameworks, so the phrase and availability
 // ride on it as associated objects (this module stands in for Apple's Intents on a Mac host).
 extension NSUserActivity {

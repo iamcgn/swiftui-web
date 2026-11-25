@@ -149,7 +149,7 @@ public func NSSelectorFromString(_ aSelectorName: String) -> Selector { Selector
 public func NSStringFromSelector(_ aSelector: Selector) -> String { aSelector.name }
 #endif
 
-#if !canImport(Darwin)
+#if !(canImport(Darwin) && !os(WASI))
 
 /// An item for the pasteboard commands: a string, or a value with a type identifier.
 public final class NSItemProvider: @unchecked Sendable {

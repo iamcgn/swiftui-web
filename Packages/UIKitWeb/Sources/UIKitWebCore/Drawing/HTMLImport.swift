@@ -56,7 +56,7 @@ extension NSAttributedString {
         public static let readOnly = DocumentAttributeKey("ReadOnly")
     }
 
-    #if canImport(Darwin)
+    #if canImport(Darwin) && !os(WASI)
     public typealias _DocumentAttributesOut = AutoreleasingUnsafeMutablePointer<NSDictionary?>?
     #else
     public typealias _DocumentAttributesOut = UnsafeMutablePointer<[NSAttributedString.DocumentAttributeKey: Any]?>?
@@ -87,7 +87,7 @@ extension NSAttributedString {
             throw NSError(domain: NSCocoaErrorDomain, code: 259, userInfo: nil)
         }
         if let dict {
-            #if canImport(Darwin)
+            #if canImport(Darwin) && !os(WASI)
             dict.pointee = Dictionary(uniqueKeysWithValues: properties.map { ($0.key.rawValue, $0.value) }) as NSDictionary
             #else
             dict.pointee = properties

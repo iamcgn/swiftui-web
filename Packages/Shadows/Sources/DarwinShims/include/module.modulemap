@@ -1,0 +1,4 @@
+module DarwinShims [system] {
+  header "DarwinShims.h"
+  export *
+}
