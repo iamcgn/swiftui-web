@@ -294,15 +294,24 @@ import Charts
     }
 
     @Test func automaticValuesKeepAMinimumStride() {
-        // FoodTruck's temperature axis: six marks wanted, but no closer than 5 apart.
-        let points = Array(0...10)
-        let (_, commands) = render(Chart(points, id: \.self) { n in
-            LineMark(x: .value("X", "\(n)"), y: .value("Y", Double(n)))
+        // FoodTruck's temperature axis: six marks wanted, no closer than 5 apart, the scale fitted
+        // to the data (51 to 62), and the lower bound left where the data starts.
+        func labels(_ values: AxisMarkValues) -> [String] {
+            let temperatures = [51.0, 55.0, 58.0, 62.0]
+            let (_, commands) = render(Chart(temperatures, id: \.self) { t in
+                LineMark(x: .value("X", "\(t)"), y: .value("Y", t))
+            }
+            .chartYScale(domain: .automatic(includesZero: false))
+            .chartYAxis { AxisMarks(values: values) { _ in AxisValueLabel() } }
+            .chartXAxis(.hidden)
+            .padding(16))
+            return drawn(commands)
         }
-        .chartYAxis { AxisMarks(values: .automatic(minimumStride: 5, desiredCount: 6, roundLowerBound: false)) { _ in AxisValueLabel() } }
-        .chartXAxis(.hidden)
-        .padding(16))
-        #expect(drawn(commands) == ["0", "5", "10"])
+        #expect(labels(.automatic(minimumStride: 5, desiredCount: 6, roundLowerBound: false)) == ["55", "60", "65"])
+        #expect(labels(.automatic(minimumStride: 5, desiredCount: 6, roundLowerBound: true)) == ["50", "55", "60", "65"])
+        // A fractional stride (Swift Charts' BinaryFloatingPoint overload).
+        let stride: Double = 0.5
+        #expect(labels(.automatic(minimumStride: stride * 10, desiredCount: 6)) == ["50", "55", "60", "65"])
     }
 
     @Test func dateBinsStepByCalendarUnits() {

@@ -13,7 +13,8 @@ import SwiftUI
 /// Which values an axis marks.
 public struct AxisMarkValues: Sendable {
     package enum Kind: Sendable {
-        case automatic(desiredCount: Int?, minimumStride: Double? = nil)
+        /// Rounding a bound (nil: the default, rounded) widens the domain to the step's multiple.
+        case automatic(desiredCount: Int?, minimumStride: Double? = nil, roundLowerBound: Bool? = nil, roundUpperBound: Bool? = nil)
         case values([_PlotValue])
         case strideBy(Double)
         case strideCalendar(Calendar.Component, Int)
@@ -22,11 +23,14 @@ public struct AxisMarkValues: Sendable {
 
     public static var automatic: AxisMarkValues { AxisMarkValues(kind: .automatic(desiredCount: nil)) }
     public static func automatic(desiredCount: Int? = nil, roundLowerBound: Bool? = nil, roundUpperBound: Bool? = nil) -> AxisMarkValues {
-        AxisMarkValues(kind: .automatic(desiredCount: desiredCount))
+        AxisMarkValues(kind: .automatic(desiredCount: desiredCount, roundLowerBound: roundLowerBound, roundUpperBound: roundUpperBound))
     }
     /// Automatic values at least `minimumStride` apart (FoodTruck's temperatures, 5 degrees).
-    public static func automatic(minimumStride: Int, desiredCount: Int? = nil, roundLowerBound: Bool? = nil, roundUpperBound: Bool? = nil) -> AxisMarkValues {
-        AxisMarkValues(kind: .automatic(desiredCount: desiredCount, minimumStride: Double(minimumStride)))
+    public static func automatic<S: BinaryInteger>(minimumStride: S, desiredCount: Int? = nil, roundLowerBound: Bool? = nil, roundUpperBound: Bool? = nil) -> AxisMarkValues {
+        AxisMarkValues(kind: .automatic(desiredCount: desiredCount, minimumStride: Double(minimumStride), roundLowerBound: roundLowerBound, roundUpperBound: roundUpperBound))
+    }
+    public static func automatic<S: BinaryFloatingPoint>(minimumStride: S, desiredCount: Int? = nil, roundLowerBound: Bool? = nil, roundUpperBound: Bool? = nil) -> AxisMarkValues {
+        AxisMarkValues(kind: .automatic(desiredCount: desiredCount, minimumStride: Double(minimumStride), roundLowerBound: roundLowerBound, roundUpperBound: roundUpperBound))
     }
     public static func values<V: Plottable>(_ values: [V]) -> AxisMarkValues {
         AxisMarkValues(kind: .values(values.map { $0.primitivePlottable._plotValue }))
@@ -306,6 +310,10 @@ package struct _ChartConfiguration {
     package var legend = _LegendConfiguration()
     package var xDomain: _ScaleDomain?
     package var yDomain: _ScaleDomain?
+    /// `chartXScale(domain: .automatic(includesZero:))`: whether a numeric scale reaches zero
+    /// (nil: Swift Charts' default, it does).
+    package var xIncludesZero: Bool?
+    package var yIncludesZero: Bool?
     /// `chartForegroundStyleScale`: colours by series value, or the palette in order.
     package var foregroundStyles: [(String, AnyShapeStyle)]?
     package var foregroundPalette: [AnyShapeStyle]?
@@ -425,7 +433,7 @@ extension View {
     }
 
     public func chartXScale(domain: ScaleDomain, type: ScaleType? = nil) -> some View {
-        _chart { _ in }
+        _chart { $0.xIncludesZero = domain.includesZero }
     }
 
     public func chartYScale(domain: ClosedRange<some BinaryFloatingPoint>, type: ScaleType? = nil) -> some View {
@@ -447,7 +455,7 @@ extension View {
     }
 
     public func chartYScale(domain: ScaleDomain, type: ScaleType? = nil) -> some View {
-        _chart { _ in }
+        _chart { $0.yIncludesZero = domain.includesZero }
     }
 
     /// The span of the plot a position scale covers (accepted; the padding is not applied).
@@ -524,8 +532,10 @@ public enum ScaleType: Hashable, Sendable {
     case linear, log, date, category, symmetricLog, squareRoot
 }
 
-/// Scale domain options (`.automatic(includesZero:reversed:)`).
+/// Scale domain options (`.automatic(includesZero:reversed:)`: `includesZero: false` fits a
+/// numeric scale to the data; `reversed` is accepted).
 public struct ScaleDomain: Sendable {
-    public static func automatic(includesZero: Bool? = nil, reversed: Bool? = nil) -> ScaleDomain { ScaleDomain() }
+    package var includesZero: Bool?
+    public static func automatic(includesZero: Bool? = nil, reversed: Bool? = nil) -> ScaleDomain { ScaleDomain(includesZero: includesZero) }
     public static var automatic: ScaleDomain { ScaleDomain() }
 }
