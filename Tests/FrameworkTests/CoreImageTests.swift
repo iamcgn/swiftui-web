@@ -133,6 +133,31 @@ private func readQRCode(_ image: CIImage) throws -> CIQRCodeFeature? {
     return detector.features(in: image).first as? CIQRCodeFeature
 }
 
+/// A symbol drawn from rows of `#` and `.`, `scale` pixels a module, with a four-module white
+/// margin, as a pixel-backed image.
+private func symbolImage(_ rows: [String], scale: Int = 6) throws -> CIImage {
+    let modules = rows.map { $0.map { $0 == "#" } }
+    let side = (modules.count + 8) * scale
+    var pixels = [UInt8](repeating: 255, count: side * side * 4)
+    for (y, row) in modules.enumerated() {
+        for (x, dark) in row.enumerated() where dark {
+            for py in 0..<scale {
+                for px in 0..<scale {
+                    let i = (((y + 4) * scale + py) * side + (x + 4) * scale + px) * 4
+                    pixels[i] = 0
+                    pixels[i + 1] = 0
+                    pixels[i + 2] = 0
+                }
+            }
+        }
+    }
+    let provider = try #require(CGDataProvider(data: Data(pixels)))
+    let image = try #require(CGImage(width: side, height: side, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: side * 4,
+                                     space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGBitmapInfo(alphaInfo: .premultipliedLast),
+                                     provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent))
+    return CIImage(cgImage: image)
+}
+
 @Suite struct QRCodeTests {
     @Test func generatorDrawsOnePixelAModuleWithAMargin() throws {
         let image = try qrCode("01234567")
@@ -195,6 +220,64 @@ private func readQRCode(_ image: CIImage) throws -> CIQRCodeFeature? {
                                            provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent))
         let scaled = CIImage(cgImage: damaged).transformed(by: CGAffineTransform(scaleX: 4, y: 4))
         #expect(try readQRCode(scaled)?.messageString == "error correction")
+    }
+
+    /// Version 1-M, made apart from this encoder: ECI 23 (Windows-1252), then the byte 0x80.
+    @Test func eciNamesTheCharacterSet() throws {
+        let feature = try #require(try readQRCode(symbolImage([
+        "#######....##.#######",
+        "#.....#.......#.....#",
+        "#.###.#.#.#...#.###.#",
+        "#.###.#.#.#.#.#.###.#",
+        "#.###.#.##..#.#.###.#",
+        "#.....#.##.#..#.....#",
+        "#######.#.#.#.#######",
+        "........#.#..........",
+        "#.#####....#..#####..",
+        ".#......#..####....#.",
+        "#.##..####..#.##..#..",
+        "##...#.###.####...#..",
+        "..#.####.##.#..#..#..",
+        "........###.#..#..#..",
+        "#######....#.#..#.##.",
+        "#.....#.#.#....##.###",
+        "#.###.#.#..#.#..#.##.",
+        "#.###.#.#..####..#.#.",
+        "#.###.#.###.#.##.....",
+        "#.....#..######..#.##",
+        "#######.#.#.#..#..##.",
+        ])))
+        #expect(feature.messageString == "\u{20AC}")
+        let payload = [UInt8](try #require(feature.symbolDescriptor).errorCorrectedPayload)
+        #expect(Array(payload.prefix(5)) == [0x71, 0x74, 0x01, 0x80, 0x00])
+    }
+
+    /// Version 1-M: ECI 26 (UTF-8) with the bytes C3 A9, then ECI 3 (Latin-1) with the byte E9.
+    @Test func eciCanChangeWithinAMessage() throws {
+        let feature = try #require(try readQRCode(symbolImage([
+        "#######..###..#######",
+        "#.....#.#.##..#.....#",
+        "#.###.#.###...#.###.#",
+        "#.###.#.#.###.#.###.#",
+        "#.###.#..#.##.#.###.#",
+        "#.....#...#.#.#.....#",
+        "#######.#.#.#.#######",
+        "........##.##........",
+        "#.....#.#.#.###..###.",
+        "....#..#.#..#.####...",
+        ".##.########...##.#..",
+        "##.#....#.#.....#.#..",
+        "..#.###...#..##....##",
+        "........########.....",
+        "#######.....#.##...#.",
+        "#.....#....###..#....",
+        "#.###.#..##.#..#.##.#",
+        "#.###.#...#.#....###.",
+        "#.###.#.......#.#..##",
+        "#.....#..#.....##.###",
+        "#######.#.##.#.#..##.",
+        ])))
+        #expect(feature.messageString == "\u{E9}\u{E9}")
     }
 
     @Test func nothingToFind() throws {

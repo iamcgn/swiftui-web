@@ -47,7 +47,9 @@ enum QRCode {
         var dataCodewords: [UInt8]
         /// The bytes of the message's segments, in order.
         var payload: [UInt8]
-        /// The payload as text: UTF-8, or Latin-1 when it is not valid UTF-8.
+        /// The payload as text, each part in the character set its ECI designator names. Bytes
+        /// before any designator, or under one not known here, read as UTF-8, or as Latin-1
+        /// when they are not valid UTF-8.
         var text: String
     }
 
@@ -653,13 +655,21 @@ enum QRCode {
             guard let fixed = correct(block, ecCount: ecCount) else { return nil }
             data += fixed.prefix(sizes[j])
         }
-        guard let payload = segments(data, version: version) else { return nil }
-        let text = String(validating: payload, as: UTF8.self) ?? String(payload.map { Character(Unicode.Scalar($0)) })
+        guard let runs = segments(data, version: version) else { return nil }
+        let payload = runs.flatMap(\.bytes)
+        let text = runs.map { string($0.bytes, eci: $0.eci) }.joined()
         return Decoded(version: version, level: format.level, mask: format.mask, dataCodewords: data, payload: payload, text: text)
     }
 
-    /// The bytes of the segments in the data codewords, or nil when they are malformed.
-    private static func segments(_ data: [UInt8], version: Int) -> [UInt8]? {
+    /// Bytes read under one ECI assignment: nil before the first designator.
+    private struct Run {
+        var eci: Int?
+        var bytes: [UInt8] = []
+    }
+
+    /// The bytes of the segments in the data codewords, split where an ECI designator changes
+    /// the character set, or nil when they are malformed.
+    private static func segments(_ data: [UInt8], version: Int) -> [Run]? {
         var position = 0
         let bitCount = data.count * 8
         func read(_ n: Int) -> Int? {
@@ -671,18 +681,35 @@ enum QRCode {
             }
             return value
         }
+        var runs: [Run] = []
+        var eci: Int?
         var out: [UInt8] = []
         while bitCount - position >= 4 {
             guard let indicator = read(4) else { return nil }
             switch indicator {
             case 0:
-                return out
+                return runs + [Run(eci: eci, bytes: out)]
             case 7:
-                // An ECI designator, one to three bytes; the bytes that follow are kept as they are.
+                // An ECI designator: an assignment number in one, two or three bytes, whose
+                // leading bits say how many.
                 guard let first = read(8) else { return nil }
-                if first & 0x80 != 0 {
-                    guard read(first & 0x40 == 0 ? 8 : 16) != nil else { return nil }
+                let assignment: Int
+                if first & 0x80 == 0 {
+                    assignment = first
+                } else if first & 0x40 == 0 {
+                    guard let rest = read(8) else { return nil }
+                    assignment = (first & 0x3F) << 8 | rest
+                } else if first & 0x20 == 0 {
+                    guard let rest = read(16) else { return nil }
+                    assignment = (first & 0x1F) << 16 | rest
+                } else {
+                    return nil
                 }
+                if !out.isEmpty {
+                    runs.append(Run(eci: eci, bytes: out))
+                    out = []
+                }
+                eci = assignment
             case 5:
                 continue
             case 9:
@@ -728,8 +755,53 @@ enum QRCode {
                 }
             }
         }
-        return out
+        return runs + [Run(eci: eci, bytes: out)]
     }
+
+    // MARK: - Character sets
+
+    /// The bytes read in the character set of ECI assignment `eci`.
+    private static func string(_ bytes: [UInt8], eci: Int?) -> String {
+        switch eci {
+        case 1, 3, 27, 170:
+            // ISO 8859-1, and ASCII, which is a part of it.
+            return String(String.UnicodeScalarView(bytes.map { Unicode.Scalar($0) }))
+        case 17:
+            // ISO 8859-15: Latin-1 with eight places changed.
+            return String(String.UnicodeScalarView(bytes.map { Unicode.Scalar(latin9[$0] ?? UInt32($0))! }))
+        case 23:
+            // Windows-1252: Latin-1 with printable characters where Latin-1 has C1 controls.
+            return String(String.UnicodeScalarView(bytes.map { byte in
+                let code = (0x80...0x9F).contains(byte) ? windows1252[Int(byte) - 0x80] : UInt32(byte)
+                return Unicode.Scalar(code)!
+            }))
+        case 25, 33:
+            // UTF-16, big-endian and little-endian.
+            let units = stride(from: 0, to: bytes.count - 1, by: 2).map { i -> UInt16 in
+                let (high, low) = eci == 25 ? (bytes[i], bytes[i + 1]) : (bytes[i + 1], bytes[i])
+                return UInt16(high) << 8 | UInt16(low)
+            }
+            return String(decoding: units, as: UTF16.self)
+        case 26:
+            return String(decoding: bytes, as: UTF8.self)
+        default:
+            return String(validating: bytes, as: UTF8.self) ?? String(String.UnicodeScalarView(bytes.map { Unicode.Scalar($0) }))
+        }
+    }
+
+    /// Windows-1252 from 0x80 to 0x9F. The five places it leaves unassigned keep the byte's own value.
+    private static let windows1252: [UInt32] = [
+        0x20AC, 0x81, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021,
+        0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x8D, 0x017D, 0x8F,
+        0x90, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014,
+        0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0x9D, 0x017E, 0x0178,
+    ]
+
+    /// The places where ISO 8859-15 differs from Latin-1.
+    private static let latin9: [UInt8: UInt32] = [
+        0xA4: 0x20AC, 0xA6: 0x0160, 0xA8: 0x0161, 0xB4: 0x017D,
+        0xB8: 0x017E, 0xBC: 0x0152, 0xBD: 0x0153, 0xBE: 0x0178,
+    ]
 }
 
 private extension String {

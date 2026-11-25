@@ -55,8 +55,11 @@ levels become dark and light (one threshold for the picture, then a local one), 
 patterns are found by their 1:1:3:1:1 runs, the bottom-right alignment pattern near where they
 put it, and the modules are sampled through the perspective those points give; Reed-Solomon
 corrects damaged codewords. A `CIQRCodeFeature` has the code's corners and bounds in the
-image's coordinates, its `messageString` (UTF-8, or Latin-1 when the bytes are not UTF-8) and a
-`CIQRCodeDescriptor` with its data codewords, version, mask and level. The detector reads images
+image's coordinates, its `messageString` and a
+`CIQRCodeDescriptor` with its data codewords, version, mask and level. The message is read in
+the character set each ECI designator names (Latin-1, ISO 8859-15, Windows-1252, UTF-8, UTF-16
+and ASCII); bytes with no designator, or one of another set, read as UTF-8, or as Latin-1 when
+they are not UTF-8. The detector reads images
 whose pixels are at hand: CGImages made from pixels (camera frames, generated codes), cropped,
 transformed or composited over one another or a colour. An image of a file's bytes has its
 pixels only in the browser, so nothing is found in one, and only the first code is reported.
