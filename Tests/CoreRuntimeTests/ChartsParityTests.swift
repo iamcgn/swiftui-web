@@ -177,6 +177,13 @@ import Charts
         #expect(AnyShapeStyle(gradient)._resolveGradient(in: CGRect(x: 0, y: 0, width: 10, height: 10), environment: environment).stops.count >= 2)
         #expect(BackgroundStyle().resolveColor(in: environment) == Color(storage: .system(.windowBackground)).resolve(in: environment))
         #expect(Color.white.shadow(.drop(radius: 2)).resolveColor(in: environment) == Color.white.resolve(in: environment))
+        // `.shadow(_:)` alone is the foreground style with a shadow (FoodTruck's
+        // `.background(.shadow(.drop(color:radius:)), in: shape)`).
+        func style<S: ShapeStyle>(_ style: S) -> S { style }
+        let shadowed = style(.shadow(.drop(color: .black.opacity(0.2), radius: 10)))
+        #expect(shadowed.shadow.radius == 10)
+        #expect(shadowed.resolveColor(in: environment) == ForegroundStyle().resolveColor(in: environment))
+        _ = Color.clear.background(.shadow(.drop(radius: 10)), in: RoundedRectangle(cornerRadius: 8))
     }
 
     @Test func anchorsMoveIntoAReadersCoordinates() {

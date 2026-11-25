@@ -257,6 +257,21 @@ import SwiftUIWebHeadless
         #expect(model.order.first?.keyPath == \Fruit.count && model.order.first?.order == .reverse)
     }
 
+    /// A table of declared rows takes a selection and a sort order with no `of:` (FoodTruck's
+    /// `Table(selection:sortOrder:) { ... } rows: { Section { ForEach(orders) { TableRow($0) } } }`):
+    /// the rows show in the order given, and a header press sets the binding.
+    @Test func declaredRowsTakeASelectionAndASortOrder() {
+        let model = _TableSortBox()
+        let r = runtime(_DeclaredSortedFruits(model: model))
+        #expect(r.probeFrames["row1"]?.minY == 37 && r.probeFrames["row2"]?.minY == 61 && r.probeFrames["row3"]?.minY == 85)
+        press(r, CGPoint(x: 150, y: 10))
+        #expect(model.order.first?.keyPath == \Fruit.count && model.order.first?.order == .forward)
+        press(r, CGPoint(x: 150, y: 10))
+        #expect(model.order.first?.order == .reverse)
+        relayout(r)
+        #expect(r.probeFrames["row3"]?.minY == 37 && r.probeFrames["row1"]?.minY == 85)
+    }
+
     /// Columns are typed by their row value, sort comparator, content and label, as SwiftUI's
     /// are, so an app can name a column's type (Hipstapaper's `TableColumn<Row, Never, V, Text>`).
     @Test func columnsAreTypedBySortContentAndLabel() {
@@ -328,6 +343,25 @@ struct _SortedFruits: View {
             TableColumn("Count", value: \.count) { Text("\($0.count)")._probe("count\($0.id)") }
             TableColumn("Color") { Text($0.color) }
         }._probe("table")
+    }
+}
+
+/// Declared rows in a section, sorted by the app as FoodTruck's orders table sorts them.
+struct _DeclaredSortedFruits: View {
+    let model: _TableSortBox
+    @State private var selection: Set<Int> = []
+    var body: some View {
+        Table(selection: $selection, sortOrder: Binding(get: { model.order }, set: { model.order = $0 })) {
+            TableColumn("Name", value: \.name) { Text($0.name)._probe("row\($0.id)") }
+            TableColumn("Count", value: \.count) { Text("\($0.count)") }
+            TableColumn("Color") { Text($0.color) }
+        } rows: {
+            Section {
+                ForEach(TableTests.fruits.sorted(using: model.order)) { fruit in
+                    TableRow(fruit)
+                }
+            }
+        }
     }
 }
 
