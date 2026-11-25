@@ -10,7 +10,9 @@
 #    built with assertions, and those builds check every type lowering in SILGen, a check release
 #    compilers never run. Swift 6.3.3's check aborts the build of Hipstapaper's V3Style ("Found
 #    non-trivial lexical leaf in non-trivial non-lexical type", issue #343). The flag skips only
-#    that check; the SIL is the same.
+#    that check; the SIL is the same. Only a toolset whose own compiler carries that check's
+#    message is changed (an assertions build: a release one compiles the check out), so a later
+#    release, or any other SDK, is left as it is.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 roots=("$HOME/Library/org.swift.swiftpm/swift-sdks" "$HOME/.swiftpm/swift-sdks" "${XDG_CONFIG_HOME:-$HOME/.config}/swiftpm/swift-sdks")
@@ -25,6 +27,11 @@ for root in "${roots[@]}"; do
         found=1
     done < <(find "$root" -path '*wasm-objc*' -path '*/include/objc/NSObject.h' 2>/dev/null)
     while IFS= read -r toolset; do
+        frontend="$(dirname "$toolset")/$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("rootPath", ""))' "$toolset")/swift-frontend"
+        if [ ! -f "$frontend" ] || ! LC_ALL=C grep -qF "Found non-trivial lexical leaf in non-trivial non-lexical type" "$frontend"; then
+            echo "Toolset: $toolset: left as it is (its compiler has no lowering check)"
+            continue
+        fi
         python3 - "$toolset" <<'PY'
 import json, sys
 path = sys.argv[1]
