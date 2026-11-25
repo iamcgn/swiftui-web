@@ -274,6 +274,13 @@ extension ShapeStyle {
     }
 }
 
+extension ShapeStyle where Self == ForegroundStyle {
+    /// The foreground style with a shadow (`.background(.shadow(.drop(radius: 10)), in: shape)`).
+    nonisolated public static func shadow(_ style: ShadowStyle) -> _ShadowShapeStyle<ForegroundStyle> {
+        ForegroundStyle().shadow(style)
+    }
+}
+
 /// A style composited with a blend mode (`.blue.blendMode(.plusDarker)`): a shape it fills or
 /// strokes is blended onto what is behind it; as a colour (text, a resolved tint) it is its base.
 public struct _BlendModeShapeStyle<Base: ShapeStyle>: ShapeStyle, _ModifiedStyle {

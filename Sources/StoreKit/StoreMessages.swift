@@ -46,3 +46,18 @@ public struct Message: Hashable, Sendable {
         public func makeAsyncIterator() -> AsyncIterator { AsyncIterator() }
     }
 }
+
+/// The action that displays an App Store message (`@Environment(\.displayStoreKitMessage)`):
+/// FoodTruck's and RevenueCat's message managers keep it and call it with each message the
+/// sequence delivers. The web has no messages, so a call shows nothing.
+public struct DisplayMessageAction: Sendable {
+    package init() {}
+
+    /// Displays the message.
+    @MainActor public func callAsFunction(_ message: Message) throws {}
+}
+
+extension EnvironmentValues {
+    /// The action that displays an App Store message.
+    public var displayStoreKitMessage: DisplayMessageAction { DisplayMessageAction() }
+}

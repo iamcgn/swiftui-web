@@ -84,6 +84,56 @@ public struct Table<Value: Identifiable, Data: RandomAccessCollection>: View whe
         sortOrder = nil
     }
 
+    public init(of valueType: Value.Type, selection: Binding<Set<Value.ID>>, @TableColumnBuilder<Value, Never> columns: () -> [_AnyTableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
+        self.init(rows: rows(), columns: columns(), selection: _ListSelection(multiple: selection), sortOrder: nil)
+    }
+
+    /// A sortable table of declared rows. As with a collection, the rows show in the order given:
+    /// sorting them by the binding's comparators is the caller's.
+    public init(of valueType: Value.Type, sortOrder: Binding<[KeyPathComparator<Value>]>, @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [_AnyTableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
+        self.init(rows: rows(), columns: columns(), selection: nil, sortOrder: sortOrder)
+    }
+
+    public init(of valueType: Value.Type, selection: Binding<Value.ID?>, sortOrder: Binding<[KeyPathComparator<Value>]>, @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [_AnyTableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
+        self.init(rows: rows(), columns: columns(), selection: _ListSelection(single: selection), sortOrder: sortOrder)
+    }
+
+    public init(of valueType: Value.Type, selection: Binding<Set<Value.ID>>, sortOrder: Binding<[KeyPathComparator<Value>]>, @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [_AnyTableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
+        self.init(rows: rows(), columns: columns(), selection: _ListSelection(multiple: selection), sortOrder: sortOrder)
+    }
+
+    /// Creates a table from declared rows, the row type taken from the columns and rows.
+    public init(@TableColumnBuilder<Value, Never> columns: () -> [_AnyTableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
+        self.init(rows: rows(), columns: columns(), selection: nil, sortOrder: nil)
+    }
+
+    public init(selection: Binding<Value.ID?>, @TableColumnBuilder<Value, Never> columns: () -> [_AnyTableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
+        self.init(rows: rows(), columns: columns(), selection: _ListSelection(single: selection), sortOrder: nil)
+    }
+
+    public init(selection: Binding<Set<Value.ID>>, @TableColumnBuilder<Value, Never> columns: () -> [_AnyTableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
+        self.init(rows: rows(), columns: columns(), selection: _ListSelection(multiple: selection), sortOrder: nil)
+    }
+
+    public init(sortOrder: Binding<[KeyPathComparator<Value>]>, @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [_AnyTableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
+        self.init(rows: rows(), columns: columns(), selection: nil, sortOrder: sortOrder)
+    }
+
+    public init(selection: Binding<Value.ID?>, sortOrder: Binding<[KeyPathComparator<Value>]>, @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [_AnyTableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
+        self.init(rows: rows(), columns: columns(), selection: _ListSelection(single: selection), sortOrder: sortOrder)
+    }
+
+    public init(selection: Binding<Set<Value.ID>>, sortOrder: Binding<[KeyPathComparator<Value>]>, @TableColumnBuilder<Value, KeyPathComparator<Value>> columns: () -> [_AnyTableColumn<Value>], @TableRowBuilder<Value> rows: () -> [TableRow<Value>]) where Data == [Value] {
+        self.init(rows: rows(), columns: columns(), selection: _ListSelection(multiple: selection), sortOrder: sortOrder)
+    }
+
+    private init(rows: [TableRow<Value>], columns: [_AnyTableColumn<Value>], selection: _ListSelection?, sortOrder: Binding<[KeyPathComparator<Value>]>?) where Data == [Value] {
+        data = rows.map(\.value)
+        self.columns = columns
+        self.selection = selection
+        self.sortOrder = sortOrder
+    }
+
     /// Creates an outline table: rows with children show a disclosure triangle, their children
     /// indented when expanded.
     public init(_ data: Data, children: KeyPath<Value, [Value]?>, @TableColumnBuilder<Value, Never> columns: () -> [_AnyTableColumn<Value>]) {
@@ -238,6 +288,44 @@ public struct TableRowBuilder<Value: Identifiable> {
     public static func buildEither(first: [TableRow<Value>]) -> [TableRow<Value>] { first }
     public static func buildEither(second: [TableRow<Value>]) -> [TableRow<Value>] { second }
     public static func buildArray(_ rows: [[TableRow<Value>]]) -> [TableRow<Value>] { rows.flatMap { $0 } }
+    /// Rows made from a collection (`ForEach(orders) { TableRow($0) }`).
+    public static func buildExpression<D, I>(_ rows: ForEach<D, I, [TableRow<Value>]>) -> [TableRow<Value>] { rows.data.flatMap(rows.content) }
+    /// A section of rows (`Section { ForEach(...) { TableRow($0) } }`): its rows, in place; the
+    /// table draws no section header yet.
+    public static func buildExpression<P, F>(_ section: Section<P, [TableRow<Value>], F>) -> [TableRow<Value>] { section.content }
+}
+
+extension ForEach where ID == Data.Element.ID, Data.Element: Identifiable {
+    /// Table rows made from a collection of identified data.
+    public init<V>(_ data: Data, @TableRowBuilder<V> content: @escaping (Data.Element) -> Content) where Content == [TableRow<V>] {
+        self.init(data: data, id: \.id, content: content)
+    }
+}
+
+extension ForEach {
+    /// Table rows made from a collection, identified by a key path.
+    public init<V>(_ data: Data, id: KeyPath<Data.Element, ID>, @TableRowBuilder<V> content: @escaping (Data.Element) -> Content) where Content == [TableRow<V>] {
+        self.init(data: data, id: id, content: content)
+    }
+}
+
+extension Section where Parent == EmptyView, Footer == EmptyView {
+    /// A section of table rows.
+    public init<V>(@TableRowBuilder<V> content: () -> Content) where Content == [TableRow<V>] {
+        self.init(header: EmptyView(), content: content(), footer: EmptyView())
+    }
+}
+
+extension Section where Parent == Text, Footer == EmptyView {
+    /// A titled section of table rows.
+    public init<V>(_ titleKey: LocalizedStringKey, @TableRowBuilder<V> content: () -> Content) where Content == [TableRow<V>] {
+        self.init(header: Text(titleKey), content: content(), footer: EmptyView())
+    }
+
+    @_disfavoredOverload
+    public init<V, S: StringProtocol>(_ title: S, @TableRowBuilder<V> content: () -> Content) where Content == [TableRow<V>] {
+        self.init(header: Text(title), content: content(), footer: EmptyView())
+    }
 }
 
 /// Columns made from a collection (`TableColumnForEach(data) { TableColumn(...) }`).
