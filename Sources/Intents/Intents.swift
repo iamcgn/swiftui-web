@@ -72,36 +72,46 @@ public enum INShortcut: Hashable, @unchecked Sendable {
 
 #if canImport(Darwin)
 import ObjectiveC
-
-// Apple's Foundation activity has no slot for other frameworks, so the phrase and availability
-// ride on it as associated objects (this module stands in for Apple's Intents on a Mac host).
-private nonisolated(unsafe) var _phraseKey: UInt8 = 0
-private nonisolated(unsafe) var _availabilityKey: UInt8 = 0
 #endif
 
 extension NSUserActivity {
     /// The phrase the app suggests the user record for a voice shortcut to the activity.
     public var suggestedInvocationPhrase: String? {
-        #if canImport(Darwin)
-        get { objc_getAssociatedObject(self, &_phraseKey) as? String }
-        set { objc_setAssociatedObject(self, &_phraseKey, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC) }
-        #else
-        get { _attached["Intents.suggestedInvocationPhrase"] as? String }
-        set { _attached["Intents.suggestedInvocationPhrase"] = newValue }
-        #endif
+        get { _intentsValue(.phrase) as? String }
+        set { _setIntentsValue(newValue, .phrase) }
     }
 
     /// Whether the activity may be offered as a shortcut (where shortcuts can't be run: kept).
     public var shortcutAvailability: INShortcutAvailabilityOptions {
-        #if canImport(Darwin)
-        get { INShortcutAvailabilityOptions(rawValue: (objc_getAssociatedObject(self, &_availabilityKey) as? UInt) ?? 0) }
-        set { objc_setAssociatedObject(self, &_availabilityKey, newValue.rawValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC) }
-        #else
-        get { _attached["Intents.shortcutAvailability"] as? INShortcutAvailabilityOptions ?? [] }
-        set { _attached["Intents.shortcutAvailability"] = newValue }
-        #endif
+        get { INShortcutAvailabilityOptions(rawValue: _intentsValue(.availability) as? UInt ?? 0) }
+        set { _setIntentsValue(newValue.rawValue, .availability) }
     }
 }
+
+enum _IntentsSlot: String { case phrase = "Intents.suggestedInvocationPhrase", availability = "Intents.shortcutAvailability" }
+
+#if canImport(Darwin)
+// Apple's Foundation activity has no slot for other frameworks, so the phrase and availability
+// ride on it as associated objects (this module stands in for Apple's Intents on a Mac host).
+extension NSUserActivity {
+    private static func _key(_ slot: _IntentsSlot) -> UnsafeRawPointer {
+        switch slot {
+        case .phrase: UnsafeRawPointer(bitPattern: 0x1A7E_0001)!
+        case .availability: UnsafeRawPointer(bitPattern: 0x1A7E_0002)!
+        }
+    }
+
+    func _intentsValue(_ slot: _IntentsSlot) -> Any? { objc_getAssociatedObject(self, Self._key(slot)) }
+    func _setIntentsValue(_ value: Any?, _ slot: _IntentsSlot) {
+        objc_setAssociatedObject(self, Self._key(slot), value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
+}
+#else
+extension NSUserActivity {
+    func _intentsValue(_ slot: _IntentsSlot) -> Any? { _attached[slot.rawValue] }
+    func _setIntentsValue(_ value: Any?, _ slot: _IntentsSlot) { _attached[slot.rawValue] = value }
+}
+#endif
 
 /// The kinds of moment a shortcut suits, for the Shortcuts app's suggestions.
 public struct INShortcutAvailabilityOptions: OptionSet, Sendable {
