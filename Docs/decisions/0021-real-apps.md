@@ -413,3 +413,14 @@ as `NSObject` makes them on Apple platforms, so a model storing one can be `Hash
 (FoodTruck's `ParkingSpot`). And the Foundation shadow declares the five POSIX mutex calls
 SwiftSoup's `Mutex` makes, each succeeding at once on the page's one thread.
 
+
+## Correction (2026-11-25): Apple's Foundation does not re-export Combine
+
+The iOS 26.2 SDK's interfaces (Xcode 26.3) read `import Combine`, not `@_exported import Combine`,
+in SwiftUI, SwiftUICore, Foundation and StoreKit. A file reaches two of Combine's names without
+its own `import Combine`: `Published` and `ObservableObject`, through the typealiases Apple's
+Foundation declares. On wasm the SwiftUI shim and the shadow Foundation now pass on those two
+names by scoped re-exports of WebCombine's declarations (one declaration, whichever module a file
+imports) and import the rest without re-exporting it. Re-exporting all of WebCombine had made
+Combine's `Subscription` and `Cancellable` clash with an app's or a package's own (FoodTruckKit's
+`Subscription`; Nuke's `Cancellable`), which Apple's apps never meet. macOS native is unchanged.
