@@ -272,6 +272,15 @@ import SwiftUIWebHeadless
         #expect(r.probeFrames["row3"]?.minY == 37 && r.probeFrames["row1"]?.minY == 85)
     }
 
+    /// Titled sections of rows pick their initializers from a string literal or a string, and
+    /// a list's own titled section still picks the view one.
+    @Test func titledSectionsOfRows() {
+        let r = runtime(_TitledSectionFruits())
+        #expect(r.probeFrames["name1"] != nil && r.probeFrames["name2"] != nil && r.probeFrames["name3"] != nil)
+        let list = List { Section("Fruit") { Text("Apple") } }
+        _ = list
+    }
+
     /// Columns are typed by their row value, sort comparator, content and label, as SwiftUI's
     /// are, so an app can name a column's type (Hipstapaper's `TableColumn<Row, Never, V, Text>`).
     @Test func columnsAreTypedBySortContentAndLabel() {
@@ -360,6 +369,23 @@ struct _DeclaredSortedFruits: View {
                 ForEach(TableTests.fruits.sorted(using: model.order)) { fruit in
                     TableRow(fruit)
                 }
+            }
+        }
+    }
+}
+
+/// Titled sections of rows, keyed by a key path, next to a list's own titled section: both
+/// pick their initializers from a string literal.
+struct _TitledSectionFruits: View {
+    var body: some View {
+        Table(of: TableTests.Fruit.self) {
+            TableColumn("Name") { Text($0.name)._probe("name\($0.id)") }
+        } rows: {
+            Section("Fruit") {
+                ForEach(TableTests.fruits, id: \.id) { TableRow($0) }
+            }
+            Section(String("More")) {
+                ForEach(TableTests.fruits) { TableRow($0) }
             }
         }
     }
