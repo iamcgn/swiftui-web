@@ -229,6 +229,11 @@ private final class ReceiptRefresh: SKRequestDelegate {
         #expect(Message.Reason.priceIncreaseConsent != .generic)
         #expect(Message.Reason(rawValue: "billingIssue") == .billingIssue)
         SKPaymentQueue.default().showPriceConsentIfNeeded()
+        // FoodTruck's StoreMessagesManager keeps the environment's display action to call with
+        // each message.
+        let display = EnvironmentValues().displayStoreKitMessage
+        let call: (Message) throws -> Void = display.callAsFunction
+        _ = call
     }
 
     @Test func storesShowMarketingAndAnEmptyStore() {
