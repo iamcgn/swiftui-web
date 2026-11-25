@@ -31,7 +31,7 @@ from pathlib import Path
 OURS = {
     "SwiftUI", "UIKit", "Foundation", "Combine", "Security", "SafariServices", "Charts", "MapKit",
     "CoreLocation", "AVFoundation", "AVFAudio", "AVKit", "Speech", "SwiftData", "UserNotifications", "WebKit",
-    "os", "OSLog", "CoreGraphics", "UniformTypeIdentifiers", "CoreData", "CryptoKit", "CoreHaptics", "CoreImage", "WidgetKit", "StoreKit", "AppIntents",
+    "os", "OSLog", "CoreGraphics", "UniformTypeIdentifiers", "CoreData", "CryptoKit", "CoreHaptics", "CoreImage", "WidgetKit", "StoreKit", "AppIntents", "Intents", "IntentsUI",
     "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices", "SystemConfiguration",
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit", "Contacts",
     "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit", "Symbols", "Compression", "zlib", "Translation", "_Translation_SwiftUI", "JavaScriptCore",
@@ -1277,6 +1277,8 @@ WEB_PRODUCTS = [
     ("WidgetKit", "SwiftUIWeb"),
     ("StoreKit", "SwiftUIWeb"),
     ("AppIntents", "SwiftUIWeb"),
+    ("Intents", "SwiftUIWeb"),
+    ("IntentsUI", "SwiftUIWeb"),
     ("WebKit", "SwiftUIWeb"),
     ("AudioToolbox", "SwiftUIWeb"),
     ("EventKit", "SwiftUIWeb"),

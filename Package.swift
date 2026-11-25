@@ -40,6 +40,8 @@ let package = Package(
         .library(name: "CoreHaptics", targets: ["CoreHaptics"]),
         .library(name: "WidgetKit", targets: ["WidgetKit"]),
         .library(name: "EventKit", targets: ["EventKit"]),
+        .library(name: "Intents", targets: ["Intents"]),
+        .library(name: "IntentsUI", targets: ["IntentsUI"]),
         .library(name: "Contacts", targets: ["Contacts"]),
         .library(name: "ActivityKit", targets: ["ActivityKit"]),
         .library(name: "BackgroundTasks", targets: ["BackgroundTasks"]),
@@ -158,7 +160,11 @@ let package = Package(
         // to its widgets (none on the web). Pure Swift values over WebFoundation.
         .target(name: "CryptoKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "CoreHaptics", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
-        .target(name: "WidgetKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Its preview context conforms to SwiftUI's `PreviewContext`, as Apple's does.
+        .target(name: "WidgetKit", dependencies: ["SwiftUI", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Siri's shortcut, interaction and preference types, and the Add to Siri button and sheets.
+        .target(name: "Intents", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "IntentsUI", dependencies: ["Intents", .product(name: "UIKit", package: "UIKitWeb")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // Its event queries take an `NSPredicate`, which Apple's Foundation declares and WebCoreData holds here.
         .target(name: "EventKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics"),
                                                  .product(name: "WebGraphics", package: "WebGraphics", condition: .when(platforms: [.wasi, .linux])),
@@ -323,7 +329,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", .product(name: "UserNotifications", package: "UIKitWeb"), "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "QuickLook", "SceneKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", "LanguageMode5Fixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", .product(name: "UserNotifications", package: "UIKitWeb"), "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "QuickLook", "SceneKit", "IntentsUI", "WidgetKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", "LanguageMode5Fixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // A Swift 5 language mode type for the tests, as packages built in that mode (swift-perception)
