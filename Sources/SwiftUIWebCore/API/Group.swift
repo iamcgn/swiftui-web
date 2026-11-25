@@ -23,3 +23,28 @@ extension Group: View where Content: View {
         self.init(_content: content())
     }
 }
+
+/// A group of toolbar items: its items join the enclosing toolbar's (Mlem's `MarkAllAsReadButton`
+/// returns its `ToolbarItem`s in one).
+extension Group: ToolbarContent where Content: ToolbarContent {
+    /// Creates a group of toolbar content.
+    public init(@ToolbarContentBuilder content: () -> Content) {
+        self.init(_content: content())
+    }
+
+    public var body: Never { fatalError("Group has no body") }
+    nonisolated public var _toolbarItems: [_ToolbarItemData] { content._toolbarItems }
+}
+
+extension Group: CustomizableToolbarContent where Content: CustomizableToolbarContent {}
+
+/// A group of commands: its menus join the enclosing `commands`.
+extension Group: Commands where Content: Commands {
+    /// Creates a group of commands.
+    public init(@CommandsBuilder content: () -> Content) {
+        self.init(_content: content())
+    }
+
+    public var body: Never { fatalError("Group has no body") }
+    nonisolated public var _commandMenus: [_CommandMenuData] { content._commandMenus }
+}

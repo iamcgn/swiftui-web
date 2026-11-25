@@ -1,5 +1,9 @@
 // A uniform type identifier, shared by SwiftUIWeb's transfer representations and UIKitWeb's
-// document picker (uk-system-sheets); the SwiftUI package adds the MIME and extension lookups.
+// document picker (uk-system-sheets); the SwiftUI package adds the MIME lookups and conformance.
+
+#if os(WASI)
+import WebFoundation   // its URL; never full Foundation on wasm: it links ICU (decisions 0006, 0017)
+#endif
 
 /// A uniform type identifier.
 public struct UTType: Hashable, Sendable, CustomStringConvertible {
@@ -80,9 +84,70 @@ public struct UTType: Hashable, Sendable, CustomStringConvertible {
 
     /// The type for a filename extension, where one is known here.
     public init?(filenameExtension: String) {
-        let known: [String: String] = ["png": "public.png", "jpg": "public.jpeg", "jpeg": "public.jpeg", "txt": "public.plain-text", "json": "public.json",
-                                       "pdf": "com.adobe.pdf", "html": "public.html", "htm": "public.html", "rtf": "public.rtf", "csv": "public.comma-separated-values-text"]
-        guard let identifier = known[filenameExtension.lowercased()] else { return nil }
+        let lower = filenameExtension.lowercased()
+        let aliases: [String: String] = ["txt": "public.plain-text", "jpeg": "public.jpeg", "jpe": "public.jpeg", "htm": "public.html", "text": "public.plain-text",
+                                         "tif": "public.tiff", "yml": "public.yaml", "m4v": "public.mpeg-4", "qt": "com.apple.quicktime-movie",
+                                         "wave": "com.microsoft.waveform-audio"]
+        guard let identifier = aliases[lower] ?? Self._preferredExtensions.first(where: { $0.value == lower })?.key else { return nil }
         self.identifier = identifier
     }
+
+    /// The file extension for the common types (a download's name, the open panel's filter,
+    /// `URL.appendingPathComponent(_:conformingTo:)`): each declared type's preferred tag in
+    /// Apple's system type table, nil for the abstract ones (data, image, movie, archive…).
+    public var preferredFilenameExtension: String? {
+        if let known = Self._preferredExtensions[identifier] { return known }
+        // An exported type's identifier ends with its extension by convention ("com.example.notes").
+        guard !identifier.hasPrefix("public."), !identifier.hasPrefix("com.apple."), !identifier.hasPrefix("dyn.") else { return nil }
+        return identifier.split(separator: ".").last.map(String.init)
+    }
+
+    /// Each declared type's preferred filename extension (the system type table's first tag).
+    private static let _preferredExtensions: [String: String] = [
+        "public.plain-text": "txt", "public.utf8-plain-text": "txt", "public.utf16-plain-text": "txt", "public.text": "txt",
+        "public.json": "json", "public.png": "png", "public.jpeg": "jpg", "com.adobe.pdf": "pdf", "public.rtf": "rtf",
+        "public.html": "html", "public.xml": "xml", "public.comma-separated-values-text": "csv",
+        "public.tab-separated-values-text": "tsv", "public.swift-source": "swift", "com.netscape.javascript-source": "js",
+        "com.apple.property-list": "plist", "public.yaml": "yaml", "public.log": "log", "com.compuserve.gif": "gif",
+        "public.heic": "heic", "public.tiff": "tiff", "com.microsoft.bmp": "bmp", "public.svg-image": "svg",
+        "org.webmproject.webp": "webp", "public.mpeg-4": "mp4", "com.apple.quicktime-movie": "mov", "public.mp3": "mp3",
+        "public.mpeg-4-audio": "m4a", "com.microsoft.waveform-audio": "wav", "public.zip-archive": "zip",
+        "org.gnu.gnu-zip-archive": "gz", "public.vcard": "vcf", "public.email-message": "eml", "org.idpf.epub-container": "epub",
+    ]
+
+    /// Whether a URL of the type names a directory: folders, packages, bundles and volumes.
+    fileprivate var _isDirectoryType: Bool {
+        switch identifier {
+        case "public.directory", "public.folder", "public.volume", "com.apple.package", "com.apple.bundle", "com.apple.application-bundle": return true
+        default: return false
+        }
+    }
 }
+
+#if os(WASI)
+/// The URL methods UniformTypeIdentifiers adds (Mlem names its settings files with them).
+extension URL {
+    /// The URL with a path component added, given the type's filename extension unless the name
+    /// already has one of that type; a directory type adds it as a directory.
+    public func appendingPathComponent(_ partialName: String, conformingTo contentType: UTType) -> URL {
+        if contentType._isDirectoryType { return appendingPathComponent(partialName, isDirectory: true) }
+        return appendingPathComponent(partialName).appendingPathExtension(for: contentType)
+    }
+
+    public mutating func appendPathComponent(_ partialName: String, conformingTo contentType: UTType) {
+        self = appendingPathComponent(partialName, conformingTo: contentType)
+    }
+
+    /// The URL with the type's filename extension added, unless it already has one of that type.
+    public func appendingPathExtension(for contentType: UTType) -> URL {
+        guard let wanted = contentType.preferredFilenameExtension else { return self }
+        let current = pathExtension.lowercased()
+        if !current.isEmpty, current == wanted || UTType(filenameExtension: current) == contentType { return self }
+        return appendingPathExtension(wanted)
+    }
+
+    public mutating func appendPathExtension(for contentType: UTType) {
+        self = appendingPathExtension(for: contentType)
+    }
+}
+#endif

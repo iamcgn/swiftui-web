@@ -317,6 +317,7 @@ extension EnvironmentValues {
 package struct TruncationModeKey: EnvironmentKey { package static let defaultValue = Text.TruncationMode.tail }
 package struct LineSpacingKey: EnvironmentKey { package static let defaultValue: CGFloat = 0 }
 package struct AllowsTighteningKey: EnvironmentKey { package static let defaultValue = false }
+package struct LineHeightMultipleKey: EnvironmentKey { package static let defaultValue: CGFloat = 0 }
 package struct MinimumScaleFactorKey: EnvironmentKey { package static let defaultValue: CGFloat = 1 }
 package struct TextCaseKey: EnvironmentKey { package static let defaultValue: Text.Case? = nil }
 package struct UnderlineStyleKey: EnvironmentKey { package static let defaultValue: Text.LineStyle? = nil }
@@ -355,6 +356,13 @@ extension EnvironmentValues {
     public var lineSpacing: CGFloat {
         get { self[LineSpacingKey.self] }
         set { self[LineSpacingKey.self] = newValue }
+    }
+
+    /// The multiple of the font's line height that text lines take (0, the default: the font's
+    /// own). Apple's underscored value (Mlem sets 0.8 on its name labels). Stored, not applied.
+    public var _lineHeightMultiple: CGFloat {
+        get { self[LineHeightMultipleKey.self] }
+        set { self[LineHeightMultipleKey.self] = newValue }
     }
 
     /// Whether inter-character spacing should tighten to fit the text into the available space.

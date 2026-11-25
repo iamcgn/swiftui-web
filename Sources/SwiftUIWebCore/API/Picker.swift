@@ -91,6 +91,12 @@ extension Picker where Label == Text {
     public init<S: StringProtocol>(_ title: S, selection: Binding<SelectionValue>, @ViewBuilder content: () -> Content) {
         self.init(selection: selection, content: content) { Text(title) }
     }
+
+    /// Creates a picker whose label is a localized string resource (Mlem's search tab picker).
+    @_disfavoredOverload
+    public init(_ titleResource: LocalizedStringResource, selection: Binding<SelectionValue>, @ViewBuilder content: () -> Content) {
+        self.init(selection: selection, content: content) { Text(titleResource) }
+    }
 }
 
 /// Type-erased selection setter (a class so the runtime's field reflection ignores it).

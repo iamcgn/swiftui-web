@@ -433,6 +433,17 @@ extension View {
         layoutValue(key: ListSectionSeparatorKey.self, value: (visibility, edges))
     }
 
+    /// iOS 26: the label a section shows in the list's section index (the letters down the
+    /// trailing edge); nil leaves the section out of it. The list here draws no index, so the
+    /// label is accepted and the section shows as before.
+    nonisolated public func sectionIndexLabel(_ label: Text?) -> some View { self }
+    nonisolated public func sectionIndexLabel(_ label: LocalizedStringKey?) -> some View { self }
+    @_disfavoredOverload
+    nonisolated public func sectionIndexLabel<S: StringProtocol>(_ label: S?) -> some View { self }
+
+    /// iOS 26: whether the list shows its section index. Accepted; the list draws no index here.
+    nonisolated public func listSectionIndexVisibility(_ visibility: Visibility) -> some View { self }
+
     /// Sets the tint color associated with a section. Stored only.
     nonisolated public func listSectionSeparatorTint(_ color: Color?, edges: VerticalEdge.Set = .all) -> some View {
         layoutValue(key: ListSectionSeparatorTintKey.self, value: (color, edges))

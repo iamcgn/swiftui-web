@@ -273,10 +273,19 @@ extension Data {
         public var description: String { "The file “\(url.lastPathComponent)” doesn’t exist." }
     }
 
-    /// The bytes of an in-memory file (`memory:` and `file:` URLs); any other URL throws.
-    public init(contentsOf url: URL) throws {
+    /// The bytes of an in-memory file (`memory:` and `file:` URLs); any other URL throws. The
+    /// reading options are accepted: the file is already in memory, so there is nothing to map.
+    public init(contentsOf url: URL, options: ReadingOptions = []) throws {
         guard let data = _MemoryFiles.read(url) else { throw _FileError(url: url) }
         self = data
+    }
+
+    public struct ReadingOptions: OptionSet, Hashable, Sendable {
+        public let rawValue: UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        public static let mappedIfSafe = ReadingOptions(rawValue: 1 << 0)
+        public static let uncached = ReadingOptions(rawValue: 1 << 1)
+        public static let alwaysMapped = ReadingOptions(rawValue: 1 << 3)
     }
 
     /// Writes the bytes to an in-memory file (`memory:` and `file:` URLs); any other URL throws.

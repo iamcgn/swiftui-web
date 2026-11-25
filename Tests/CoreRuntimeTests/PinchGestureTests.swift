@@ -133,6 +133,15 @@ import SwiftUIWebHeadless
         plain.pointerDown(at: centre, time: 0)
         plain.pointerUp(at: centre, time: 0.1)
         #expect(log.events == ["gesture"])
+        // `isEnabled: false` leaves the press to the subviews; the plain view's gesture stays quiet
+        // (Mlem's `.gesture(TapGesture().onEnded(tapActions), isEnabled: enableTap)`).
+        for enabled in [true, false] {
+            log.events.removeAll()
+            let gated = self.runtime(Color.red.frame(width: 40, height: 20).gesture(TapGesture().onEnded { log.events.append("gesture") }, isEnabled: enabled))
+            gated.pointerDown(at: centre, time: 0)
+            gated.pointerUp(at: centre, time: 0.1)
+            #expect(log.events == (enabled ? ["gesture"] : []))
+        }
     }
 
     @Test func gestureStateTransactions() {

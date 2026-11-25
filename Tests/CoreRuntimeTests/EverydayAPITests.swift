@@ -155,6 +155,33 @@ private struct RawStored: View {
         #expect(UTType(filenameExtension: "json", conformingTo: .text) == .json && UTType(filenameExtension: "png", conformingTo: .text) == nil)
         #expect(UTType(exportedAs: "com.example.notes").identifier == "com.example.notes" && UTType.png.description == "public.png")
         #expect(UTType.png.supertypes.contains(.image) && UTType.png.supertypes.contains(.data))
+        // Each declared type's preferred tag in Apple's system type table; none for abstract types.
+        #expect(UTType.wav.preferredFilenameExtension == "wav" && UTType.mpeg4Movie.preferredFilenameExtension == "mp4" && UTType.gzip.preferredFilenameExtension == "gz")
+        #expect(UTType.javaScript.preferredFilenameExtension == "js" && UTType.heic.preferredFilenameExtension == "heic" && UTType.epub.preferredFilenameExtension == "epub")
+        #expect(UTType.movie.preferredFilenameExtension == nil && UTType.data.preferredFilenameExtension == nil && UTType(exportedAs: "com.example.notes").preferredFilenameExtension == "notes")
+        #expect(UTType(filenameExtension: "txt") == .plainText && UTType(filenameExtension: "WAV") == .wav && UTType(filenameExtension: "mp4") == .mpeg4Movie && UTType(filenameExtension: "nope") == nil)
+    }
+}
+#endif
+
+#if os(WASI)
+/// UniformTypeIdentifiers' URL methods and the reading options (Mlem's settings files).
+@Suite struct WasmTypedURLTests {
+    @Test func urlsTakeTheTypesFilenameExtension() throws {
+        let root = URL(fileURLWithPath: "/Documents")
+        #expect(root.appendingPathComponent("Accounts", conformingTo: .json).lastPathComponent == "Accounts.json")
+        #expect(root.appendingPathComponent("notes.JSON", conformingTo: .json).lastPathComponent == "notes.JSON")
+        #expect(root.appendingPathComponent("Settings", conformingTo: .directory).hasDirectoryPath)
+        #expect(root.appendingPathComponent("Plain", conformingTo: .data).lastPathComponent == "Plain")
+        #expect(URL(fileURLWithPath: "/tmp/recording").appendingPathExtension(for: .wav).lastPathComponent == "recording.wav")
+        #expect(URL(fileURLWithPath: "/tmp").appendingPathComponent("clip", conformingTo: .mpeg4Movie).lastPathComponent == "clip.mp4")
+        var picture = root.appendingPathComponent("Picture")
+        picture.appendPathExtension(for: .png)
+        #expect(picture.lastPathComponent == "Picture.png")
+        let file = root.appendingPathComponent("blob")
+        try Data([1, 2]).write(to: file)
+        #expect(try Data(contentsOf: file, options: .mappedIfSafe) == Data([1, 2]))
+        try FileManager.default.removeItem(at: file)
     }
 }
 #endif
