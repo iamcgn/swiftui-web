@@ -136,7 +136,8 @@ let package = Package(
         .target(
             name: "Darwin",
             // Apple's own on Apple platforms; this one is wasm only, its C half included.
-            dependencies: [.target(name: "DarwinShims", condition: .when(platforms: [.wasi]))],
+            dependencies: [.target(name: "DarwinShims", condition: .when(platforms: [.wasi])),
+                           .product(name: "WebFoundation", package: "WebGraphics", condition: .when(platforms: [.wasi]))],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(name: "DarwinShims"),
