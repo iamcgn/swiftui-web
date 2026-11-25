@@ -103,6 +103,11 @@ final class TestSceneDelegate: UIResponder, UIWindowSceneDelegate {
         func sceneDidBecomeActive(_ scene: UIScene) { LifecycleLog.current.events.append("windowless active") }
     }
 
+    /// The app's delegate and a window scene's at once, with no `window` of its own (Mlem's).
+    final class BothRolesDelegate: UIResponder, UIApplicationDelegate, UIWindowSceneDelegate {
+        override init() { super.init() }
+    }
+
     @Test func anAppDelegateLaunchesAndConfiguresItsSceneDelegate() async {
         let scene = UIKitScene.shared
         scene.removeAllWindows()
@@ -162,6 +167,17 @@ final class TestSceneDelegate: UIResponder, UIWindowSceneDelegate {
         let window = UIWindow(frame: UIScreen.main.bounds)
         delegate?.window = window
         #expect(delegate?.window === window && scene.sceneDelegateWindow === window)
+    }
+
+    @Test func aDelegateInBothRolesKeepsOneWindow() {
+        let delegate = BothRolesDelegate()
+        defer { delegate.window = nil }
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        delegate.window = window
+        let asApp: any UIApplicationDelegate = delegate
+        let asScene: any UIWindowSceneDelegate = delegate
+        #expect(asApp.window === window && asScene.window === window)
+        #expect(UIKitScene.shared.sceneDelegateWindow === window)
     }
 
     /// The keyboard notifications a host drives through `keyboardFrame` (the Countries app

@@ -140,7 +140,7 @@ through `connectedScenes` — its `overrideUserInterfaceStyle` drives the SwiftU
 colour scheme (2026-10-29, Ember's appearance setting) — and `UIApplication.shared.open`
 opens a tab from a SwiftUI app as from a UIKit one. A scene delegate class set on `UIApplication.sceneDelegateType` (what the
 scene manifest names) is created at launch and connected (`scene(_:willConnectTo:options:)`,
-with the page's URL as a `UIOpenURLContext`); its `window` is made key and visible. The host's
+with the page's URL as a `UIOpenURLContext`); its `window` is made key and visible. A class that is both the app's delegate and a window scene's, with no `window` of its own, keeps one window for both roles. The host's
 `hostIsVisible` and `hostIsFocused` drive `UIApplication.applicationState` and the scene's
 `activationState`: losing focus resigns active (`sceneWillResignActive`,
 `applicationWillResignActive`, the notifications), hiding the page enters the background,

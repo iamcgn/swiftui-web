@@ -210,6 +210,19 @@ public struct AxisMarks: AxisContent {
         self.init(preset: preset, position: position, values: .values(values), stroke: stroke)
     }
 
+    /// Marks with the default grid line and tick, and a label formatted with a format style.
+    public init<F: FormatStyle>(format: F, preset: AxisMarkPreset = .automatic, position: AxisMarkPosition = .automatic, values: AxisMarkValues = .automatic, stroke: StrokeStyle? = nil)
+        where F.FormatInput: Plottable, F.FormatOutput == String {
+        self.values = values; self.position = position; self.preset = preset; self.stroke = stroke
+        parts = [_AxisPart(kind: .gridLine), _AxisPart(kind: .tick), AxisValueLabel(format: format)._part]
+        partsForValue = nil
+    }
+
+    public init<F: FormatStyle, V: Plottable>(format: F, preset: AxisMarkPreset = .automatic, position: AxisMarkPosition = .automatic, values: [V], stroke: StrokeStyle? = nil)
+        where F.FormatInput: Plottable, F.FormatOutput == String {
+        self.init(format: format, preset: preset, position: position, values: .values(values), stroke: stroke)
+    }
+
     /// Marks with the given parts at each value.
     public init(preset: AxisMarkPreset = .automatic, position: AxisMarkPosition = .automatic, values: AxisMarkValues = .automatic, @AxisMarkBuilder content: () -> [any AxisMark]) {
         self.values = values; self.position = position; self.preset = preset; stroke = nil
