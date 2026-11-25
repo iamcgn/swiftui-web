@@ -1794,7 +1794,7 @@
         {
           "api": "UIFont",
           "status": "full",
-          "notes": "System fonts by size and weight, italic and monospaced faces, bundled fonts through the asset catalog with their tables' metrics, the text styles at every content size category with their own measured metrics, UIFontMetrics scaling, labels following the scene's category; tabular figures; a font's descriptor in another system design (rounded, serif, monospaced) or size, back through UIFont(descriptor:size:) (2026-11-01); open: reading the host's text size, a descriptor's traits and attributes (Docs/elements/UIKit/UIFont.md)",
+          "notes": "System fonts by size and weight, italic and monospaced faces, bundled fonts through the asset catalog with their tables' metrics, the text styles at every content size category with their own measured metrics, UIFontMetrics scaling, labels following the scene's category; tabular figures; a font's descriptor in another system design (rounded, serif, monospaced) or size, back through UIFont(descriptor:size:) (2026-11-01); open: reading the host's text size, a descriptor's traits and attributes (Docs/elements/UIKit/UIFont.md); descriptors from attributes (family or name, face, size; UIFontDescriptor.AttributeName), with addingAttributes and withFamily (2026-11-24)",
           "fixtures": [
             "uikit/label/basic",
             "uikit/label/fonts",
@@ -2174,7 +2174,7 @@
         {
           "api": "UIView.animate (durations, delays, curves, springs, options, transition(with:), performWithoutAnimation)",
           "status": "partial",
-          "notes": "Frame, alpha, background and transform changes tween on the scene's clock with completions after the duration; a hosted tree's animations run on its host's clock; repeat, autoreverse and beginFromCurrentState honoured; animate(springDuration:bounce:initialSpringVelocity:delay:options:animations:completion:) springs with a damping ratio of 1 − bounce (swift-navigation, 2026-11-15); open: the transition options' flips and cross-dissolves",
+          "notes": "Frame, alpha, background and transform changes tween on the scene's clock with completions after the duration; a hosted tree's animations run on its host's clock; repeat, autoreverse and beginFromCurrentState honoured; animate(springDuration:bounce:initialSpringVelocity:delay:options:animations:completion:) springs with a damping ratio of 1 − bounce (swift-navigation, 2026-11-15); open: the transition options' flips and cross-dissolves; every AnimationOptions value UIKit names, the flips and curls among them, which transition(with:) applies at once as it does the cross dissolve (2026-11-24)",
           "noFixture": "Motion is not a still: AnimationTests and RepresentableTests hold the curves on the headless clock; the table batch-update goldens hold the end states."
         },
         {

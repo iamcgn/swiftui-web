@@ -245,8 +245,76 @@ public final class UIFont: UIObjectBase, @unchecked Sendable {
 public final class UIFontDescriptor {
     /// The font this descriptor describes.
     let font: UIFont
+    /// The attributes it was made from, beyond the font (`fontAttributes`).
+    private var attributes: [AttributeName: Any] = [:]
 
     init(font: UIFont) { self.font = font }
+
+    /// A key in a descriptor's attributes.
+    public struct AttributeName: Hashable, Sendable, RawRepresentable {
+        public let rawValue: String
+        public init(rawValue: String) { self.rawValue = rawValue }
+        public init(_ rawValue: String) { self.rawValue = rawValue }
+        public static let family = AttributeName("NSFontFamilyAttribute")
+        public static let name = AttributeName("NSFontNameAttribute")
+        public static let face = AttributeName("NSFontFaceAttribute")
+        public static let size = AttributeName("NSFontSizeAttribute")
+        public static let visibleName = AttributeName("NSFontVisibleNameAttribute")
+        public static let matrix = AttributeName("NSCTFontMatrixAttribute")
+        public static let characterSet = AttributeName("NSCTFontCharacterSetAttribute")
+        public static let cascadeList = AttributeName("NSCTFontCascadeListAttribute")
+        public static let traits = AttributeName("NSCTFontTraitsAttribute")
+        public static let fixedAdvance = AttributeName("NSCTFontFixedAdvanceAttribute")
+        public static let featureSettings = AttributeName("NSCTFontFeatureSettingsAttribute")
+        public static let textStyle = AttributeName("NSCTFontUIUsageAttribute")
+    }
+
+    /// A descriptor from attributes: the family (or name), the face ("Bold", "Italic", "Bold
+    /// Italic") and the size, 12 points when none is given. A family the host can't name (the
+    /// system font's ".AppleSystemUIFont") is the system font. Other keys are kept in
+    /// `fontAttributes` but don't change the font (Highlightr's bold and italic theme fonts).
+    public convenience init(fontAttributes: [AttributeName: Any] = [:]) {
+        let size = Self.size(fontAttributes[.size]) ?? 12
+        let family = (fontAttributes[.family] as? String) ?? (fontAttributes[.name] as? String)
+        let base = family.flatMap { $0.hasPrefix(".") ? nil : UIFont(name: $0, size: size) } ?? UIFont.systemFont(ofSize: size)
+        let face = ((fontAttributes[.face] as? String) ?? "").lowercased()
+        var traits: SymbolicTraits = []
+        if face.contains("bold") || face.contains("heavy") || face.contains("black") { traits.insert(.traitBold) }
+        if face.contains("italic") || face.contains("oblique") { traits.insert(.traitItalic) }
+        let font = traits.isEmpty ? base : (UIFontDescriptor(font: base).withSymbolicTraits(traits)?.font ?? base)
+        self.init(font: font)
+        attributes = fontAttributes
+    }
+
+    /// A descriptor for the font with this name at this size.
+    public convenience init(name fontName: String, size: CGFloat) {
+        self.init(fontAttributes: [.name: fontName, .size: size])
+    }
+
+    /// The attributes it was made from, with its family and size.
+    public var fontAttributes: [AttributeName: Any] {
+        var all = attributes
+        all[.family] = all[.family] ?? font.familyName
+        all[.size] = all[.size] ?? pointSize
+        return all
+    }
+
+    /// The same description with these attributes added (a family, face or size among them
+    /// changes the font).
+    public func addingAttributes(_ attributes: [AttributeName: Any]) -> UIFontDescriptor {
+        UIFontDescriptor(fontAttributes: fontAttributes.merging(attributes) { _, new in new })
+    }
+
+    /// The same description in another family.
+    public func withFamily(_ newFamily: String) -> UIFontDescriptor { addingAttributes([.family: newFamily]) }
+
+    private static func size(_ value: Any?) -> CGFloat? {
+        if let size = value as? CGFloat { return size }
+        if let size = value as? Double { return CGFloat(size) }
+        if let size = value as? Float { return CGFloat(size) }
+        if let size = value as? Int { return CGFloat(size) }
+        return nil
+    }
 
     /// The descriptor's size in points.
     public var pointSize: CGFloat { font.resolved.size }
