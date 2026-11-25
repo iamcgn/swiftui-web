@@ -47,7 +47,7 @@ jobs:
         run: |
           SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
           for m in SwiftUI SwiftUICore Foundation StoreKit Combine; do
-            for f in $(ls "$SDK"/System/Library/Frameworks/$m.framework/Modules/$m.swiftmodule/arm64-apple-ios.swiftinterface "$SDK"/usr/lib/swift/$m.swiftmodule/arm64-apple-ios.swiftinterface 2>/dev/null); do
+            for f in $(find "$SDK" \( -path "*/$m.swiftmodule/*" -o -path "*/$m.framework/*" \) -name '*.swiftinterface' 2>/dev/null | grep -v private | head -2); do
               echo "== $f"; grep -n -E '^(@_exported |@_implementationOnly |public |internal |package )?import ' "$f" | head -60
               grep -n -E 'typealias (Subscription|Cancellable|ObservableObject|Published|AnyCancellable)\b' "$f" | head
             done
