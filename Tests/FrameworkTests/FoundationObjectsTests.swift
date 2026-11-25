@@ -257,8 +257,9 @@ extension Set: _BothSetForms {}
         #expect(word == 7)
         #expect(OSAtomicIncrement32(&word) == 8)
         #expect(OSAtomicAdd32Barrier(-5, &word) == 3)
-        var wide: Int64 = 1 << 40
-        #expect(OSAtomicAdd64(1, &wide) == (1 << 40) + 1)
+        let big: Int64 = 1 << 40
+        var wide = big
+        #expect(OSAtomicAdd64(1, &wide) == big + 1)
         let current = wide
         #expect(OSAtomicCompareAndSwap64(current, 0, &wide))
         #expect(wide == 0)
