@@ -3,6 +3,7 @@
 #if !canImport(CoreGraphics) || os(WASI)
 import Testing
 import WebCoreImage
+import WebFoundation
 import WebGraphics
 
 private func bitmap(_ width: Int, _ height: Int) -> CGImage {
@@ -115,6 +116,91 @@ private func filters(_ commands: [DisplayCommand]) -> [DisplayFilter] {
         let rect = CIVector(cgRect: CGRect(x: 1, y: 2, width: 3, height: 4))
         #expect(rect.cgRectValue == CGRect(x: 1, y: 2, width: 3, height: 4) && rect.count == 4)
         #expect(CIVector(x: 7).value(at: 3) == 0)
+    }
+}
+
+// QR codes: the generator's symbols read back by the detector, through scaling, rotation and
+// damage, and ISO/IEC 18004's worked example ("01234567" at level M) for the data codewords.
+private func qrCode(_ message: String, level: String = "M") throws -> CIImage {
+    let filter = try #require(CIFilter(name: "CIQRCodeGenerator"))
+    filter.setValue(Data(message.utf8), forKey: "inputMessage")
+    filter.setValue(level, forKey: "inputCorrectionLevel")
+    return try #require(filter.outputImage)
+}
+
+private func readQRCode(_ image: CIImage) throws -> CIQRCodeFeature? {
+    let detector = try #require(CIDetector(ofType: CIDetectorTypeQRCode, context: nil, options: [CIDetectorAccuracy: CIDetectorAccuracyHigh]))
+    return detector.features(in: image).first as? CIQRCodeFeature
+}
+
+@Suite struct QRCodeTests {
+    @Test func generatorDrawsOnePixelAModuleWithAMargin() throws {
+        let image = try qrCode("01234567")
+        #expect(image.extent == CGRect(x: 0, y: 0, width: 23, height: 23))
+        #expect(CIFilter(name: "CIQRCodeGenerator")?.outputImage == nil)
+    }
+
+    @Test func standardExample() throws {
+        let feature = try #require(try readQRCode(qrCode("01234567").transformed(by: CGAffineTransform(scaleX: 8, y: 8))))
+        #expect(feature.type == CIFeatureTypeQRCode)
+        #expect(feature.messageString == "01234567")
+        let descriptor = try #require(feature.symbolDescriptor)
+        #expect(descriptor.symbolVersion == 1)
+        #expect(descriptor.errorCorrectionLevel == .levelM)
+        #expect([UInt8](descriptor.errorCorrectedPayload) == [0x10, 0x20, 0x0C, 0x56, 0x61, 0x80, 0xEC, 0x11,
+                                                             0xEC, 0x11, 0xEC, 0x11, 0xEC, 0x11, 0xEC, 0x11])
+    }
+
+    @Test func everyLevelAndModeReadsBack() throws {
+        let messages = ["HELLO WORLD", "https://example.com/a?b=c&d=e", "Grüße aus Köln", String(repeating: "7", count: 300),
+                        String(repeating: "Claude Duet ", count: 40)]
+        for message in messages {
+            for level in ["L", "M", "Q", "H"] {
+                let image = try qrCode(message, level: level).transformed(by: CGAffineTransform(scaleX: 3, y: 3))
+                let feature = try readQRCode(image)
+                #expect(feature?.messageString == message, "\(level) \(message.prefix(12))")
+            }
+        }
+    }
+
+    @Test func cornersAreInTheImagesCoordinates() throws {
+        let feature = try #require(try readQRCode(qrCode("corners").transformed(by: CGAffineTransform(scaleX: 10, y: 10))))
+        // A 21-module code with a one-module margin, ten pixels a module, y up.
+        #expect(abs(feature.topLeft.x - 10) < 2 && abs(feature.topLeft.y - 220) < 2)
+        #expect(abs(feature.bottomRight.x - 220) < 2 && abs(feature.bottomRight.y - 10) < 2)
+        #expect(abs(feature.bounds.width - 210) < 3)
+    }
+
+    @Test func rotatedOnAWhiteBackground() throws {
+        let code = try qrCode("https://example.com/rotated", level: "Q")
+            .transformed(by: CGAffineTransform(scaleX: 6, y: 6))
+            .transformed(by: CGAffineTransform(rotationAngle: 0.6))
+        let page = code.composited(over: CIImage.white).cropped(to: code.extent.insetBy(dx: -20, dy: -20))
+        #expect(try readQRCode(page)?.messageString == "https://example.com/rotated")
+    }
+
+    @Test func damagedModulesAreCorrected() throws {
+        let image = try qrCode("error correction", level: "H")
+        let cgImage = try #require(image.cgImage)
+        var pixels = [UInt8](try #require(cgImage.dataProvider?.data))
+        let side = cgImage.width
+        // Flip eight data modules away from the finders: fewer than either block can correct.
+        for (x, y) in [(10, 10), (12, 14), (14, 11), (10, 15), (16, 16), (17, 13), (12, 18), (18, 18)] {
+            let i = (y * side + x) * 4
+            for c in 0..<3 { pixels[i + c] = 255 - pixels[i + c] }
+        }
+        let provider = try #require(CGDataProvider(data: Data(pixels)))
+        let damaged = try #require(CGImage(width: side, height: side, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: side * 4,
+                                           space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGBitmapInfo(alphaInfo: .premultipliedLast),
+                                           provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent))
+        let scaled = CIImage(cgImage: damaged).transformed(by: CGAffineTransform(scaleX: 4, y: 4))
+        #expect(try readQRCode(scaled)?.messageString == "error correction")
+    }
+
+    @Test func nothingToFind() throws {
+        #expect(CIDetector(ofType: CIDetectorTypeFace, context: nil, options: nil) == nil)
+        #expect(try readQRCode(CIImage(cgImage: bitmap(64, 64))) == nil)
+        #expect(try readQRCode(CIImage(color: .red).cropped(to: CGRect(x: 0, y: 0, width: 50, height: 50))) == nil)
     }
 }
 #endif

@@ -38,10 +38,29 @@ pixel work. Like every recorded CGImage here, its `dataProvider` is nil.
 - Composites: `CISourceOverCompositing`, `CIMultiplyCompositing`, `CISourceAtopCompositing`
   and the blend modes (`CIMultiplyBlendMode`, `CIScreenBlendMode`, `CIOverlayBlendMode` and
   the rest that the display list has).
-- Generators and geometry: `CIConstantColorGenerator`, `CIAffineTransform`, `CICrop`.
+- Generators and geometry: `CIConstantColorGenerator`, `CIQRCodeGenerator`, `CIAffineTransform`, `CICrop`.
 
 `CIImage` also has `applyingFilter(_:parameters:)`, `composited(over:)`, `cropped(to:)`,
 `transformed(by:)`, `oriented(_:)` and `applyingGaussianBlur(sigma:)`.
+
+## QR codes
+
+`CIQRCodeGenerator` encodes `inputMessage` (Data) at `inputCorrectionLevel` "L", "M" (the
+default), "Q" or "H": the smallest version that holds it, in numeric, alphanumeric or byte mode,
+with the mask of lowest penalty, drawn one pixel a module, black on white, with a one-module
+margin (QRCode.swift, written from ISO/IEC 18004's description of the format).
+
+`CIDetector(ofType: CIDetectorTypeQRCode, ...)` reads a code back (QRDetector.swift): the grey
+levels become dark and light (one threshold for the picture, then a local one), the finder
+patterns are found by their 1:1:3:1:1 runs, the bottom-right alignment pattern near where they
+put it, and the modules are sampled through the perspective those points give; Reed-Solomon
+corrects damaged codewords. A `CIQRCodeFeature` has the code's corners and bounds in the
+image's coordinates, its `messageString` (UTF-8, or Latin-1 when the bytes are not UTF-8) and a
+`CIQRCodeDescriptor` with its data codewords, version, mask and level. The detector reads images
+whose pixels are at hand: CGImages made from pixels (camera frames, generated codes), cropped,
+transformed or composited over one another or a colour. An image of a file's bytes has its
+pixels only in the browser, so nothing is found in one, and only the first code is reported.
+Face, rectangle and text detectors are nil.
 
 ## UIKit
 
@@ -51,6 +70,7 @@ endless image (a bare colour) gives a clear one-pixel image.
 
 ## Open
 
-- Generators that need their own pixels: QR and barcode generators, gradients, checkerboards.
-- Reading pixels back (`render(_:toBitmap:...)`), face and feature detection.
+- Generators that need their own pixels: barcode generators other than QR, gradients, checkerboards.
+- Reading pixels back (`render(_:toBitmap:...)`); QR codes in images of files; face, rectangle
+  and text detection.
 - `CIFilterBuiltins` (the typed filter properties) and custom kernels.

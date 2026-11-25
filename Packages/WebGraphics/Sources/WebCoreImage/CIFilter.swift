@@ -2,7 +2,7 @@
 // does, and its output image is the input's recipe with one more step. The built-in filters
 // here are the ones a display list can draw: colour matrices (colour controls, exposure,
 // colour matrix, invert, monochrome effects, sepia), Gaussian blur, source-over and blend-mode
-// composites, constant colours, affine transforms and crops. Any other name gives nil.
+// composites, constant colours, QR codes, affine transforms and crops. Any other name gives nil.
 
 #if !canImport(CoreGraphics) || os(WASI)
 import WebFoundation
@@ -165,6 +165,23 @@ open class CIFilter: CustomStringConvertible, NSCopying {
         var k: [String: Kind] = [
             "CIConstantColorGenerator": Kind(category: kCICategoryGenerator, defaults: [kCIInputColorKey: CIColor.black]) { f in
                 CIImage(color: f.color(kCIInputColorKey))
+            },
+            "CIQRCodeGenerator": Kind(category: kCICategoryGenerator, defaults: ["inputCorrectionLevel": "M"]) { f in
+                // One pixel a module, black on white, with a one-module margin, as Core Image draws it.
+                guard let message = f.inputs["inputMessage"] as? Data else { return nil }
+                let level = QRCode.Level(letter: f.inputs["inputCorrectionLevel"] as? String ?? "M") ?? .medium
+                guard let symbol = QRCode.encode([UInt8](message), level: level) else { return nil }
+                let side = symbol.size + 2
+                var pixels = [UInt8](repeating: 255, count: side * side * 4)
+                for (y, row) in symbol.modules.enumerated() {
+                    for (x, dark) in row.enumerated() where dark {
+                        let i = ((y + 1) * side + x + 1) * 4
+                        pixels[i] = 0
+                        pixels[i + 1] = 0
+                        pixels[i + 2] = 0
+                    }
+                }
+                return CIImage(cgImage: CGImage(_content: .bitmap(DisplayBitmap(width: side, height: side, pixels: pixels))))
             },
             "CISourceOverCompositing": Kind(category: kCICategoryCompositeOperation, defaults: [:]) { f in
                 guard let top = f.image(kCIInputImageKey), let bottom = f.image(kCIInputBackgroundImageKey) else { return nil }
