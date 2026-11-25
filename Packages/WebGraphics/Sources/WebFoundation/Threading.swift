@@ -280,6 +280,192 @@ public func os_unfair_lock_assert_not_owner(_ lock: os_unfair_lock_t) {
     precondition(lock.pointee._os_unfair_lock_opaque == 0, "os_unfair_lock is held")
 }
 
+// MARK: - OSAtomic and OSSpinLock
+
+// Darwin's atomic operations and spin lock, which Apple's Foundation brings with it from libkern
+// (Mlem's `Atomic` compares and swaps a state word with only Foundation imported). One thread runs
+// here, so each operation is a plain read and write, and a barrier has nothing to order.
+
+/// Orders memory accesses around the call; with one thread nothing needs ordering.
+public func OSMemoryBarrier() {}
+
+/// Stores `body(old)` and returns the old and new values.
+@inline(__always)
+private func _osAtomicUpdate<T>(_ pointer: UnsafeMutablePointer<T>, _ body: (T) -> T) -> (old: T, new: T) {
+    let old = pointer.pointee
+    let new = body(old)
+    pointer.pointee = new
+    return (old, new)
+}
+
+/// Stores `new` when the value is `old`, and says whether it did.
+@inline(__always)
+private func _osAtomicSwap<T: Equatable>(_ old: T, _ new: T, _ pointer: UnsafeMutablePointer<T>) -> Bool {
+    guard pointer.pointee == old else { return false }
+    pointer.pointee = new
+    return true
+}
+
+/// Adds `__theAmount` to the value and returns the new value.
+@discardableResult
+public func OSAtomicAdd32(_ __theAmount: Int32, _ __theValue: UnsafeMutablePointer<Int32>!) -> Int32 {
+    _osAtomicUpdate(__theValue) { $0 &+ __theAmount }.new
+}
+@discardableResult
+public func OSAtomicAdd32Barrier(_ __theAmount: Int32, _ __theValue: UnsafeMutablePointer<Int32>!) -> Int32 {
+    OSAtomicAdd32(__theAmount, __theValue)
+}
+@discardableResult
+public func OSAtomicIncrement32(_ __theValue: UnsafeMutablePointer<Int32>!) -> Int32 { OSAtomicAdd32(1, __theValue) }
+@discardableResult
+public func OSAtomicIncrement32Barrier(_ __theValue: UnsafeMutablePointer<Int32>!) -> Int32 { OSAtomicAdd32(1, __theValue) }
+@discardableResult
+public func OSAtomicDecrement32(_ __theValue: UnsafeMutablePointer<Int32>!) -> Int32 { OSAtomicAdd32(-1, __theValue) }
+@discardableResult
+public func OSAtomicDecrement32Barrier(_ __theValue: UnsafeMutablePointer<Int32>!) -> Int32 { OSAtomicAdd32(-1, __theValue) }
+
+/// Adds `__theAmount` to the 64-bit value and returns the new value.
+@discardableResult
+public func OSAtomicAdd64(_ __theAmount: Int64, _ __theValue: UnsafeMutablePointer<Int64>!) -> Int64 {
+    _osAtomicUpdate(__theValue) { $0 &+ __theAmount }.new
+}
+@discardableResult
+public func OSAtomicAdd64Barrier(_ __theAmount: Int64, _ __theValue: UnsafeMutablePointer<Int64>!) -> Int64 {
+    OSAtomicAdd64(__theAmount, __theValue)
+}
+@discardableResult
+public func OSAtomicIncrement64(_ __theValue: UnsafeMutablePointer<Int64>!) -> Int64 { OSAtomicAdd64(1, __theValue) }
+@discardableResult
+public func OSAtomicIncrement64Barrier(_ __theValue: UnsafeMutablePointer<Int64>!) -> Int64 { OSAtomicAdd64(1, __theValue) }
+@discardableResult
+public func OSAtomicDecrement64(_ __theValue: UnsafeMutablePointer<Int64>!) -> Int64 { OSAtomicAdd64(-1, __theValue) }
+@discardableResult
+public func OSAtomicDecrement64Barrier(_ __theValue: UnsafeMutablePointer<Int64>!) -> Int64 { OSAtomicAdd64(-1, __theValue) }
+
+/// Combines `__theMask` into the value bit by bit; these return the new value, and the `Orig`
+/// forms return the value from before.
+@discardableResult
+public func OSAtomicOr32(_ __theMask: UInt32, _ __theValue: UnsafeMutablePointer<UInt32>!) -> Int32 {
+    Int32(bitPattern: _osAtomicUpdate(__theValue) { $0 | __theMask }.new)
+}
+@discardableResult
+public func OSAtomicOr32Barrier(_ __theMask: UInt32, _ __theValue: UnsafeMutablePointer<UInt32>!) -> Int32 {
+    OSAtomicOr32(__theMask, __theValue)
+}
+@discardableResult
+public func OSAtomicOr32Orig(_ __theMask: UInt32, _ __theValue: UnsafeMutablePointer<UInt32>!) -> Int32 {
+    Int32(bitPattern: _osAtomicUpdate(__theValue) { $0 | __theMask }.old)
+}
+@discardableResult
+public func OSAtomicOr32OrigBarrier(_ __theMask: UInt32, _ __theValue: UnsafeMutablePointer<UInt32>!) -> Int32 {
+    OSAtomicOr32Orig(__theMask, __theValue)
+}
+@discardableResult
+public func OSAtomicAnd32(_ __theMask: UInt32, _ __theValue: UnsafeMutablePointer<UInt32>!) -> Int32 {
+    Int32(bitPattern: _osAtomicUpdate(__theValue) { $0 & __theMask }.new)
+}
+@discardableResult
+public func OSAtomicAnd32Barrier(_ __theMask: UInt32, _ __theValue: UnsafeMutablePointer<UInt32>!) -> Int32 {
+    OSAtomicAnd32(__theMask, __theValue)
+}
+@discardableResult
+public func OSAtomicAnd32Orig(_ __theMask: UInt32, _ __theValue: UnsafeMutablePointer<UInt32>!) -> Int32 {
+    Int32(bitPattern: _osAtomicUpdate(__theValue) { $0 & __theMask }.old)
+}
+@discardableResult
+public func OSAtomicAnd32OrigBarrier(_ __theMask: UInt32, _ __theValue: UnsafeMutablePointer<UInt32>!) -> Int32 {
+    OSAtomicAnd32Orig(__theMask, __theValue)
+}
+@discardableResult
+public func OSAtomicXor32(_ __theMask: UInt32, _ __theValue: UnsafeMutablePointer<UInt32>!) -> Int32 {
+    Int32(bitPattern: _osAtomicUpdate(__theValue) { $0 ^ __theMask }.new)
+}
+@discardableResult
+public func OSAtomicXor32Barrier(_ __theMask: UInt32, _ __theValue: UnsafeMutablePointer<UInt32>!) -> Int32 {
+    OSAtomicXor32(__theMask, __theValue)
+}
+@discardableResult
+public func OSAtomicXor32Orig(_ __theMask: UInt32, _ __theValue: UnsafeMutablePointer<UInt32>!) -> Int32 {
+    Int32(bitPattern: _osAtomicUpdate(__theValue) { $0 ^ __theMask }.old)
+}
+@discardableResult
+public func OSAtomicXor32OrigBarrier(_ __theMask: UInt32, _ __theValue: UnsafeMutablePointer<UInt32>!) -> Int32 {
+    OSAtomicXor32Orig(__theMask, __theValue)
+}
+
+/// Stores `__newValue` when the value equals `__oldValue`, and says whether it did.
+public func OSAtomicCompareAndSwap32(_ __oldValue: Int32, _ __newValue: Int32, _ __theValue: UnsafeMutablePointer<Int32>!) -> Bool {
+    _osAtomicSwap(__oldValue, __newValue, __theValue)
+}
+public func OSAtomicCompareAndSwap32Barrier(_ __oldValue: Int32, _ __newValue: Int32, _ __theValue: UnsafeMutablePointer<Int32>!) -> Bool {
+    _osAtomicSwap(__oldValue, __newValue, __theValue)
+}
+public func OSAtomicCompareAndSwap64(_ __oldValue: Int64, _ __newValue: Int64, _ __theValue: UnsafeMutablePointer<Int64>!) -> Bool {
+    _osAtomicSwap(__oldValue, __newValue, __theValue)
+}
+public func OSAtomicCompareAndSwap64Barrier(_ __oldValue: Int64, _ __newValue: Int64, _ __theValue: UnsafeMutablePointer<Int64>!) -> Bool {
+    _osAtomicSwap(__oldValue, __newValue, __theValue)
+}
+public func OSAtomicCompareAndSwapInt(_ __oldValue: Int32, _ __newValue: Int32, _ __theValue: UnsafeMutablePointer<Int32>!) -> Bool {
+    _osAtomicSwap(__oldValue, __newValue, __theValue)
+}
+public func OSAtomicCompareAndSwapIntBarrier(_ __oldValue: Int32, _ __newValue: Int32, _ __theValue: UnsafeMutablePointer<Int32>!) -> Bool {
+    _osAtomicSwap(__oldValue, __newValue, __theValue)
+}
+public func OSAtomicCompareAndSwapLong(_ __oldValue: Int, _ __newValue: Int, _ __theValue: UnsafeMutablePointer<Int>!) -> Bool {
+    _osAtomicSwap(__oldValue, __newValue, __theValue)
+}
+public func OSAtomicCompareAndSwapLongBarrier(_ __oldValue: Int, _ __newValue: Int, _ __theValue: UnsafeMutablePointer<Int>!) -> Bool {
+    _osAtomicSwap(__oldValue, __newValue, __theValue)
+}
+public func OSAtomicCompareAndSwapPtr(
+    _ __oldValue: UnsafeMutableRawPointer?, _ __newValue: UnsafeMutableRawPointer?,
+    _ __theValue: UnsafeMutablePointer<UnsafeMutableRawPointer?>!
+) -> Bool {
+    _osAtomicSwap(__oldValue, __newValue, __theValue)
+}
+public func OSAtomicCompareAndSwapPtrBarrier(
+    _ __oldValue: UnsafeMutableRawPointer?, _ __newValue: UnsafeMutableRawPointer?,
+    _ __theValue: UnsafeMutablePointer<UnsafeMutableRawPointer?>!
+) -> Bool {
+    _osAtomicSwap(__oldValue, __newValue, __theValue)
+}
+
+/// Sets or clears bit `__n` of the bytes at `__theAddress`, counting from the high bit of the
+/// first byte as libkern does, and returns whether the bit was set before.
+public func OSAtomicTestAndSet(_ __n: UInt32, _ __theAddress: UnsafeMutableRawPointer!) -> Bool {
+    _osAtomicTestAnd(__n, __theAddress, set: true)
+}
+public func OSAtomicTestAndSetBarrier(_ __n: UInt32, _ __theAddress: UnsafeMutableRawPointer!) -> Bool {
+    _osAtomicTestAnd(__n, __theAddress, set: true)
+}
+public func OSAtomicTestAndClear(_ __n: UInt32, _ __theAddress: UnsafeMutableRawPointer!) -> Bool {
+    _osAtomicTestAnd(__n, __theAddress, set: false)
+}
+public func OSAtomicTestAndClearBarrier(_ __n: UInt32, _ __theAddress: UnsafeMutableRawPointer!) -> Bool {
+    _osAtomicTestAnd(__n, __theAddress, set: false)
+}
+
+private func _osAtomicTestAnd(_ n: UInt32, _ address: UnsafeMutableRawPointer, set: Bool) -> Bool {
+    let byte = address.advanced(by: Int(n >> 3)).assumingMemoryBound(to: UInt8.self)
+    let mask = UInt8(0x80) >> UInt8(n & 7)
+    let was = byte.pointee & mask != 0
+    byte.pointee = set ? byte.pointee | mask : byte.pointee & ~mask
+    return was
+}
+
+/// Darwin's spin lock word: zero when free.
+public typealias OSSpinLock = Int32
+public var OS_SPINLOCK_INIT: OSSpinLock { 0 }
+
+/// Takes the lock when it is free, and says whether it did.
+public func OSSpinLockTry(_ __lock: UnsafeMutablePointer<OSSpinLock>!) -> Bool {
+    _osAtomicSwap(0, 1, __lock)
+}
+/// Takes the lock; nothing else can hold it here, so it never spins.
+public func OSSpinLockLock(_ __lock: UnsafeMutablePointer<OSSpinLock>!) { __lock.pointee = 1 }
+public func OSSpinLockUnlock(_ __lock: UnsafeMutablePointer<OSSpinLock>!) { __lock.pointee = 0 }
+
 // MARK: - Autorelease pools
 
 #if !canImport(ObjectiveC)
