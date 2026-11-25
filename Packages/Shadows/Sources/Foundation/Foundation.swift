@@ -1,13 +1,20 @@
 // `import Foundation` on wasm (decision 0021): WebFoundation's value types (decision 0017) and
 // the modules Apple's Foundation re-exports, so an app file that imports Foundation beside
 // SwiftUI sees one `URL`, one `Data`, libm's functions, `@Observable`, `DispatchQueue` and
-// Combine's names. Linked by an app's Package.swift, never by this project's own targets.
+// Combine's `Published` and `ObservableObject`. Linked by an app's Package.swift, never by this
+// project's own targets.
 #if os(WASI)
 @_exported import WebFoundation
 @_exported import WebFoundationFormats
 @_exported import WASILibc
 @_exported import Observation
-@_exported import Combine
+// Apple's Foundation imports Combine without re-exporting it, and declares two typealiases of
+// Combine's names (iOS 26.2's interface: `typealias Published = Combine.Published`,
+// `typealias ObservableObject = Combine.ObservableObject`). The same two declarations here, so a
+// file that imports Foundation and its own `Subscription` or `Cancellable` sees one of each.
+import Combine
+@_exported import struct WebCombine.Published
+@_exported import protocol WebCombine.ObservableObject
 // Apple's Foundation brings CoreGraphics' `CGFloat` and geometry types with it: a package file
 // that imports only Foundation names `CGFloat` (Kingfisher, the sweep's package build).
 @_exported import CoreGraphics

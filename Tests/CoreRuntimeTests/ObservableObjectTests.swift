@@ -3,6 +3,7 @@
 // its object changes, @EnvironmentObject reads the environment, $object gives bindings.
 import Testing
 import SwiftUI
+import WebCombine   // Combine's names: SwiftUI passes on only Published and ObservableObject
 import SwiftUIWebCore
 import SwiftUIWebHeadless
 

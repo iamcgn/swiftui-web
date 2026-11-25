@@ -3,6 +3,7 @@
 // (Docs/elements/Lifecycle.md).
 import Testing
 import SwiftUI
+import WebCombine   // Combine's names: SwiftUI passes on only Published and ObservableObject
 import SwiftUIWebHeadless
 
 #if !os(WASI)

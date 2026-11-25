@@ -2,7 +2,18 @@
 // Foundation and Observation are re-exported because real SwiftUI does the same
 // (CGFloat/CGRect, @Observable) and unmodified app sources depend on it.
 @_exported import SwiftUIWebCore
+#if os(WASI)
+// Apple's SwiftUI imports Combine without re-exporting it (its iOS 26.2 interface reads
+// `import Combine`); a file that imports only SwiftUI reaches two of Combine's names, through the
+// typealiases Apple's Foundation declares: `Published` and `ObservableObject`. All of WebCombine
+// here made Combine's `Subscription` and `Cancellable` clash with an app's or a package's own
+// (FoodTruckKit's `Subscription`, Nuke's `Cancellable`), which Apple's apps never meet.
+import WebCombine
+@_exported import struct WebCombine.Published
+@_exported import protocol WebCombine.ObservableObject
+#else
 @_exported import WebCombine
+#endif
 @_exported import SwiftUIWebUIKit
 // SwiftUI re-exports UIKit on iOS (an `import SwiftUI` file can name `UIColor` or write a
 // `UIViewRepresentable`); here it re-exports UIKitWeb's `UIKit` everywhere (decision 0014).
