@@ -102,6 +102,8 @@ import UIKit
         window.makeKeyAndVisible()
         scene.layout(in: CGSize(width: 320, height: 400))
         #expect(navigation.toolbar.frame == CGRect(x: 0, y: 324, width: 320, height: 76))
+        // Implicitly unwrapped, as UIKit declares it: optional chaining reaches the same bar.
+        #expect(navigation.toolbar?.isHidden == false && navigation.toolbar?.items?.count == 5)
         let platters = scene.semanticsTree().filter { $0.role == .button && $0.frame.minY == 324 }.sorted { $0.frame.minX < $1.frame.minX }
         #expect(platters.map(\.frame.minX) == [28, 136, 244])
         #expect(root.view.safeAreaInsets.bottom == 76)

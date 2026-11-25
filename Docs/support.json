@@ -1952,7 +1952,7 @@
         {
           "api": "UINavigationController / UINavigationBar / UINavigationItem",
           "status": "partial",
-          "notes": "Push and pop with the measured slide, inline and large titles, back buttons, bar button items in glass platters, the bar's items following later title and button changes, the safe area a bar gives its content; the interactive edge-pan pop, the large title collapsing once the content scrolls past it (SwiftUI's iOS model, no intermediate states), titleView sizing, hidesBottomBarWhenPushed, the delegate's custom push animators (2026-10-04); appearance objects accepted",
+          "notes": "Push and pop with the measured slide, inline and large titles, back buttons, bar button items in glass platters, the bar's items following later title and button changes, the safe area a bar gives its content; the interactive edge-pan pop, the large title collapsing once the content scrolls past it (SwiftUI's iOS model, no intermediate states), titleView sizing, hidesBottomBarWhenPushed, the delegate's custom push animators (2026-10-04); `toolbar` implicitly unwrapped as UIKit declares it (2026-11-24); appearance objects accepted",
           "fixtures": [
             "uikit/nav/basic",
             "uikit/nav/large",
@@ -2398,7 +2398,7 @@
         {
           "api": "observe(_:options:changeHandler:) / NSKeyValueObservation / NSKeyValueObservedChange / willChangeValue / didChangeValue",
           "status": "partial",
-          "notes": "On wasm there is no runtime to swap setters, so a change reports when an observable object (wasm's Progress, any @Observable class) sets the property, on the next main-actor turn, or when the object calls willChangeValue/didChangeValue (for: a key path, or forKey:, which reaches all of its observations); .initial, .prior, .old and .new fill the change; observations stop when invalidated or released; a plain `@objc dynamic` property reports nothing (2026-11-03; Combine's `publisher(for:options:)` publishes what the observation reports, 2026-11-21)",
+          "notes": "On wasm there is no runtime to swap setters, so a change reports when an observable object (wasm's Progress, any @Observable class) sets the property, on the next main-actor turn, or when the object calls willChangeValue/didChangeValue (for: a key path, or forKey:, which reaches all of its observations); .initial, .prior, .old and .new fill the change; observations stop when invalidated or released; a plain `@objc dynamic` property reports nothing (2026-11-03; Combine's `publisher(for:options:)` publishes what the observation reports, 2026-11-21; an observation is an NSObject, as Foundation's is, so it sits in a `[NSObjectProtocol]` with other tokens, 2026-11-24)",
           "noFixture": "Storage, not a screen; WasmFoundationTests round-trips a document through a host store."
         },
         {
@@ -2787,7 +2787,7 @@
         {
           "api": "PhotosPicker / photosPicker / PhotosPickerItem / PHPickerViewController / PHPickerConfiguration / PHPickerFilter / PHPickerResult (PhotosUI)",
           "status": "partial",
-          "notes": "pf-small-frameworks (2026-11-13): the pickers open the host's file panel (a browser's file input, which a phone fills from its photo library or camera) for the filter's photos, videos or both, and the chosen files become the selection, capped at the maximum count; closing the panel without a choice keeps the selection. Picker items load as `Data` and through an app's own representations (IceCubes' file representations of movies and GIFs); `PHPickerViewController` hands its delegate an item provider for each file, which loads as `UIImage`, data or a transferable value. Not done: the inline and compact styles (the panel always takes the screen), live photos, and the person's library albums",
+          "notes": "pf-small-frameworks (2026-11-13): the pickers open the host's file panel (a browser's file input, which a phone fills from its photo library or camera) for the filter's photos, videos or both, and the chosen files become the selection, capped at the maximum count; closing the panel without a choice keeps the selection. Picker items load as `Data` and through an app's own representations (IceCubes' file representations of movies and GIFs); `PHPickerViewController` hands its delegate an item provider for each file, which loads as `UIImage`, data or a transferable value. Not done: the inline and compact styles (the panel always takes the screen), live photos, and the person's library albums 2026-11-24: on wasm PhotosUI brings UniformTypeIdentifiers' `UTType` with it, as Apple's does, so a file that imports only PhotosUI names it (Kingfisher's `PHPickerResultImageDataProvider`).",
           "noFixture": "Nothing new to draw: CoreRuntimeTests drive the pickers through the runtime's open panel"
         },
         {

@@ -84,6 +84,14 @@ public final class CanvasSceneHost {
             script.textContent = .string(PainterScript.source)
             _ = document.head.object!.appendChild!(script)
         }
+        // The WebGL painter (decision 0026) wraps the bridge before the host uses it, and takes
+        // the main canvas's frames where Canvas2D is slow. Without WebGL2 it is not installed and
+        // Canvas2D paints every frame.
+        if window.__swiftuiwebGL.isUndefined, !window.WebGL2RenderingContext.isUndefined {
+            let script = document.createElement!("script").object!
+            script.textContent = .string(PainterGLScript.source)
+            _ = document.head.object!.appendChild!(script)
+        }
         bridge = window.__swiftuiweb.object!
         // 3D scenes (SceneKit) are drawn by a renderer the module that makes them supplies.
         // `?mesh=cpu` keeps SceneKit's own CPU drawing (for comparison).

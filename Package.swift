@@ -216,7 +216,7 @@ let package = Package(
                            .product(name: "WebImageIO", package: "WebGraphics", condition: .when(platforms: [.wasi]))],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
-        .target(name: "PhotosUI", dependencies: ["SwiftUI", "Photos"], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "PhotosUI", dependencies: ["SwiftUI", "Photos", .product(name: "WebGraphics", package: "WebGraphics", condition: .when(platforms: [.wasi]))], swiftSettings: [.treatAllWarnings(as: .error)]),
         // Web sign-in, passkeys, saved passwords and Sign in with Apple's button, over the hooks
         // SwiftUIWebCanvas installs (a sign-in window, `navigator.credentials`).
         .target(name: "AuthenticationServicesHost", swiftSettings: [.treatAllWarnings(as: .error)]),
