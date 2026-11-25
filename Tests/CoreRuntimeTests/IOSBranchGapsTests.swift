@@ -59,5 +59,14 @@ extension View {
         #expect(pthread_mutex_init(&mutex, &attributes) == 0)
         #expect(pthread_mutex_lock(&mutex) == 0 && pthread_mutex_unlock(&mutex) == 0)
     }
+
+    @Test func readWriteLocks() {
+        var lock = pthread_rwlock_t()
+        #expect(pthread_rwlock_init(&lock, nil) == 0)
+        #expect(pthread_rwlock_rdlock(&lock) == 0 && pthread_rwlock_unlock(&lock) == 0)
+        #expect(pthread_rwlock_wrlock(&lock) == 0 && pthread_rwlock_unlock(&lock) == 0)
+        #expect(pthread_rwlock_tryrdlock(&lock) == 0 && pthread_rwlock_trywrlock(&lock) == 0)
+        #expect(pthread_rwlock_destroy(&lock) == 0)
+    }
     #endif
 }
