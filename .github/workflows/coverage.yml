@@ -46,13 +46,13 @@ jobs:
       - name: Probe - the import lines of Apple's SwiftUI, SwiftUICore, Foundation and StoreKit interfaces
         run: |
           SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
-          ls -la "$SDK" "$SDK/System/Library/Frameworks/SwiftUI.framework/Modules/SwiftUI.swiftmodule" || true
-          for m in SwiftUI SwiftUICore Foundation StoreKit Combine; do
-            for f in $(find -L "$SDK/System/Library/Frameworks/" "$SDK/usr/lib/swift/" \( -path "*/$m.swiftmodule/*" -o -path "*/$m.framework/*" \) -name '*.swiftinterface' 2>/dev/null | grep -v private | head -2); do
-              echo "== $f"; grep -n -E '^(@_exported |@_implementationOnly |public |internal |package )?import ' "$f" | head -60
-              grep -n -E 'typealias (Subscription|Cancellable|ObservableObject|Published|AnyCancellable)\b' "$f" | head
-            done
+          for m in SwiftUI SwiftUICore Foundation UIKit; do
+            f="$SDK/System/Library/Frameworks/$m.framework/Modules/$m.swiftmodule/arm64e-apple-ios.swiftinterface"
+            echo "== $m"; grep -n -E 'Combine\.|^#if|^#else|^#endif' "$f" | grep -B1 -A1 'Combine\.' | grep -v -E '^\s*$' | head -120
           done
+          f="$SDK/System/Library/Frameworks/Foundation.framework/Modules/Foundation.swiftmodule/arm64e-apple-ios.swiftinterface"
+          echo "== Foundation 185-215"; sed -n '185,215p' "$f"
+          echo "== SwiftUI clang umbrella"; ls "$SDK/System/Library/Frameworks/SwiftUI.framework/Headers" "$SDK/System/Library/Frameworks/SwiftUI.framework/Modules" 2>&1 | head; cat "$SDK/System/Library/Frameworks/SwiftUI.framework/Modules/module.modulemap" 2>/dev/null | head -20
       - name: Apple's symbol graphs (iOS SDK)
         run: Tools/Coverage/apple-symbols.sh .build/coverage/apple
       - name: Apple's keys
