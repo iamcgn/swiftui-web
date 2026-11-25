@@ -40,6 +40,9 @@ private struct StoreKeyID: Hashable {
         #expect(seen.count == 5)
         let kept: Set<NSKeyValueObservation> = [observation, observation]
         #expect(kept.count == 1)
+        // An NSObject, as Foundation's is: it sits with other tokens (Hipstapaper's web view).
+        let tokens: [NSObjectProtocol] = [observation, NotificationCenter.default.addObserver(forName: .init("kvo"), object: nil, queue: nil) { _ in }]
+        #expect(tokens.count == 2 && observation.isEqual(observation))
     }
 
     @Test func releasingAnObservationStopsIt() {
