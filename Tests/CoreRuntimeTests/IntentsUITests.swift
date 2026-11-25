@@ -36,7 +36,6 @@ import WidgetKit
     private func activity(_ type: String, phrase: String) -> NSUserActivity {
         let activity = NSUserActivity(activityType: type)
         activity.isEligibleForSearch = true
-        activity.isEligibleForPrediction = true
         activity.persistentIdentifier = NSUserActivityPersistentIdentifier(type)
         activity.title = "Add Event"
         activity.suggestedInvocationPhrase = phrase
