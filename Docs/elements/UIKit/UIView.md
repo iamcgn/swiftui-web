@@ -10,7 +10,9 @@ container is resized after the subviews were placed).
 The tree (`addSubview`, `insertSubview` at, above, below, `removeFromSuperview`, `bringSubviewToFront`,
 `sendSubviewToBack`, `exchangeSubview`, `isDescendant(of:)`, `superview`, `subviews`, `window`),
 geometry (`frame`, `bounds`, `center`, `transform`, `autoresizingMask`, `convert` points and
-rects to and from any view), the layout cycle (`setNeedsLayout`, `layoutIfNeeded`, `layoutSubviews`,
+rects to and from any view or `UICoordinateSpace`, which views are; the screen's
+`coordinateSpace` and `fixedCoordinateSpace` are the window's coordinates, as the page's window
+fills the screen and never turns), the layout cycle (`setNeedsLayout`, `layoutIfNeeded`, `layoutSubviews`,
 `sizeThatFits`, `sizeToFit`, `intrinsicContentSize`, `invalidateIntrinsicContentSize`,
 `systemLayoutSizeFitting`, content hugging and compression priorities, `layoutMargins`,
 `safeAreaInsets`), appearance (`backgroundColor`, `alpha`, `isHidden`, `isOpaque`, `clipsToBounds`,

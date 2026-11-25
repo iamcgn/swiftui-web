@@ -68,5 +68,15 @@ extension View {
         #expect(pthread_rwlock_tryrdlock(&lock) == 0 && pthread_rwlock_trywrlock(&lock) == 0)
         #expect(pthread_rwlock_destroy(&lock) == 0)
     }
+
+    /// Mlem's device model: the machine field read as `_SYS_NAMELEN` bytes, which stay inside it.
+    @Test func machineNameFromUname() {
+        var info = utsname()
+        #expect(uname(&info) == 0)
+        #expect(Int(_SYS_NAMELEN) == MemoryLayout.size(ofValue: info.machine))
+        // ASCII throughout: the name and the field's zero padding, with nothing read past it.
+        let name = String(bytes: Data(bytes: &info.machine, count: Int(_SYS_NAMELEN)), encoding: .ascii)
+        #expect(name != nil)
+    }
     #endif
 }

@@ -46,6 +46,29 @@ open class UIInputView: UIView {
     }
 }
 
+/// A view controller for a custom keyboard or an input view: its `inputView` is the view a
+/// responder shows in place of the keyboard. The web has no system keyboard to replace, so
+/// switching input modes and dismissing do nothing, and no keyboard has full access.
+@preconcurrency @MainActor
+open class UIInputViewController: UIViewController {
+    private var customInputView: UIView?
+    /// The input view the controller manages.
+    open override var inputView: UIView? {
+        get { customInputView }
+        set { customInputView = newValue }
+    }
+    /// Whether the keyboard should show a key to switch to the next keyboard.
+    open var needsInputModeSwitchKey: Bool { false }
+    /// Whether the user gave the keyboard full access.
+    open var hasFullAccess: Bool { false }
+    /// The keyboard's language, as a BCP 47 tag; nil when unset.
+    open var primaryLanguage: String?
+    /// Switches to the next keyboard.
+    open func advanceToNextInputMode() {}
+    /// Dismisses the keyboard.
+    open func dismissKeyboard() {}
+}
+
 /// An input view that plays the keyboard's click when `UIDevice.current.playInputClick()` is
 /// called while it shows (the web plays none).
 @preconcurrency @MainActor
