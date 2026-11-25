@@ -74,8 +74,8 @@ extension View {
         var info = utsname()
         #expect(uname(&info) == 0)
         #expect(Int(_SYS_NAMELEN) == MemoryLayout.size(ofValue: info.machine))
-        let name = String(bytes: Data(bytes: &info.machine, count: Int(_SYS_NAMELEN)), encoding: .ascii)?
-            .trimmingCharacters(in: .controlCharacters)
+        // ASCII throughout: the name and the field's zero padding, with nothing read past it.
+        let name = String(bytes: Data(bytes: &info.machine, count: Int(_SYS_NAMELEN)), encoding: .ascii)
         #expect(name != nil)
     }
     #endif
