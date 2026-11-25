@@ -248,6 +248,39 @@ extension Set: _BothSetForms {}
         #expect(os_unfair_lock_trylock(lock))
         os_unfair_lock_unlock(lock)
     }
+
+    @Test func atomicsAndSpinLock() {
+        var word: Int32 = 3
+        #expect(OSAtomicCompareAndSwap32Barrier(3, 7, &word))
+        #expect(word == 7)
+        #expect(!OSAtomicCompareAndSwap32Barrier(3, 9, &word))
+        #expect(word == 7)
+        #expect(OSAtomicIncrement32(&word) == 8)
+        #expect(OSAtomicAdd32Barrier(-5, &word) == 3)
+        var wide: Int64 = 1 << 40
+        #expect(OSAtomicAdd64(1, &wide) == (1 << 40) + 1)
+        let current = wide
+        #expect(OSAtomicCompareAndSwap64(current, 0, &wide))
+        #expect(wide == 0)
+        var bits: UInt32 = 0b0101
+        #expect(OSAtomicOr32Orig(0b0010, &bits) == 0b0101)
+        #expect(bits == 0b0111)
+        #expect(OSAtomicAnd32(0b0011, &bits) == 0b0011)
+        #expect(OSAtomicXor32(0b0001, &bits) == 0b0010)
+        var flags: UInt8 = 0
+        #expect(!OSAtomicTestAndSet(0, &flags))
+        #expect(flags == 0x80)
+        #expect(OSAtomicTestAndClear(0, &flags))
+        #expect(flags == 0)
+        var spin = OS_SPINLOCK_INIT
+        #expect(OSSpinLockTry(&spin))
+        #expect(!OSSpinLockTry(&spin))
+        OSSpinLockUnlock(&spin)
+        OSSpinLockLock(&spin)
+        #expect(!OSSpinLockTry(&spin))
+        OSSpinLockUnlock(&spin)
+        OSMemoryBarrier()
+    }
     #endif
 
     #if !canImport(Darwin)
