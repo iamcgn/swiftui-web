@@ -76,4 +76,6 @@ endless image (a bare colour) gives a clear one-pixel image.
 - Generators that need their own pixels: barcode generators other than QR, gradients, checkerboards.
 - Reading pixels back (`render(_:toBitmap:...)`); QR codes in images of files; face, rectangle
   and text detection.
+- QR messages in Shift JIS (ECI 20 and Kanji mode) and the ECI sets not listed above are not
+  turned into their characters.
 - `CIFilterBuiltins` (the typed filter properties) and custom kernels.
