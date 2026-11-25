@@ -197,6 +197,11 @@ public final class UIImage: UIObjectBase, @unchecked Sendable {
         return pngData()
     }
 
+    /// The image with `configuration`'s values over its own symbol configuration.
+    public func applyingSymbolConfiguration(_ configuration: SymbolConfiguration) -> UIImage? {
+        withConfiguration((symbolConfiguration ?? .unspecified).applying(configuration))
+    }
+
     public func withConfiguration(_ configuration: SymbolConfiguration) -> UIImage {
         let pointSize = configuration.pointSize ?? 17
         let side = isSystemSymbol ? (pointSize * 1.25).rounded() : size.width

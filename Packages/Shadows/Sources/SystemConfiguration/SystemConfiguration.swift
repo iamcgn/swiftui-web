@@ -22,6 +22,15 @@ public struct SCNetworkReachabilityFlags: OptionSet, Hashable, Sendable {
     public static let connectionAutomatic = connectionOnTraffic
 }
 
+// The flags' older names (SCNetwork.h's), which reachability code still masks `rawValue` with.
+public var kSCNetworkFlagsTransientConnection: Int { 1 << 0 }
+public var kSCNetworkFlagsReachable: Int { 1 << 1 }
+public var kSCNetworkFlagsConnectionRequired: Int { 1 << 2 }
+public var kSCNetworkFlagsConnectionAutomatic: Int { 1 << 3 }
+public var kSCNetworkFlagsInterventionRequired: Int { 1 << 4 }
+public var kSCNetworkFlagsIsLocalAddress: Int { 1 << 16 }
+public var kSCNetworkFlagsIsDirect: Int { 1 << 17 }
+
 /// Called with the target, its new flags and the context's `info`.
 public typealias SCNetworkReachabilityCallBack = (SCNetworkReachability, SCNetworkReachabilityFlags, UnsafeMutableRawPointer?) -> Void
 

@@ -129,6 +129,7 @@ public final class UIScreen {
     public internal(set) var safeAreaInsets = UIEdgeInsets.zero
     public var brightness: CGFloat = 1
     public var maximumFramesPerSecond: Int { 60 }
+    lazy var screenCoordinateSpace = UIScreenCoordinateSpace(screen: self)
 }
 
 /// The centralized point of control and coordination for apps.
