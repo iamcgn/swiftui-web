@@ -43,6 +43,15 @@ jobs:
           ls -d /Applications/Xcode*.app
           X="$(ls -d /Applications/Xcode_*.app | grep -iv beta | sort -V | tail -1)"
           sudo xcode-select -s "$X" && xcodebuild -version
+      - name: Probe - the import lines of Apple's SwiftUI, SwiftUICore, Foundation and StoreKit interfaces
+        run: |
+          SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
+          for m in SwiftUI SwiftUICore Foundation StoreKit Combine; do
+            for f in $(ls "$SDK"/System/Library/Frameworks/$m.framework/Modules/$m.swiftmodule/arm64-apple-ios.swiftinterface "$SDK"/usr/lib/swift/$m.swiftmodule/arm64-apple-ios.swiftinterface 2>/dev/null); do
+              echo "== $f"; grep -n -E '^(@_exported |@_implementationOnly |public |internal |package )?import ' "$f" | head -60
+              grep -n -E 'typealias (Subscription|Cancellable|ObservableObject|Published|AnyCancellable)\b' "$f" | head
+            done
+          done
       - name: Apple's symbol graphs (iOS SDK)
         run: Tools/Coverage/apple-symbols.sh .build/coverage/apple
       - name: Apple's keys
