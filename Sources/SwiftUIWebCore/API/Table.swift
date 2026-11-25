@@ -292,16 +292,11 @@ public struct TableRowBuilder<Value: Identifiable> {
     public static func buildExpression<D, I>(_ rows: ForEach<D, I, [TableRow<Value>]>) -> [TableRow<Value>] { rows.data.flatMap(rows.content) }
     /// A section of rows (`Section { ForEach(...) { TableRow($0) } }`): its rows, in place; the
     /// table draws no section header yet.
-    ///
-    /// The `ForEach` and `Section` initializers that build table rows are disfavoured, so that
-    /// when a list's own `Section { ... }` or `ForEach` fails to compile, the compiler reports
-    /// the view builder's error rather than one about table rows.
     public static func buildExpression<P, F>(_ section: Section<P, [TableRow<Value>], F>) -> [TableRow<Value>] { section.content }
 }
 
 extension ForEach where ID == Data.Element.ID, Data.Element: Identifiable {
     /// Table rows made from a collection of identified data.
-    @_disfavoredOverload
     public init<V>(_ data: Data, @TableRowBuilder<V> content: @escaping (Data.Element) -> Content) where Content == [TableRow<V>] {
         self.init(data: data, id: \.id, content: content)
     }
@@ -309,7 +304,6 @@ extension ForEach where ID == Data.Element.ID, Data.Element: Identifiable {
 
 extension ForEach {
     /// Table rows made from a collection, identified by a key path.
-    @_disfavoredOverload
     public init<V>(_ data: Data, id: KeyPath<Data.Element, ID>, @TableRowBuilder<V> content: @escaping (Data.Element) -> Content) where Content == [TableRow<V>] {
         self.init(data: data, id: id, content: content)
     }
@@ -317,7 +311,6 @@ extension ForEach {
 
 extension Section where Parent == EmptyView, Footer == EmptyView {
     /// A section of table rows.
-    @_disfavoredOverload
     public init<V>(@TableRowBuilder<V> content: () -> Content) where Content == [TableRow<V>] {
         self.init(header: EmptyView(), content: content(), footer: EmptyView())
     }
@@ -325,7 +318,6 @@ extension Section where Parent == EmptyView, Footer == EmptyView {
 
 extension Section where Parent == Text, Footer == EmptyView {
     /// A titled section of table rows.
-    @_disfavoredOverload
     public init<V>(_ titleKey: LocalizedStringKey, @TableRowBuilder<V> content: () -> Content) where Content == [TableRow<V>] {
         self.init(header: Text(titleKey), content: content(), footer: EmptyView())
     }
