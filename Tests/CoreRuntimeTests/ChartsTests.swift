@@ -293,6 +293,39 @@ import Charts
         #expect(month == "Jan")
     }
 
+    @Test func automaticValuesKeepAMinimumStride() {
+        // FoodTruck's temperature axis: six marks wanted, but no closer than 5 apart.
+        let points = Array(0...10)
+        let (_, commands) = render(Chart(points, id: \.self) { n in
+            LineMark(x: .value("X", "\(n)"), y: .value("Y", Double(n)))
+        }
+        .chartYAxis { AxisMarks(values: .automatic(minimumStride: 5, desiredCount: 6, roundLowerBound: false)) { _ in AxisValueLabel() } }
+        .chartXAxis(.hidden)
+        .padding(16))
+        #expect(drawn(commands) == ["0", "5", "10"])
+    }
+
+    @Test func dateBinsStepByCalendarUnits() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        let start = Date(timeIntervalSinceReferenceDate: 5400)      // 01:30
+        let end = Date(timeIntervalSinceReferenceDate: 36000)       // 10:00
+        let bins = DateBins(unit: .hour, by: 3, calendar: calendar, range: start...end)
+        #expect(bins.thresholds.map(\.timeIntervalSinceReferenceDate) == [3600, 14400, 25200, 36000])
+        #expect(bins.count == 3 && bins[1].lowerBound.timeIntervalSinceReferenceDate == 14400)
+        #expect(bins.index(for: start) == 0 && bins.index(for: end) == 2)
+        #expect(DateBins(timeInterval: 3600, range: start...end).thresholds.count == 10)
+    }
+
+    @Test func areaRangesBySeries() {
+        // FoodTruck's weather card: one band per series between a low and each value.
+        let out = records {
+            AreaMark(x: .value("Hour", 1), yStart: .value("T", 50), yEnd: .value("T", 60), series: .value("S", "A"))
+            AreaMark(x: .value("Hour", 1), yStart: .value("T", 50), yEnd: .value("T", 70), series: .value("S", "B"))
+        }
+        #expect(out.map(\.dodge) == ["A", "B"] && out.map(\.kind) == [.area, .area])
+    }
+
     @Test func axisMarksCustomise() {
         let (_, commands) = render(Chart(Self.sales) { sale in
             BarMark(x: .value("Month", sale.month), y: .value("Sales", sale.amount))

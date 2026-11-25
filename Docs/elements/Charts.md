@@ -12,19 +12,19 @@ glyphs are the same, the axis and mark geometry follows the measurements below.
 | API | Status |
 |---|---|
 | `Chart { }`, `Chart(data) { }`, `Chart(data, id:) { }`, `ChartContentBuilder` (conditionals, arrays, `ForEach`) | implemented |
-| `BarMark` (x/y, ranges, a single axis), `LineMark`, `PointMark`, `AreaMark` (y or a range), `RuleMark` (x, y, ranges), `RectangleMark` | implemented |
+| `BarMark` (x/y, ranges, a single axis), `LineMark`, `PointMark`, `AreaMark` (y or a range; `series:` on lines and areas, ranges too), `RuleMark` (x, y, ranges), `RectangleMark` | implemented |
 | `PlottableValue.value(_:_:)`, `Plottable` (numbers, strings, dates, raw-representable enums), `.value(_:_:unit:)` for dates | implemented |
 | `foregroundStyle(by:)` with the palette and a legend, `foregroundStyle(_:)` (colours, gradients through the canvas), `opacity`, `cornerRadius`, `lineStyle`, `interpolationMethod` (linear, steps, Catmull-Rom; monotone and cardinal as Catmull-Rom), `symbol`, `symbolSize`, `position(by:)` (dodged bars), `offset`, `zIndex` | implemented |
 | `annotation(position:alignment:spacing:content:)` | implemented: the view is a canvas symbol placed against the mark's frame (overflow resolution accepted) |
 | Stacking: bars and areas sharing a position stack by their series (positives up, negatives down) | implemented |
-| `chartXAxis` / `chartYAxis` (`.hidden`, `AxisMarks` with `values:` automatic, `.stride(by:)`, explicit values, calendar strides; `AxisGridLine`, `AxisTick`, `AxisValueLabel` plain, fixed text, `format:`, custom content; `position: .leading`; marks per value) | implemented (ticks are not drawn: Swift Charts' default ticks are invisible on macOS; custom tick strokes are ignored) |
+| `chartXAxis` / `chartYAxis` (`.hidden`, `AxisMarks` with `values:` automatic (`desiredCount`, `minimumStride`), `.stride(by:)`, explicit values, calendar strides; `AxisGridLine`, `AxisTick`, `AxisValueLabel` plain, fixed text, `format:`, custom content; `position: .leading`; marks per value) | implemented (ticks are not drawn: Swift Charts' default ticks are invisible on macOS; custom tick strokes are ignored) |
 | `chartXScale` / `chartYScale(domain:)` (numbers, dates, categories), `chartForegroundStyleScale` (mapping, range, domain + range), `chartSymbolScale` | implemented |
 | `chartLegend(.hidden)`, `chartLegend(position:)` (bottom, top, leading, trailing) | implemented |
 | `chartXAxisLabel` / `chartYAxisLabel` | implemented (approximate: the x title centred below the labels, the y title above the axis column) |
 | `chartPlotStyle`, `chartOverlay`, `chartBackground` with `ChartProxy` (`plotSize`, `plotFrame` / `plotAreaFrame` as an `Anchor<CGRect>` read with `GeometryProxy`'s subscript, `position(forX:)`, `position(forY:)`, `value(atX:)`, `value(atY:)`) | implemented (the proxy's geometry estimates label widths at 0.56 em) |
 | `Plot { }`; `mask { }` (the mask's marks drawn in the masked content's style, at their own opacity); `RectangleMark(xStart:xEnd:)` and `(yStart:yEnd:)` across the whole plot | implemented |
 | `symbol(_:)` with an app's own `ChartSymbolShape` (scaled so its `perceptualUnitRect` fills the symbol), `symbol { view }` and `symbol(view)` (the view centred on the point, a canvas symbol) | implemented |
-| `chartForegroundStyleScale(range: Gradient)` (numeric series by value across the gradient, others evenly in order, mixed in sRGB), mappings keyed by any `Plottable`, `Decimal` values, `NumberBins` | implemented |
+| `chartForegroundStyleScale(range: Gradient)` (numeric series by value across the gradient, others evenly in order, mixed in sRGB), mappings keyed by any `Plottable`, `Decimal` values, `NumberBins`, `DateBins` (calendar units or a time interval; `thresholds`) | implemented |
 | `AxisMarks` content with `if` / `switch` / loops, `AxisMarkPreset.inset`, `foregroundStyle` on grid lines, ticks and labels (colours) | implemented (`inset` is drawn as the default; `font` and `offset` on axis marks accepted) |
 | `chartXScale` / `chartYScale(range: .plotDimension(...))` | accepted, the padding is not applied |
 | Temporal axes: the domain is the data's extent; ticks at years, months, days or hours by the span, labelled "2026", "Jan", "12", "3 PM" | implemented (approximate: Swift Charts' label formats vary with the span) |

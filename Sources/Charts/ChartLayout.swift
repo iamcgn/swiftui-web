@@ -249,11 +249,12 @@ package struct _ChartModel {
                 scale.ticks = numbers.map { n in _Tick(value: .number(n), label: _formatNumber(n), fraction: scale.fraction(of: .number(n)) ?? 0) }
                 return
             default:
-                var desiredCount: Int?
-                if case .automatic(let d) = values { desiredCount = d }
+                var desiredCount: Int?, minimumStride: Double?
+                if case .automatic(let d, let m) = values { desiredCount = d; minimumStride = m }
                 let intervals = max(1, (desiredCount.map { $0 - 1 }) ?? min(max(Int(length / 60), 4), 10))
                 let span = hi - lo
                 step = span > 0 ? niceStep(span / Double(intervals)) : niceStep(max(abs(hi), 1) / Double(intervals))
+                if let m = minimumStride, m > 0 { step = max(step, niceStep(m)) }
             }
             if !fixedDomain {
                 lo = (lo / step).rounded(.down) * step

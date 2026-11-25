@@ -58,3 +58,51 @@ public struct NumberBins<Value: BinaryFloatingPoint & Sendable>: RandomAccessCol
         return count - 1
     }
 }
+
+/// A date range cut into calendar intervals (`DateBins(unit: .hour, by: 3, range: day)`): the
+/// thresholds start at the unit's start at or before the lower bound and step by `by` units
+/// until they cover the upper bound.
+public struct DateBins: RandomAccessCollection, Equatable, Sendable {
+    /// The edges of the bins, in increasing order: one more than there are bins.
+    public let thresholds: [Date]
+
+    /// Bins with the given edges (sorted; at least two make one bin).
+    public init(thresholds: [Date]) {
+        self.thresholds = thresholds.sorted()
+    }
+
+    /// Bins `by` calendar units wide across `range`.
+    public init(unit: Calendar.Component, by step: Int = 1, calendar: Calendar = .current, range: ClosedRange<Date>) {
+        let n = Swift.max(step, 1)
+        var edges = [_unitStart(calendar, unit, range.lowerBound) ?? range.lowerBound]
+        while let last = edges.last, last < range.upperBound, edges.count < 10_000,
+              let next = calendar.date(byAdding: unit, value: n, to: last), next > last {
+            edges.append(next)
+        }
+        if edges.count == 1, let next = calendar.date(byAdding: unit, value: n, to: edges[0]) { edges.append(next) }
+        thresholds = edges
+    }
+
+    /// Bins `timeInterval` seconds wide from the range's lower bound until they cover its upper bound.
+    public init(timeInterval: TimeInterval, range: ClosedRange<Date>) {
+        guard timeInterval > 0 else { thresholds = [range.lowerBound, range.upperBound]; return }
+        var edges = [range.lowerBound]
+        while let last = edges.last, last < range.upperBound, edges.count < 10_000 { edges.append(last.addingTimeInterval(timeInterval)) }
+        if edges.count == 1 { edges.append(range.lowerBound.addingTimeInterval(timeInterval)) }
+        thresholds = edges
+    }
+
+    public var startIndex: Int { 0 }
+    public var endIndex: Int { Swift.max(thresholds.count - 1, 0) }
+
+    public subscript(position: Int) -> ChartBinRange<Date> {
+        ChartBinRange(lowerBound: thresholds[position], upperBound: thresholds[position + 1])
+    }
+
+    /// The bin a date falls in; dates past either end go to the first or the last bin.
+    public func index(for value: Date) -> Int {
+        guard count > 1 else { return 0 }
+        for i in 1..<thresholds.count - 1 where value < thresholds[i] { return i - 1 }
+        return count - 1
+    }
+}

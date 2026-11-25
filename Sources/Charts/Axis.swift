@@ -13,7 +13,7 @@ import SwiftUI
 /// Which values an axis marks.
 public struct AxisMarkValues: Sendable {
     package enum Kind: Sendable {
-        case automatic(desiredCount: Int?)
+        case automatic(desiredCount: Int?, minimumStride: Double? = nil)
         case values([_PlotValue])
         case strideBy(Double)
         case strideCalendar(Calendar.Component, Int)
@@ -24,8 +24,9 @@ public struct AxisMarkValues: Sendable {
     public static func automatic(desiredCount: Int? = nil, roundLowerBound: Bool? = nil, roundUpperBound: Bool? = nil) -> AxisMarkValues {
         AxisMarkValues(kind: .automatic(desiredCount: desiredCount))
     }
-    public static func automatic(minimumStride: Int, desiredCount: Int? = nil) -> AxisMarkValues {
-        AxisMarkValues(kind: .automatic(desiredCount: desiredCount))
+    /// Automatic values at least `minimumStride` apart (FoodTruck's temperatures, 5 degrees).
+    public static func automatic(minimumStride: Int, desiredCount: Int? = nil, roundLowerBound: Bool? = nil, roundUpperBound: Bool? = nil) -> AxisMarkValues {
+        AxisMarkValues(kind: .automatic(desiredCount: desiredCount, minimumStride: Double(minimumStride)))
     }
     public static func values<V: Plottable>(_ values: [V]) -> AxisMarkValues {
         AxisMarkValues(kind: .values(values.map { $0.primitivePlottable._plotValue }))
