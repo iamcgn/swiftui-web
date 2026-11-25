@@ -46,8 +46,9 @@ jobs:
       - name: Probe - the import lines of Apple's SwiftUI, SwiftUICore, Foundation and StoreKit interfaces
         run: |
           SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
+          ls -la "$SDK" "$SDK/System/Library/Frameworks/SwiftUI.framework/Modules/SwiftUI.swiftmodule" || true
           for m in SwiftUI SwiftUICore Foundation StoreKit Combine; do
-            for f in $(find "$SDK" \( -path "*/$m.swiftmodule/*" -o -path "*/$m.framework/*" \) -name '*.swiftinterface' 2>/dev/null | grep -v private | head -2); do
+            for f in $(find -L "$SDK/System/Library/Frameworks/" "$SDK/usr/lib/swift/" \( -path "*/$m.swiftmodule/*" -o -path "*/$m.framework/*" \) -name '*.swiftinterface' 2>/dev/null | grep -v private | head -2); do
               echo "== $f"; grep -n -E '^(@_exported |@_implementationOnly |public |internal |package )?import ' "$f" | head -60
               grep -n -E 'typealias (Subscription|Cancellable|ObservableObject|Published|AnyCancellable)\b' "$f" | head
             done
