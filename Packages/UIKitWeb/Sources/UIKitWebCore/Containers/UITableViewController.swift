@@ -19,7 +19,7 @@ open class UITableViewController: UIViewController, UITableViewDataSource, UITab
     }
 
     /// A controller with a plain table view.
-    public override init(nibName: String? = nil, bundle: Any? = nil) {
+    public override init(nibName: String? = nil, bundle: Bundle? = nil) {
         self.style = .plain
         super.init(nibName: nibName, bundle: bundle)
     }

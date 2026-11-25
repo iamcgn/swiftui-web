@@ -277,6 +277,23 @@ private func removingDuplicates<P: Publisher>(_ upstream: P, by isDuplicate: @es
         #expect(publisher.request.url?.absoluteString == "no-scheme")
         _ = cancellable
     }
+
+    @Test func notificationCenterPublisherIsCombinesNamedType() {
+        // Clendar keeps `NotificationCenter.Publisher` in a property; Combine's type also has a
+        // public initializer.
+        let center = NotificationCenter()
+        let name = Notification.Name("AppEvents.didChange")
+        let stored: NotificationCenter.Publisher = center.publisher(for: name)
+        let built = NotificationCenter.Publisher(center: center, name: name)
+        var received: [Notification.Name] = []
+        let a = stored.sink { received.append($0.name) }
+        let b = built.sink { received.append($0.name) }
+        center.post(name: name, object: nil)
+        center.post(name: Notification.Name("other"), object: nil)
+        #expect(received == [name, name])
+        #expect(stored.name == name && built.center === center && built.object == nil)
+        a.cancel(); b.cancel()
+    }
     #endif
 }
 

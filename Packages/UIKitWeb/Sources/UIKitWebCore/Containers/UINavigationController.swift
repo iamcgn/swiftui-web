@@ -22,8 +22,9 @@ open class UINavigationController: UIViewController {
     open weak var delegate: (any UINavigationControllerDelegate)?
     open var isNavigationBarHidden = false { didSet { navigationBar.isHidden = isNavigationBarHidden; viewIfLoaded?.setNeedsLayout() } }
     /// The toolbar floating over the bottom of the screen with the top controller's
-    /// `toolbarItems` (hidden by default, as in UIKit).
-    public let toolbar = UIToolbar()
+    /// `toolbarItems` (hidden by default, as in UIKit). Implicitly unwrapped, as UIKit declares
+    /// it, so `toolbar?.` compiles (Hipstapaper's opaque toolbar); it is never nil.
+    public private(set) var toolbar: UIToolbar! = UIToolbar()
     open var isToolbarHidden = true { didSet { toolbar.isHidden = isToolbarHidden; viewIfLoaded?.setNeedsLayout() } }
     open func setToolbarHidden(_ hidden: Bool, animated: Bool) { isToolbarHidden = hidden }
     /// The floating platter holding the top item's search field.
@@ -54,7 +55,7 @@ open class UINavigationController: UIViewController {
         setViewControllers([rootViewController], animated: false)
     }
 
-    public override init(nibName: String? = nil, bundle: Any? = nil) {
+    public override init(nibName: String? = nil, bundle: Bundle? = nil) {
         super.init(nibName: nibName, bundle: bundle)
         navigationBar.controller = self
     }

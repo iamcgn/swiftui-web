@@ -87,7 +87,7 @@ open class UISplitViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
 
-    public override init(nibName: String? = nil, bundle: Any? = nil) {
+    public override init(nibName: String? = nil, bundle: Bundle? = nil) {
         style = .unspecified
         super.init(nibName: nibName, bundle: bundle)
     }
