@@ -40,6 +40,7 @@ let package = Package(
         .library(name: "CoreHaptics", targets: ["CoreHaptics"]),
         .library(name: "WidgetKit", targets: ["WidgetKit"]),
         .library(name: "EventKit", targets: ["EventKit"]),
+        .library(name: "EventKitUI", targets: ["EventKitUI"]),
         .library(name: "Contacts", targets: ["Contacts"]),
         .library(name: "ActivityKit", targets: ["ActivityKit"]),
         .library(name: "BackgroundTasks", targets: ["BackgroundTasks"]),
@@ -160,10 +161,12 @@ let package = Package(
         .target(name: "CoreHaptics", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WidgetKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // Its event queries take an `NSPredicate`, which Apple's Foundation declares and WebCoreData holds here.
-        .target(name: "EventKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics"),
+        .target(name: "EventKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics"), "CoreLocation",
                                                  .product(name: "WebGraphics", package: "WebGraphics", condition: .when(platforms: [.wasi, .linux])),
                                                  .target(name: "WebCoreData", condition: .when(platforms: [.wasi]))],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
+        // The system's event viewer, editor and calendar chooser as UIKit controllers.
+        .target(name: "EventKitUI", dependencies: ["EventKit", .product(name: "UIKit", package: "UIKitWeb")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // The address book is out of a page's reach: access is declined, the contact types are values.
         .target(name: "Contacts", dependencies: [.product(name: "WebFoundation", package: "WebGraphics"),
                                                  .target(name: "WebCoreData", condition: .when(platforms: [.wasi]))],
@@ -323,7 +326,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", .product(name: "UserNotifications", package: "UIKitWeb"), "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "QuickLook", "SceneKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", "LanguageMode5Fixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", .product(name: "UserNotifications", package: "UIKitWeb"), "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "QuickLook", "SceneKit", "EventKitUI", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", "LanguageMode5Fixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // A Swift 5 language mode type for the tests, as packages built in that mode (swift-perception)

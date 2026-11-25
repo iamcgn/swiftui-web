@@ -55,7 +55,7 @@ open class UINavigationController: UIViewController {
         setViewControllers([rootViewController], animated: false)
     }
 
-    public override init(nibName: String? = nil, bundle: Any? = nil) {
+    public override init(nibName: String? = nil, bundle: Bundle? = nil) {
         super.init(nibName: nibName, bundle: bundle)
         navigationBar.controller = self
     }
