@@ -285,5 +285,30 @@ private final class Finished: @unchecked Sendable { var value: Bool? }
         map.setUserTrackingMode(.follow, animated: true)
         #expect(delegate.modes == [.follow])
     }
+
+    @Test func cameraAndConfiguration() {
+        let map = MKMapView(frame: CGRect(x: 0, y: 0, width: 200, height: 100))
+        #expect(map.preferredConfiguration is MKStandardMapConfiguration)
+        let configuration = MKStandardMapConfiguration(elevationStyle: .realistic, emphasisStyle: .default)
+        configuration.pointOfInterestFilter = .excludingAll
+        map.preferredConfiguration = configuration
+        #expect(map.preferredConfiguration.elevationStyle == .realistic)
+        #expect((map.preferredConfiguration as? MKStandardMapConfiguration)?.pointOfInterestFilter == .excludingAll)
+        #expect(MKHybridMapConfiguration(elevationStyle: .flat).showsTraffic == false)
+
+        let center = CLLocationCoordinate2D(latitude: 37.79, longitude: -122.4)
+        map.camera = MKMapCamera(lookingAtCenter: center, fromDistance: 1500, pitch: 60, heading: 90)
+        #expect(map.centerCoordinate.latitude == 37.79 && map.centerCoordinate.longitude == -122.4)
+        #expect(abs(map.camera.centerCoordinateDistance - 1500) < 0.001)
+        #expect(map.camera.pitch == 60 && map.camera.heading == 90)
+        #expect(abs(map.camera.altitude - 750) < 0.001)
+        #expect(map.region.span.longitudeDelta > map.region.span.latitudeDelta)
+
+        let overhead = MKMapCamera(lookingAtCenter: center, fromEyeCoordinate: center, eyeAltitude: 800)
+        #expect(overhead.pitch == 0 && abs(overhead.centerCoordinateDistance - 800) < 0.001)
+        let south = CLLocationCoordinate2D(latitude: 37.78, longitude: -122.4)
+        let tilted = MKMapCamera(lookingAtCenter: center, fromEyeCoordinate: south, eyeAltitude: 1113.2)
+        #expect(abs(tilted.pitch - 45) < 0.5 && abs(tilted.heading) < 0.001)
+    }
 }
 #endif
