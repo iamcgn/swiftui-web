@@ -1794,7 +1794,7 @@
         {
           "api": "UIFont",
           "status": "full",
-          "notes": "System fonts by size and weight, italic and monospaced faces, bundled fonts through the asset catalog with their tables' metrics, the text styles at every content size category with their own measured metrics, UIFontMetrics scaling, labels following the scene's category; tabular figures; a font's descriptor in another system design (rounded, serif, monospaced) or size, back through UIFont(descriptor:size:) (2026-11-01); open: reading the host's text size, a descriptor's traits and attributes (Docs/elements/UIKit/UIFont.md)",
+          "notes": "System fonts by size and weight, italic and monospaced faces, bundled fonts through the asset catalog with their tables' metrics, the text styles at every content size category with their own measured metrics, UIFontMetrics scaling, labels following the scene's category; tabular figures; a font's descriptor in another system design (rounded, serif, monospaced) or size, back through UIFont(descriptor:size:) (2026-11-01); open: reading the host's text size, a descriptor's traits and attributes (Docs/elements/UIKit/UIFont.md); descriptors from attributes (family or name, face, size; UIFontDescriptor.AttributeName), with addingAttributes and withFamily (2026-11-24)",
           "fixtures": [
             "uikit/label/basic",
             "uikit/label/fonts",
@@ -1936,7 +1936,7 @@
         {
           "api": "UIViewController (lifecycle, containment, preferredContentSize, safe areas, layout margins)",
           "status": "partial",
-          "notes": "loadView / viewDidLoad / the appearance callbacks as a window's root or a container's child, addChild / removeFromParent, additionalSafeAreaInsets, systemMinimumLayoutMargins; size transitions (2026-11-22): a window resize sends viewWillTransition(to:with:) to the root controller on screen, which passes it to its children and presented controller, and the coordinator runs the alongside blocks and completions once the new size is laid out (not animated); the status bar preferences (preferredStatusBarStyle, prefersStatusBarHidden, childForStatusBarStyle) are answered and read by nothing, as a page has no status bar; UIWindowScene.statusBarManager gives the strip above the safe area; extendedLayoutIncludesOpaqueBars and automaticallyAdjustsScrollViewInsets are kept; open: the appearance callbacks' animated flag semantics, viewSafeAreaInsetsDidChange outside hosted trees",
+          "notes": "loadView / viewDidLoad / the appearance callbacks as a window's root or a container's child, addChild / removeFromParent, additionalSafeAreaInsets, systemMinimumLayoutMargins; size transitions (2026-11-22): a window resize sends viewWillTransition(to:with:) to the root controller on screen, which passes it to its children and presented controller, and the coordinator runs the alongside blocks and completions once the new size is laid out (not animated); the status bar preferences (preferredStatusBarStyle, prefersStatusBarHidden, childForStatusBarStyle) are answered and read by nothing, as a page has no status bar; UIWindowScene.statusBarManager gives the strip above the safe area; extendedLayoutIncludesOpaqueBars and automaticallyAdjustsScrollViewInsets are kept; open: the appearance callbacks' animated flag semantics, viewSafeAreaInsetsDidChange outside hosted trees; `init(nibName:bundle:)` takes a `Bundle?`, as UIKit declares it, so a subclass's `override init(nibName:bundle:)` matches (2026-11-24)",
           "fixtures": [
             "uikit/nav/basic",
             "uikit/nav/push",
@@ -2174,7 +2174,7 @@
         {
           "api": "UIView.animate (durations, delays, curves, springs, options, transition(with:), performWithoutAnimation)",
           "status": "partial",
-          "notes": "Frame, alpha, background and transform changes tween on the scene's clock with completions after the duration; a hosted tree's animations run on its host's clock; repeat, autoreverse and beginFromCurrentState honoured; animate(springDuration:bounce:initialSpringVelocity:delay:options:animations:completion:) springs with a damping ratio of 1 − bounce (swift-navigation, 2026-11-15); open: the transition options' flips and cross-dissolves",
+          "notes": "Frame, alpha, background and transform changes tween on the scene's clock with completions after the duration; a hosted tree's animations run on its host's clock; repeat, autoreverse and beginFromCurrentState honoured; animate(springDuration:bounce:initialSpringVelocity:delay:options:animations:completion:) springs with a damping ratio of 1 − bounce (swift-navigation, 2026-11-15); open: the transition options' flips and cross-dissolves; every AnimationOptions value UIKit names, the flips and curls among them, which transition(with:) applies at once as it does the cross dissolve (2026-11-24)",
           "noFixture": "Motion is not a still: AnimationTests and RepresentableTests hold the curves on the headless clock; the table batch-update goldens hold the end states."
         },
         {
@@ -2763,14 +2763,20 @@
         {
           "api": "WidgetCenter / WidgetFamily / TimelineEntry / Timeline (WidgetKit)",
           "status": "stub",
-          "notes": "pf-small-frameworks (2026-10-31): an app's calls to its widgets (reloadAllTimelines, reloadTimelines(ofKind:), currentConfigurations) are accepted and report no configured widgets, since a page has no home screen; the timeline types are values, so code shared with a widget extension compiles. Widgets themselves (Widget, WidgetConfiguration) are not rendered",
+          "notes": "pf-small-frameworks (2026-10-31): an app's calls to its widgets (reloadAllTimelines, reloadTimelines(ofKind:), currentConfigurations) are accepted and report no configured widgets, since a page has no home screen; the timeline types are values, so code shared with a widget extension compiles. Widgets themselves (Widget, WidgetConfiguration) are not rendered. A widget view's `PreviewProvider` names its size with `.previewContext(WidgetPreviewContext(family:))`, which is kept (Clendar's widget previews, 2026-11-25)",
           "noFixture": "Nothing to draw: FrameworkTests call the center and build a timeline"
         },
         {
           "api": "EKEventStore / EKEvent / EKCalendar / EKAuthorizationStatus (EventKit)",
           "status": "stub",
-          "notes": "pf-small-frameworks (2026-11-09): a page cannot reach the person's calendars, so every access request answers as a person who declined (not granted, no error), the status is denied, there is no default calendar, and saving or removing an event throws eventStoreNotAuthorized, as on a device without access. Events and calendars are values an app fills, so the code that adds an event compiles and runs (Pompaddo's CalendarManager). A new calendar (2026-11-22: EKCalendar(for:eventStore:) with a source, a CGColor and its type) is a value too, the store lists no sources, and saveCalendar / removeCalendar throw as saving an event does (Clendar's Shift). Not done: reading or writing any calendar (an .ics download would be a different API)",
+          "notes": "pf-small-frameworks (2026-11-09): a page cannot reach the person's calendars, so every access request answers as a person who declined (not granted, no error), the status is denied, there is no default calendar, and saving or removing an event throws eventStoreNotAuthorized, as on a device without access. Events and calendars are values an app fills, so the code that adds an event compiles and runs (Pompaddo's CalendarManager). A new calendar (2026-11-22: EKCalendar(for:eventStore:) with a source, a CGColor and its type) is a value too, the store lists no sources, and saveCalendar / removeCalendar throw as saving an event does (Clendar's Shift). Not done: reading or writing any calendar (an .ics download would be a different API); recurrence rules (EKRecurrenceRule, hasRecurrenceRules), structured locations with a CLLocation, the store-changed notification name, and events as NSObjects (2026-11-24)",
           "noFixture": "Nothing to draw: FrameworkTests check the declined requests and the throwing save"
+        },
+        {
+          "api": "EKEventViewController / EKEventEditViewController / EKCalendarChooser and their delegates (EventKitUI)",
+          "status": "partial",
+          "notes": "2026-11-24: UIKit controllers built from UIKitWeb's views. The viewer shows the title, time, location, calendar and notes with a Done button (no in-place editing or calendar preview); the editor is a navigation controller with title, location, all-day, start, end and notes, Cancel reporting .canceled and Add writing the fields and saving to the store, which on a page refuses, so an alert says so and the editor stays; the chooser lists the store's calendars (none on a page) with checkmarks, single or multiple selection, and optional Done and Cancel. The module re-exports EventKit and UIKit, as Apple's does",
+          "noFixture": "Checked by CoreRuntimeTests (EventKitUITests) and by compiling Clendar's event and calendar screens in the coverage sweep"
         },
         {
           "api": "CNContactStore / CNContact / CNMutableContact / CNLabeledValue / CNContactFormatter (Contacts)",
@@ -2921,6 +2927,18 @@
           "status": "partial",
           "notes": "pf-small-frameworks (2026-11-01): intents run when the app runs them. A parameter holds what the app set, else its default, else nil when optional; perform() and calling the intent return its result; entities, their @Property values, their queries and app enums show themselves as declared. A button or toggle made with an intent runs perform() when pressed. Parameter summaries (When, Switch, Case) and shortcut phrases keep their text. Asking the user for a value, a choice or a confirmation throws, since a web page has no Siri or Shortcuts to ask; donations and shortcuts are kept but nothing reads them, and SiriTipView and ShortcutsLink show nothing. DisplayRepresentation.Image(systemName:isTemplate:) takes an optional, nil drawing a template (SFSafeSymbols, 2026-11-15)",
           "noFixture": "Nothing to draw: AppIntentsTests run intents, read parameters, entities and summaries, and press intent buttons and toggles"
+        },
+        {
+          "api": "INShortcut / INIntent / INInteraction / INVoiceShortcut / INVoiceShortcutCenter / INPreferences / NSUserActivity.suggestedInvocationPhrase (Intents)",
+          "status": "stub",
+          "notes": "2026-11-25: a page has no Siri, so Siri authorization is denied, donations and shortcut suggestions are accepted and go nowhere, and the voice shortcuts are the ones the user added through IntentsUI's sheets since the page opened (kept in memory, not across reloads). A shortcut is an intent or a user activity, as Apple's Swift enum is; an activity's suggested phrase and shortcut availability are kept. The module re-exports Foundation",
+          "noFixture": "Nothing to draw: CoreRuntimeTests (IntentsUITests) check the denied authorization, donations and suggestions"
+        },
+        {
+          "api": "INUIAddVoiceShortcutButton / INUIAddVoiceShortcutViewController / INUIEditVoiceShortcutViewController and their delegates (IntentsUI)",
+          "status": "partial",
+          "notes": "2026-11-25: the Add to Siri button in its six styles, showing \"Add to Siri\" or the recorded phrase; pressing it hands its delegate the add sheet (no phrase yet) or the edit sheet. The sheets are UIKit controllers with a navigation bar: the add sheet has the phrase prefilled with the app's suggestion, a line saying Siri isn't available in the browser, Cancel and Add; the edit sheet has Cancel, Done and Delete Phrase. Add and Done keep the phrase with INVoiceShortcutCenter and report it to the delegate, so the app's flow finishes; Siri never hears it. The module re-exports Intents and UIKit",
+          "noFixture": "Checked by CoreRuntimeTests (IntentsUITests) and by compiling Clendar's Siri shortcut screen in the coverage sweep"
         },
         {
           "api": "WebView / WebPage (WebKit)",

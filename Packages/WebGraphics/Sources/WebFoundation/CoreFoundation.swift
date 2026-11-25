@@ -144,4 +144,14 @@ public func CFAttributedStringGetString(_ aStr: CFAttributedString!) -> CFString
 // Implicitly unwrapped, as Apple's Swift overlay declares them.
 public let kCFBooleanTrue: CFBoolean! = true
 public let kCFBooleanFalse: CFBoolean! = false
+
+// The Info.plist keys an app reads with `Bundle.main.object(forInfoDictionaryKey:)`
+// (Clendar's `kCFBundleNameKey as String`), implicitly unwrapped as Apple declares them.
+public let kCFBundleNameKey: CFString! = "CFBundleName"
+public let kCFBundleVersionKey: CFString! = "CFBundleVersion"
+public let kCFBundleIdentifierKey: CFString! = "CFBundleIdentifier"
+public let kCFBundleExecutableKey: CFString! = "CFBundleExecutable"
+public let kCFBundleInfoDictionaryVersionKey: CFString! = "CFBundleInfoDictionaryVersion"
+public let kCFBundleDevelopmentRegionKey: CFString! = "CFBundleDevelopmentRegion"
+public let kCFBundleLocalizationsKey: CFString! = "CFBundleLocalizations"
 #endif
