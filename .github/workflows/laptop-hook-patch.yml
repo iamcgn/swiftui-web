@@ -1,0 +1,15 @@
+name: Laptop hook patch
+# One-off: applies .github/laptop/patch-hook.py to the laptop-sweep Mac's job-start hook.
+on:
+  push:
+    branches: [claude/laptop-hook-read]
+permissions: { contents: read }
+jobs:
+  patch:
+    runs-on: [self-hosted, laptop-sweep]
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          /usr/bin/python3 .github/laptop/patch-hook.py
+          cat ~/actions-runner/hooks/job-started.sh | sed -n 14,32p
