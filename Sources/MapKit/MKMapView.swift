@@ -56,6 +56,11 @@ open class MKAnnotationView: UIView {
     open var rightCalloutAccessoryView: UIView?
     open var detailCalloutAccessoryView: UIView?
     open var clusteringIdentifier: String?
+    open var calloutOffset = CGPoint.zero
+    open var isEnabled = true
+    open var isSelected = false
+    open var zPriority = MKAnnotationViewZPriority.defaultUnselected
+    open var selectedZPriority = MKAnnotationViewZPriority.defaultSelected
     public init(annotation: MKAnnotation?, reuseIdentifier: String?) {
         self.annotation = annotation
         self.reuseIdentifier = reuseIdentifier
@@ -63,6 +68,18 @@ open class MKAnnotationView: UIView {
     }
     public override init(frame: CGRect) { super.init(frame: frame) }
     open func prepareForReuse() {}
+}
+
+/// Where an annotation view sits among the others, higher in front.
+public struct MKAnnotationViewZPriority: RawRepresentable, Hashable, Comparable, Sendable {
+    public let rawValue: Float
+    public init(rawValue: Float) { self.rawValue = rawValue }
+    public init(_ rawValue: Float) { self.rawValue = rawValue }
+    public static let max = MKAnnotationViewZPriority(1000)
+    public static let defaultSelected = MKAnnotationViewZPriority(1000)
+    public static let defaultUnselected = MKAnnotationViewZPriority(500)
+    public static let min = MKAnnotationViewZPriority(0)
+    public static func < (lhs: Self, rhs: Self) -> Bool { lhs.rawValue < rhs.rawValue }
 }
 
 /// An annotation view drawn as a balloon marker.
@@ -122,6 +139,11 @@ open class MKMapView: UIView {
     open var isRotateEnabled = true
     open var isPitchEnabled = true
     open private(set) var annotations: [MKAnnotation] = []
+    /// The annotation for the device's location, which the map shows when `showsUserLocation` is on.
+    public let userLocation = MKUserLocation()
+    open var isUserLocationVisible: Bool { showsUserLocation && userLocation.location != nil }
+    /// The part of the view annotations are drawn in: the whole view.
+    open var annotationVisibleRect: CGRect { bounds }
     /// The overlays on the map, lowest first.
     open private(set) var overlays: [any MKOverlay] = []
     private var overlayLevels: [ObjectIdentifier: MKOverlayLevel] = [:]

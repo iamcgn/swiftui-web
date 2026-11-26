@@ -117,6 +117,15 @@ extension StringProtocol {
         return String(self[r])
     }
 
+    /// The characters in the range of the string's indices (Foundation's, as OldOS's App Store
+    /// reads an app's id out of its link). Foundation's are deprecated; these aren't, so a wasm
+    /// test can call them.
+    public func substring(with aRange: Range<Index>) -> String { String(self[aRange]) }
+
+    public func substring(from index: Index) -> String { String(self[index...]) }
+
+    public func substring(to index: Index) -> String { String(self[..<index]) }
+
     public func substring(from index: Int) -> String {
         let whole = String(self)
         let utf16 = whole.utf16

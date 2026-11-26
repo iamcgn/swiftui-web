@@ -35,7 +35,7 @@ OURS = {
     "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices", "SystemConfiguration",
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit", "EventKitUI", "Contacts",
     "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit", "Symbols", "Compression", "zlib", "Translation", "_Translation_SwiftUI", "JavaScriptCore",
-    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "QuickLook", "LinkPresentation", "WeatherKit", "XCTest",
+    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "QuickLook", "LinkPresentation", "WeatherKit", "MediaPlayer", "XCTest",
     "SceneKit",
 }
 # `Builtin` is the compiler's own module (swift-collections imports it with the BuiltinModule
@@ -1054,6 +1054,28 @@ def describe_app(entry, root: Path, work: Path = None):
                         imported.add(m.group(3))
             t["deps"] = sorted({d for d in t["deps"] if d not in remote_modules}
                                | {n for n in remote_modules if n in imported or n.replace("-", "_") in imported})
+    # A local package's file may import a package module that its own manifest doesn't declare
+    # when the Xcode project links that product: Xcode builds the workspace's products into one
+    # folder every module there sees (Mlem's Media imports NukeVideo, which only the app target
+    # links). Such an import makes the module the local target's dependency, as the app
+    # target's own imports do.
+    linked_products = set()
+    for f in root.rglob("project.pbxproj"):
+        if not excluded(f.relative_to(root), extra) and ".build" not in f.relative_to(root).parts:
+            linked_products.update(m.group(1).strip('"') for m in PRODUCT_NAME.finditer(f.read_text(errors="replace")))
+    linked_modules = {n for prod in linked_products for n in remote_names_by_product.get(prod, [])} & set(remote_modules)
+    if linked_modules:
+        for t in targets[:local_count]:
+            imported = set()
+            for f in t["files"]:
+                for line in (root / f).read_text(errors="replace").splitlines():
+                    m = IMPORT.match(line)
+                    if m:
+                        imported.add(m.group(3))
+            implicit = sorted((linked_modules & imported) - set(t["deps"]) - {t["module"]})
+            if implicit:
+                t["deps"] = sorted(set(t["deps"]) | set(implicit))
+                notes.append(f"package target {t['module']}: imports {', '.join(implicit)}, which its manifest doesn't declare and the Xcode project links")
     # Only the package targets the app's own targets reach are built. A local package neither the
     # Xcode project links (`productName = ...`) nor the app's files import is one Xcode never
     # builds (OldOS keeps a vendored SwiftUIReorderableForEach folder it doesn't use), so its
@@ -1301,6 +1323,7 @@ WEB_PRODUCTS = [
     ("QuickLook", "SwiftUIWeb"),
     ("LinkPresentation", "SwiftUIWeb"),
     ("WeatherKit", "SwiftUIWeb"),
+    ("MediaPlayer", "SwiftUIWeb"),
     ("SceneKit", "SwiftUIWeb"),
     ("UIKit", "UIKitWeb"),
     ("Foundation", "Shadows"),
