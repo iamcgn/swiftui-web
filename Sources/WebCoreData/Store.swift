@@ -6,8 +6,8 @@
 // Xcode's preview template) is its coordinator's alone.
 //
 // Not Core Data: no SQL, no migrations (a store's rows are read whatever model wrote them:
-// unknown properties are ignored, missing ones are nil), no persistent history, and CloudKit
-// containers keep their data on the device.
+// unknown properties are ignored, missing ones are nil), no other process's persistent history
+// (History.swift), and CloudKit containers keep their data on the device.
 
 import SwiftData
 
@@ -61,6 +61,17 @@ final class _CDStoreData {
             }
             if let text { try data.load(from: text) }
         }
+        open[name] = data
+        return data
+    }
+
+    /// The store with the name if one exists: open in this process, or kept by the host. Unlike
+    /// `named`, it never makes an empty one.
+    static func existing(_ name: String) throws -> _CDStoreData? {
+        if let data = open[name] { return data }
+        guard let text = try _host?.load(_hostKey(name)) else { return nil }
+        let data = _CDStoreData(name: name, persistent: true)
+        try data.load(from: text)
         open[name] = data
         return data
     }

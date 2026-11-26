@@ -110,4 +110,34 @@ private final class Box: NSObject {
         #expect(strongValues.count == 1)
     }
     #endif
+
+    // OscarWeather keeps each live layer state in `NSHashTable.weakObjects()`.
+    #if os(WASI) || canImport(Darwin)
+    @Test func hashTablesHoldMembersOnceAndWeakOnesGo() {
+        let table = NSHashTable<Token>()
+        let one = Token(1)
+        table.add(one)
+        table.add(Token(1))   // equal to a member: the member stays
+        table.add(Token(2))
+        #expect(table.count == 2)
+        #expect(table.member(Token(1)) === one)
+        #expect(table.contains(Token(2)))
+        table.remove(Token(2))
+        #expect(table.allObjects.map(\.id) == [1])
+
+        let weak = NSHashTable<Box>.weakObjects()
+        let kept = Box("kept")
+        weak.add(kept)
+        #if os(WASI)
+        do {
+            weak.add(Box("short-lived"))
+        }
+        // Freed with its last strong reference (Foundation's may keep it until its pool drains).
+        #expect(weak.count == 1)
+        #endif
+        #expect(weak.allObjects.map(\.value) == ["kept"])
+        weak.removeAllObjects()
+        #expect(weak.anyObject == nil)
+    }
+    #endif
 }

@@ -492,6 +492,40 @@ struct CoreDataTests {
         #expect(try books(context).compactMap(\.title) == ["Short"])
     }
 
+    // Dime keeps a history token and fetches what its extensions saved after it: a page has no
+    // other process writing its stores, so there are no such transactions.
+    @Test func persistentHistoryHasNoOtherWriters() throws {
+        let container = try container()
+        let context = container.viewContext
+        let token = container.persistentStoreCoordinator.currentPersistentHistoryToken(fromStores: nil)
+        #expect(token != nil)
+        let request = NSPersistentHistoryChangeRequest.fetchHistory(after: token)
+        request.fetchRequest = NSPersistentHistoryTransaction.fetchRequest
+        let result = try context.execute(request) as? NSPersistentHistoryResult
+        #expect((result?.result as? [NSPersistentHistoryTransaction])?.isEmpty == true)
+        let deleted = try context.execute(NSPersistentHistoryChangeRequest.deleteHistory(before: token)) as? NSPersistentHistoryResult
+        #expect(deleted != nil)
+    }
+
+    // An app checks a store's metadata before it loads it (Dime's migration check): a store that
+    // exists answers its type and identifier, and a URL with no store there throws.
+    @Test func storeMetadataNeedsAStoreThere() throws {
+        let container = try container(store: uniqueName("Metadata"))
+        let store = try #require(container.persistentStoreCoordinator.persistentStores.first)
+        let url = try #require(store.url)
+        let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: url)
+        #expect(metadata[NSStoreTypeKey] as? String == NSSQLiteStoreType)
+        #expect(metadata[NSStoreUUIDKey] as? String == store.identifier)
+        let missing = URL(fileURLWithPath: "/tmp/\(uniqueName("missing")).sqlite")
+        let error = #expect(throws: (any Error).self) {
+            try NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: missing)
+        }
+        #expect(code(of: error) == NSFileReadNoSuchFileError)
+        #expect(throws: (any Error).self) {
+            try NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSInMemoryStoreType, at: URL(fileURLWithPath: "/dev/null"))
+        }
+    }
+
     // MARK: SwiftUI
 
     struct BookTitles: View {

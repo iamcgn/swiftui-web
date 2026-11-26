@@ -163,6 +163,16 @@ extension UIWindowSceneDelegate {
     }
 }
 
+/// A delegate that is both the app's and a window scene's (Mlem's `AppDelegate`) keeps one window
+/// for both roles, so neither protocol's default is ambiguous: the scene's, read by the app role
+/// too (as UIKit's, where such a delegate declares one `window` property).
+extension UIWindowSceneDelegate where Self: UIApplicationDelegate {
+    public var window: UIWindow? {
+        get { UIKitScene.shared.sceneDelegateWindow ?? UIKitScene.shared.delegateWindow }
+        set { UIKitScene.shared.sceneDelegateWindow = newValue; UIKitScene.shared.delegateWindow = newValue }
+    }
+}
+
 extension UIApplication {
     public static let didFinishLaunchingNotification = Notification.Name("UIApplicationDidFinishLaunchingNotification")
     public static let didBecomeActiveNotification = Notification.Name("UIApplicationDidBecomeActiveNotification")
