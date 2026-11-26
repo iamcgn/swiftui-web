@@ -56,6 +56,12 @@ import SwiftUI   // NSValue is WebGraphics' on wasm, which SwiftUI passes on
         let range = CMTimeRange(start: CMTime(seconds: 2), duration: CMTime(seconds: 3))
         #expect(range.end == CMTime(seconds: 5) && range.containsTime(CMTime(seconds: 4)) && !range.containsTime(CMTime(seconds: 5)))
         #expect(NSValue(timeRange: range).timeRangeValue == range)
+        // Mixed timescales add in their least common multiple, as CMTimeAdd does: 1/1 + 1/4 is 5/4.
+        let mixed = CMTimeRangeGetEnd(CMTimeRange(start: CMTime(value: 1, timescale: 1), duration: CMTime(value: 1, timescale: 4)))
+        #expect(mixed.value == 5 && mixed.timescale == 4 && mixed.seconds == 1.25)
+        let between = CMTimeRange(start: CMTime(value: 1, timescale: 1), end: CMTime(value: 7, timescale: 4))
+        #expect(between.duration.value == 3 && between.duration.timescale == 4)
+        #expect(CMTimeAdd(CMTime(value: 1, timescale: 30), CMTime(value: 1, timescale: 25)).timescale == 150)
     }
 }
 

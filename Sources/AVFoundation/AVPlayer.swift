@@ -47,7 +47,27 @@ public struct CMTime: Hashable, Sendable {
     public static let negativeInfinity = CMTime(seconds: -.infinity)
     public static let indefinite = CMTime(seconds: .nan)
     public var isValid: Bool { !seconds.isNaN }
+
+    /// The sum or difference of two times, counted in the least common multiple of their
+    /// timescales as `CMTimeAdd` counts it (the larger timescale when that would overflow), so
+    /// `value` and `timescale` hold the exact answer: 1/1 + 1/4 is 5/4.
+    static func _combine(_ lhs: CMTime, _ rhs: CMTime, subtracting: Bool) -> CMTime {
+        CMTime(seconds: subtracting ? lhs.seconds - rhs.seconds : lhs.seconds + rhs.seconds,
+               preferredTimescale: _commonTimescale(lhs.timescale, rhs.timescale))
+    }
+    static func _commonTimescale(_ a: CMTimeScale, _ b: CMTimeScale) -> CMTimeScale {
+        guard a > 0, b > 0 else { return Swift.max(a, b) }
+        var x = Int64(a), y = Int64(b)
+        while y != 0 { (x, y) = (y, x % y) }
+        let lcm = Int64(a) / x * Int64(b)
+        return lcm <= Int64(CMTimeScale.max) ? CMTimeScale(lcm) : Swift.max(a, b)
+    }
+    public static func + (lhs: CMTime, rhs: CMTime) -> CMTime { _combine(lhs, rhs, subtracting: false) }
+    public static func - (lhs: CMTime, rhs: CMTime) -> CMTime { _combine(lhs, rhs, subtracting: true) }
 }
+
+public func CMTimeAdd(_ lhs: CMTime, _ rhs: CMTime) -> CMTime { lhs + rhs }
+public func CMTimeSubtract(_ lhs: CMTime, _ rhs: CMTime) -> CMTime { lhs - rhs }
 
 public typealias CMTimeValue = Int64
 public typealias CMTimeScale = Int32
@@ -66,10 +86,10 @@ public struct CMTimeRange: Hashable, Sendable {
     }
     public init(start: CMTime, end: CMTime) {
         self.start = start
-        duration = CMTime(seconds: end.seconds - start.seconds, preferredTimescale: start.timescale)
+        duration = end - start
     }
-    /// Where the range ends: its start plus its duration.
-    public var end: CMTime { CMTime(seconds: start.seconds + duration.seconds, preferredTimescale: start.timescale) }
+    /// Where the range ends: its start plus its duration, in their common timescale.
+    public var end: CMTime { start + duration }
     public var isValid: Bool { start.isValid && duration.isValid && duration.seconds >= 0 }
     public var isEmpty: Bool { duration.seconds == 0 }
     /// Whether the time is in the range, its start included and its end not.
