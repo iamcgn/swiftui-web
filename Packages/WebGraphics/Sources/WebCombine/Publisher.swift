@@ -325,7 +325,9 @@ public final class _TimerPublisher: ConnectablePublisher, @unchecked Sendable {
 extension Timer {
     /// The publisher `publish(every:tolerance:on:in:options:)` makes, by the name Combine nests
     /// under `Timer` (OldOS's camera binds `Publishers.Autoconnect<Timer.TimerPublisher>`).
+    #if !canImport(Darwin)   // Apple's Foundation names its own there
     public typealias TimerPublisher = _TimerPublisher
+    #endif
 
     /// A connectable publisher that repeatedly emits the current date on the interval once
     /// connected (the run loop and mode are accepted: the main actor delivers).
