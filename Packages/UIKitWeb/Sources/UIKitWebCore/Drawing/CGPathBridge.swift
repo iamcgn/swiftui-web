@@ -5,6 +5,11 @@
 // (`CGMutablePath()`, `move(to:)`, `addArc(center:…)`, `addPath`, `closeSubpath`) compiles
 // unchanged. `UIBezierPath.cgPath` stays the substrate's `Path` on both.
 
+extension Path {
+    /// The same path: `Path(bezierPath.cgPath)`, where `cgPath` is already the substrate's path.
+    public init(_ path: Path) { self = path }
+}
+
 #if canImport(CoreGraphics) && !os(WASI)
 import CoreGraphics
 
@@ -98,6 +103,11 @@ public final class CGMutablePath: CGPath, @unchecked Sendable {
     /// circle and a flag this way: `path.addPath(circle.cgPath)`).
     public func addPath(_ other: Path, transform: CGAffineTransform = .identity) { path.addPath(other.applying(transform)) }
     public func closeSubpath() { path.closeSubpath() }
+}
+
+extension Path {
+    /// The path a CoreGraphics path holds (`Path(_:)` in SwiftUI).
+    public init(_ cgPath: CGPath) { self = cgPath.path }
 }
 
 extension UIBezierPath {

@@ -35,7 +35,7 @@ OURS = {
     "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices", "SystemConfiguration",
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit", "EventKitUI", "Contacts",
     "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit", "Symbols", "Compression", "zlib", "Translation", "_Translation_SwiftUI", "JavaScriptCore",
-    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "QuickLook", "LinkPresentation", "WeatherKit", "MediaPlayer", "CoreTelephony", "XCTest",
+    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "QuickLook", "LinkPresentation", "WeatherKit", "MediaPlayer", "CoreTelephony", "GameKit", "XCTest",
     "SceneKit",
 }
 # `Builtin` is the compiler's own module (swift-collections imports it with the BuiltinModule
@@ -265,6 +265,19 @@ def condition_allows_traits(condition, traits):
     return not named or bool(set(named) & set(traits))
 
 
+# `.defaultIsolation(MainActor.self)` (tools 6.2) as a flag, since the sweep's manifest is 6.1:
+# the target's unannotated declarations are main-actor isolated, as in IceCubes's packages.
+DEFAULT_MAIN_ACTOR = '.unsafeFlags(["-default-isolation", "MainActor"])'
+
+
+def default_isolation_is_main_actor(value):
+    """Whether a dumped `defaultIsolation` setting is MainActor (`{"_0": "MainActor"}`, or the
+    bare value), not `nil`/nonisolated."""
+    if isinstance(value, dict):
+        value = value.get("_0", next(iter(value), None) if value else None)
+    return isinstance(value, str) and value.lower() == "mainactor"
+
+
 def swift_settings(target, traits=frozenset()):
     """The defines and upcoming features a target declares, as manifest source: the package's
     enabled traits as defines first, then the settings with no condition or a trait condition
@@ -276,6 +289,8 @@ def swift_settings(target, traits=frozenset()):
         if s.get("tool") != "swift" or named - {"traits"} or not condition_allows_traits(cond, traits):
             continue
         kind = s.get("kind") or {}
+        if "defaultIsolation" in kind and default_isolation_is_main_actor(kind["defaultIsolation"]):
+            out.append(DEFAULT_MAIN_ACTOR)
         for key, ctor in (("define", "define"), ("enableUpcomingFeature", "enableUpcomingFeature"),
                           ("enableExperimentalFeature", "enableExperimentalFeature")):
             if key in kind:
@@ -943,12 +958,13 @@ def describe_app(entry, root: Path, work: Path = None):
     except Exception as e:  # an unreadable project leaves the folder-based guess
         app_target = None
         notes.append(f"Xcode project not read ({type(e).__name__}: {str(e)[:120]})")
-    sub_apps = []  # (target name, project folder, files, conditions, regex literals) of the repository's other iOS apps
+    sub_apps = []  # (target name, project folder, files, conditions, regex literals, concurrency) of the repository's other iOS apps
     other_bases = []  # the folders of the repository's other apps' projects
     conditions = []  # the app target's Debug compilation conditions (`TARGET_APP`)
     regex = None  # whether the app target's Debug build parses bare-slash regex literals (None: no target read)
+    concurrency = None  # the app target's own concurrency defaults (None: no target read)
     if app_target:
-        name, members, base, conditions, regex = app_target
+        name, members, base, conditions, regex, concurrency = app_target
         guessed = set(app_files)
         kept = [f for f in project_files if f in members or (f in guessed and not Path(f).is_relative_to(base))]
         # A repository of several apps, each in its own project folder (SimpleSwiftUI's four,
@@ -971,9 +987,9 @@ def describe_app(entry, root: Path, work: Path = None):
                 # built in each app's module (issue 236).
                 files = [f for f in project_files if f in ios[1]]
                 if files:
-                    sub_apps.append((ios[0], other_base, files, ios[3], ios[4]))
+                    sub_apps.append((ios[0], other_base, files, ios[3], ios[4], ios[5]))
         if other_bases:
-            claimed = {f for _, _, files, _, _ in sub_apps for f in files}
+            claimed = {f for _, _, files, _, _, _ in sub_apps for f in files}
             kept = [f for f in kept if f in members or (f not in claimed and not any(Path(f).is_relative_to(b) for b in other_bases))]
             left = len(other_bases) - len(sub_apps)
             notes.append(f"{len(sub_apps)} more iOS apps in their own project folders, each built as its own module"
@@ -988,6 +1004,7 @@ def describe_app(entry, root: Path, work: Path = None):
         else:
             conditions = []
             regex = None
+            concurrency = None
     # One @main: the SwiftUI App (or the UIKit delegate) of the iOS app, the others' files left out.
     mains = [f for f in app_files if MAIN.search((root / f).read_text(errors="replace"))]
     if len(mains) > 1:
@@ -1014,19 +1031,19 @@ def describe_app(entry, root: Path, work: Path = None):
         targets.append({
             "module": "Sweep" + re.sub(r"\W", "", entry["name"]), "source_root": ".", "files": app_files,
             "deps": sorted({t["module"] for t in targets if not t["executable"] and not t.get("macro")}), "third_party": [],
-            "mode": xcode_language_mode(root), "settings": xcode_settings(root, conditions, regex),
+            "mode": xcode_language_mode(root), "settings": xcode_settings(root, conditions, regex, concurrency),
             "resources": [], "models": models,
             "catalogs": catalogs, "symbol_extensions": bool(catalogs) and xcode_asset_symbol_extensions(root),
             "executable": True, "app": True,
         })
-        sub_bases = [b for _, b, _, _, _ in sub_apps]
+        sub_bases = [b for _, b, _, _, _, _ in sub_apps]
         if sub_bases:
             main = targets[-1]
             main["models"] = [m for m in main["models"] if not any(Path(m).is_relative_to(b) for b in sub_bases)]
             main["catalogs"] = [c for c in main["catalogs"] if not any(Path(c).is_relative_to(b) for b in sub_bases)]
             main["symbol_extensions"] = bool(main["catalogs"]) and main["symbol_extensions"]
         used = {t["module"] for t in targets}
-        for sub_name, sub_base, files, sub_conditions, sub_regex in sub_apps:
+        for sub_name, sub_base, files, sub_conditions, sub_regex, sub_concurrency in sub_apps:
             module = "Sweep" + re.sub(r"\W", "", entry["name"]) + "_" + (re.sub(r"\W", "", sub_name) or "App")
             while module in used:
                 module += "_"
@@ -1036,7 +1053,7 @@ def describe_app(entry, root: Path, work: Path = None):
                 "module": module, "source_root": ".", "files": files,
                 "deps": sorted({t["module"] for t in targets if not t["executable"] and not t.get("macro")}),
                 "third_party": [], "mode": xcode_language_mode(root / sub_base),
-                "settings": xcode_settings(root / sub_base, sub_conditions, sub_regex), "resources": [],
+                "settings": xcode_settings(root / sub_base, sub_conditions, sub_regex, sub_concurrency), "resources": [],
                 "models": [m for m in models if Path(m).is_relative_to(sub_base)],
                 "catalogs": sub_catalogs, "symbol_extensions": bool(sub_catalogs) and xcode_asset_symbol_extensions(root / sub_base),
                 "executable": True, "app": True,
@@ -1180,7 +1197,7 @@ def xcode_regex_literals(root: Path):
     return not any(off.search(yml.read_text(errors="replace")) for yml in list(root.glob("project.yml")) + list(root.glob("*.yml")))
 
 
-def xcode_settings(root: Path, conditions, regex=None):
+def xcode_settings(root: Path, conditions, regex=None, concurrency=None):
     """The Swift settings an Xcode app target builds with: its compilation conditions, and in
     Swift 5 mode the bare-slash regex literals Xcode turns on (Swift 6 always has them), so a
     Swift 5 app target parses `/[a-z]*/` (Mlem's sign-up and onboarding checks) where a plain
@@ -1191,7 +1208,38 @@ def xcode_settings(root: Path, conditions, regex=None):
         regex = xcode_regex_literals(root)
     if xcode_language_mode(root) == "v5" and regex:
         settings.append('.enableUpcomingFeature("BareSlashRegexLiterals")')
-    return settings
+    return settings + xcode_concurrency_settings(root, concurrency)
+
+
+# Xcode 26's "Approachable Concurrency" (SWIFT_APPROACHABLE_CONCURRENCY = YES) turns these on.
+APPROACHABLE_CONCURRENCY = ["DisableOutwardActorInference", "GlobalActorIsolatedTypesUsability",
+                            "InferIsolatedConformances", "InferSendableFromCaptures", "NonisolatedNonsendingByDefault"]
+
+
+def xcode_concurrency_settings(root: Path, concurrency=None):
+    """The app target's concurrency defaults as settings: "Default Actor Isolation" MainActor
+    (SWIFT_DEFAULT_ACTOR_ISOLATION, as IceCubes's targets set it, so its unannotated types are
+    main-actor isolated) and Approachable Concurrency's upcoming features. `concurrency` is the
+    target's own Debug settings (`Project.concurrency`); with no target read (an XcodeGen
+    `project.yml`), what most of the project's configurations set."""
+    if concurrency is not None:
+        out = [DEFAULT_MAIN_ACTOR] if concurrency.get("main_actor") else []
+        if concurrency.get("approachable"):
+            out += [f'.enableUpcomingFeature("{f}")' for f in APPROACHABLE_CONCURRENCY]
+        return out
+    isolation, approachable = Counter(), Counter()
+    texts = [pbx.read_text(errors="replace") for pbx in root.rglob("project.pbxproj")
+             if not any(EXCLUDE_DIR.match(p) for p in pbx.relative_to(root).parts[:-2])]
+    texts += [yml.read_text(errors="replace") for yml in list(root.glob("project.yml")) + list(root.glob("*.yml"))]
+    for text in texts:
+        isolation.update(v.lower() for v in re.findall(r"SWIFT_DEFAULT_ACTOR_ISOLATION\s*[=:]\s*\"?(\w+)", text))
+        approachable.update(v.upper() for v in re.findall(r"SWIFT_APPROACHABLE_CONCURRENCY\s*[=:]\s*\"?(\w+)", text))
+    out = []
+    if isolation and isolation.most_common(1)[0][0] == "mainactor":
+        out.append(DEFAULT_MAIN_ACTOR)
+    if approachable and approachable.most_common(1)[0][0] == "YES":
+        out += [f'.enableUpcomingFeature("{f}")' for f in APPROACHABLE_CONCURRENCY]
+    return out
 
 
 def xcode_language_mode(root: Path):
@@ -1325,6 +1373,7 @@ WEB_PRODUCTS = [
     ("WeatherKit", "SwiftUIWeb"),
     ("MediaPlayer", "SwiftUIWeb"),
     ("CoreTelephony", "SwiftUIWeb"),
+    ("GameKit", "SwiftUIWeb"),
     ("SceneKit", "SwiftUIWeb"),
     ("UIKit", "UIKitWeb"),
     ("Foundation", "Shadows"),

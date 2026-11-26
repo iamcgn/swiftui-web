@@ -63,6 +63,7 @@ let package = Package(
         .library(name: "WeatherKit", targets: ["WeatherKit"]),
         .library(name: "MediaPlayer", targets: ["MediaPlayer"]),
         .library(name: "CoreTelephony", targets: ["CoreTelephony"]),
+        .library(name: "GameKit", targets: ["GameKit"]),
         .library(name: "StoreKit", targets: ["StoreKit"]),
         .library(name: "AppIntents", targets: ["AppIntents"]),
         .library(name: "WebKit", targets: ["WebKit"]),
@@ -131,7 +132,7 @@ let package = Package(
         .target(name: "AVFoundation", dependencies: ["AVFAudio", "AVCaptureHost", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "UIKitWebCore", package: "UIKitWeb"),
                                                 .product(name: "WebImageIO", package: "WebGraphics", condition: .when(platforms: [.wasi]))],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
-        .target(name: "AVKit", dependencies: ["SwiftUI", "AVFoundation"], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "AVKit", dependencies: ["SwiftUI", "AVFoundation", .product(name: "UIKit", package: "UIKitWeb")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "SwiftDataHost", swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "SwiftData", dependencies: ["SwiftDataHost", "SwiftUIWebCore", "SwiftDataMacros", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // The `@Model`, `#Predicate` and `@ModelActor` macros (host-compiled, as `#Preview`'s plugin).
@@ -257,6 +258,9 @@ let package = Package(
         // Cellular services: none, as a page has no radio.
         .target(name: "CoreTelephony", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Game Center: no one is signed in, as a page has no Game Center account.
+        .target(name: "GameKit", dependencies: [.product(name: "UIKit", package: "UIKitWeb"), .product(name: "WebFoundation", package: "WebGraphics")],
+                swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "SpeechRecognitionHost", swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "Speech", dependencies: ["SpeechRecognitionHost", "AVFAudio", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "WebKit", dependencies: ["SwiftUI"], swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -344,7 +348,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", .product(name: "UserNotifications", package: "UIKitWeb"), "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "QuickLook", "SceneKit", "EventKitUI", "IntentsUI", "WidgetKit", "MediaPlayer", "CoreTelephony", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", "LanguageMode5Fixtures", .product(name: "WebFoundation", package: "WebGraphics")],
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", .product(name: "UserNotifications", package: "UIKitWeb"), "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "QuickLook", "SceneKit", "EventKitUI", "IntentsUI", "WidgetKit", "MediaPlayer", "CoreTelephony", "GameKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", "LanguageMode5Fixtures", .product(name: "WebFoundation", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
         // A Swift 5 language mode type for the tests, as packages built in that mode (swift-perception)

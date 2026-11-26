@@ -2,6 +2,8 @@
 // proposal and paints its text 5 pt in with the text view's tight line pitch; editing happens
 // in the host's multi-line input (a `<textarea>` in the browser, typing in the native host).
 
+import WebFoundation
+
 /// The selected text of an editor (`TextEditor(text:selection:)`): a range of the text, or an
 /// insertion point (an empty range).
 public struct TextSelection: Equatable, Sendable {
@@ -40,6 +42,18 @@ public struct TextEditor: View {
     /// Creates a plain text editor.
     public init(text: Binding<String>) {
         self.text = text
+        selection = nil
+    }
+
+    /// Creates an editor for rich text (iOS 26). The editor edits the string's characters;
+    /// typing replaces the attributed string with the plain text, and text that is not edited
+    /// keeps its attributes.
+    public init(text: Binding<AttributedString>) {
+        self.text = Binding(get: { String(text.wrappedValue.characters) },
+                            set: { value in
+                                guard value != String(text.wrappedValue.characters) else { return }
+                                text.wrappedValue = AttributedString(value)
+                            })
         selection = nil
     }
 

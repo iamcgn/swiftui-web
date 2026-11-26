@@ -400,3 +400,32 @@ extension View {
     /// Configures the toolbar title menu (see `ToolbarTitleMenu`: the title shows no menu here).
     nonisolated public func toolbarTitleMenu<C: View>(@ViewBuilder content: () -> C) -> some View { self }
 }
+
+// MARK: - Toolbar axes (iOS 27.1)
+
+/// Whether a toolbar item may move to a toolbar along the window's side.
+public enum ToolbarItemAxisBehavior: Hashable, Sendable {
+    /// The system decides.
+    case automatic
+    /// The item stays in a horizontal toolbar.
+    case horizontalOnly
+    /// The item goes to a vertical toolbar when there is one.
+    case verticalPreferred
+}
+
+extension ToolbarContent {
+    /// Sets whether these items may move to a vertical toolbar. The page's toolbars are
+    /// horizontal, so the behavior is accepted and the items stay where they are.
+    nonisolated public func axisBehavior(_ behavior: ToolbarItemAxisBehavior) -> some ToolbarContent { self }
+}
+
+extension CustomizableToolbarContent {
+    /// Sets whether these items may move to a vertical toolbar (accepted, as above).
+    nonisolated public func axisBehavior(_ behavior: ToolbarItemAxisBehavior) -> some CustomizableToolbarContent { self }
+}
+
+extension EnvironmentValues {
+    /// The side of the window a vertical toolbar runs along, if the toolbar is vertical: nil,
+    /// as the page's toolbars are horizontal.
+    public var toolbarVerticalEdge: HorizontalEdge? { nil }
+}

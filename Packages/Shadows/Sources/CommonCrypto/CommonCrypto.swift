@@ -2,7 +2,8 @@
 // `CCHmac`) packages call to fingerprint data and sign requests (TelemetryDeck's user hash),
 // over SwiftUIWeb's CryptoKit, so each digest matches Apple's byte for byte. The one-shot
 // functions and the `_CTX` streaming ones are here for MD5, SHA-1, SHA-256, SHA-384 and SHA-512;
-// not here: SHA-224, the ciphers (`CCCrypt`) and key derivation.
+// PBKDF2 key derivation (`CCKeyDerivationPBKDF`) is too; not here: SHA-224 and the ciphers
+// (`CCCrypt`).
 #if os(WASI)
 import CryptoKit
 
@@ -134,5 +135,70 @@ public func CCHmacFinal(_ ctx: UnsafeMutablePointer<CCHmacContext>!, _ macOut: U
     }
     guard let macOut else { return }
     for (index, byte) in bytes.enumerated() { macOut.storeBytes(of: byte, toByteOffset: index, as: UInt8.self) }
+}
+
+// MARK: - Key derivation
+
+public typealias CCPBKDFAlgorithm = UInt32
+public typealias CCPseudoRandomAlgorithm = UInt32
+public typealias CCStatus = Int32
+
+public var kCCPBKDF2: Int { 2 }
+public var kCCPRFHmacAlgSHA1: Int { 1 }
+public var kCCPRFHmacAlgSHA224: Int { 2 }
+public var kCCPRFHmacAlgSHA256: Int { 3 }
+public var kCCPRFHmacAlgSHA384: Int { 4 }
+public var kCCPRFHmacAlgSHA512: Int { 5 }
+
+public var kCCSuccess: Int { 0 }
+public var kCCParamError: Int { -4300 }
+public var kCCBufferTooSmall: Int { -4301 }
+public var kCCMemoryFailure: Int { -4302 }
+public var kCCAlignmentError: Int { -4303 }
+public var kCCDecodeError: Int { -4304 }
+public var kCCUnimplemented: Int { -4305 }
+
+/// PBKDF2 (RFC 8018) over HMAC with `prf`'s hash: the first `count` bytes of the blocks
+/// T_i = U_1 ^ … ^ U_rounds, U_1 = HMAC(password, salt || i), U_j = HMAC(password, U_j-1).
+private func _pbkdf2<H: HashFunction>(_ hash: H.Type, password: [UInt8], salt: [UInt8], rounds: UInt32, count: Int) -> [UInt8] {
+    let key = SymmetricKey(data: password)
+    var out: [UInt8] = []
+    var block: UInt32 = 1
+    while out.count < count {
+        let index = [UInt8(block >> 24), UInt8((block >> 16) & 0xFF), UInt8((block >> 8) & 0xFF), UInt8(block & 0xFF)]
+        var u = Array(HMAC<H>.authenticationCode(for: salt + index, using: key))
+        var t = u
+        if rounds > 1 {
+            for _ in 1..<rounds {
+                u = Array(HMAC<H>.authenticationCode(for: u, using: key))
+                for i in t.indices { t[i] ^= u[i] }
+            }
+        }
+        out += t
+        block += 1
+    }
+    return Array(out.prefix(count))
+}
+
+/// Derives `derivedKeyLen` bytes from a password and salt with PBKDF2 (the one algorithm
+/// Core Crypto has); `kCCParamError` for another algorithm, no rounds or no output, and
+/// `kCCUnimplemented` for HMAC-SHA-224.
+public func CCKeyDerivationPBKDF(_ algorithm: CCPBKDFAlgorithm, _ password: UnsafePointer<CChar>!, _ passwordLen: Int,
+                                 _ salt: UnsafePointer<UInt8>!, _ saltLen: Int, _ prf: CCPseudoRandomAlgorithm, _ rounds: UInt32,
+                                 _ derivedKey: UnsafeMutablePointer<UInt8>!, _ derivedKeyLen: Int) -> Int32 {
+    guard Int(algorithm) == kCCPBKDF2, rounds > 0, derivedKeyLen > 0, let derivedKey else { return Int32(kCCParamError) }
+    let passwordBytes = password.map { Array(UnsafeRawBufferPointer(start: UnsafeRawPointer($0), count: passwordLen)) } ?? []
+    let saltBytes = salt.map { Array(UnsafeBufferPointer(start: $0, count: saltLen)) } ?? []
+    let bytes: [UInt8]
+    switch Int(prf) {
+    case kCCPRFHmacAlgSHA1: bytes = _pbkdf2(Insecure.SHA1.self, password: passwordBytes, salt: saltBytes, rounds: rounds, count: derivedKeyLen)
+    case kCCPRFHmacAlgSHA256: bytes = _pbkdf2(SHA256.self, password: passwordBytes, salt: saltBytes, rounds: rounds, count: derivedKeyLen)
+    case kCCPRFHmacAlgSHA384: bytes = _pbkdf2(SHA384.self, password: passwordBytes, salt: saltBytes, rounds: rounds, count: derivedKeyLen)
+    case kCCPRFHmacAlgSHA512: bytes = _pbkdf2(SHA512.self, password: passwordBytes, salt: saltBytes, rounds: rounds, count: derivedKeyLen)
+    case kCCPRFHmacAlgSHA224: return Int32(kCCUnimplemented)
+    default: return Int32(kCCParamError)
+    }
+    for (offset, byte) in bytes.enumerated() { derivedKey[offset] = byte }
+    return Int32(kCCSuccess)
 }
 #endif

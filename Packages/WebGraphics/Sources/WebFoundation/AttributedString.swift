@@ -142,8 +142,21 @@ public struct AttributedString: AttributedStringProtocol, Hashable, Sendable, Cu
     public typealias UnicodeScalarView = String.UnicodeScalarView
     public typealias UTF8View = String.UTF8View
     public typealias UTF16View = String.UTF16View
-    /// The runs in order, each a stretch whose attributes all match.
-    public typealias Runs = [Run]
+    /// The runs in order, each a stretch whose attributes all match. A collection of its own,
+    /// as Foundation's is, so `AttributedString.Runs.Run` and `Runs.Element` name the run and
+    /// can be extended (EmojiText's `extension AttributedString.Runs.Element`).
+    public struct Runs: BidirectionalCollection, Equatable, Sendable {
+        public typealias Run = AttributedString.Run
+        public typealias Element = AttributedString.Run
+        public typealias Index = Int
+        package let _runs: [AttributedString.Run]
+        package init(_ runs: [AttributedString.Run]) { _runs = runs }
+        public var startIndex: Int { _runs.startIndex }
+        public var endIndex: Int { _runs.endIndex }
+        public subscript(position: Int) -> AttributedString.Run { _runs[position] }
+        public func index(after i: Int) -> Int { i + 1 }
+        public func index(before i: Int) -> Int { i - 1 }
+    }
 
     /// How a merge treats an attribute both sides set: the new value wins, or the current one.
     public enum AttributeMergePolicy: Hashable, Sendable {
@@ -184,6 +197,37 @@ public struct AttributedString: AttributedStringProtocol, Hashable, Sendable, Cu
             if let link = run.link, let url = URL(string: link, relativeTo: baseURL) { container.link = url }
             return _Run(run.text, attributes: container)
         })
+    }
+
+    /// What a localized attributed string does beyond its text (Foundation marks each
+    /// interpolated value with its replacement index when asked; here the option is kept).
+    public struct LocalizationOptions: Hashable, Sendable {
+        public var applyReplacementIndexAttribute: Bool
+        public init() { applyReplacementIndexAttribute = false }
+    }
+
+    /// A localized string, looked up as `String(localized:)` does, read as inline Markdown the
+    /// way Foundation reads a localized attributed string ("**Unsupported**" comes in bold); text
+    /// the Markdown reader can't take comes in plain.
+    public init(localized keyAndValue: String.LocalizationValue, options: LocalizationOptions = LocalizationOptions(),
+                table: String? = nil, bundle: Bundle? = nil, locale: Locale = .current, comment: StaticString? = nil) {
+        self.init(_localizedMarkdown: String(localized: keyAndValue, table: table, bundle: bundle, locale: locale, comment: comment))
+    }
+
+    /// A localized string from a static key, with a localization value as the default.
+    public init(localized key: StaticString, defaultValue: String.LocalizationValue, options: LocalizationOptions = LocalizationOptions(),
+                table: String? = nil, bundle: Bundle? = nil, locale: Locale = .current, comment: StaticString? = nil) {
+        self.init(_localizedMarkdown: String(localized: key, defaultValue: defaultValue, table: table, bundle: bundle, locale: locale, comment: comment))
+    }
+
+    /// The string a localized string resource names, read as inline Markdown.
+    public init(localized resource: LocalizedStringResource, options: LocalizationOptions = LocalizationOptions()) {
+        self.init(_localizedMarkdown: String(localized: resource))
+    }
+
+    private init(_localizedMarkdown text: String) {
+        let options = MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+        self = (try? AttributedString(markdown: text, options: options)) ?? AttributedString(text)
     }
 
     /// How markdown is read. The inline syntax is what's parsed in every case; the other
@@ -297,7 +341,7 @@ public struct AttributedString: AttributedStringProtocol, Hashable, Sendable, Cu
             result.append(Run(range: index..<end, attributes: run.attributes))
             index = end
         }
-        return result
+        return Runs(result)
     }
 
     // MARK: Editing
@@ -417,10 +461,10 @@ public struct AttributedSubstring: AttributedStringProtocol, Sendable, CustomStr
     public var description: String { characters }
     /// The runs within the slice, cut at its ends, in the base string's indices.
     public var runs: AttributedString.Runs {
-        base.runs.compactMap { run in
+        AttributedString.Runs(base.runs.compactMap { run in
             let lower = Swift.max(run.range.lowerBound, range.lowerBound), upper = Swift.min(run.range.upperBound, range.upperBound)
             return lower < upper ? AttributedString.Run(range: lower..<upper, attributes: run.attributes) : nil
-        }
+        })
     }
 
     public subscript<K: AttributedStringKey>(_ key: K.Type) -> K.Value? {

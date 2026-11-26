@@ -22,7 +22,8 @@ open class SFSafariViewController: UIViewController {
         public var barCollapsingEnabled = true
         public var activityButton: Any?
         public var eventAttribution: Any?
-        public init() {}
+        /// Required, as an Objective-C class's is, so `Self()` makes one (Mlem's `default`).
+        public required init() {}
     }
 
     /// The style of the dismiss button.

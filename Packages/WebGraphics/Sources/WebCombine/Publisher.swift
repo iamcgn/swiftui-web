@@ -271,7 +271,7 @@ extension Published.Publisher: Publisher {
 /// `Timer.publish(every:tolerance:on:in:)`: a connectable publisher, as Combine's is. From
 /// `connect()` (or `autoconnect()`'s first subscription) it delivers the date every interval to
 /// its subscribers, through a task on the main actor, until the connection is cancelled.
-/// (Not named `TimerPublisher`: Apple's Combine nests one under `Timer`.)
+/// (`Timer.TimerPublisher` names it, as Apple's Combine nests it under `Timer`.)
 public final class _TimerPublisher: ConnectablePublisher, @unchecked Sendable {
     public typealias Output = Date
     public typealias Failure = Never
@@ -323,6 +323,12 @@ public final class _TimerPublisher: ConnectablePublisher, @unchecked Sendable {
 }
 
 extension Timer {
+    /// The publisher `publish(every:tolerance:on:in:options:)` makes, by the name Combine nests
+    /// under `Timer` (OldOS's camera binds `Publishers.Autoconnect<Timer.TimerPublisher>`).
+    #if !canImport(Darwin)   // Apple's Foundation names its own there
+    public typealias TimerPublisher = _TimerPublisher
+    #endif
+
     /// A connectable publisher that repeatedly emits the current date on the interval once
     /// connected (the run loop and mode are accepted: the main actor delivers).
     public static func publish(every interval: TimeInterval, tolerance: TimeInterval? = nil, on runLoop: RunLoop = .main, in mode: RunLoop.Mode = .default,

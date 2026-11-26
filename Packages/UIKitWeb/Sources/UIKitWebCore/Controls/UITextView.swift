@@ -150,6 +150,7 @@ open class UITextView: UIScrollView, HostTextInput, UITextInput {
     open weak var inputDelegate: (any UITextInputDelegate)?
     open var keyboardType: UIKeyboardType = .default
     open var returnKeyType: UIReturnKeyType = .default
+    open var enablesReturnKeyAutomatically = false
     open var autocapitalizationType: UITextAutocapitalizationType = .sentences
     open var autocorrectionType: UITextAutocorrectionType = .default
     open var spellCheckingType: UITextSpellCheckingType = .default
