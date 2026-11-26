@@ -182,7 +182,10 @@ public final class UIFont: UIObjectBase, @unchecked Sendable {
     /// name the font was made with.
     public var familyName: String {
         if resolved.family.hasPrefix("system") { return ".AppleSystemUIFont" }
-        return customResource?.family ?? resolved.family
+        // The asset catalog is the main actor's (a page runs on the main thread); off it, as in
+        // a test, only the fonts iOS ships are known by their files.
+        let bundled = Thread.isMainThread ? customResource : Self.installedFonts[resolved.family]
+        return bundled?.family ?? resolved.family
     }
     /// The PostScript name of a bundled font ("Abel-Regular"), else the name it was made with.
     public var fontName: String { resolved.family.hasPrefix("system") ? familyName : resolved.family }
