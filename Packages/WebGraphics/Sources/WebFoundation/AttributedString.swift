@@ -142,8 +142,21 @@ public struct AttributedString: AttributedStringProtocol, Hashable, Sendable, Cu
     public typealias UnicodeScalarView = String.UnicodeScalarView
     public typealias UTF8View = String.UTF8View
     public typealias UTF16View = String.UTF16View
-    /// The runs in order, each a stretch whose attributes all match.
-    public typealias Runs = [Run]
+    /// The runs in order, each a stretch whose attributes all match. A collection of its own,
+    /// as Foundation's is, so `AttributedString.Runs.Run` and `Runs.Element` name the run and
+    /// can be extended (EmojiText's `extension AttributedString.Runs.Element`).
+    public struct Runs: BidirectionalCollection, Equatable, Sendable {
+        public typealias Run = AttributedString.Run
+        public typealias Element = AttributedString.Run
+        public typealias Index = Int
+        package let _runs: [AttributedString.Run]
+        package init(_ runs: [AttributedString.Run]) { _runs = runs }
+        public var startIndex: Int { _runs.startIndex }
+        public var endIndex: Int { _runs.endIndex }
+        public subscript(position: Int) -> AttributedString.Run { _runs[position] }
+        public func index(after i: Int) -> Int { i + 1 }
+        public func index(before i: Int) -> Int { i - 1 }
+    }
 
     /// How a merge treats an attribute both sides set: the new value wins, or the current one.
     public enum AttributeMergePolicy: Hashable, Sendable {
@@ -328,7 +341,7 @@ public struct AttributedString: AttributedStringProtocol, Hashable, Sendable, Cu
             result.append(Run(range: index..<end, attributes: run.attributes))
             index = end
         }
-        return result
+        return Runs(result)
     }
 
     // MARK: Editing
@@ -448,10 +461,10 @@ public struct AttributedSubstring: AttributedStringProtocol, Sendable, CustomStr
     public var description: String { characters }
     /// The runs within the slice, cut at its ends, in the base string's indices.
     public var runs: AttributedString.Runs {
-        base.runs.compactMap { run in
+        AttributedString.Runs(base.runs.compactMap { run in
             let lower = Swift.max(run.range.lowerBound, range.lowerBound), upper = Swift.min(run.range.upperBound, range.upperBound)
             return lower < upper ? AttributedString.Run(range: lower..<upper, attributes: run.attributes) : nil
-        }
+        })
     }
 
     public subscript<K: AttributedStringKey>(_ key: K.Type) -> K.Value? {
