@@ -18,7 +18,10 @@ window.__swiftuiwebMesh = (function () {
   // A live texture (contents replaced every 0.1 s) keeps showing its last image while the next
   // decodes, and replaced data URLs are let go here and in the painter's image cache.
   const slots = new Map();
-  const stats = { frames: 0, gl: 0, fallback: 0, ms: 0, meshes: 0, triangles: 0, uploads: 0, renderer: '' };
+  // Meshes, textures and slots no frame has drawn for `evict` frames are let go, checked every
+  // evict / 2 frames (`?meshEvict=N` shortens it for the probe).
+  const evict = Math.max(2, (config.evict | 0) || +(location.search.match(/[?&]meshEvict=(\d+)/) || [])[1] || 600);
+  const stats = { frames: 0, gl: 0, fallback: 0, ms: 0, meshes: 0, triangles: 0, uploads: 0, slots: 0, textures: 0, forgotten: 0, renderer: '' };
 
   const VS = `#version 300 es
 layout(location = 0) in vec3 a_pos;
@@ -176,8 +179,9 @@ void main() {
     for (const s of slots.values()) if (s.file === file || s.loading === file) return;
     const t = textures.get(file);
     if (t) { gl.deleteTexture(t.tex); textures.delete(file); }
-    if (file.startsWith('data:') && image && image.forget) image.forget(file);
+    if (file.startsWith('data:') && image && image.forget) { image.forget(file); stats.forgotten++; }
   }
+  function drawnBySlot(file) { for (const s of slots.values()) if (s.file === file || s.loading === file) return true; return false; }
   function wrap(mode) { return mode === 2 ? gl.REPEAT : mode === 4 ? gl.MIRRORED_REPEAT : gl.CLAMP_TO_EDGE; }
 
   // Draws the payload into the scene canvas at pw × ph pixels for a w × h point view.
@@ -267,6 +271,7 @@ void main() {
         // (the next frame brings a newer one), and the slot draws its last texture meanwhile.
         const s = slots.get(d.slot) || { file: null, loading: null };
         slots.set(d.slot, s);
+        s.used = frame;
         const take = (f) => { const old = s.file; s.file = f; if (s.loading === f) s.loading = null; if (old && old !== f) retire(old, image); };
         if (s.loading && s.loading !== file) {
           if (texture(s.loading, image)) take(s.loading);
@@ -297,12 +302,20 @@ void main() {
       else { gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, d.ge.tri); gl.drawElements(gl.TRIANGLES, d.ge.count, gl.UNSIGNED_INT, 0); }
     }
     gl.bindVertexArray(null);
-    // Meshes and textures no frame has drawn for a while are let go.
-    if (frame % 300 === 0) {
-      for (const [id, gm] of geoms) if (frame - gm.used > 600) { gl.deleteBuffer(gm.vbo); for (const e of gm.elements) if (e) { gl.deleteBuffer(e.tri); if (e.line) gl.deleteBuffer(e.line); } gl.deleteVertexArray(gm.vao); geoms.delete(id); }
-      for (const [file, t] of textures) if (frame - t.used > 600) { gl.deleteTexture(t.tex); textures.delete(file); }
+    // Meshes, textures and slots no frame has drawn for a while are let go. A removed mesh's
+    // slots go with it (a replaced geometry has a new id, so its old slots are never drawn
+    // again), and then so do the files only they held, data URLs in the painter's image cache too.
+    if (frame % Math.max(1, evict >> 1) === 0) {
+      for (const [id, gm] of geoms) if (frame - gm.used > evict) { gl.deleteBuffer(gm.vbo); for (const e of gm.elements) if (e) { gl.deleteBuffer(e.tri); if (e.line) gl.deleteBuffer(e.line); } gl.deleteVertexArray(gm.vao); geoms.delete(id); }
+      const freed = [];
+      for (const [key, s] of slots) if (frame - (s.used || 0) > evict) { slots.delete(key); if (s.file) freed.push(s.file); if (s.loading) freed.push(s.loading); }
+      for (const file of freed) retire(file, image);
+      for (const [file, t] of textures) if (frame - t.used > evict) {
+        gl.deleteTexture(t.tex); textures.delete(file);
+        if (!drawnBySlot(file) && file.startsWith('data:') && image && image.forget) { image.forget(file); stats.forgotten++; }
+      }
     }
-    stats.meshes = draws.length; stats.triangles = triangles;
+    stats.meshes = draws.length; stats.triangles = triangles; stats.slots = slots.size; stats.textures = textures.size;
     // Counted here so frames the WebGL painter asks for directly count too.
     stats.gl++; stats.frames++;
     return canvas;
