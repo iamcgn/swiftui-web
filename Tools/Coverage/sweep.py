@@ -1036,7 +1036,7 @@ def describe_app(entry, root: Path, work: Path = None):
             "catalogs": catalogs, "symbol_extensions": bool(catalogs) and xcode_asset_symbol_extensions(root),
             "executable": True, "app": True,
         })
-        sub_bases = [b for _, b, _, _, _ in sub_apps]
+        sub_bases = [b for _, b, _, _, _, _ in sub_apps]
         if sub_bases:
             main = targets[-1]
             main["models"] = [m for m in main["models"] if not any(Path(m).is_relative_to(b) for b in sub_bases)]
