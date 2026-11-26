@@ -97,8 +97,9 @@ open class NSTextStorage: NSMutableAttributedString, @unchecked Sendable {
     public override init(string: String) { super.init(string: string) }
     public override init(string: String, attributes: [NSAttributedString.Key: Any]? = nil) { super.init(string: string, attributes: attributes) }
     public override init(attributedString: NSAttributedString) { super.init(attributedString: attributedString) }
-    /// An archived text storage, which starts empty: nothing is archived here.
-    public init?(coder: NSCoder) { super.init(string: "") }
+    /// An archived text storage, which starts empty: nothing is archived here. Required, as
+    /// NSCoding makes it in UIKit, so a subclass writes `required init?(coder:)` as there.
+    public required init?(coder: NSCoder) { super.init(string: "") }
 
     /// Tells the delegate and the layout managers of the gathered edit. A subclass overriding
     /// it (to restyle the edited paragraphs) calls `super.processEditing()`, after which
@@ -135,8 +136,9 @@ open class NSTextStorage: @unchecked Sendable {
         backing = NSMutableAttributedString(string: string, attributes: attributes)
     }
     public init(attributedString: NSAttributedString) { backing = NSMutableAttributedString(attributedString: attributedString) }
-    /// An archived text storage, which starts empty: nothing is archived here.
-    public init?(coder: NSCoder) { backing = NSMutableAttributedString(string: "") }
+    /// An archived text storage, which starts empty: nothing is archived here. Required, as
+    /// NSCoding makes it in UIKit, so a subclass writes `required init?(coder:)` as there.
+    public required init?(coder: NSCoder) { backing = NSMutableAttributedString(string: "") }
 
     /// Tells the delegate and the layout managers of the gathered edit. A subclass overriding
     /// it (to restyle the edited paragraphs) calls `super.processEditing()`, after which
