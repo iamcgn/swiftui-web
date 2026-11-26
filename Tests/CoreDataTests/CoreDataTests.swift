@@ -492,6 +492,23 @@ struct CoreDataTests {
         #expect(try books(context).compactMap(\.title) == ["Short"])
     }
 
+    // Dime keeps a history token and fetches what its extensions saved after it: a page has no
+    // other process writing its stores, so there are no such transactions.
+    @Test func persistentHistoryHasNoOtherWriters() throws {
+        let container = try container()
+        let context = container.viewContext
+        let token = container.persistentStoreCoordinator.currentPersistentHistoryToken(fromStores: nil)
+        #expect(token != nil)
+        let request = NSPersistentHistoryChangeRequest.fetchHistory(after: token)
+        request.fetchRequest = NSPersistentHistoryTransaction.fetchRequest
+        let result = try context.execute(request) as? NSPersistentHistoryResult
+        #expect((result?.result as? [NSPersistentHistoryTransaction])?.isEmpty == true)
+        let deleted = try context.execute(NSPersistentHistoryChangeRequest.deleteHistory(before: token)) as? NSPersistentHistoryResult
+        #expect(deleted != nil)
+        let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: URL(fileURLWithPath: "/tmp/Library.sqlite"))
+        #expect(metadata[NSStoreTypeKey] as? String == NSSQLiteStoreType)
+    }
+
     // MARK: SwiftUI
 
     struct BookTitles: View {

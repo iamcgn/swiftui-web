@@ -140,4 +140,100 @@ open class NSMapTable<KeyType: AnyObject, ObjectType: AnyObject>: NSObject, @unc
         return result
     }
 }
+
+/// Foundation's `NSHashTable`: a set of objects it may hold weakly, so an object leaves it once
+/// freed (OscarWeather keeps each live map layer state in a weak table to tell them all of a
+/// change). Members compare by `isEqual` and `hash`, or by identity with the pointer personality.
+open class NSHashTable<ObjectType: AnyObject>: NSObject, @unchecked Sendable {
+    private struct Slot {
+        var strong: ObjectType?
+        weak var weak: ObjectType?
+        var object: ObjectType? { strong ?? weak }
+    }
+
+    private let holdsWeakly: Bool
+    private let byPointer: Bool
+    /// The members, in the order they were added.
+    private var slots: [Slot] = []
+
+    public init(options: NSPointerFunctions.Options = [], capacity initialCapacity: Int = 0) {
+        holdsWeakly = options.memory == NSPointerFunctions.Options.weakMemory.rawValue
+        byPointer = options.personality == NSPointerFunctions.Options.objectPointerPersonality.rawValue
+        super.init()
+    }
+
+    public convenience override init() { self.init(options: []) }
+
+    /// A table that holds its members weakly.
+    open class func weakObjects() -> NSHashTable<ObjectType> { NSHashTable(options: .weakMemory) }
+
+    private func matches(_ member: ObjectType, _ other: ObjectType) -> Bool {
+        if member === other { return true }
+        guard !byPointer, let object = member as? NSObject else { return false }
+        return object.isEqual(other)
+    }
+
+    private func prune() { slots = slots.filter { $0.object != nil } }
+
+    open var count: Int {
+        prune()
+        return slots.count
+    }
+
+    /// The member equal to `object`, if the table has one.
+    open func member(_ object: ObjectType?) -> ObjectType? {
+        guard let object else { return nil }
+        for slot in slots {
+            if let member = slot.object, matches(member, object) { return member }
+        }
+        return nil
+    }
+
+    open func contains(_ anObject: ObjectType?) -> Bool { member(anObject) != nil }
+
+    /// Adds `object` unless an equal member is already there (that one stays, as in Foundation).
+    open func add(_ object: ObjectType?) {
+        guard let object, member(object) == nil else { return }
+        var slot = Slot()
+        if holdsWeakly { slot.weak = object } else { slot.strong = object }
+        prune()
+        slots.append(slot)
+    }
+
+    open func remove(_ object: ObjectType?) {
+        guard let object else { return }
+        slots = slots.filter { slot in
+            guard let member = slot.object else { return false }
+            return !matches(member, object)
+        }
+    }
+
+    open func removeAllObjects() { slots = [] }
+
+    /// The live members.
+    open var allObjects: [ObjectType] { slots.compactMap(\.object) }
+
+    /// One of the members, or nil when the table is empty.
+    open var anyObject: ObjectType? { allObjects.first }
+
+    open func union(_ other: NSHashTable<ObjectType>) {
+        for object in other.allObjects { add(object) }
+    }
+
+    open func minus(_ other: NSHashTable<ObjectType>) {
+        for object in other.allObjects { remove(object) }
+    }
+
+    open func intersect(_ other: NSHashTable<ObjectType>) {
+        for object in allObjects where !other.contains(object) { remove(object) }
+    }
+
+    open func intersects(_ other: NSHashTable<ObjectType>) -> Bool {
+        allObjects.contains { other.contains($0) }
+    }
+
+    open func isSubset(of other: NSHashTable<ObjectType>) -> Bool {
+        allObjects.allSatisfy { other.contains($0) }
+    }
+}
 #endif

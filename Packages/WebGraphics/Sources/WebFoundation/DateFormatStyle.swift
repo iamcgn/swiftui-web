@@ -496,26 +496,26 @@ open class DateFormatter: Formatter, @unchecked Sendable {
     open var formattingContext: Context = .unknown
     public enum Context: Int, Sendable { case unknown = 0, dynamic, standalone, listItem, beginningOfSentence, middleOfSentence }
 
-    open var amSymbol = "AM"
-    open var pmSymbol = "PM"
-    open var monthSymbols = _DatePattern.monthNames
-    open var shortMonthSymbols = _DatePattern.shortMonthNames
-    open var standaloneMonthSymbols = _DatePattern.monthNames
-    open var shortStandaloneMonthSymbols = _DatePattern.shortMonthNames
-    open var veryShortMonthSymbols = _DatePattern.monthNames.map { String($0.prefix(1)) }
-    open var veryShortStandaloneMonthSymbols = _DatePattern.monthNames.map { String($0.prefix(1)) }
-    open var weekdaySymbols = _DatePattern.weekdayNames
-    open var shortWeekdaySymbols = _DatePattern.shortWeekdayNames
-    open var standaloneWeekdaySymbols = _DatePattern.weekdayNames
-    open var shortStandaloneWeekdaySymbols = _DatePattern.shortWeekdayNames
-    open var veryShortWeekdaySymbols = _DatePattern.weekdayNames.map { String($0.prefix(1)) }
-    open var veryShortStandaloneWeekdaySymbols = _DatePattern.weekdayNames.map { String($0.prefix(1)) }
-    open var eraSymbols = ["BC", "AD"]
-    open var longEraSymbols = ["Before Christ", "Anno Domini"]
-    open var quarterSymbols = ["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"]
-    open var shortQuarterSymbols = ["Q1", "Q2", "Q3", "Q4"]
-    open var standaloneQuarterSymbols = ["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"]
-    open var shortStandaloneQuarterSymbols = ["Q1", "Q2", "Q3", "Q4"]
+    open var amSymbol: String! = "AM"
+    open var pmSymbol: String! = "PM"
+    open var monthSymbols: [String]! = _DatePattern.monthNames
+    open var shortMonthSymbols: [String]! = _DatePattern.shortMonthNames
+    open var standaloneMonthSymbols: [String]! = _DatePattern.monthNames
+    open var shortStandaloneMonthSymbols: [String]! = _DatePattern.shortMonthNames
+    open var veryShortMonthSymbols: [String]! = _DatePattern.monthNames.map { String($0.prefix(1)) }
+    open var veryShortStandaloneMonthSymbols: [String]! = _DatePattern.monthNames.map { String($0.prefix(1)) }
+    open var weekdaySymbols: [String]! = _DatePattern.weekdayNames
+    open var shortWeekdaySymbols: [String]! = _DatePattern.shortWeekdayNames
+    open var standaloneWeekdaySymbols: [String]! = _DatePattern.weekdayNames
+    open var shortStandaloneWeekdaySymbols: [String]! = _DatePattern.shortWeekdayNames
+    open var veryShortWeekdaySymbols: [String]! = _DatePattern.weekdayNames.map { String($0.prefix(1)) }
+    open var veryShortStandaloneWeekdaySymbols: [String]! = _DatePattern.weekdayNames.map { String($0.prefix(1)) }
+    open var eraSymbols: [String]! = ["BC", "AD"]
+    open var longEraSymbols: [String]! = ["Before Christ", "Anno Domini"]
+    open var quarterSymbols: [String]! = ["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"]
+    open var shortQuarterSymbols: [String]! = ["Q1", "Q2", "Q3", "Q4"]
+    open var standaloneQuarterSymbols: [String]! = ["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"]
+    open var shortStandaloneQuarterSymbols: [String]! = ["Q1", "Q2", "Q3", "Q4"]
 
     public override init() { super.init() }
 

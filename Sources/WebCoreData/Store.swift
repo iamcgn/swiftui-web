@@ -6,8 +6,8 @@
 // Xcode's preview template) is its coordinator's alone.
 //
 // Not Core Data: no SQL, no migrations (a store's rows are read whatever model wrote them:
-// unknown properties are ignored, missing ones are nil), no persistent history, and CloudKit
-// containers keep their data on the device.
+// unknown properties are ignored, missing ones are nil), no other process's persistent history
+// (History.swift), and CloudKit containers keep their data on the device.
 
 import SwiftData
 

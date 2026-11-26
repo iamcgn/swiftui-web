@@ -640,6 +640,10 @@ public let NSPersistentStoreOpenError = 134080
 public let NSPersistentStoreSaveError = 134030
 public let NSPersistentStoreIncompatibleVersionHashError = 134100
 public let NSMigrationMissingSourceModelError = 134130
+public let NSPersistentStoreIncompatibleSchemaError = 134020
+public let NSMigrationError = 134110
+public let NSSQLiteError = 134180
+public let NSSQLiteErrorDomain = "NSSQLiteErrorDomain"
 public let NSDetailedErrorsKey = "NSDetailedErrors"
 public let NSAffectedObjectsErrorKey = "NSAffectedObjectsErrorKey"
 
