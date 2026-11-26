@@ -75,7 +75,7 @@ open class NSMutableArray: _WebNSArray, @unchecked Sendable {
     /// An empty array with room for `numItems` objects.
     public convenience init(capacity numItems: Int) {
         self.init(elements: [])
-        elements.reserveCapacity(max(0, numItems))
+        elements.reserveCapacity(Swift.max(0, numItems))
     }
 
     open func add(_ anObject: Any) { elements.append(anObject) }
@@ -138,7 +138,7 @@ open class NSMutableSet: _WebNSSet, @unchecked Sendable {
     /// An empty set with room for `numItems` objects.
     public convenience init(capacity numItems: Int) {
         self.init(members: [])
-        members.reserveCapacity(max(0, numItems))
+        members.reserveCapacity(Swift.max(0, numItems))
     }
     /// Adds the object, unless an equal one is a member already.
     open func add(_ object: Any) {

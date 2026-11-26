@@ -45,6 +45,9 @@ open class _WebNSSet: NSObject, ExpressibleByArrayLiteral, @unchecked Sendable {
     }
     public override convenience init() { self.init(members: []) }
     public required convenience init(arrayLiteral elements: Any...) { self.init(members: _WebSetMember.distinct(elements)) }
+    /// The array's objects, each once. Declared here, not in an extension, so `NSCountedSet` can
+    /// count the duplicates instead.
+    public convenience init(array: [Any]) { self.init(members: _WebSetMember.distinct(array)) }
     public var count: Int { members.count }
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? _WebNSSet else { return false }
@@ -118,7 +121,6 @@ public func _webValuesEqual(_ lhs: Any, _ rhs: Any) -> Bool {
 public typealias NSSet = _WebNSSet
 
 extension _WebNSSet: Sequence {
-    public convenience init(array: [Any]) { self.init(members: _WebSetMember.distinct(array)) }
     public convenience init(object: Any) { self.init(array: [object]) }
     public convenience init(objects: Any...) { self.init(array: objects) }
     public convenience init(set: Set<AnyHashable>) { self.init(members: Array(set)) }
