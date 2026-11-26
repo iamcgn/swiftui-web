@@ -140,6 +140,20 @@ open class NSManagedObject: _NSManagedObjectRoot, NSFetchRequestResult, _CDKeyVa
         self.init(entity: entity, insertInto: moc)
     }
 
+    /// An object of the class's entity in no context (OldOS keeps `Note()` as a placeholder
+    /// until a note is picked), as Objective-C's inherited `init()` makes one. Before any model
+    /// that describes the class is loaded, its entity is an empty one named after the class.
+    public override convenience init() {
+        let entity = _CDModelRegistry.entity(for: Self.self) ?? {
+            let empty = NSEntityDescription()
+            empty.name = String(describing: Self.self)
+            empty.managedObjectClassName = empty.name
+            empty._class = Self.self
+            return empty
+        }()
+        self.init(entity: entity, insertInto: nil)
+    }
+
     /// The entity whose class is this one.
     open class func entity() -> NSEntityDescription {
         guard let entity = _CDModelRegistry.entity(for: self) else {

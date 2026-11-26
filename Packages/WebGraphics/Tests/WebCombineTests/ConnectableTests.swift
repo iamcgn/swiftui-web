@@ -85,6 +85,8 @@ private final class Ticker: ConnectablePublisher {
         again.cancel()
 
         let _: Publishers.Autoconnect<_TimerPublisher> = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+        // Combine's name for it, nested under `Timer` (OldOS's camera binding).
+        let _: Publishers.Autoconnect<Timer.TimerPublisher> = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     }
 
     @Test func makeConnectableWaitsForConnect() {

@@ -213,6 +213,20 @@ struct CoreDataTests {
         #expect(note.text == "remember" && note.entity.name == "Note")
     }
 
+    /// `Note()`, as OldOS keeps one as a placeholder: an object of the class's entity in no
+    /// context, whose values can be set; a class no loaded model describes gets an empty entity.
+    @Test func anObjectMadeWithNoContextHasItsEntity() throws {
+        _ = try container()
+        let note = Note()
+        #expect(note.entity.name == "Note" && note.managedObjectContext == nil && !note.isInserted)
+        note.text = "later"
+        #expect(note.text == "later")
+
+        final class Unmodelled: NSManagedObject, @unchecked Sendable {}
+        let loose = Unmodelled()
+        #expect(loose.entity.name == "Unmodelled" && loose.entity.properties.isEmpty)
+    }
+
     @Test func fetchesFilterSortAndLimit() throws {
         let context = try container().viewContext
         let herbert = author("Frank Herbert", in: context)
