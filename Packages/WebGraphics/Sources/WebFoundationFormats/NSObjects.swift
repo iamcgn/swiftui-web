@@ -143,12 +143,14 @@ extension _WebNSSet: Sequence {
 #if !canImport(ObjectiveC)
 /// The object an array is as Foundation's `NSArray` (ObjectiveCBridging.swift declares it with
 /// the runtime): its elements, each as `Any`.
-public final class _WebNSArray: NSObject, @unchecked Sendable {
-    public let elements: [Any]
+open class _WebNSArray: NSObject, @unchecked Sendable {
+    /// The elements; `NSMutableArray` changes them.
+    public var elements: [Any]
     public init(elements: [Any]) {
         self.elements = elements
         super.init()
     }
+    public override convenience init() { self.init(elements: []) }
     public var count: Int { elements.count }
     /// Equal when the elements are, pair by pair, as Foundation's arrays are (nested arrays too).
     public override func isEqual(_ object: Any?) -> Bool {
@@ -501,6 +503,9 @@ public final class NSLocale: NSObject, _WebValueObject, @unchecked Sendable {
         super.init()
     }
     public convenience init(localeIdentifier string: String) { self.init(_webValue: Locale(identifier: string)) }
+    /// Posted when the user's locale changes (the browser's language does not change while a
+    /// page is open, so nothing posts it: an observer added for it is kept and never called).
+    public static let currentLocaleDidChangeNotification = Notification.Name("kCFLocaleCurrentLocaleDidChangeNotification")
     public var localeIdentifier: String { _webValue.identifier }
     public class var current: Locale { Locale.current }
     public class var autoupdatingCurrent: Locale { Locale.autoupdatingCurrent }

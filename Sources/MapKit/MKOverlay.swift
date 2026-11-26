@@ -139,8 +139,20 @@ open class MKShape: NSObject, MKAnnotation {
 open class MKMultiPoint: MKShape {
     package let mapPoints: [MKMapPoint]
     package init(points: [MKMapPoint]) { self.mapPoints = points }
+    /// The points in memory of their own, made the first time `points()` asks (OldOS's map
+    /// reads a route's last point with `polyline.points()[polyline.pointCount - 1]`).
+    private var pointBuffer: UnsafeMutablePointer<MKMapPoint>?
+    deinit { pointBuffer?.deallocate() }
 
     open var pointCount: Int { mapPoints.count }
+    /// The shape's points, which last as long as the shape does.
+    open func points() -> UnsafeMutablePointer<MKMapPoint> {
+        if let pointBuffer { return pointBuffer }
+        let buffer = UnsafeMutablePointer<MKMapPoint>.allocate(capacity: max(1, mapPoints.count))
+        buffer.initialize(from: mapPoints, count: mapPoints.count)
+        pointBuffer = buffer
+        return buffer
+    }
     /// Copies the shape's coordinates in `range` into `coordinates`.
     open func getCoordinates(_ coordinates: UnsafeMutablePointer<CLLocationCoordinate2D>, range: NSRange) {
         for index in 0..<range.length { coordinates[index] = mapPoints[range.location + index].coordinate }

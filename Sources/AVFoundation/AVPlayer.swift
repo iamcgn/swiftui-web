@@ -55,9 +55,35 @@ public func CMTimeMake(value: Int64, timescale: Int32) -> CMTime { CMTime(value:
 public func CMTimeMakeWithSeconds(_ seconds: Double, preferredTimescale: Int32) -> CMTime { CMTime(seconds: seconds, preferredTimescale: preferredTimescale) }
 public func CMTimeGetSeconds(_ time: CMTime) -> Double { time.seconds }
 
-/// An item a player plays: a URL, and the asset it was made from.
+/// A stretch of time: where it starts and how long it lasts (CoreMedia's `CMTimeRange`).
+public struct CMTimeRange: Hashable, Sendable {
+    public var start: CMTime
+    public var duration: CMTime
+    public init(start: CMTime, duration: CMTime) {
+        self.start = start
+        self.duration = duration
+    }
+    public init(start: CMTime, end: CMTime) {
+        self.start = start
+        duration = CMTime(seconds: end.seconds - start.seconds, preferredTimescale: start.timescale)
+    }
+    /// Where the range ends: its start plus its duration.
+    public var end: CMTime { CMTime(seconds: start.seconds + duration.seconds, preferredTimescale: start.timescale) }
+    public var isValid: Bool { start.isValid && duration.isValid && duration.seconds >= 0 }
+    public var isEmpty: Bool { duration.seconds == 0 }
+    /// Whether the time is in the range, its start included and its end not.
+    public func containsTime(_ time: CMTime) -> Bool { time.seconds >= start.seconds && time.seconds < end.seconds }
+    public static let zero = CMTimeRange(start: .zero, duration: .zero)
+    public static let invalid = CMTimeRange(start: .invalid, duration: .invalid)
+}
+
+public func CMTimeRangeMake(start: CMTime, duration: CMTime) -> CMTimeRange { CMTimeRange(start: start, duration: duration) }
+public func CMTimeRangeGetEnd(_ range: CMTimeRange) -> CMTime { range.end }
+
+/// An item a player plays: a URL, and the asset it was made from. An `NSObject`, as Apple's is,
+/// so `item.publisher(for: \.status)` and `observe(_:)` reach it (OldOS's YouTube player).
 @Observable
-public final class AVPlayerItem: @unchecked Sendable {
+public final class AVPlayerItem: NSObject, @unchecked Sendable {
     public let url: URL
     public let asset: AVAsset
     /// Where the item was last sought to: `VideoPlayer` moves the host's element there.
@@ -75,6 +101,19 @@ public final class AVPlayerItem: @unchecked Sendable {
     public var duration: CMTime { .invalid }
     public var status: AVPlayerItem.Status { .unknown }
     public enum Status: Int, Sendable { case unknown, readyToPlay, failed }
+    /// Why the item failed (it never has here: the host's element plays it or shows its own error).
+    public var error: (any Error)? { nil }
+    /// How far ahead the player should buffer, in seconds (0 lets it choose; the browser always does).
+    public var preferredForwardBufferDuration: TimeInterval = 0
+    /// The time ranges loaded so far, each an `NSValue` holding a `CMTimeRange` (the host does
+    /// not report its buffer yet, so none).
+    public var loadedTimeRanges: [NSValue] { [] }
+    /// The time ranges that can be sought to (none reported yet).
+    public var seekableTimeRanges: [NSValue] { [] }
+    /// Whether playback should keep up without stalling; the browser buffers, so taken to be so.
+    public var isPlaybackLikelyToKeepUp: Bool { true }
+    public var isPlaybackBufferEmpty: Bool { false }
+    public var isPlaybackBufferFull: Bool { false }
 
     /// The item's time: where it was last sought to (the host does not report its playhead yet).
     public func currentTime() -> CMTime { CMTime(seconds: position ?? 0) }
@@ -118,9 +157,11 @@ extension Notification.Name {
     public static let AVPlayerItemTimeJumped = AVPlayerItem.timeJumpedNotification
 }
 
-/// Plays one item: `play()`, `pause()`, the rate, muting, looping through `actionAtItemEnd`.
+/// Plays one item: `play()`, `pause()`, the rate, muting, looping through `actionAtItemEnd`. An
+/// `NSObject`, as Apple's is, so `player.publisher(for: \.timeControlStatus)` reports its rate's
+/// changes (Observation carries them, WebFoundation's KeyValueObserving.swift).
 @MainActor @Observable
-public class AVPlayer {
+public class AVPlayer: NSObject {
     public private(set) var currentItem: AVPlayerItem?
     /// 0 paused, 1 playing (other rates are passed to the host's element).
     public var rate: Float = 0
@@ -142,13 +183,32 @@ public class AVPlayer {
     public enum ActionAtItemEnd: Int, Sendable { case advance, pause, none }
     public enum TimeControlStatus: Int, Sendable { case paused, waitingToPlayAtSpecifiedRate, playing }
     public enum Status: Int, Sendable { case unknown, readyToPlay, failed }
+    /// Why a player waits before it plays at its rate.
+    public struct WaitingReason: Hashable, Sendable, RawRepresentable {
+        public let rawValue: String
+        public init(rawValue: String) { self.rawValue = rawValue }
+        public static let toMinimizeStalls = WaitingReason(rawValue: "AVPlayerWaitingToMinimizeStallsReason")
+        public static let evaluatingBufferingRate = WaitingReason(rawValue: "AVPlayerWaitingWhileEvaluatingBufferingRateReason")
+        public static let noItemToPlay = WaitingReason(rawValue: "AVPlayerWaitingWithNoItemToPlayReason")
+        public static let interstitialEvent = WaitingReason(rawValue: "AVPlayerWaitingDuringInterstitialEventReason")
+        public static let waitingForCoordinatedPlayback = WaitingReason(rawValue: "AVPlayerWaitingForCoordinatedPlaybackReason")
+    }
 
-    public init() {}
+    /// Whether the player waits to buffer before it plays (the browser's element decides).
+    public var automaticallyWaitsToMinimizeStalling = true
+
+    public override init() { super.init() }
     public init(url: URL) { currentItem = AVPlayerItem(url: url) }
     public init(playerItem: AVPlayerItem?) { currentItem = playerItem }
 
     public var status: Status { currentItem == nil ? .unknown : .readyToPlay }
+    /// Why the player failed (never: the host's element shows its own error).
+    public var error: (any Error)? { nil }
     public var timeControlStatus: TimeControlStatus { rate == 0 ? .paused : .playing }
+    /// Why the player is waiting: nil, as it never waits here (it is paused or playing).
+    public var reasonForWaitingToPlay: WaitingReason? { nil }
+    /// Plays at `rate` at once.
+    public func playImmediately(atRate rate: Float) { self.rate = rate }
     public var isPlaying: Bool { rate != 0 }
 
     public func play() { if rate == 0 { rate = 1 } }

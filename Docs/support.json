@@ -2622,6 +2622,12 @@
           "status": "partial",
           "notes": "pf-undo-manager (2026-11-16), on wasm and Linux, whose Foundations have none: registerUndo(withTarget:handler:) into groups, one undo step each; undo runs a step's actions newest first and what they register becomes the redo step; nested groups (undoNestedGroup undoes the inner group that closed inside an open one), a new registration ending redo at once, action names and menu titles, levelsOfUndo, disabled registration, removeAllActions (with a target too) and the undo notifications. With groupsByEvent a registration outside a group opens one that closes on the main actor's next turn. The environment's undo manager is one for the window. No selector or invocation registration (no Objective-C runtime).",
           "noFixture": "Values, not a screen; FrameworkTests (UndoManagerTests) run the same steps against Foundation's on macOS and WebFoundation's on wasm and Linux, and CoreRuntimeTests (UndoEnvironmentTests) read the environment's."
+        },
+        {
+          "api": "NSMutableArray / NSMutableSet / NSCountedSet / NSEnumerator / Comparator / kCFNull / CFNull / CFDataGetLength / CFDataGetBytePtr / Bundle.allBundles / allFrameworks / NSLocale.currentLocaleDidChangeNotification / NSSystemTimeZoneDidChange / NSSystemClockDidChange / NSCalendarDayChanged",
+          "status": "partial",
+          "notes": "On wasm (pf-everyday, 2026-11-26, OldOS's UIImageColors and settings): NSMutableArray is a kind of NSArray that adds, inserts, removes (by index, object, range or array), replaces, exchanges and sorts in place by a comparator, equal elements keeping their order; an index out of bounds stops, as Foundation raises. NSMutableSet adds, removes, unions, subtracts and intersects; NSCountedSet counts each distinct object (count(for:)) and keeps a member until it has been removed as many times. Arrays and sets give an NSEnumerator (objectEnumerator, reverseObjectEnumerator), arrays sortedArray(comparator:), enumerateObjects and indexOfObject(passingTest:). kCFNull is NSNull, CFDataGetBytePtr copies the bytes into memory that lasts until 16 later calls. A page has one bundle (main) and no frameworks; the change notifications are named and never posted, as a page's clock, zone and locale do not change under it.",
+          "noFixture": "Foundation API with nothing on screen; FrameworkTests MutableCollectionsTests holds the answers to Foundation on macOS and Linux"
         }
       ]
     },
@@ -2719,7 +2725,7 @@
         {
           "api": "VideoPlayer / AVPlayer / AVPlayerItem / AVQueuePlayer / AVPlayerLooper (AVKit, AVFoundation)",
           "status": "partial",
-          "notes": "A host element: the browser's <video> over the canvas at the view's frame, clipped by scroll views, following the player's source, play/pause, rate, muting and looping each frame; a black stand-in with a play glyph elsewhere; no playback state back, no picture in picture (Docs/elements/Frameworks.md, 2026-10-12); `audiovisualBackgroundPlaybackPolicy` is recorded, and the item notifications (`didPlayToEndTimeNotification`, `.AVPlayerItemDidPlayToEndTime` and the others) are named but not posted, the host not reporting the end yet",
+          "notes": "A host element: the browser's <video> over the canvas at the view's frame, clipped by scroll views, following the player's source, play/pause, rate, muting and looping each frame; a black stand-in with a play glyph elsewhere; no playback state back, no picture in picture (Docs/elements/Frameworks.md, 2026-10-12); `audiovisualBackgroundPlaybackPolicy` is recorded, and the item notifications (`didPlayToEndTimeNotification`, `.AVPlayerItemDidPlayToEndTime` and the others) are named but not posted, the host not reporting the end yet; AVPlayer and AVPlayerItem are NSObjects, so publisher(for: \\.timeControlStatus) and the other key paths publish their changes (2026-11-26, OldOS); the item reports no error, empty loaded and seekable ranges (CMTimeRange) and keeps up, and the player's waiting reason is nil, as the host reports no stalls",
           "fixtures": [
             "frameworks/video"
           ]
@@ -2727,7 +2733,7 @@
         {
           "api": "AVAudioPlayer / AVAudioSession / AVAudioApplication / AVAudioEngine / AVAudioInputNode / AVAudioPCMBuffer / AVAudioFormat / AVAudioRecorder (AVFoundation)",
           "status": "partial",
-          "notes": "decision 0021, pf-avfoundation-audio (2026-10-12), against Scrumdinger's AudioService and SpeechService: a player over the browser's <audio> element (play, pause, stop, currentTime, duration, volume, rate, loops, the delegate's finish); the session records its category, mode, options and activation, and the record permission is the browser's microphone (getUserMedia, remembered); the engine's input node is the microphone through an AudioContext, mono float buffers to installTap at the browser's sample rate, prepare/start/stop/removeTap; floatChannelData is real memory; AVAudioRecorder meters the microphone (record, updateMeters, averagePower and peakPower in dBFS) without writing a file. A host installs _AVAudioHost (MediaHost.swift in the browser; none natively yet). Not done: AVAudioPlayer(data:) beyond a data URL, output through the engine (mainMixerNode is inert), AVAudioFile and the recorder's file, interruptions and route notifications",
+          "notes": "decision 0021, pf-avfoundation-audio (2026-10-12), against Scrumdinger's AudioService and SpeechService: a player over the browser's <audio> element (play, pause, stop, currentTime, duration, volume, rate, loops, the delegate's finish); the session records its category, mode, options and activation, and the record permission is the browser's microphone (getUserMedia, remembered); the engine's input node is the microphone through an AudioContext, mono float buffers to installTap at the browser's sample rate, prepare/start/stop/removeTap; floatChannelData is real memory; AVAudioRecorder meters the microphone (record, updateMeters, averagePower and peakPower in dBFS) without writing a file. A host installs _AVAudioHost (MediaHost.swift in the browser; none natively yet). Not done: AVAudioPlayer(data:) beyond a data URL, output through the engine (mainMixerNode is inert), AVAudioFile and the recorder's file, the session's interruption and route notifications are named and never posted; the session's route (2026-11-26, OldOS) is the built-in microphone in for the record categories and the speaker out, with port, channel and data-source descriptions, a preferred input and channel counts kept",
           "noFixture": "Audio has no pixels; AVAudioAndSpeechTests drive the API against a fake host, and the browser host runs in Playwright/scrumdinger-probe.mjs"
         },
         {
@@ -2929,9 +2935,9 @@
           "noFixture": "Nothing to draw: WeatherKitTests check the failed requests, the queries and the names"
         },
         {
-          "api": "MPMusicPlayerController / MPMediaItem / MPMediaItemCollection / MPMediaPlaylist / MPMediaQuery / MPMediaPropertyPredicate / MPMediaLibrary / MPVolumeView / MPNowPlayingInfoCenter / MPRemoteCommandCenter (MediaPlayer)",
+          "api": "MPMusicPlayerController / MPMediaItem / MPMediaItemCollection / MPMediaPlaylist / MPMediaQuery / MPMediaPropertyPredicate / MPMediaLibrary / MPVolumeView / MPNowPlayingInfoCenter / MPRemoteCommandCenter (MediaPlayer) / MPNowPlayingSession",
           "status": "stub",
-          "notes": "pf-everyday (2026-11-26, OldOS's iPod): a page has no music library, so queries (songs, albums, artists, playlists and the rest) answer no items or collections, authorization is denied, and adding to the library or a playlist fails. Items, collections and playlists an app makes hold what they are given and read their properties by key. The system, application and queue players keep the queue they are set to, the now-playing item, skipping, and the repeat and shuffle modes, and post their notifications once asked to; play leaves them stopped, as an item has no asset to play. MPVolumeView is a view holding a slider, MPNowPlayingInfoCenter keeps its information and MPRemoteCommandCenter's commands keep their handlers; nothing outside the page sends a command.",
+          "notes": "pf-everyday (2026-11-26, OldOS's iPod): a page has no music library, so queries (songs, albums, artists, playlists and the rest) answer no items or collections, authorization is denied, and adding to the library or a playlist fails. Items, collections and playlists an app makes hold what they are given and read their properties by key. The system, application and queue players keep the queue they are set to, the now-playing item, skipping, and the repeat and shuffle modes, and post their notifications once asked to; play leaves them stopped, as an item has no asset to play. MPVolumeView is a view holding a slider, MPNowPlayingInfoCenter keeps its information and MPRemoteCommandCenter's commands keep their handlers; nothing outside the page sends a command. MPNowPlayingSession keeps its players and becomes active when asked (2026-11-26); importing MediaPlayer brings AVFoundation, as on Apple platforms.",
           "noFixture": "Nothing to draw beyond a slider: CoreRuntimeTests MediaPlayerTests checks the empty library, the player's queue and the commands"
         },
         {
@@ -2984,7 +2990,7 @@
         {
           "api": "MKDirections / MKDirections.Request / MKRoute / MKDirectionsTransportType / MKUserLocation / MKTileOverlay / MKTileOverlayRenderer / MKDistanceFormatter / MKAnnotationViewZPriority (MapKit)",
           "status": "approximate",
-          "notes": "pf-everyday (2026-11-26, OldOS's Maps): routes come from Apple's servers, which a page can't reach, so every directions and ETA request fails after the call returns with MKError.directionsNotFound, as Apple's does when no route is found. A map view's userLocation is the annotation for the device's location, with no location until one arrives. A tile overlay fills its URL template's {x}, {y}, {z} and {scale} for each tile (flipped rows too) and loads tiles from it; the map does not paint overlays yet. MKDistanceFormatter writes feet and miles (yards in Britain) or meters and kilometers by the locale's region, abbreviated or in full, with the locale's decimal and grouping separators both ways (1,2 km for de_DE); unit names stay English. Annotation views keep their callout offset, enabled and selected states and z priorities.",
+          "notes": "pf-everyday (2026-11-26, OldOS's Maps): routes come from Apple's servers, which a page can't reach, so every directions and ETA request fails after the call returns with MKError.directionsNotFound, as Apple's does when no route is found. A map view's userLocation is the annotation for the device's location, with no location until one arrives. A tile overlay fills its URL template's {x}, {y}, {z} and {scale} for each tile (flipped rows too) and loads tiles from it; the map does not paint overlays yet. MKDistanceFormatter writes feet and miles (yards in Britain) or meters and kilometers by the locale's region, abbreviated or in full, with the locale's decimal and grouping separators both ways (1,2 km for de_DE); unit names stay English. Annotation views keep their callout offset, enabled and selected states and z priorities. A polyline's points() is a buffer of its map points that lasts as long as the polyline (2026-11-26, OldOS).",
           "noFixture": "Nothing to draw: CoreRuntimeTests MediaPlayerTests checks the failed directions, the tile URLs and the distances"
         },
         {
@@ -2993,6 +2999,12 @@
           "notes": "Drawn on the CPU: each triangle projected through the camera, back faces culled, the rest painted far to near with flat Lambert shading; actions and Core Animation animations on nodes play each frame; camera control orbits and zooms; the simd vectors, matrices, quaternions and functions SceneKit brings, and the nodes' simd properties (2026-11-24). No depth buffer, textures, shadows, physics or scene files.",
           "fixtures": [],
           "noFixture": "The scenes apps draw move each frame; CoreRuntimeTests SceneKitTests hold the transforms, actions, animations, projection, hit testing and the painted faces."
+        },
+        {
+          "api": "CTTelephonyNetworkInfo / CTCarrier / CTCellularData / CTRadioAccessTechnology (CoreTelephony)",
+          "status": "stub",
+          "notes": "pf-everyday (2026-11-26, OldOS's status bar): a page has no cellular radio, so the network info names no carrier and no radio technology, the notifiers never fire, and cellular data reads not restricted. The radio technology constants and change notifications are Apple's names.",
+          "noFixture": "Nothing to draw; CoreRuntimeTests AudioRouteAndTelephonyTests checks the empty answers"
         }
       ]
     }

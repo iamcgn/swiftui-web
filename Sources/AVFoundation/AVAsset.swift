@@ -17,12 +17,25 @@ import CoreGraphics
 import UIKitWebCore
 import AVCaptureHost
 
-/// A media asset by URL.
-public class AVAsset: @unchecked Sendable {
+/// A media asset by URL. An `NSObject`, as Apple's is.
+public class AVAsset: NSObject, @unchecked Sendable {
     public let url: URL
-    public init(url: URL) { self.url = url }
+    public init(url: URL) {
+        self.url = url
+        super.init()
+    }
     /// The host's one read of the movie, shared by every load.
     nonisolated(unsafe) private var info: Task<_AVMovieInfo, any Error>?
+    /// That read, once it has come back.
+    nonisolated(unsafe) private var loadedInfo: _AVMovieInfo?
+
+    /// The movie's length, once a `load(_:)` has read the movie's metadata; `.invalid` before
+    /// (Apple's waits for the metadata, and is deprecated for `load(.duration)`, which waits
+    /// here too).
+    public var duration: CMTime {
+        guard let loadedInfo else { return .invalid }
+        return Self.time(loadedInfo.duration)
+    }
 
     /// The value of one of the asset's properties, once the movie's metadata is loaded.
     public func load<T>(_ property: AVAsyncProperty<AVAsset, T>) async throws -> T {
@@ -67,16 +80,21 @@ public class AVAsset: @unchecked Sendable {
             guard let host = _AVFrameHost.info else { throw AVError(.fileFormatNotRecognized) }
             let read: _AVMovieInfo? = await withCheckedContinuation { reading in host(url) { reading.resume(returning: $0) } }
             guard let read else { throw AVError(.fileFormatNotRecognized) }
+            self.loadedInfo = read
             return read
         }
         info = task
         return try await task.value
     }
 
+    private static func time(_ seconds: Double) -> CMTime {
+        seconds.isNaN ? .invalid : seconds.isInfinite ? .indefinite : CMTime(seconds: seconds, preferredTimescale: 600)
+    }
+
     private static func value<T>(_ property: AVAsyncProperty<AVAsset, T>, of asset: AVAsset, _ info: _AVMovieInfo) throws -> T {
         let value: Any?
         switch property.key {
-        case "duration": value = info.duration.isNaN ? CMTime.invalid : info.duration.isInfinite ? CMTime.indefinite : CMTime(seconds: info.duration, preferredTimescale: 600)
+        case "duration": value = time(info.duration)
         case "tracks": value = tracks(of: asset, info)
         case "isPlayable": value = true
         default: value = nil

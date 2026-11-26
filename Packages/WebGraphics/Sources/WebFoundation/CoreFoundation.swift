@@ -117,6 +117,7 @@ public func CFGetTypeID(_ cf: CFTypeRef!) -> CFTypeID {
     case is Data: return CFDataGetTypeID()
     case is URL: return CFURLGetTypeID()
     case is Date: return CFDateGetTypeID()
+    case is NSNull: return CFNullGetTypeID()
     default: return 1
     }
 }
@@ -154,4 +155,33 @@ public let kCFBundleExecutableKey: CFString! = "CFBundleExecutable"
 public let kCFBundleInfoDictionaryVersionKey: CFString! = "CFBundleInfoDictionaryVersion"
 public let kCFBundleDevelopmentRegionKey: CFString! = "CFBundleDevelopmentRegion"
 public let kCFBundleLocalizationsKey: CFString! = "CFBundleLocalizations"
+/// Core Foundation's null, which bridges to `NSNull` (a `CIContext` option's "no colour space").
+public typealias CFNull = NSNull
+public let kCFNull: CFNull! = NSNull()
+
+/// The number of bytes in a data object.
+public func CFDataGetLength(_ theData: CFData!) -> CFIndex { theData.count }
+
+/// The bytes of a data object (UIImageColors reads an image's pixels through
+/// `CFDataGetBytePtr(cgImage.dataProvider!.data)`). Apple's pointer lasts as long as the data
+/// object; a `CFData` here is a `Data` value, which a caller often drops at once, so the last
+/// few datas passed in are kept, and the pointer lasts until sixteen more have been.
+public func CFDataGetBytePtr(_ theData: CFData!) -> UnsafePointer<UInt8>! {
+    _CFDataBytes.keep(theData)
+}
+
+private enum _CFDataBytes {
+    private static let lock = NSLock()
+    nonisolated(unsafe) private static var kept: [UnsafeMutableBufferPointer<UInt8>] = []
+    static func keep(_ data: Data) -> UnsafePointer<UInt8> {
+        // A copy of its own, so the pointer never depends on how `Data` stores its bytes.
+        let copy = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: max(1, data.count))
+        _ = copy.initialize(from: data)
+        lock.lock()
+        defer { lock.unlock() }
+        kept.append(copy)
+        if kept.count > 16 { kept.removeFirst().deallocate() }
+        return UnsafePointer(copy.baseAddress!)
+    }
+}
 #endif

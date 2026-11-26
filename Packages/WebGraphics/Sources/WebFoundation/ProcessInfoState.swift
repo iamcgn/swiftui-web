@@ -39,5 +39,11 @@ extension ProcessInfo {
 extension Notification.Name {
     /// Posted when the power state (Low Power Mode) of the device changes (never, here).
     public static let NSProcessInfoPowerStateDidChange = Notification.Name("NSProcessInfoPowerStateDidChangeNotification")
+    /// Posted when the system's time zone changes, when the clock is set, and when the calendar
+    /// day changes. The browser reports none of these while a page is open, so nothing posts
+    /// them: an observer added for one is kept and never called.
+    public static let NSSystemTimeZoneDidChange = Notification.Name("NSSystemTimeZoneDidChangeNotification")
+    public static let NSSystemClockDidChange = Notification.Name("NSSystemClockDidChangeNotification")
+    public static let NSCalendarDayChanged = Notification.Name("NSCalendarDayChangedNotification")
 }
 #endif
