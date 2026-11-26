@@ -454,6 +454,7 @@ open class NSManagedObjectContext: CustomStringConvertible, @unchecked Sendable 
         if let fetch = request as? NSFetchRequest<NSFetchRequestResult> {
             return NSAsynchronousFetchResult(finalResult: try self.fetch(fetch).map { $0 as Any })
         }
+        if let history = request as? NSPersistentHistoryChangeRequest { return _executeHistory(history) }
         guard let delete = request as? NSBatchDeleteRequest else {
             throw NSError(domain: NSCocoaErrorDomain, code: 134091, userInfo: [NSLocalizedDescriptionKey: "Unsupported store request \(type(of: request))."])
         }

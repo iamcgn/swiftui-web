@@ -71,7 +71,9 @@ several runs, `adjustsFontSizeToFitWidth`, the dark clear button, truncated cent
 
 ## Input views (2026-11-14)
 
-`UIInputView` (`.default` with no background, `.keyboard` with the keyboard's 209/212/217
+`UIInputViewController` (its `inputView` kept; switching input modes and dismissing do nothing,
+and no keyboard has full access), `inputViewController` and `inputAccessoryViewController` on
+`UIResponder` (nil unless a subclass returns one), `UIInputView` (`.default` with no background, `.keyboard` with the keyboard's 209/212/217
 gray, 43/43/43 dark), `UIInputViewAudioFeedback`, and `inputView` / `inputAccessoryView` on
 `UIResponder`, settable on `UITextField`, `UITextView` and `UISearchBar` (KeyboardToolbar's
 toolbar above Runestone's editor in GistHub). While a responder with an accessory is first

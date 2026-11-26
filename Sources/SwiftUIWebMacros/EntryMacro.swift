@@ -57,7 +57,9 @@ public struct EntryMacro: AccessorMacro, PeerMacro {
             // Focused values are optional and have no default.
             return ["private struct \(raw: key): \(raw: container.key) { typealias Value = \(raw: unwrapped(property.type)) }"]
         }
-        guard let initializer = property.initializer else {
+        // An optional with no initializer defaults to nil, as Apple's does (Mlem's
+        // `@Entry var postContext: Post?`).
+        guard let initializer = property.initializer ?? (unwrapped(property.type) != property.type ? "nil" : nil) else {
             context.diagnose(Diagnostic(node: Syntax(declaration), message: EntryMessage("'@Entry' needs a default value")))
             return []
         }

@@ -140,6 +140,10 @@ open class UIResponder: UIResponderBase {
     /// The view shown above the keyboard while this responder is first responder, along the
     /// bottom of the window. Text fields and text views take one.
     open var inputAccessoryView: UIView? { nil }
+    /// The controller of the view shown in place of the keyboard, or of the accessory: none
+    /// unless a subclass returns one.
+    open var inputViewController: UIInputViewController? { nil }
+    open var inputAccessoryViewController: UIInputViewController? { nil }
 
     /// Shows this responder's input views again after they changed, when it is first responder.
     open func reloadInputViews() {

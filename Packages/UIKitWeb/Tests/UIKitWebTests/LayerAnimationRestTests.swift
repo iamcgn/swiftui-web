@@ -186,6 +186,12 @@ import UIKit
         #expect(owned == 1 && !bound.isValid)   // the target went away: the link invalidates itself
     }
 
+    @Test func frameRateRangeInCoreAnimationsSpelling() {
+        let link = CADisplayLink { _ in }
+        link.preferredFrameRateRange = CAFrameRateRange(minimum: 30, maximum: 120, __preferred: 60)
+        #expect(link.preferredFrameRateRange == CAFrameRateRange(minimum: 30, maximum: 120, preferred: 60))
+    }
+
     @Test func animatorDelayFactorScrubbingAndSprings() {
         let (scene, root) = scene()
         let view = UIView(frame: CGRect(x: 0, y: 0, width: 40, height: 40))

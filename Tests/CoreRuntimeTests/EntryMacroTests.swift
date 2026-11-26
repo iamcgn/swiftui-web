@@ -11,6 +11,9 @@ extension EnvironmentValues {
     // A non-Sendable class and a closure: Harbour's `ErrorHandler` and `PresentIndicatorAction`.
     @Entry var entryCounter: EntryCounter = EntryCounter()
     @Entry var entryAction: (String) -> Void = { _ in }
+    // Optionals with no initializer default to nil (Mlem's `@Entry var postContext: Post?`).
+    @Entry var entryContext: String?
+    @Entry var entryHandler: ((Int) -> Void)?
 }
 
 /// A non-Sendable class an `@Entry` defaults to.
@@ -76,6 +79,9 @@ private struct Watcher: View {
         let log = Log()
         _ = runtime(Reader(log: log).environment(\.entryDepth, 4).environment(\.accentWord, "deep"))
         #expect(log.seen.last == "deep 4")
+        #expect(values.entryContext == nil && values.entryHandler == nil)
+        values.entryContext = "post"
+        #expect(values.entryContext == "post")
         var transaction = Transaction()
         #expect(!transaction.tracksCompletion)
         transaction.tracksCompletion = true

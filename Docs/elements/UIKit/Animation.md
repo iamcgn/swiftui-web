@@ -106,7 +106,7 @@ draws the newest underneath. At most 4,000 particles live at once. Open: a parti
 `CADisplayLink(target:selector:)` where there is an Objective-C runtime, `add(to:forMode:)`
 (taking a `RunLoop` and a `RunLoop.Mode`, as iOS's does), `remove(from:forMode:)`, `invalidate`, `isPaused`, `timestamp`,
 `targetTimestamp`, `duration`, `preferredFramesPerSecond`, `preferredFrameRateRange`
-(`CAFrameRateRange`). An added link keeps the scene animating; the scene ticks it from its
+(`CAFrameRateRange`, also as `CAFrameRateRange(minimum:maximum:__preferred:)`). An added link keeps the scene animating; the scene ticks it from its
 frame clock in `advanceFrame(elapsed:)` (and a hosted tree's `advanceTimers`) before the
 animation groups and painting, with the frame's elapsed time as `duration`. The host's requestAnimationFrame cadence is the rate; the
 preferred rates are stored. Open: run loop modes, rate throttling.

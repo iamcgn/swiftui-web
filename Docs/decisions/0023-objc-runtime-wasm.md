@@ -174,5 +174,12 @@ fbb333cf with a clean tree.
   `init(domain:code:userInfo:)` is `required` under the runtime, so a generic `Result: NSError`
   can be made from its metatype, as an imported class's initializer can; a subclass with
   initializers of its own provides that one too.
+- 2026-11-25, the compiler's own checks: v0.1.1's compiler is built with assertions, and in
+  SILGen those builds verify every type lowering, which release compilers never do. Swift
+  6.3.3's lexical-lifetime check aborts the build of Hipstapaper's V3Style (#343), where a
+  release compiler would go on. `scripts/objc-sdk/add-api-notes.sh` adds `-Xllvm
+  -type-lowering-disable-verification` to the installed SDK's toolset, which skips that check and
+  leaves the SIL as it was; a release built without assertions, or with the flag in its
+  toolset, makes the step a no-op.
 - `#selector`-based `UIKeyCommand`s do nothing on builds without the runtime; the closure
   form works everywhere.

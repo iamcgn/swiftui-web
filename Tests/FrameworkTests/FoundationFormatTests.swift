@@ -155,6 +155,34 @@ extension Locale: CurrencyNaming {}
         #expect(Measurement(value: 5, unit: UnitLength.kilometers).formatted(.measurement(width: .abbreviated, usage: .road).locale(Locale(identifier: "de_DE"))) == "5 km")
     }
 
+    // OscarWeather picks its display units with `UnitTemperature(forLocale:)` and the rest.
+    @Test func unitsForALocaleAndUsage() {
+        let us = Locale(identifier: "en_US"), de = Locale(identifier: "de_DE"), gb = Locale(identifier: "en_GB")
+        #expect(UnitTemperature(forLocale: us) == .fahrenheit)
+        #expect(UnitTemperature(forLocale: de) == .celsius)
+        #expect(UnitSpeed(forLocale: us, usage: .wind) == .milesPerHour)
+        #expect(UnitSpeed(forLocale: de, usage: .wind) == .kilometersPerHour)
+        #expect(UnitLength(forLocale: us, usage: .road) == .miles)
+        #expect(UnitLength(forLocale: de, usage: .road) == .kilometers)
+        #expect(UnitLength(forLocale: gb, usage: .road) == .miles)
+        #expect(UnitLength(forLocale: us, usage: .rainfall) == .inches)
+        #expect(UnitLength(forLocale: de, usage: .rainfall) == .millimeters)
+        #expect(UnitPressure(forLocale: us, usage: .barometric) == .inchesOfMercury)
+        #expect(UnitPressure(forLocale: de, usage: .barometric) == .hectopascals)
+    }
+
+    @Test func signStrategies() {
+        let english = Locale(identifier: "en_US")
+        #expect(1.5.formatted(.number.sign(strategy: .always()).locale(english)) == "+1.5")
+        #expect((-1.5).formatted(.number.sign(strategy: .always()).locale(english)) == "-1.5")
+        #expect(0.0.formatted(.number.sign(strategy: .always()).locale(english)) == "+0")
+        #expect(0.0.formatted(.number.sign(strategy: .always(includingZero: false)).locale(english)) == "0")
+        #expect((-1.5).formatted(.number.sign(strategy: .never).locale(english)) == "1.5")
+        #expect(2.25.formatted(.number.precision(.fractionLength(1)).sign(strategy: .always(includingZero: false)).locale(english)) == "+2.2")
+        #expect(5.formatted(.number.sign(strategy: .always()).locale(english)) == "+5")
+        #expect(0.25.formatted(.percent.sign(strategy: .always()).locale(english)) == "+25%")
+    }
+
     @Test func theAttributedFormMarksTheUnit() {
         let text = Measurement(value: 1, unit: UnitLength.kilometers).formatted(.measurement(width: .abbreviated, usage: .asProvided).locale(english).attributed)
         let unit = text.runs.filter { $0.measurement == .unit }.map { String(text[$0.range].characters) }.joined()
