@@ -13,13 +13,15 @@ env:
   SWIFT_VERSION: "6.3.3"
 jobs:
   pick:
-    # Where the macos and browser jobs run. A pull request from a claude/ branch of this
-    # repository runs them on the self-hosted Mac labelled laptop-sweep when that Mac is up and
-    # idle, so they skip the queue for GitHub's five macOS runners; everything else, a fork's
-    # pull request and main's push included, stays on GitHub's macos-15. The Mac is up when the
-    # laptop heartbeat's latest run passed within 45 minutes, and idle when no job is waiting for
-    # it or running on it (an Objective-C sweep's batches, another pull request's jobs). The label
-    # hosted-ci on a pull request keeps it on GitHub's Macs.
+    # Where the browser job runs. A pull request from a claude/ branch of this repository runs it
+    # on the self-hosted Mac labelled laptop-sweep when that Mac is up and idle, so the longest
+    # job skips the queue for GitHub's five macOS runners; everything else, a fork's pull request
+    # and main's push included, stays on GitHub's macos-15. (The macos job stays there: its
+    # native builds need the macOS 15 SDK, and the laptop has only 26 and 27, where UndoManager
+    # is main-actor isolated.) The Mac is up when the laptop heartbeat's latest run passed within
+    # 45 minutes, and idle when no job is waiting for it or running on it (an Objective-C sweep's
+    # batches, another pull request's browser job). The label hosted-ci on a pull request keeps it
+    # on GitHub's Macs.
     runs-on: ubuntu-24.04
     permissions: { actions: read }
     outputs:
@@ -54,39 +56,17 @@ jobs:
           fi
           echo "mac=$mac" >> "$GITHUB_OUTPUT"
           where="GitHub's macos-15"; [ "$mac" = laptop ] && where="the laptop-sweep Mac"
-          echo "::notice::macos and browser run on $where: $why"
+          echo "::notice::browser runs on $where: $why"
   macos:
-    needs: pick
-    # Even if the pick failed (then on GitHub's Mac): a skipped required check would pass.
-    if: ${{ !cancelled() }}
-    runs-on: ${{ needs.pick.outputs.mac == 'laptop' && fromJSON('["self-hosted", "laptop-sweep"]') || 'macos-15' }}
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
       - name: Install toolchain
         run: |
-          # The laptop-sweep Mac has most of these already; a hosted runner installs them all.
-          export HOMEBREW_NO_AUTO_UPDATE=1
-          for f in swiftly binaryen cairo; do   # cairo: the Cairo painter's tests (pf-linux)
-            brew list --formula "$f" >/dev/null 2>&1 || brew install "$f"
-          done
-          [ -f ~/.swiftly/env.sh ] || swiftly init --assume-yes --skip-install --no-modify-profile
+          brew install swiftly binaryen cairo   # cairo: the Cairo painter's tests (pf-linux)
+          swiftly init --assume-yes --skip-install --no-modify-profile
           . ~/.swiftly/env.sh
           swiftly install $SWIFT_VERSION --use --assume-yes
-      - name: A macOS SDK that Swift 6.3.3 reads (the laptop-sweep Mac)
-        # As in coverage.yml's sweep-objc: Swift 6.3.3 crashes compiling package manifests against
-        # Xcode 27's macOS 27 SDK, so on the laptop the swiftly builds use an older macOS SDK, with
-        # Xcode's toolchain bin first on PATH for its linker. GitHub's macos-15 needs neither.
-        if: runner.environment == 'self-hosted'
-        run: |
-          XT="$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/bin"
-          if [ -x "$XT/ld" ]; then echo "$XT" >> "$GITHUB_PATH"; fi
-          for s in /Library/Developer/CommandLineTools/SDKs/MacOSX26*.sdk /Library/Developer/CommandLineTools/SDKs/MacOSX15*.sdk \
-                   /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26*.sdk \
-                   /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15*.sdk; do
-            if [ -d "$s" ]; then echo "SDKROOT=$s" >> "$GITHUB_ENV"; echo "Using $s"; exit 0; fi
-          done
-          echo "::error::No macOS 15 or 26 SDK on the laptop-sweep Mac; Swift 6.3.3 crashes on the macOS 27 SDK. Label the pull request hosted-ci to run on GitHub's Macs."
-          exit 1
       - name: Progress outputs are current (Docs/TODO.md from Docs/todo.json)
         run: python3 scripts/gen-progress.py --check
       - name: Native tests
@@ -96,9 +76,9 @@ jobs:
       - name: WebFoundation tests (the wasm stand-ins against Foundation)
         run: . ~/.swiftly/env.sh && cd Packages/WebGraphics && swift test
       - name: Harness builds (Apple toolchain, real SwiftUI)
-        run: cd Harness && env -u SDKROOT /usr/bin/swift build
+        run: cd Harness && /usr/bin/swift build
       - name: Host builds (Apple toolchain, WKWebView)
-        run: cd Tools/Host && env -u SDKROOT /usr/bin/swift build
+        run: cd Tools/Host && /usr/bin/swift build
   linux:
     runs-on: ubuntu-24.04
     container: swift:6.3.3
