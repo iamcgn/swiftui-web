@@ -41,6 +41,24 @@ import UIKit
         #expect(UIFontDescriptor.AttributeName.family.rawValue == "NSFontFamilyAttribute")
     }
 
+    /// `addingAttributes(_:)` keeps what the descriptor had except what it is given (#393): a
+    /// new size keeps a bold system font bold, and a new family with no face keeps bold.
+    @Test func addingAttributesKeepsTheRest() {
+        let original = UIFont.systemFont(ofSize: 14, weight: .bold).fontDescriptor
+        let resized = original.addingAttributes([.size: CGFloat(18)])
+        #expect(resized.pointSize == 18 && resized.symbolicTraits.contains(.traitBold))
+        #expect(UIFont(descriptor: resized, size: 0).weight == .bold)
+        #expect(resized.fontAttributes[.size] as? CGFloat == 18)
+
+        let italic = UIFont.italicSystemFont(ofSize: 12).fontDescriptor.addingAttributes([.featureSettings: [[String: Any]]()])
+        #expect(italic.pointSize == 12 && italic.symbolicTraits.contains(.traitItalic))
+
+        let courier = original.withFamily("Courier")
+        #expect(UIFont(descriptor: courier, size: 0).familyName == "Courier" && courier.symbolicTraits.contains(.traitBold))
+        let face = original.addingAttributes([.family: "Courier", .face: "Regular"])
+        #expect(!face.symbolicTraits.contains(.traitBold))
+    }
+
     /// Kingfisher's flip transitions are options `transition(with:)` takes; the change applies.
     @Test func flipTransitionsApplyTheirChanges() {
         let view = UIView()

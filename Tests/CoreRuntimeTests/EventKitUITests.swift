@@ -90,16 +90,21 @@ import CoreLocation
         #expect(editor.form.title == "Edit Event" && editor.form.navigationItem.leftBarButtonItem != nil)
         editor.form.titleField.text = "Planning"
         editor.form.allDaySwitch.isOn = true
-        editor.form.write(into: existing)
-        #expect(existing.title == "Planning" && existing.isAllDay && existing.notes == "Bring the numbers")
+        let scratch = event(store)
+        editor.form.write(into: scratch)
+        #expect(scratch.title == "Planning" && scratch.isAllDay && scratch.notes == "Bring the numbers")
 
-        // The page's store refuses to save, so the delegate hears nothing yet.
+        // The page's store refuses to save, so the delegate hears nothing yet, the draft stays
+        // in the form and the caller's event keeps its own fields.
         editor._save()
         #expect(recorder.edits.isEmpty && editor.event === existing)
         #expect((editor.presentedViewController as? UIAlertController)?.title == "Can't Save Event")
+        #expect(editor.form.titleField.text == "Planning" && editor.form.allDaySwitch.isOn)
+        #expect(existing.title == "Standup" && !existing.isAllDay && existing.notes == "Bring the numbers")
         editor.dismiss(animated: false)
         editor.cancelEditing()
         #expect(recorder.edits == [.canceled])
+        #expect(existing.title == "Standup" && !existing.isAllDay)
 
         // A new event: the form starts empty, an hour long, and the delegate names its calendar.
         let blank = EKEventEditViewController()

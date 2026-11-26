@@ -299,10 +299,23 @@ public final class UIFontDescriptor {
         return all
     }
 
-    /// The same description with these attributes added (a family, face or size among them
-    /// changes the font).
+    /// The same description with these attributes added. Only what they name changes: a size
+    /// alone keeps the weight, slant, design and text style, and a new family with no face
+    /// keeps bold and italic.
     public func addingAttributes(_ attributes: [AttributeName: Any]) -> UIFontDescriptor {
-        UIFontDescriptor(fontAttributes: fontAttributes.merging(attributes) { _, new in new })
+        let merged = fontAttributes.merging(attributes) { _, new in new }
+        var result: UIFontDescriptor
+        if attributes[.family] == nil, attributes[.name] == nil, attributes[.face] == nil {
+            result = Self.size(attributes[.size]).map { withSize($0) } ?? UIFontDescriptor(font: font)
+        } else {
+            result = UIFontDescriptor(fontAttributes: merged)
+            if merged[.face] == nil {
+                let kept = result.symbolicTraits.union(symbolicTraits.intersection([.traitBold, .traitItalic]))
+                if kept != result.symbolicTraits { result = result.withSymbolicTraits(kept) ?? result }
+            }
+        }
+        result.attributes = merged
+        return result
     }
 
     /// The same description in another family.
