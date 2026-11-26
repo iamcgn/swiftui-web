@@ -1,0 +1,30 @@
+name: Auto-merge
+# Turns on GitHub auto-merge for pull requests opened by iamcgn, so each one squash-merges itself
+# once the checks the main ruleset requires (CI's macos, linux and browser) pass. Anyone else's
+# pull request, and a draft until it is marked ready, is left alone. pull_request_target with no
+# checkout: the pull request's code never runs with this token.
+# The merge is made with AUTOMERGE_TOKEN (a fine-grained token for this repository, Contents and
+# Pull requests read and write) because a merge made with the default GITHUB_TOKEN does not start
+# the push workflows on main (CI, Coverage, Landing page, the size checks).
+on:
+  pull_request_target:
+    types: [opened, reopened, ready_for_review]
+permissions: {}
+jobs:
+  enable:
+    if: >-
+      github.event.pull_request.user.login == 'iamcgn' &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Enable auto-merge (squash)
+        env:
+          GH_TOKEN: ${{ secrets.AUTOMERGE_TOKEN }}
+          PR: ${{ github.event.pull_request.html_url }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::The AUTOMERGE_TOKEN secret is not set; auto-merge was not enabled."
+            exit 1
+          fi
+          gh pr merge --auto --squash "$PR"
