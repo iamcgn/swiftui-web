@@ -173,6 +173,20 @@ public final class Scanner: @unchecked Sendable {
         write(scanUInt64(representation: .hexadecimal).map { UInt32(truncatingIfNeeded: $0) }, to: result)
     }
     public func scanHexDouble(_ result: UnsafeMutablePointer<Double>?) -> Bool { write(scanDouble(representation: .hexadecimal), to: result) }
+    /// The string scans: `scanUpTo("<span", into: &text)` reads up to the next tag (Highlightr's
+    /// HTML parser); the result is an `NSString`, as Foundation's is.
+    public func scanString(_ searchString: String, into result: UnsafeMutablePointer<NSString?>?) -> Bool {
+        write(scanString(searchString), toString: result)
+    }
+    public func scanUpTo(_ stopString: String, into result: UnsafeMutablePointer<NSString?>?) -> Bool {
+        write(scanUpToString(stopString), toString: result)
+    }
+    public func scanCharacters(from set: CharacterSet, into result: UnsafeMutablePointer<NSString?>?) -> Bool {
+        write(scanCharacters(from: set), toString: result)
+    }
+    public func scanUpToCharacters(from set: CharacterSet, into result: UnsafeMutablePointer<NSString?>?) -> Bool {
+        write(scanUpToCharacters(from: set), toString: result)
+    }
 
     // MARK: Positions
 
@@ -231,6 +245,12 @@ public final class Scanner: @unchecked Sendable {
         case 0x61...0x66 where hexadecimal: return UInt64(scalar.value - 0x61 + 10)
         default: return nil
         }
+    }
+
+    private func write(_ value: String?, toString pointer: UnsafeMutablePointer<NSString?>?) -> Bool {
+        guard let value else { return false }
+        pointer?.pointee = NSString(string: value)
+        return true
     }
 
     private func write<T>(_ value: T?, to pointer: UnsafeMutablePointer<T>?) -> Bool {

@@ -44,6 +44,46 @@ struct TextStoragePending {
     var mask: NSTextStorageEditActions = []
     var range = NSRange(location: NSNotFound, length: 0)
     var delta = 0
+    /// Inside `processEditing()`: the edit being processed, which `editedMask`, `editedRange`
+    /// and `changeInLength` report until it returns, `super.processEditing()` having told the
+    /// layout managers (Highlightr's override reads them after its call to super). Edits made
+    /// meanwhile gather in `mask`, `range` and `delta` for the next round.
+    var processing: Edit?
+
+    struct Edit {
+        var mask: NSTextStorageEditActions
+        var range: NSRange
+        var delta: Int
+    }
+
+    /// Joins an edit (its range in the new text's offsets) to the one gathered so far.
+    mutating func gather(_ editedMask: NSTextStorageEditActions, range editedRange: NSRange, changeInLength delta: Int) {
+        if mask.isEmpty {
+            range = editedRange
+            self.delta = delta
+        } else {
+            // The earlier range in the new text's offsets, joined with this one.
+            var earlier = range
+            let earlierEnd = earlier.location + earlier.length
+            if editedRange.location <= earlierEnd { earlier.length = max(0, earlier.length + delta) }
+            if editedRange.location < earlier.location { earlier.location = max(0, earlier.location + delta) }
+            let start = min(earlier.location, editedRange.location)
+            let end = max(earlier.location + earlier.length, editedRange.location + editedRange.length)
+            range = NSRange(location: start, length: end - start)
+            self.delta += delta
+        }
+        mask.formUnion(editedMask)
+    }
+
+    /// The gathered edit, cleared.
+    mutating func take() -> Edit {
+        defer {
+            mask = []
+            range = NSRange(location: NSNotFound, length: 0)
+            delta = 0
+        }
+        return Edit(mask: mask, range: range, delta: delta)
+    }
 }
 
 #if os(WASI)
@@ -53,10 +93,21 @@ open class NSTextStorage: NSMutableAttributedString, @unchecked Sendable {
     var pending = TextStoragePending()
     open weak var delegate: (any NSTextStorageDelegate)?
 
-    public convenience init() { self.init(string: "") }
+    public init() { super.init(string: "") }
+    public override init(string: String) { super.init(string: string) }
+    public override init(string: String, attributes: [NSAttributedString.Key: Any]? = nil) { super.init(string: string, attributes: attributes) }
+    public override init(attributedString: NSAttributedString) { super.init(attributedString: attributedString) }
+    /// An archived text storage, which starts empty: nothing is archived here.
+    public init?(coder: NSCoder) { super.init(string: "") }
+
+    /// Tells the delegate and the layout managers of the gathered edit. A subclass overriding
+    /// it (to restyle the edited paragraphs) calls `super.processEditing()`, after which
+    /// `editedMask` and `editedRange` still describe the edit.
+    open func processEditing() { processGatheredEdit() }
 
     open override func _didChange(characters: Bool, range: NSRange, changeInLength: Int) {
-        edited(characters ? .editedCharacters : .editedAttributes, range: range, changeInLength: changeInLength)
+        // `edited` takes the range as it was before the change.
+        edited(characters ? .editedCharacters : .editedAttributes, range: NSRange(location: range.location, length: max(0, range.length - changeInLength)), changeInLength: changeInLength)
     }
 
     open override func beginEditing() { pending.depth += 1 }
@@ -84,50 +135,99 @@ open class NSTextStorage: @unchecked Sendable {
         backing = NSMutableAttributedString(string: string, attributes: attributes)
     }
     public init(attributedString: NSAttributedString) { backing = NSMutableAttributedString(attributedString: attributedString) }
+    /// An archived text storage, which starts empty: nothing is archived here.
+    public init?(coder: NSCoder) { backing = NSMutableAttributedString(string: "") }
 
+    /// Tells the delegate and the layout managers of the gathered edit. A subclass overriding
+    /// it (to restyle the edited paragraphs) calls `super.processEditing()`, after which
+    /// `editedMask` and `editedRange` still describe the edit.
+    open func processEditing() { processGatheredEdit() }
+
+    // The primitives: `string`, `attributes(at:effectiveRange:)`, `replaceCharacters(in:with:)`
+    // with a plain string and `setAttributes(_:range:)`, as Foundation's. Every other member
+    // goes through them, so a subclass keeping its text in a store of its own (Highlightr's
+    // `CodeAttributedString`) overrides those four and calls `edited` from its two mutators.
     open var string: String { backing.string }
-    open var length: Int { backing.length }
+    open var length: Int { string.utf16.count }
 
     open func attributes(at location: Int, effectiveRange range: NSRangePointer?) -> [NSAttributedString.Key: Any] {
         backing.attributes(at: location, effectiveRange: range)
     }
     open func attribute(_ name: NSAttributedString.Key, at location: Int, effectiveRange range: NSRangePointer?) -> Any? {
-        backing.attribute(name, at: location, effectiveRange: range)
+        attributes(at: location, effectiveRange: range)[name]
     }
-    open func attributedSubstring(from range: NSRange) -> NSAttributedString { backing.attributedSubstring(from: range) }
+    open func attributedSubstring(from range: NSRange) -> NSAttributedString {
+        let units = Array(string.utf16)
+        let start = min(max(0, range.location), units.count), end = min(units.count, max(start, range.location + range.length))
+        let piece = NSMutableAttributedString(string: String(decoding: units[start..<end], as: UTF16.self))
+        for run in attributeRuns(in: range) {
+            piece.setAttributes(run.attributes, range: NSRange(location: run.range.location - range.location, length: run.range.length))
+        }
+        return piece
+    }
     open func enumerateAttributes(in enumerationRange: NSRange, options opts: NSAttributedString.EnumerationOptions = [],
                                   using block: ([NSAttributedString.Key: Any], NSRange, UnsafeMutablePointer<ObjCBool>) -> Void) {
-        backing.enumerateAttributes(in: enumerationRange, options: opts, using: block)
+        var stop: ObjCBool = false
+        for run in attributeRuns(in: enumerationRange) {
+            block(run.attributes, run.range, &stop)
+            if stop.boolValue { break }
+        }
     }
 
     open func replaceCharacters(in range: NSRange, with str: String) {
         backing.replaceCharacters(in: range, with: str)
-        edited(.editedCharacters, range: NSRange(location: range.location, length: str.utf16.count), changeInLength: str.utf16.count - range.length)
+        edited(.editedCharacters, range: range, changeInLength: str.utf16.count - range.length)
     }
+    open func setAttributes(_ attrs: [NSAttributedString.Key: Any]?, range: NSRange) {
+        backing.setAttributes(attrs, range: range)
+        edited(.editedAttributes, range: range, changeInLength: 0)
+    }
+
     open func replaceCharacters(in range: NSRange, with attrString: NSAttributedString) {
-        backing.replaceCharacters(in: range, with: attrString)
-        edited(.editedCharacters, range: NSRange(location: range.location, length: attrString.length), changeInLength: attrString.length - range.length)
+        var pieces: [(range: NSRange, attributes: [NSAttributedString.Key: Any])] = []
+        attrString.enumerateAttributes(in: NSRange(location: 0, length: attrString.length)) { attributes, piece, _ in pieces.append((piece, attributes)) }
+        beginEditing()
+        replaceCharacters(in: range, with: attrString.string)
+        for piece in pieces {
+            setAttributes(piece.attributes, range: NSRange(location: range.location + piece.range.location, length: piece.range.length))
+        }
+        endEditing()
     }
     open func insert(_ attrString: NSAttributedString, at loc: Int) { replaceCharacters(in: NSRange(location: loc, length: 0), with: attrString) }
     open func append(_ attrString: NSAttributedString) { replaceCharacters(in: NSRange(location: length, length: 0), with: attrString) }
     open func deleteCharacters(in range: NSRange) { replaceCharacters(in: range, with: "") }
     open func setAttributedString(_ attrString: NSAttributedString) { replaceCharacters(in: NSRange(location: 0, length: length), with: attrString) }
 
-    open func setAttributes(_ attrs: [NSAttributedString.Key: Any]?, range: NSRange) {
-        backing.setAttributes(attrs, range: range)
-        edited(.editedAttributes, range: range, changeInLength: 0)
-    }
-    open func addAttribute(_ name: NSAttributedString.Key, value: Any, range: NSRange) {
-        backing.addAttribute(name, value: value, range: range)
-        edited(.editedAttributes, range: range, changeInLength: 0)
-    }
+    open func addAttribute(_ name: NSAttributedString.Key, value: Any, range: NSRange) { addAttributes([name: value], range: range) }
     open func addAttributes(_ attrs: [NSAttributedString.Key: Any], range: NSRange) {
-        backing.addAttributes(attrs, range: range)
-        edited(.editedAttributes, range: range, changeInLength: 0)
+        transformAttributes(in: range) { $0.merging(attrs) { _, new in new } }
     }
     open func removeAttribute(_ name: NSAttributedString.Key, range: NSRange) {
-        backing.removeAttribute(name, range: range)
-        edited(.editedAttributes, range: range, changeInLength: 0)
+        transformAttributes(in: range) { var copy = $0; copy[name] = nil; return copy }
+    }
+
+    /// Sets each run's attributes in `range` to `transform` of what it had, as one edit.
+    private func transformAttributes(in range: NSRange, _ transform: ([NSAttributedString.Key: Any]) -> [NSAttributedString.Key: Any]) {
+        let runs = attributeRuns(in: range)
+        guard !runs.isEmpty else { return }
+        beginEditing()
+        for run in runs { setAttributes(transform(run.attributes), range: run.range) }
+        endEditing()
+    }
+
+    /// The attribute runs inside `range`, each cut to it, read through the primitives.
+    private func attributeRuns(in range: NSRange) -> [(range: NSRange, attributes: [NSAttributedString.Key: Any])] {
+        var result: [(range: NSRange, attributes: [NSAttributedString.Key: Any])] = []
+        let limit = min(length, range.location + range.length)
+        var location = max(0, range.location)
+        while location < limit {
+            var effective = NSRange(location: location, length: 1)
+            let attributes = attributes(at: location, effectiveRange: &effective)
+            let end = max(location + 1, min(limit, effective.location + effective.length))
+            result.append((NSRange(location: location, length: end - location), attributes))
+            location = end
+        }
+        return result
     }
 
     open func beginEditing() { pending.depth += 1 }
@@ -137,8 +237,8 @@ open class NSTextStorage: @unchecked Sendable {
         if pending.depth == 0 { processPendingEdit() }
     }
 
-    /// The text and attributes as they are now.
-    var contents: NSAttributedString { NSAttributedString(attributedString: backing) }
+    /// The text and attributes as they are now, read through the primitives.
+    var contents: NSAttributedString { attributedSubstring(from: NSRange(location: 0, length: length)) }
 }
 #endif
 
@@ -159,55 +259,62 @@ extension NSTextStorage {
         MainActor.assumeIsolated { aLayoutManager.detach(from: self) }
     }
 
-    /// The edit being gathered: what changed, the range in the new text, and the change in length.
-    public var editedMask: EditActions { pending.mask }
-    public var editedRange: NSRange { pending.range }
-    public var changeInLength: Int { pending.delta }
+    /// The edit being processed or gathered: what changed, the range in the new text, and the
+    /// change in length.
+    public var editedMask: EditActions { pending.processing?.mask ?? pending.mask }
+    public var editedRange: NSRange { pending.processing?.range ?? pending.range }
+    public var changeInLength: Int { pending.processing?.delta ?? pending.delta }
     /// Attributes are fixed as they are set, never later.
     public var fixesAttributesLazily: Bool { false }
 
-    /// Records an edit (the mutators call it): processed at once outside `beginEditing()`, else
-    /// gathered with the others until the last `endEditing()`.
+    /// Records an edit (the mutators call it, and a subclass with its own store calls it from
+    /// its primitives) with the range as it was before the edit, as in TextKit: processed at
+    /// once outside `beginEditing()`, else gathered with the others until the last `endEditing()`.
     public func edited(_ editedMask: EditActions, range editedRange: NSRange, changeInLength delta: Int) {
-        if pending.mask.isEmpty {
-            pending.range = editedRange
-            pending.delta = delta
-        } else {
-            // The earlier range in the new text's offsets, joined with this one.
-            var earlier = pending.range
-            let earlierEnd = earlier.location + earlier.length
-            if editedRange.location <= earlierEnd { earlier.length = max(0, earlier.length + delta) }
-            if editedRange.location < earlier.location { earlier.location = max(0, earlier.location + delta) }
-            let start = min(earlier.location, editedRange.location)
-            let end = max(earlier.location + earlier.length, editedRange.location + editedRange.length)
-            pending.range = NSRange(location: start, length: end - start)
-            pending.delta += delta
-        }
-        pending.mask.formUnion(editedMask)
+        let changed = NSRange(location: editedRange.location, length: max(0, editedRange.length + delta))
+        pending.gather(editedMask, range: changed, changeInLength: delta)
         if pending.depth == 0 { processPendingEdit() }
     }
 
-    /// Processes the gathered edit now (the last `endEditing()` does).
-    public func processEditing() { processPendingEdit() }
-
+    /// Processes the gathered edit through `processEditing()`, a subclass's override included,
+    /// and again for edits the processing itself made (a few rounds at most).
     func processPendingEdit() {
-        guard !pending.mask.isEmpty else { return }
-        // The delegate's own changes (highlighting as the text is edited) join this edit rather
-        // than starting another, as they do in TextKit: one will and one did for the change.
-        pending.depth += 1
-        delegate?.textStorage(self, willProcessEditing: pending.mask, range: pending.range, changeInLength: pending.delta)
-        delegate?.textStorage(self, didProcessEditing: pending.mask, range: pending.range, changeInLength: pending.delta)
-        pending.depth -= 1
-        let mask = pending.mask, range = pending.range, delta = pending.delta
-        pending.mask = []
-        pending.range = NSRange(location: NSNotFound, length: 0)
-        pending.delta = 0
+        guard pending.processing == nil else { return }
+        var rounds = 0
+        while !pending.mask.isEmpty, rounds < 4 {
+            rounds += 1
+            pending.processing = pending.take()
+            processEditing()
+            pending.processing = nil
+        }
+    }
+
+    /// What `processEditing()` does: the delegate hears the edit, and its own changes
+    /// (highlighting as the text is edited) join it rather than starting another, as in
+    /// TextKit, one will and one did for the change; then the layout managers hear it.
+    func processGatheredEdit() {
+        guard pending.processing != nil else { processPendingEdit(); return }
+        delegate?.textStorage(self, willProcessEditing: editedMask, range: editedRange, changeInLength: changeInLength)
+        joinGatheredEdits()
+        delegate?.textStorage(self, didProcessEditing: editedMask, range: editedRange, changeInLength: changeInLength)
+        joinGatheredEdits()
+        guard let edit = pending.processing else { return }
         let managers = pending.managers
         MainActor.assumeIsolated {
             for manager in managers {
-                manager.processEditing(for: self, edited: mask, range: range, changeInLength: delta, invalidatedRange: range)
+                manager.processEditing(for: self, edited: edit.mask, range: edit.range, changeInLength: edit.delta, invalidatedRange: edit.range)
             }
         }
+    }
+
+    /// Folds the edits gathered while processing (the delegate's) into the edit being processed.
+    private func joinGatheredEdits() {
+        guard let edit = pending.processing, !pending.mask.isEmpty else { return }
+        let joined = pending.take()
+        var both = TextStoragePending()
+        both.gather(edit.mask, range: edit.range, changeInLength: edit.delta)
+        both.gather(joined.mask, range: joined.range, changeInLength: joined.delta)
+        pending.processing = both.take()
     }
 }
 

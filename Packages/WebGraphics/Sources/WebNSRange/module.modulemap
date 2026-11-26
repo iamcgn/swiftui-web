@@ -1,0 +1,4 @@
+module WebNSRange {
+    header "WebNSRange.h"
+    export *
+}
