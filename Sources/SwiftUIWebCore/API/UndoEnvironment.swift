@@ -10,8 +10,18 @@ import WebFoundation   // Foundation's UndoManager on Apple platforms, WebFounda
 package final class _UndoManagerBox: @unchecked Sendable {
     package let manager: UndoManager
     package init(_ manager: UndoManager) { self.manager = manager }
-    /// The app's undo manager, made the first time a view reads it.
-    static let shared = _UndoManagerBox(UndoManager())
+    /// The app's undo manager, made the first time a view reads it. From the macOS 26 SDK on,
+    /// Foundation's UndoManager is main-actor isolated, so it is made on the main thread.
+    static let shared = make()
+
+    private static func make() -> _UndoManagerBox {
+        #if canImport(Darwin)
+        if Thread.isMainThread { return MainActor.assumeIsolated { _UndoManagerBox(UndoManager()) } }
+        return DispatchQueue.main.sync { MainActor.assumeIsolated { _UndoManagerBox(UndoManager()) } }
+        #else
+        return _UndoManagerBox(UndoManager())
+        #endif
+    }
 }
 
 package struct UndoManagerOverrideKey: EnvironmentKey {

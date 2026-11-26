@@ -1,0 +1,37 @@
+# One-off (issue 434): the native tests with Swift 6.3.3 against the laptop-sweep Mac's macOS 26
+# SDK, where Foundation's UndoManager is main-actor isolated. Removed before the pull request.
+name: native-macos26
+on:
+  push:
+    branches: [claude/undo-macos26]
+    paths: [.github/workflows/native-macos26.yml, Sources/**, Tests/**, Packages/**]
+concurrency: { group: native-macos26, cancel-in-progress: true }
+permissions: { contents: read }
+defaults: { run: { shell: bash } }   # -eo pipefail
+jobs:
+  native:
+    runs-on: [self-hosted, laptop-sweep]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain and SDK
+        run: |
+          export HOMEBREW_NO_AUTO_UPDATE=1
+          for f in swiftly binaryen cairo; do brew list --formula "$f" >/dev/null 2>&1 || brew install "$f"; done
+          [ -f ~/.swiftly/env.sh ] || swiftly init --assume-yes --skip-install --no-modify-profile
+          . ~/.swiftly/env.sh
+          swiftly install 6.3.3 --use --assume-yes
+          XT="$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+          if [ -x "$XT/ld" ]; then echo "$XT" >> "$GITHUB_PATH"; fi
+          for s in /Library/Developer/CommandLineTools/SDKs/MacOSX26*.sdk; do
+            if [ -d "$s" ]; then echo "SDKROOT=$s" >> "$GITHUB_ENV"; echo "Using $s"; exit 0; fi
+          done
+          echo "::error::no macOS 26 SDK"; exit 1
+      - name: Native tests
+        run: . ~/.swiftly/env.sh && swift test 2>&1 | tee native.log | grep -E "error:|Test run|passed|failed" | tail -60
+      - name: UIKitWeb tests
+        if: ${{ !cancelled() }}
+        run: . ~/.swiftly/env.sh && cd Packages/UIKitWeb && swift test 2>&1 | grep -E "error:|Test run" | tail -40
+      - name: WebFoundation tests
+        if: ${{ !cancelled() }}
+        run: . ~/.swiftly/env.sh && cd Packages/WebGraphics && swift test 2>&1 | grep -E "error:|Test run" | tail -40
