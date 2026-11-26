@@ -305,6 +305,21 @@ import Charts
         let strokes = commands.filter { if case .strokePath = $0 { return true } else { return false } }
         #expect(strokes.count == 3)
     }
+
+    @Test func axisMarksWithAFormat() {
+        // `AxisMarks(format:values:)` (Mlem's uptime chart): the default grid lines and ticks,
+        // with labels in the format.
+        let (_, commands) = render(Chart(Self.sales) { sale in
+            BarMark(x: .value("Month", sale.month), y: .value("Sales", sale.amount))
+        }
+        .chartYAxis { AxisMarks(format: FloatingPointFormatStyle<Double>.number.precision(.fractionLength(1)), values: [0, 50, 100]) }
+        .chartXAxis { AxisMarks { AxisValueLabel() } }
+        .padding(16))
+        #expect(drawn(commands) == ["Jan", "Feb", "Mar", "0.0", "50.0", "100.0"])
+        // A grid line per y value (ticks are not drawn, as in axisMarksCustomise).
+        let strokes = commands.filter { if case .strokePath = $0 { return true } else { return false } }
+        #expect(strokes.count == 3)
+    }
 }
 
 /// Hands the proxy to the test.
