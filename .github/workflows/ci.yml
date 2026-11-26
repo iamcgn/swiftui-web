@@ -150,8 +150,14 @@ jobs:
         # The Mac's GPU would turn the WebGL painter on; the probes and goldens expect Canvas2D.
         if: runner.environment == 'self-hosted'
         run: |
+          # GitHub won't take NODE_OPTIONS through GITHUB_ENV, so a `node` ahead of the real one
+          # on PATH loads the preload (it does nothing outside the Playwright scripts).
+          real=$(command -v node)
+          mkdir -p "$RUNNER_TEMP/softgl-bin"
+          printf '#!/bin/bash\nexec "%s" --import="file://%s/Playwright/ci-software-gl.mjs" "$@"\n' "$real" "$PWD" > "$RUNNER_TEMP/softgl-bin/node"
+          chmod +x "$RUNNER_TEMP/softgl-bin/node"
+          echo "$RUNNER_TEMP/softgl-bin" >> "$GITHUB_PATH"
           echo "SWIFTUI_WEB_SOFTWARE_GL=1" >> "$GITHUB_ENV"
-          echo "NODE_OPTIONS=--import=file://$PWD/Playwright/ci-software-gl.mjs" >> "$GITHUB_ENV"
       # Speech (decision 0022) runs in the runner's installed Google Chrome, sandbox on, from a
       # persistent profile; the on-device components (SODA and the en-US pack, 219 MB from
       # Google) are cached per Chrome version so the download happens once, not per run.
