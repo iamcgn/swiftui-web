@@ -507,8 +507,29 @@ public final class NSLocale: NSObject, _WebValueObject, @unchecked Sendable {
     public typealias LanguageDirection = Locale.LanguageDirection
     public class func characterDirection(forLanguage isoLangCode: String) -> LanguageDirection { Locale.characterDirection(forLanguage: isoLangCode) }
     public class func lineDirection(forLanguage isoLangCode: String) -> LanguageDirection { Locale.lineDirection(forLanguage: isoLangCode) }
+    public class var isoLanguageCodes: [String] { Locale.isoLanguageCodes }
+    public class var isoCountryCodes: [String] { Locale.isoRegionCodes }
+    public class var isoCurrencyCodes: [String] { Locale.isoCurrencyCodes }
+    public class var commonISOCurrencyCodes: [String] { Locale.commonISOCurrencyCodes }
+    public class func localeIdentifier(fromComponents dict: [String: String]) -> String { Locale.identifier(fromComponents: dict) }
+    public class func components(fromLocaleIdentifier string: String) -> [String: String] { Locale.components(fromIdentifier: string) }
     public override func isEqual(_ object: Any?) -> Bool { (object as? NSLocale)?._webValue == _webValue }
     public override var hash: Int { _webValue.hashValue }
+
+    /// The keys of a locale's parts and properties, spelled as Foundation's raw values.
+    public struct Key: RawRepresentable, Hashable, Sendable {
+        public let rawValue: String
+        public init(rawValue: String) { self.rawValue = rawValue }
+        public init(_ rawValue: String) { self.rawValue = rawValue }
+        public static let identifier = Key(_LocaleKey.identifier)
+        public static let languageCode = Key(_LocaleKey.languageCode)
+        public static let countryCode = Key(_LocaleKey.countryCode)
+        public static let scriptCode = Key(_LocaleKey.scriptCode)
+        public static let variantCode = Key(_LocaleKey.variantCode)
+        public static let calendar = Key("calendar")
+        public static let collationIdentifier = Key("collation")
+        public static let currencyCode = Key("currency")
+    }
 }
 extension Locale: _WebObjectBridged { public typealias _ObjectiveCType = NSLocale }
 

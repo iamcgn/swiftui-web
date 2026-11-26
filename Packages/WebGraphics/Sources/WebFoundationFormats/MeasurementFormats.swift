@@ -162,7 +162,7 @@ private enum _MeasurementSystem {
 /// What a measurement is for, which picks the unit it is shown in.
 public struct MeasurementFormatUnitUsage<UnitType: Dimension>: Codable, Hashable, Sendable {
     package enum Kind: String, Codable, Hashable, Sendable {
-        case general, asProvided, person, personHeight, road, focalLength, rainfall, snowfall, weather, food, workout
+        case general, asProvided, person, personHeight, road, focalLength, rainfall, snowfall, weather, food, workout, wind, barometric
     }
     package let kind: Kind
     package init(_ kind: Kind) { self.kind = kind }
@@ -194,6 +194,76 @@ extension MeasurementFormatUnitUsage where UnitType == UnitMass {
 extension MeasurementFormatUnitUsage where UnitType == UnitEnergy {
     public static var food: Self { Self(.food) }
     public static var workout: Self { Self(.workout) }
+}
+
+extension MeasurementFormatUnitUsage where UnitType == UnitSpeed {
+    public static var wind: Self { Self(.wind) }
+}
+
+extension MeasurementFormatUnitUsage where UnitType == UnitPressure {
+    public static var barometric: Self { Self(.barometric) }
+}
+
+// MARK: - The locale's unit
+
+// `UnitLength(forLocale:usage:)` and the rest: the unit the locale prefers for the usage, as
+// CLDR's unit preferences give it (OscarWeather picks its temperature, wind, rain, pressure and
+// road units this way). It is the unit's equal, so `== .fahrenheit` holds.
+
+extension UnitLength {
+    public convenience init(forLocale locale: Locale, usage: MeasurementFormatUnitUsage<UnitLength> = .general) {
+        let system = _MeasurementSystem(locale)
+        let unit: UnitLength
+        switch usage.kind {
+        case .road: unit = system == .metric ? .kilometers : .miles
+        case .focalLength: unit = .millimeters
+        case .rainfall: unit = system == .us ? .inches : .millimeters
+        case .snowfall: unit = system == .us ? .inches : .centimeters
+        case .person, .personHeight: unit = system == .us ? .inches : .centimeters
+        default: unit = system == .us ? .feet : .meters
+        }
+        self.init(symbol: unit.symbol, converter: unit.converter)
+    }
+}
+
+extension UnitTemperature {
+    public convenience init(forLocale locale: Locale, usage: MeasurementFormatUnitUsage<UnitTemperature> = .general) {
+        let unit: UnitTemperature = _MeasurementSystem(locale) == .us ? .fahrenheit : .celsius
+        self.init(symbol: unit.symbol, converter: unit.converter)
+    }
+}
+
+extension UnitSpeed {
+    public convenience init(forLocale locale: Locale, usage: MeasurementFormatUnitUsage<UnitSpeed> = .general) {
+        let unit: UnitSpeed = _MeasurementSystem(locale) == .metric ? .kilometersPerHour : .milesPerHour
+        self.init(symbol: unit.symbol, converter: unit.converter)
+    }
+}
+
+extension UnitPressure {
+    public convenience init(forLocale locale: Locale, usage: MeasurementFormatUnitUsage<UnitPressure> = .general) {
+        let unit: UnitPressure
+        if usage.kind == .barometric {
+            unit = _MeasurementSystem(locale) == .us ? .inchesOfMercury : .hectopascals
+        } else {
+            unit = _MeasurementSystem(locale) == .us ? .poundsForcePerSquareInch : .kilopascals
+        }
+        self.init(symbol: unit.symbol, converter: unit.converter)
+    }
+}
+
+extension UnitMass {
+    public convenience init(forLocale locale: Locale, usage: MeasurementFormatUnitUsage<UnitMass> = .general) {
+        let unit: UnitMass = _MeasurementSystem(locale) == .us ? .pounds : .kilograms
+        self.init(symbol: unit.symbol, converter: unit.converter)
+    }
+}
+
+extension UnitVolume {
+    public convenience init(forLocale locale: Locale, usage: MeasurementFormatUnitUsage<UnitVolume> = .general) {
+        let unit: UnitVolume = _MeasurementSystem(locale) == .us ? .gallons : .liters
+        self.init(symbol: unit.symbol, converter: unit.converter)
+    }
 }
 
 // MARK: - Format style

@@ -46,4 +46,8 @@ public func pthread_rwlock_wrlock(_ lock: UnsafeMutablePointer<pthread_rwlock_t>
 public func pthread_rwlock_trywrlock(_ lock: UnsafeMutablePointer<pthread_rwlock_t>?) -> Int32 { 0 }
 @discardableResult
 public func pthread_rwlock_unlock(_ lock: UnsafeMutablePointer<pthread_rwlock_t>?) -> Int32 { 0 }
+// Darwin's length of each `utsname` field, which code reading `uname`'s machine name passes as
+// the byte count (Mlem's device model). The WASI C library's fields are shorter, so this is
+// their length here, and a read of that many bytes stays inside the field.
+public var _SYS_NAMELEN: Int32 { Int32(MemoryLayout.size(ofValue: utsname().machine)) }
 #endif

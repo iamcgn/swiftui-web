@@ -30,6 +30,8 @@ public final class CADisplayLink: _CADisplayLinkBase {
         public var maximum: Float
         public var preferred: Float?
         public init(minimum: Float, maximum: Float, preferred: Float? = nil) { self.minimum = minimum; self.maximum = maximum; self.preferred = preferred }
+        /// Core Animation's own spelling (`CAFrameRateRange(minimum:maximum:__preferred:)`, from `CAFrameRateRangeMake`).
+        public init(minimum: Float, maximum: Float, __preferred preferred: Float) { self.init(minimum: minimum, maximum: maximum, preferred: preferred) }
         public static let `default` = FrameRateRange(minimum: 0, maximum: 0, preferred: nil)
     }
 
