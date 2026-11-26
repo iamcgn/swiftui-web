@@ -134,6 +134,8 @@ open class EKEventEditViewController: UINavigationController {
     func _save() {
         let store = eventStore ?? EKEventStore()
         let target = event ?? EKEvent(eventStore: store)
+        // A refused save keeps the draft in the form but leaves the caller's event as it was.
+        let before = _EventFields(target)
         form.write(into: target)
         if target.calendar == nil, let delegate = editViewDelegate {
             target.calendar = delegate.eventEditViewControllerDefaultCalendar(forNewEvents: self)
@@ -143,6 +145,7 @@ open class EKEventEditViewController: UINavigationController {
             event = target
             _finish(.saved)
         } catch {
+            before.restore(into: target)
             let alert = UIAlertController(title: "Can't Save Event", message: "This page can't reach your calendars.", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .cancel))
             present(alert, animated: true)
@@ -151,6 +154,28 @@ open class EKEventEditViewController: UINavigationController {
 
     func _finish(_ action: EKEventEditViewAction) {
         editViewDelegate?.eventEditViewController(self, didCompleteWith: action)
+    }
+}
+
+/// The properties the editor's form writes, kept so a refused save can put them back.
+struct _EventFields {
+    let title: String?, location: String?, notes: String?
+    let isAllDay: Bool
+    let startDate: Date?, endDate: Date?
+    let calendar: EKCalendar?
+
+    init(_ event: EKEvent) {
+        title = event.title; location = event.location; notes = event.notes
+        isAllDay = event.isAllDay
+        startDate = event.startDate; endDate = event.endDate
+        calendar = event.calendar
+    }
+
+    func restore(into event: EKEvent) {
+        event.title = title; event.location = location; event.notes = notes
+        event.isAllDay = isAllDay
+        event.startDate = startDate; event.endDate = endDate
+        event.calendar = calendar
     }
 }
 
