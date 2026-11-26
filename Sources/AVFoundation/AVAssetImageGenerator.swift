@@ -181,6 +181,10 @@ extension NSValue {
     public convenience init(time: CMTime) { self.init(_webValue: time) }
     /// The time this value holds; `.invalid` for any other value.
     public var timeValue: CMTime { (_webValue as? CMTime) ?? .invalid }
+    /// A time range, boxed (a player item's `loadedTimeRanges`).
+    public convenience init(timeRange: CMTimeRange) { self.init(_webValue: timeRange) }
+    /// The time range this value holds; `.invalid` for any other value.
+    public var timeRangeValue: CMTimeRange { (_webValue as? CMTimeRange) ?? .invalid }
 }
 #else
 extension NSValue {
@@ -198,6 +202,23 @@ extension NSValue {
         getValue(&seconds)
         #endif
         return CMTime(seconds: seconds)
+    }
+    /// A time range, boxed (a player item's `loadedTimeRanges`): its start and duration in seconds.
+    public convenience init(timeRange: CMTimeRange) {
+        var seconds = [timeRange.start.seconds, timeRange.duration.seconds]
+        self.init(bytes: &seconds, objCType: "[2d]")
+    }
+    /// The time range this value holds.
+    public var timeRangeValue: CMTimeRange {
+        var seconds = [Double.nan, Double.nan]
+        seconds.withUnsafeMutableBytes { bytes in
+            #if canImport(Darwin)
+            getValue(bytes.baseAddress!, size: bytes.count)
+            #else
+            getValue(bytes.baseAddress!)
+            #endif
+        }
+        return CMTimeRange(start: CMTime(seconds: seconds[0]), duration: CMTime(seconds: seconds[1]))
     }
 }
 #endif

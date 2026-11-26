@@ -90,6 +90,16 @@ private final class Song: MPMediaItem, @unchecked Sendable {
         #endif
     }
 
+    /// OldOS's map reads a route's last point through `points()`.
+    @Test func aPolylinesPointsLastAsLongAsIt() {
+        var coordinates = [CLLocationCoordinate2D(latitude: 1, longitude: 2), CLLocationCoordinate2D(latitude: 3, longitude: 4)]
+        let polyline = MKPolyline(coordinates: &coordinates, count: coordinates.count)
+        let points = polyline.points()
+        #expect(points == polyline.points())
+        let last = points[polyline.pointCount - 1].coordinate
+        #expect(abs(last.latitude - 3) < 1e-9 && abs(last.longitude - 4) < 1e-9)
+    }
+
     @Test func tileURLsFillTheTemplate() {
         let overlay = MKTileOverlay(urlTemplate: "https://tiles.example/{z}/{x}/{y}@{scale}x.png")
         let url = overlay.url(forTilePath: MKTileOverlayPath(x: 3, y: 5, z: 4, contentScaleFactor: 2))

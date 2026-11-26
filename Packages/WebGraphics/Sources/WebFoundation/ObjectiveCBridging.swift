@@ -17,12 +17,14 @@
 #if os(WASI) && canImport(ObjectiveC)
 
 /// The object an array becomes in Objective-C: its elements, each as `Any`.
-public final class _WebNSArray: NSObject, @unchecked Sendable {
-    public let elements: [Any]
+open class _WebNSArray: NSObject, @unchecked Sendable {
+    /// The elements; `NSMutableArray` changes them.
+    public var elements: [Any]
     public init(elements: [Any]) {
         self.elements = elements
         super.init()
     }
+    public override convenience init() { self.init(elements: []) }
     public var count: Int { elements.count }
     /// Equal when the elements are, pair by pair, as Foundation's arrays are (nested arrays too).
     public override func isEqual(_ object: Any?) -> Bool {
@@ -63,6 +65,9 @@ open class _WebNSSet: NSObject, ExpressibleByArrayLiteral, @unchecked Sendable {
     }
     public override convenience init() { self.init(members: []) }
     public required convenience init(arrayLiteral elements: Any...) { self.init(members: _WebSetMember.distinct(elements)) }
+    /// The array's objects, each once. Declared here, not in an extension, so `NSCountedSet` can
+    /// count the duplicates instead.
+    public convenience init(array: [Any]) { self.init(members: _WebSetMember.distinct(array)) }
     public var count: Int { members.count }
     open override func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? _WebNSSet else { return false }

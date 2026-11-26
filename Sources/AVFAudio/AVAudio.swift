@@ -229,12 +229,151 @@ public final class AVAudioSession {
     public func setPreferredSampleRate(_ sampleRate: Double) throws {}
     public func setPreferredIOBufferDuration(_ duration: TimeInterval) throws {}
 
+    // MARK: Ports and routes
+
+    /// A kind of audio port.
+    public struct Port: Hashable, Sendable, RawRepresentable {
+        public let rawValue: String
+        public init(rawValue: String) { self.rawValue = rawValue }
+        public static let lineIn = Port(rawValue: "LineIn")
+        public static let builtInMic = Port(rawValue: "MicrophoneBuiltIn")
+        public static let headsetMic = Port(rawValue: "MicrophoneWired")
+        public static let lineOut = Port(rawValue: "LineOut")
+        public static let headphones = Port(rawValue: "Headphones")
+        public static let bluetoothA2DP = Port(rawValue: "BluetoothA2DPOutput")
+        public static let builtInReceiver = Port(rawValue: "Receiver")
+        public static let builtInSpeaker = Port(rawValue: "Speaker")
+        public static let HDMI = Port(rawValue: "HDMIOutput")
+        public static let airPlay = Port(rawValue: "AirPlay")
+        public static let bluetoothLE = Port(rawValue: "BluetoothLE")
+        public static let bluetoothHFP = Port(rawValue: "BluetoothHFP")
+        public static let usbAudio = Port(rawValue: "USBAudio")
+        public static let carAudio = Port(rawValue: "CarAudio")
+        public static let virtual = Port(rawValue: "Virtual")
+        public static let PCI = Port(rawValue: "PCI")
+        public static let fireWire = Port(rawValue: "Firewire")
+        public static let displayPort = Port(rawValue: "DisplayPort")
+        public static let AVB = Port(rawValue: "AVB")
+        public static let thunderbolt = Port(rawValue: "Thunderbolt")
+    }
+
+    /// The page's audio input, the browser's default microphone. The browser picks the device,
+    /// so it is the one input whatever the computer has.
+    private static let microphone = AVAudioSessionPortDescription(portType: .builtInMic, portName: "Microphone", uid: "Built-In Microphone", channelCount: 1)
+    /// The page's audio output, the browser's default speakers.
+    private static let speaker = AVAudioSessionPortDescription(portType: .builtInSpeaker, portName: "Speaker", uid: "Speaker", channelCount: 2)
+
+    /// The inputs an app can choose from: the browser's microphone.
+    public var availableInputs: [AVAudioSessionPortDescription]? { [Self.microphone] }
+    /// The input the app chose, or nil for the system's choice.
+    public private(set) var preferredInput: AVAudioSessionPortDescription?
+    /// Chooses an input (the browser's microphone is the only one).
+    public func setPreferredInput(_ inPort: AVAudioSessionPortDescription?) throws { preferredInput = inPort }
+    /// The most input channels the route has: the microphone's one.
+    public var maximumInputNumberOfChannels: Int { 1 }
+    public var maximumOutputNumberOfChannels: Int { 2 }
+    /// The input channels the app asked for (0 until it asks); the browser records in mono.
+    public private(set) var preferredInputNumberOfChannels = 0
+    public private(set) var preferredOutputNumberOfChannels = 0
+    public func setPreferredInputNumberOfChannels(_ count: Int) throws { preferredInputNumberOfChannels = count }
+    public func setPreferredOutputNumberOfChannels(_ count: Int) throws { preferredOutputNumberOfChannels = count }
+    /// Whether the session can record at all (a browser can ask for the microphone).
+    public var isInputAvailable: Bool { true }
+    /// The ports audio goes through now: the microphone in a category that records, and the
+    /// speakers in one that plays.
+    public var currentRoute: AVAudioSessionRouteDescription {
+        let records = [Category.record, .playAndRecord, .multiRoute].contains(category)
+        let plays = category != .record
+        return AVAudioSessionRouteDescription(inputs: records ? [preferredInput ?? Self.microphone] : [],
+                                              outputs: plays ? [Self.speaker] : [])
+    }
+
     /// The microphone permission as the browser last answered it.
     public var recordPermission: RecordPermission { _AVAudioHost.recordPermission }
 
     /// Asks the browser for the microphone (a prompt the first time); the answer on the main actor.
     public func requestRecordPermission(_ response: @escaping (Bool) -> Void) {
         AVAudioApplication.requestRecordPermission(completionHandler: response)
+    }
+}
+
+extension AVAudioSession {
+    /// Posted when another app interrupts the session, when the route changes, and when the media
+    /// services restart. The browser reports none of these to a page, so nothing posts them: an
+    /// observer added for one is kept and never called.
+    public static let interruptionNotification = Notification.Name("AVAudioSessionInterruptionNotification")
+    public static let routeChangeNotification = Notification.Name("AVAudioSessionRouteChangeNotification")
+    public static let mediaServicesWereLostNotification = Notification.Name("AVAudioSessionMediaServicesWereLostNotification")
+    public static let mediaServicesWereResetNotification = Notification.Name("AVAudioSessionMediaServicesWereResetNotification")
+    public static let silenceSecondaryAudioHintNotification = Notification.Name("AVAudioSessionSilenceSecondaryAudioHintNotification")
+
+    public enum InterruptionType: UInt, Sendable { case began = 1, ended = 0 }
+    public struct InterruptionOptions: OptionSet, Hashable, Sendable {
+        public let rawValue: UInt
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        public static let shouldResume = InterruptionOptions(rawValue: 1)
+    }
+    public enum RouteChangeReason: UInt, Sendable {
+        case unknown = 0, newDeviceAvailable, oldDeviceUnavailable, categoryChange, override
+        case wakeFromSleep = 6, noSuitableRouteForCategory, routeConfigurationChange
+    }
+}
+
+public let AVAudioSessionInterruptionTypeKey = "AVAudioSessionInterruptionTypeKey"
+public let AVAudioSessionInterruptionOptionKey = "AVAudioSessionInterruptionOptionKey"
+public let AVAudioSessionRouteChangeReasonKey = "AVAudioSessionRouteChangeReasonKey"
+public let AVAudioSessionRouteChangePreviousRouteKey = "AVAudioSessionRouteChangePreviousRouteKey"
+
+/// One audio port: its kind, its name and its channels.
+public final class AVAudioSessionPortDescription: @unchecked Sendable {
+    public let portType: AVAudioSession.Port
+    public let portName: String
+    public let uid: String
+    public let channels: [AVAudioSessionChannelDescription]?
+    /// The port's data sources (a microphone's front or back; none here).
+    public var dataSources: [AVAudioSessionDataSourceDescription]? { nil }
+    public var selectedDataSource: AVAudioSessionDataSourceDescription? { nil }
+    public var preferredDataSource: AVAudioSessionDataSourceDescription? { nil }
+    public func setPreferredDataSource(_ dataSource: AVAudioSessionDataSourceDescription?) throws {}
+    public var hasHardwareVoiceCallProcessing: Bool { false }
+    init(portType: AVAudioSession.Port, portName: String, uid: String, channelCount: Int) {
+        self.portType = portType
+        self.portName = portName
+        self.uid = uid
+        channels = (0..<channelCount).map { AVAudioSessionChannelDescription(channelName: "\(portName) \($0 + 1)", channelNumber: $0 + 1, owningPortUID: uid) }
+    }
+}
+
+/// One channel of an audio port.
+public final class AVAudioSessionChannelDescription: @unchecked Sendable {
+    public let channelName: String
+    public let channelNumber: Int
+    public let owningPortUID: String
+    public var channelLabel: UInt32 { 0 }
+    init(channelName: String, channelNumber: Int, owningPortUID: String) {
+        self.channelName = channelName
+        self.channelNumber = channelNumber
+        self.owningPortUID = owningPortUID
+    }
+}
+
+/// A port's data source (a microphone's position); the browser's ports have none.
+public final class AVAudioSessionDataSourceDescription: @unchecked Sendable {
+    public let dataSourceID: NSNumber
+    public let dataSourceName: String
+    init(dataSourceID: NSNumber, dataSourceName: String) {
+        self.dataSourceID = dataSourceID
+        self.dataSourceName = dataSourceName
+    }
+}
+
+/// The ports audio goes in and out through.
+public final class AVAudioSessionRouteDescription: @unchecked Sendable {
+    public let inputs: [AVAudioSessionPortDescription]
+    public let outputs: [AVAudioSessionPortDescription]
+    init(inputs: [AVAudioSessionPortDescription], outputs: [AVAudioSessionPortDescription]) {
+        self.inputs = inputs
+        self.outputs = outputs
     }
 }
 

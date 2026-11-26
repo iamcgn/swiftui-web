@@ -7,6 +7,10 @@
 open class Bundle: _WebObjectBase, @unchecked Sendable {
     /// The app's bundle.
     public static let main = Bundle(_path: "/")
+    /// Every bundle the app has loaded that is not a framework: the app's alone.
+    public class var allBundles: [Bundle] { [main] }
+    /// Every framework the app has loaded: none, as an app's frameworks are in its one wasm module.
+    public class var allFrameworks: [Bundle] { [] }
 
     public let bundlePath: String
     public var bundleURL: URL { URL(fileURLWithPath: bundlePath) }

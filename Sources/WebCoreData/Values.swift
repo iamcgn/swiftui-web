@@ -110,8 +110,7 @@ extension Date {
     public func earlierDate(_ anotherDate: Date) -> Date { Swift.min(self, anotherDate) }
 }
 #endif
-/// A block that compares two objects (Foundation's `Comparator`).
-public typealias Comparator = (Any, Any) -> ComparisonResult
+// `Comparator` is WebFoundationFormats' (MutableCollections.swift), which this module re-exports.
 #endif
 
 // MARK: - Unwrapping and comparing

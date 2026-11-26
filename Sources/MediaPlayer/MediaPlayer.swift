@@ -5,13 +5,17 @@
 // play. An app's own items and collections (`MPMediaItemCollection(items:)`) keep what they are
 // given, a player keeps the queue it is set to and its modes, and play leaves it stopped, as an
 // item here has no asset to play. Remote commands keep their handlers and the Now Playing
-// centre its information; nothing outside the page sends a command yet.
+// centre its information; nothing outside the page sends a command yet. A Now Playing session
+// keeps its players and its own information centre.
 #if os(WASI)
 @_exported import WebFoundation
 #else
 import Foundation
 #endif
 import UIKit
+// Apple's MediaPlayer imports AVFoundation for `MPNowPlayingSession`'s players, so an app that
+// imports only MediaPlayer reaches AVFoundation's names (OldOS's `AVAudioSession.sharedInstance()`).
+@_exported import AVFoundation
 
 public typealias MPMediaEntityPersistentID = UInt64
 
@@ -674,6 +678,33 @@ open class MPNowPlayingInfoCenter: NSObject, @unchecked Sendable {
     open class func `default`() -> MPNowPlayingInfoCenter { shared }
     open var nowPlayingInfo: [String: Any]?
     open var playbackState: MPNowPlayingPlaybackState = .unknown
+}
+
+/// A Now Playing session for an app that plays through AVFoundation players (iOS 16): the
+/// players, and the session's own information centre and remote commands.
+@MainActor
+open class MPNowPlayingSession: NSObject {
+    public private(set) var players: [AVPlayer]
+    public let nowPlayingInfoCenter = MPNowPlayingInfoCenter()
+    public let remoteCommandCenter = MPRemoteCommandCenter()
+    /// Whether the system shows this session as what's playing (it becomes so once activated).
+    public private(set) var isActive = false
+    public var automaticallyPublishesNowPlayingInfo = false
+    public init(players: [AVPlayer]) {
+        self.players = players
+        super.init()
+    }
+    public func addPlayer(_ player: AVPlayer) { if !players.contains(where: { $0 === player }) { players.append(player) } }
+    public func removePlayer(_ player: AVPlayer) { players.removeAll { $0 === player } }
+    /// Makes this session the one shown as playing, and answers whether it could (always).
+    public func becomeActiveIfPossible(completion: (@Sendable (Bool) -> Void)? = nil) {
+        isActive = true
+        completion?(true)
+    }
+    public func becomeActiveIfPossible() async -> Bool {
+        isActive = true
+        return true
+    }
 }
 
 public enum MPRemoteCommandHandlerStatus: Int, Sendable {

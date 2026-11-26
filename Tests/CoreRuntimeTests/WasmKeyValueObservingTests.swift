@@ -4,6 +4,7 @@
 import Testing
 import SwiftUI
 import WebFoundation
+import AVFoundation
 
 private final class Player: NSObject {
     var rate = 0.0 {
@@ -72,6 +73,22 @@ private struct StoreKeyID: Hashable {
         player.rate = 3
         #expect(later == [3])
         changesOnly.cancel()
+    }
+
+    /// An AVFoundation player is an NSObject: its status publishes as its rate changes, through
+    /// Observation (OldOS's YouTube view watches `timeControlStatus` this way).
+    @Test func aPlayersStatusPublishesAsItsRateChanges() async {
+        let player = AVPlayer(url: URL(string: "https://example.com/video.mp4")!)
+        var statuses: [AVPlayer.TimeControlStatus] = []
+        let subscription = player.publisher(for: \.timeControlStatus).sink { statuses.append($0) }
+        player.play()
+        for _ in 0..<50 where statuses.count < 2 { await Task.yield() }
+        #expect(statuses == [.paused, .playing])
+        var itemStatuses: [AVPlayerItem.Status] = []
+        let itemSubscription = player.currentItem?.publisher(for: \.status).sink { itemStatuses.append($0) }
+        #expect(itemStatuses == [.unknown])
+        subscription.cancel()
+        itemSubscription?.cancel()
     }
 
     @Test func observableProgressReportsItsSets() async {
