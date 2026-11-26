@@ -2,7 +2,11 @@
 // localized text read as inline Markdown, with a value interpolated into it.
 #if os(WASI) || canImport(Darwin)
 import Testing
+#if canImport(Darwin)
 import Foundation
+#endif
+// On wasm `import SwiftUI` brings WebFoundation's AttributedString; the SDK's Foundation
+// would add a second one.
 import SwiftUI
 
 @Suite struct LocalizedAttributedStringTests {
