@@ -2,6 +2,8 @@
 // proposal and paints its text 5 pt in with the text view's tight line pitch; editing happens
 // in the host's multi-line input (a `<textarea>` in the browser, typing in the native host).
 
+import WebFoundation
+
 /// The selected text of an editor (`TextEditor(text:selection:)`): a range of the text, or an
 /// insertion point (an empty range).
 public struct TextSelection: Equatable, Sendable {

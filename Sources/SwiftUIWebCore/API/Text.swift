@@ -472,11 +472,6 @@ extension View {
         environment(\._textScale, isEnabled ? scale : .default)
     }
 
-    /// Sets the language whose line heights and glyph forms the text in this view is set for
-    /// (Mlem sets English on its titles). The browser sets each run for its own script, so the
-    /// language is accepted and the text is laid out as before.
-    nonisolated public func typesettingLanguage(_ language: Locale.Language, isEnabled: Bool = true) -> some View { self }
-
     /// Controls whether people can select text in this view. Layout and painting do not change;
     /// the pointer shows an I-beam over selectable text.
     nonisolated public func textSelection<S: TextSelectability>(_ selectability: S) -> some View {
