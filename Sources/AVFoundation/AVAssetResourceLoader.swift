@@ -12,6 +12,9 @@ import WebFoundation
 #else
 import Foundation
 #endif
+#if canImport(FoundationNetworking) && !os(WASI)
+import FoundationNetworking   // Linux keeps URLRequest here
+#endif
 import AVCaptureHost
 
 /// What an asset's resource loader asks of the app: whether it will load a resource.
