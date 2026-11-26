@@ -18,12 +18,15 @@ import UIKitWebCore
 import AVCaptureHost
 
 /// A media asset by URL. An `NSObject`, as Apple's is.
-public class AVAsset: NSObject, @unchecked Sendable {
+open class AVAsset: NSObject, @unchecked Sendable {
     public let url: URL
     public init(url: URL) {
         self.url = url
         super.init()
     }
+    /// The URL the browser loads the movie from: the asset's own (an `AVURLAsset` with a
+    /// resource loader's delegate may answer with the movie's bytes instead).
+    func playbackURL() -> URL { url }
     /// The host's one read of the movie, shared by every load.
     nonisolated(unsafe) private var info: Task<_AVMovieInfo, any Error>?
     /// That read, once it has come back.
@@ -75,7 +78,7 @@ public class AVAsset: NSObject, @unchecked Sendable {
 
     @MainActor private func movieInfo() async throws -> _AVMovieInfo {
         if let info { return try await info.value }
-        let url = url.absoluteString
+        let url = playbackURL().absoluteString
         let task = Task { @MainActor () throws -> _AVMovieInfo in
             guard let host = _AVFrameHost.info else { throw AVError(.fileFormatNotRecognized) }
             let read: _AVMovieInfo? = await withCheckedContinuation { reading in host(url) { reading.resume(returning: $0) } }
@@ -118,8 +121,22 @@ public class AVAsset: NSObject, @unchecked Sendable {
     }
 }
 
-public final class AVURLAsset: AVAsset, @unchecked Sendable {
+/// An asset at a URL, with the loader its delegate answers through for URLs the browser cannot
+/// fetch (AVAssetResourceLoader.swift).
+open class AVURLAsset: AVAsset, @unchecked Sendable {
+    public let resourceLoader = AVAssetResourceLoader()
+    /// The URL made for the bytes the delegate answered with, once it has.
+    private var answered: URL?
+
     public init(url: URL, options: [String: Any]? = nil) { super.init(url: url) }
+
+    override func playbackURL() -> URL {
+        if let answered { return answered }
+        guard !Self.webSchemes.contains(url.scheme?.lowercased() ?? ""), let loaded = resourceLoader.load(url),
+              let made = Self.playableURL(for: loaded.data, contentType: loaded.contentType) else { return url }
+        answered = made
+        return made
+    }
 }
 
 public typealias CMPersistentTrackID = Int32

@@ -227,6 +227,15 @@ enum CaptureHost {
             retained.append(report)
             _ = js.movieInfo!(url, report)
         }
+        // Bytes a resource loader's delegate answered with, as a URL the movie element loads.
+        _AVFrameHost.objectURL = { bytes, mimeType in
+            guard let blob = JSObject.global.Blob.function, let urlClass = JSObject.global.URL.object,
+                  let options = JSObject.global.Object.function?.new() else { return nil }
+            let parts = JSObject.global.Array.function!.new()
+            _ = parts.push!(JSTypedArray<UInt8>(bytes).jsValue)
+            options.type = .string(mimeType)
+            return urlClass.createObjectURL?(blob.new(parts, options)).string
+        }
         guard js.supported!().boolean == true else { return }
         // There may be a camera until the browser has said.
         _AVCaptureHost.cameraCount = -1

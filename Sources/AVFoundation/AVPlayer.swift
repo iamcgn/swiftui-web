@@ -116,7 +116,7 @@ public final class AVPlayerItem: NSObject, @unchecked Sendable {
         asset = AVURLAsset(url: url)
     }
     public init(asset: AVAsset) {
-        url = asset.url
+        url = asset.playbackURL()
         self.asset = asset
     }
     public var duration: CMTime { .invalid }

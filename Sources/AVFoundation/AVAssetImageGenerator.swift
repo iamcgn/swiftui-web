@@ -144,7 +144,7 @@ open class AVAssetImageGenerator: NSObject, @unchecked Sendable {
             return
         }
         let size = maximumSize
-        host(asset.url.absoluteString, request.time.seconds, Self.side(size.width), Self.side(size.height)) { frame in
+        host(asset.playbackURL().absoluteString, request.time.seconds, Self.side(size.width), Self.side(size.height)) { frame in
             guard let frame, let image = Self.image(frame) else { finish(failed); return }
             finish(Answer(image: image, actualTime: CMTime(seconds: frame.seconds, preferredTimescale: 600), result: .succeeded))
         }
