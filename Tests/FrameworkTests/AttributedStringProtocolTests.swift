@@ -25,7 +25,7 @@ extension AttributeDynamicLookup {
 
 // EmojiText extends the run type by this name.
 extension AttributedString.Runs.Element {
-    var noteColorOrNone: String { noteColor ?? "none" }
+    var noteColorOrNone: String { self.noteColor ?? "none" }
 }
 
 /// The characters of any attributed string, as generic code reads them.
