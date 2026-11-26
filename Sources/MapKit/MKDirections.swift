@@ -91,7 +91,8 @@ open class MKTileOverlay: NSObject, MKOverlay, @unchecked Sendable {
     /// Loads the tile's data from its URL.
     open func loadTile(at path: MKTileOverlayPath, result: @escaping (Data?, Error?) -> Void) {
         let url = url(forTilePath: path)
-        URLSession.shared.dataTask(with: url) { data, _, error in result(data, error) }.resume()
+        let handler = _Carried(result)
+        URLSession.shared.dataTask(with: url) { data, _, error in handler.value(data, error) }.resume()
     }
 }
 
