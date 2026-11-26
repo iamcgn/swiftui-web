@@ -3,7 +3,8 @@
 // drives: what Mlem's video view calls. The movie's length, picture and sound come from one read
 // of the host per asset; sound the browser does not report is taken to be there; without a host
 // or for a movie that fails to load, loading throws; an item keeps where it was sought to; and a
-// queue player made from one item queues that item.
+// queue player made from one item queues that item. An asset whose resource loader answers with
+// the bytes is read from the URL made for them, not its own.
 #if !os(WASI)
 import AVFoundation
 import AVCaptureHost
@@ -23,6 +24,16 @@ private enum StandInMetadata {
             StandInMetadata.reads.append(url)
             Task { @MainActor in done(info) }
         }
+    }
+}
+
+private final class AnswersWithBytes: NSObject, AVAssetResourceLoaderDelegate {
+    func resourceLoader(_ resourceLoader: AVAssetResourceLoader,
+                        shouldWaitForLoadingOfRequestedResource loadingRequest: AVAssetResourceLoadingRequest) -> Bool {
+        loadingRequest.contentInformationRequest?.contentType = AVFileType.mp4.rawValue
+        loadingRequest.dataRequest?.respond(with: Data([0, 0, 0, 0x18]))
+        loadingRequest.finishLoading()
+        return true
     }
 }
 
@@ -67,6 +78,19 @@ private enum StandInMetadata {
         await #expect(throws: AVError.self) { try await AVURLAsset(url: movie).load(.duration) }
         _AVFrameHost.info = nil
         await #expect(throws: AVError.self) { try await AVURLAsset(url: movie).loadTracks(withMediaType: .audio) }
+    }
+
+    @Test func aLoadersBytesAreReadFromTheURLMadeForThem() async throws {
+        StandInMetadata.install(_AVMovieInfo(duration: 3, width: 4, height: 3, hasAudio: false))
+        defer { _AVFrameHost.info = nil }
+        let asset = AVURLAsset(url: URL(string: "in-memory-data://clip")!)
+        let loader = AnswersWithBytes()
+        asset.resourceLoader.setDelegate(loader, queue: .global())
+        let duration = try await asset.load(.duration)
+        #expect(duration.seconds == 3)
+        // A data: URL, or a blob: URL while ResourceLoaderTests has its stand-in host installed.
+        let read = StandInMetadata.reads
+        #expect(read.count == 1 && (read.first?.hasPrefix("data:video/mp4;base64,") == true || read.first?.hasPrefix("blob:") == true))
     }
 
     @Test func itemsKeepWhereTheyWereSoughtTo() {

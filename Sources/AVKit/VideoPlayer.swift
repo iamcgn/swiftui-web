@@ -8,6 +8,9 @@ import Foundation
 #endif
 import SwiftUI
 @_exported import AVFoundation
+// Apple's AVKit imports UIKit, so a file with only `import AVKit` names UIView (Nuke's
+// VideoPlayerView subclasses it).
+@_exported import UIKit
 
 /// A view that displays content from a player and a native user interface to control playback.
 public struct VideoPlayer<VideoOverlay: View>: View {
