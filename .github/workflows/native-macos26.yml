@@ -28,7 +28,13 @@ jobs:
           done
           echo "::error::no macOS 26 SDK"; exit 1
       - name: Native tests
-        run: . ~/.swiftly/env.sh && swift test 2>&1 | tee native.log | grep -E "error:|recorded an issue|failed|Expectation" -A3 | head -150
+        run: |
+          set +e
+          . ~/.swiftly/env.sh
+          swift test > native.log 2>&1
+          status=$?
+          grep -E "error:|recorded an issue|Test run with" -A3 native.log | head -150
+          exit $status
       - name: UIKitWeb tests
         if: ${{ !cancelled() }}
         run: . ~/.swiftly/env.sh && cd Packages/UIKitWeb && swift test 2>&1 | grep -E "error:|Test run" | tail -40
