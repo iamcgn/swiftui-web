@@ -43,6 +43,18 @@ public struct TextEditor: View {
         selection = nil
     }
 
+    /// Creates an editor for rich text (iOS 26). The editor edits the string's characters;
+    /// typing replaces the attributed string with the plain text, and text that is not edited
+    /// keeps its attributes.
+    public init(text: Binding<AttributedString>) {
+        self.text = Binding(get: { String(text.wrappedValue.characters) },
+                            set: { value in
+                                guard value != String(text.wrappedValue.characters) else { return }
+                                text.wrappedValue = AttributedString(value)
+                            })
+        selection = nil
+    }
+
     /// Creates an editor whose selection follows (and sets) `selection`.
     public init(text: Binding<String>, selection: Binding<TextSelection?>) {
         self.text = text

@@ -467,6 +467,38 @@ extension View {
         _chart { $0.yDomain = .categories(domain) }
     }
 
+    /// A numeric domain given as values (`[0, 1000]`): the scale spans the smallest to the
+    /// largest, as Apple's does for a continuous scale; no values leave the scale automatic.
+    public func chartXScale(domain: [some BinaryInteger], type: ScaleType? = nil) -> some View {
+        let values = domain.map { Double($0) }
+        return _chart { if let low = values.min(), let high = values.max() { $0.xDomain = .numbers(low...high) } }
+    }
+
+    public func chartXScale(domain: [some BinaryFloatingPoint], type: ScaleType? = nil) -> some View {
+        let values = domain.map { Double($0) }
+        return _chart { if let low = values.min(), let high = values.max() { $0.xDomain = .numbers(low...high) } }
+    }
+
+    public func chartXScale(domain: [Date], type: ScaleType? = nil) -> some View {
+        _chart { if let low = domain.min(), let high = domain.max() { $0.xDomain = .dates(low...high) } }
+    }
+
+    /// A numeric domain given as values (`[0, 1000]`): the scale spans the smallest to the
+    /// largest, as Apple's does for a continuous scale; no values leave the scale automatic.
+    public func chartYScale(domain: [some BinaryInteger], type: ScaleType? = nil) -> some View {
+        let values = domain.map { Double($0) }
+        return _chart { if let low = values.min(), let high = values.max() { $0.yDomain = .numbers(low...high) } }
+    }
+
+    public func chartYScale(domain: [some BinaryFloatingPoint], type: ScaleType? = nil) -> some View {
+        let values = domain.map { Double($0) }
+        return _chart { if let low = values.min(), let high = values.max() { $0.yDomain = .numbers(low...high) } }
+    }
+
+    public func chartYScale(domain: [Date], type: ScaleType? = nil) -> some View {
+        _chart { if let low = domain.min(), let high = domain.max() { $0.yDomain = .dates(low...high) } }
+    }
+
     public func chartYScale(domain: ScaleDomain, type: ScaleType? = nil) -> some View {
         _chart { $0.yIncludesZero = domain.includesZero }
     }
