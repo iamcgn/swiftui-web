@@ -2,7 +2,8 @@
 // the movie's bytes (Mlem's NukeVideo, which plays a downloaded clip from memory): the item loads
 // the bytes from a URL the host makes for them, or a `data:` URL without a host (the metadata read,
 // which shares the metadata host with AssetLoadingTests, is tested there). An asset at a web URL never asks its delegate, and a
-// delegate that declines leaves the asset its own URL.
+// delegate that declines leaves the asset its own URL. The host's URL is released with the asset;
+// a `data:` URL and the asset's own URL are not the host's to release.
 #if !os(WASI)
 import AVFoundation
 import AVCaptureHost
@@ -37,11 +38,15 @@ private final class InMemory: NSObject, AVAssetResourceLoaderDelegate {
 private enum StandInHost {
     nonisolated(unsafe) static var made: [(Int, String)] = []
     nonisolated(unsafe) static var read: [String] = []
+    nonisolated(unsafe) static var revoked: [String] = []
     static func install(_ url: String) {
         made = []
         read = []
+        revoked = []
         _AVFrameHost.objectURL = { bytes, mime in StandInHost.made.append((bytes.count, mime)); return url }
+        _AVFrameHost.revokeObjectURL = { StandInHost.revoked.append($0) }
     }
+    static func uninstall() { _AVFrameHost.objectURL = nil; _AVFrameHost.revokeObjectURL = nil }
 }
 
 private final class Declines: NSObject, AVAssetResourceLoaderDelegate {}
@@ -61,7 +66,7 @@ private final class DataAsset: AVURLAsset, @unchecked Sendable {
 
     @Test func theDelegatesBytesPlayFromTheHostsURL() {
         StandInHost.install("blob:https://app/1")
-        defer { _AVFrameHost.objectURL = nil }
+        defer { StandInHost.uninstall() }
         let asset = DataAsset(bytes)
         let item = AVPlayerItem(asset: asset)
         #expect(item.url.absoluteString == "blob:https://app/1")
@@ -76,6 +81,20 @@ private final class DataAsset: AVURLAsset, @unchecked Sendable {
         let asset = DataAsset(bytes)
         let url = AVPlayerItem(asset: asset).url.absoluteString
         #expect(url == "data:video/mp4;base64,\(bytes.base64EncodedString())")
+    }
+
+    @Test func theHostsURLIsReleasedWithTheAsset() {
+        StandInHost.install("blob:https://app/3")
+        defer { StandInHost.uninstall() }
+        var item: AVPlayerItem? = AVPlayerItem(asset: DataAsset(bytes))
+        #expect(item?.url.absoluteString == "blob:https://app/3" && !StandInHost.revoked.contains("blob:https://app/3"))
+        item = nil
+        #expect(StandInHost.revoked.contains("blob:https://app/3"))
+
+        _AVFrameHost.objectURL = nil
+        let dataURL = AVPlayerItem(asset: DataAsset(bytes)).url.absoluteString
+        _ = AVPlayerItem(asset: AVURLAsset(url: URL(string: "custom://clip")!))
+        #expect(!StandInHost.revoked.contains(dataURL) && !StandInHost.revoked.contains("custom://clip"))
     }
 
     @Test func webURLsAndDecliningDelegatesKeepTheAssetsURL() {

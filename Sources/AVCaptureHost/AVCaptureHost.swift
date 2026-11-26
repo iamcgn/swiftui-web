@@ -90,6 +90,8 @@ public enum _AVFrameHost {
     /// A URL the browser loads these bytes from, as this MIME type (an object URL for a `Blob`),
     /// for a movie a resource loader's delegate answered with; nil when one cannot be made.
     nonisolated(unsafe) public static var objectURL: ((_ bytes: [UInt8], _ mimeType: String) -> String?)?
+    /// Releases an object URL `objectURL` made, once the asset it was made for is gone.
+    nonisolated(unsafe) public static var revokeObjectURL: ((_ url: String) -> Void)?
 }
 
 /// What the host read of a movie: its length in seconds (NaN when the browser could not tell,

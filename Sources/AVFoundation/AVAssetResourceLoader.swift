@@ -5,8 +5,9 @@
 // asset asks the delegate once, for the whole resource from its start, and plays what the
 // delegate answers with from a URL the browser can load: an object URL the host makes for the
 // bytes (`_AVFrameHost.objectURL`, which SwiftUIWebCanvas installs), or a `data:` URL without a
-// host. A delegate that answers later, from its queue, is not waited for: the asset then keeps its
-// own URL, which the element cannot play.
+// host. The items and image generators that play from the host's object URL hold the asset, so
+// the URL is released when the asset goes. A delegate that answers later, from its queue, is not
+// waited for: the asset then keeps its own URL, which the element cannot play.
 #if os(WASI)
 import WebFoundation
 #else
@@ -132,11 +133,12 @@ extension AVURLAsset {
     /// The schemes the browser's element loads itself.
     static let webSchemes: Set<String> = ["http", "https", "file", "blob", "data"]
 
-    /// A URL for bytes the delegate answered with: the host's object URL, or a `data:` URL.
-    static func playableURL(for data: Data, contentType: String?) -> URL? {
+    /// A URL for bytes the delegate answered with: the host's object URL, or a `data:` URL; and
+    /// whether the host made it (and so releases it).
+    static func playableURL(for data: Data, contentType: String?) -> (url: URL, byHost: Bool)? {
         let mime = mimeType(contentType)
-        if let host = _AVFrameHost.objectURL, let made = host(Array(data), mime), let url = URL(string: made) { return url }
-        return URL(string: "data:\(mime);base64,\(data.base64EncodedString())")
+        if let host = _AVFrameHost.objectURL, let made = host(Array(data), mime), let url = URL(string: made) { return (url, true) }
+        return URL(string: "data:\(mime);base64,\(data.base64EncodedString())").map { ($0, false) }
     }
 
     /// The MIME type for a type identifier (or the MIME type the delegate gave).

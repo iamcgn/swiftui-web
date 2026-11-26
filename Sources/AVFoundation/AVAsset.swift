@@ -127,15 +127,23 @@ open class AVURLAsset: AVAsset, @unchecked Sendable {
     public let resourceLoader = AVAssetResourceLoader()
     /// The URL made for the bytes the delegate answered with, once it has.
     private var answered: URL?
+    /// Whether the host made `answered` (an object URL, released with the asset).
+    private var hostMade = false
 
     public init(url: URL, options: [String: Any]? = nil) { super.init(url: url) }
+
+    deinit {
+        // The items and generators that play from the URL hold the asset, so it is unused now.
+        if hostMade, let answered { _AVFrameHost.revokeObjectURL?(answered.absoluteString) }
+    }
 
     override func playbackURL() -> URL {
         if let answered { return answered }
         guard !Self.webSchemes.contains(url.scheme?.lowercased() ?? ""), let loaded = resourceLoader.load(url),
               let made = Self.playableURL(for: loaded.data, contentType: loaded.contentType) else { return url }
-        answered = made
-        return made
+        answered = made.url
+        hostMade = made.byHost
+        return made.url
     }
 }
 

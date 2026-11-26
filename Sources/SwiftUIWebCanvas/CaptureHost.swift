@@ -236,6 +236,9 @@ enum CaptureHost {
             options.type = .string(mimeType)
             return urlClass.createObjectURL?(blob.new(parts, options)).string
         }
+        _AVFrameHost.revokeObjectURL = { url in
+            _ = JSObject.global.URL.object?.revokeObjectURL?(url)
+        }
         guard js.supported!().boolean == true else { return }
         // There may be a camera until the browser has said.
         _AVCaptureHost.cameraCount = -1
