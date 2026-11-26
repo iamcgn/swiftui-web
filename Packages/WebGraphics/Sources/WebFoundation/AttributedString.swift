@@ -186,6 +186,37 @@ public struct AttributedString: AttributedStringProtocol, Hashable, Sendable, Cu
         })
     }
 
+    /// What a localized attributed string does beyond its text (Foundation marks each
+    /// interpolated value with its replacement index when asked; here the option is kept).
+    public struct LocalizationOptions: Hashable, Sendable {
+        public var applyReplacementIndexAttribute: Bool
+        public init() { applyReplacementIndexAttribute = false }
+    }
+
+    /// A localized string, looked up as `String(localized:)` does, read as inline Markdown the
+    /// way Foundation reads a localized attributed string ("**Unsupported**" comes in bold); text
+    /// the Markdown reader can't take comes in plain.
+    public init(localized keyAndValue: String.LocalizationValue, options: LocalizationOptions = LocalizationOptions(),
+                table: String? = nil, bundle: Bundle? = nil, locale: Locale = .current, comment: StaticString? = nil) {
+        self.init(_localizedMarkdown: String(localized: keyAndValue, table: table, bundle: bundle, locale: locale, comment: comment))
+    }
+
+    /// A localized string from a static key, with a localization value as the default.
+    public init(localized key: StaticString, defaultValue: String.LocalizationValue, options: LocalizationOptions = LocalizationOptions(),
+                table: String? = nil, bundle: Bundle? = nil, locale: Locale = .current, comment: StaticString? = nil) {
+        self.init(_localizedMarkdown: String(localized: key, defaultValue: defaultValue, table: table, bundle: bundle, locale: locale, comment: comment))
+    }
+
+    /// The string a localized string resource names, read as inline Markdown.
+    public init(localized resource: LocalizedStringResource, options: LocalizationOptions = LocalizationOptions()) {
+        self.init(_localizedMarkdown: String(localized: resource))
+    }
+
+    private init(_localizedMarkdown text: String) {
+        let options = MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+        self = (try? AttributedString(markdown: text, options: options)) ?? AttributedString(text)
+    }
+
     /// How markdown is read. The inline syntax is what's parsed in every case; the other
     /// options are kept for the code that sets them (IceCubes asks for extended attributes).
     public struct MarkdownParsingOptions: Hashable, Sendable {
