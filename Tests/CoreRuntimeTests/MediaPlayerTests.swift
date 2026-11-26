@@ -77,13 +77,17 @@ private final class Song: MPMediaItem, @unchecked Sendable {
 
     /// OldOS's map asks each annotation whether it is the user's location.
     @Test func anyAnnotationAnswersIsKind() {
+        #expect(MKPolyline(coordinates: [], count: 0).isKind(of: MKShape.self))
+        #expect(MKUserLocation().isMember(of: MKUserLocation.self))
+        // Linux's Foundation keeps isKind(of:) on NSObject alone, not on NSObjectProtocol.
+        #if !os(Linux)
         let pin: any MKAnnotation = MKPointAnnotation()
         let me: any MKAnnotation = MKUserLocation()
         #expect(me.isKind(of: MKUserLocation.self))
         #expect(!pin.isKind(of: MKUserLocation.self))
         #expect(pin.isKind(of: NSObject.self))
         #expect(!pin.isMember(of: NSObject.self))
-        #expect(MKPolyline(coordinates: [], count: 0).isKind(of: MKShape.self))
+        #endif
     }
 
     @Test func tileURLsFillTheTemplate() {
