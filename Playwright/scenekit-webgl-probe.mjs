@@ -23,9 +23,16 @@ let failures = 0;
 async function pickScene(page, scene, always = false) {
   if (scene === 'Spheres' && !always) return;
   const names = ['Spheres', 'Waves', 'Globe'];
-  const box = await page.locator('[role="radiogroup"]').first().boundingBox().catch(() => null);
-  if (box) await page.mouse.click(box.x + box.width * (names.indexOf(scene) + 0.5) / names.length, box.y + box.height / 2);
-  await page.waitForTimeout(800);
+  const picker = page.locator('[role="radiogroup"]').first();
+  const picked = () => picker.getAttribute('aria-valuetext').catch(() => null);
+  // A busy page can miss a click: click again until the picker shows the scene, a few times.
+  for (let tries = 0; tries < 4; tries++) {
+    const box = await picker.boundingBox().catch(() => null);
+    if (box) await page.mouse.click(box.x + box.width * (names.indexOf(scene) + 0.5) / names.length, box.y + box.height / 2);
+    await page.waitForTimeout(800);
+    const now = await picked();
+    if (now === scene || now === null) return;
+  }
 }
 
 // CI's Mac VMs have no GPU of their own: launch Chromium the way webgl-launch.mjs found to give WebGL2.
@@ -92,7 +99,9 @@ let globe = null, framesAfter = 0, switched = null;
 await run('Leaving the Globe lets go of its slots and textures', {
   scene: 'Globe', query: 'meshEvict=60',
   act: async (page) => {
-    await page.waitForTimeout(2000);
+    // A second on the Globe is enough for its live texture to replace itself several times; much
+    // longer and its per-frame texture work slows the page (tracked on its own).
+    await page.waitForTimeout(1000);
     globe = await page.evaluate(() => Object.assign({}, window.__swiftuiwebMesh.stats));
     const look = () => page.evaluate(() => ({
       app: window.__swiftuiwebDebug.frameCount(), gl: window.__swiftuiwebMesh.stats.gl, fallback: window.__swiftuiwebMesh.stats.fallback,
