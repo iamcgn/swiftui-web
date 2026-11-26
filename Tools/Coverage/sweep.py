@@ -265,6 +265,19 @@ def condition_allows_traits(condition, traits):
     return not named or bool(set(named) & set(traits))
 
 
+# `.defaultIsolation(MainActor.self)` (tools 6.2) as a flag, since the sweep's manifest is 6.1:
+# the target's unannotated declarations are main-actor isolated, as in IceCubes's packages.
+DEFAULT_MAIN_ACTOR = '.unsafeFlags(["-default-isolation", "MainActor"])'
+
+
+def default_isolation_is_main_actor(value):
+    """Whether a dumped `defaultIsolation` setting is MainActor (`{"_0": "MainActor"}`, or the
+    bare value), not `nil`/nonisolated."""
+    if isinstance(value, dict):
+        value = value.get("_0", next(iter(value), None) if value else None)
+    return isinstance(value, str) and value.lower() == "mainactor"
+
+
 def swift_settings(target, traits=frozenset()):
     """The defines and upcoming features a target declares, as manifest source: the package's
     enabled traits as defines first, then the settings with no condition or a trait condition
@@ -276,6 +289,8 @@ def swift_settings(target, traits=frozenset()):
         if s.get("tool") != "swift" or named - {"traits"} or not condition_allows_traits(cond, traits):
             continue
         kind = s.get("kind") or {}
+        if "defaultIsolation" in kind and default_isolation_is_main_actor(kind["defaultIsolation"]):
+            out.append(DEFAULT_MAIN_ACTOR)
         for key, ctor in (("define", "define"), ("enableUpcomingFeature", "enableUpcomingFeature"),
                           ("enableExperimentalFeature", "enableExperimentalFeature")):
             if key in kind:
@@ -1191,7 +1206,31 @@ def xcode_settings(root: Path, conditions, regex=None):
         regex = xcode_regex_literals(root)
     if xcode_language_mode(root) == "v5" and regex:
         settings.append('.enableUpcomingFeature("BareSlashRegexLiterals")')
-    return settings
+    return settings + xcode_concurrency_settings(root)
+
+
+# Xcode 26's "Approachable Concurrency" (SWIFT_APPROACHABLE_CONCURRENCY = YES) turns these on.
+APPROACHABLE_CONCURRENCY = ["DisableOutwardActorInference", "GlobalActorIsolatedTypesUsability",
+                            "InferIsolatedConformances", "InferSendableFromCaptures", "NonisolatedNonsendingByDefault"]
+
+
+def xcode_concurrency_settings(root: Path):
+    """The concurrency defaults most of the app's Xcode targets set: "Default Actor Isolation"
+    MainActor (SWIFT_DEFAULT_ACTOR_ISOLATION, as IceCubes's targets set it, so its unannotated
+    types are main-actor isolated) and Approachable Concurrency's upcoming features."""
+    isolation, approachable = Counter(), Counter()
+    texts = [pbx.read_text(errors="replace") for pbx in root.rglob("project.pbxproj")
+             if not any(EXCLUDE_DIR.match(p) for p in pbx.relative_to(root).parts[:-2])]
+    texts += [yml.read_text(errors="replace") for yml in list(root.glob("project.yml")) + list(root.glob("*.yml"))]
+    for text in texts:
+        isolation.update(v.lower() for v in re.findall(r"SWIFT_DEFAULT_ACTOR_ISOLATION\s*[=:]\s*\"?(\w+)", text))
+        approachable.update(v.upper() for v in re.findall(r"SWIFT_APPROACHABLE_CONCURRENCY\s*[=:]\s*\"?(\w+)", text))
+    out = []
+    if isolation and isolation.most_common(1)[0][0] == "mainactor":
+        out.append(DEFAULT_MAIN_ACTOR)
+    if approachable and approachable.most_common(1)[0][0] == "YES":
+        out += [f'.enableUpcomingFeature("{f}")' for f in APPROACHABLE_CONCURRENCY]
+    return out
 
 
 def xcode_language_mode(root: Path):
