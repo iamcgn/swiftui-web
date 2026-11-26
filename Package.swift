@@ -131,7 +131,7 @@ let package = Package(
         .target(name: "AVFoundation", dependencies: ["AVFAudio", "AVCaptureHost", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "UIKitWebCore", package: "UIKitWeb"),
                                                 .product(name: "WebImageIO", package: "WebGraphics", condition: .when(platforms: [.wasi]))],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
-        .target(name: "AVKit", dependencies: ["SwiftUI", "AVFoundation"], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "AVKit", dependencies: ["SwiftUI", "AVFoundation", .product(name: "UIKit", package: "UIKitWeb")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "SwiftDataHost", swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "SwiftData", dependencies: ["SwiftDataHost", "SwiftUIWebCore", "SwiftDataMacros", .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebCombine", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // The `@Model`, `#Predicate` and `@ModelActor` macros (host-compiled, as `#Preview`'s plugin).
