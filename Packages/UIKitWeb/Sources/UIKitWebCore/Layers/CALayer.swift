@@ -205,6 +205,11 @@ open class CALayer: CALayerBase {
         didSet { if anchorPoint != oldValue { setNeedsDisplay() } }
     }
     open var zPosition: CGFloat = 0
+    /// Kept, not drawn: the painter is 2D, so a layer's back never faces the viewer.
+    open var isDoubleSided = true
+    /// Kept, not drawn: the transform CoreAnimation applies to the sublayers (a perspective
+    /// for a 3D flip); each sublayer's own transform is drawn.
+    open var sublayerTransform = CATransform3DIdentity
     open var transform = CATransform3DIdentity {
         didSet {
             if transform != oldValue {

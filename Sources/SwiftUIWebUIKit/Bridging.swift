@@ -73,11 +73,15 @@ extension Image {
 #endif
 
 extension Font {
-    /// Creates a SwiftUI font from a UIKit font: the same text style, or the same size and weight.
+    /// Creates a SwiftUI font from a UIKit font: the same text style, the same named font at
+    /// its size (a bundled font, or one made from a Core Text font), or the same size and weight.
     public init(_ uiFont: UIFont) {
         // UIFont's weight is the CSS weight UIKitWeb resolved it to.
         let weight = Font.Weight(uiFont.weight.css)
-        if let style = uiFont.textStyle, let textStyle = Self.textStyle(for: style) {
+        if uiFont.familyName != ".AppleSystemUIFont" {
+            let custom = Font.custom(uiFont.fontName, fixedSize: uiFont.pointSize)
+            self = uiFont.weight == .regular ? custom : custom.weight(weight)
+        } else if let style = uiFont.textStyle, let textStyle = Self.textStyle(for: style) {
             self = Font.system(textStyle, weight: uiFont.weight == .regular ? nil : weight)
         } else {
             self = Font.system(size: uiFont.pointSize, weight: weight)

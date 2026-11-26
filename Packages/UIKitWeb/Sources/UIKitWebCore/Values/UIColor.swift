@@ -128,6 +128,13 @@ public final class UIColor: UIObjectBase, @unchecked Sendable {
         return true
     }
 
+    /// The light value's grey level (Rec. 601 luma of its RGB) and opacity.
+    public func getWhite(_ white: UnsafeMutablePointer<CGFloat>?, alpha: UnsafeMutablePointer<CGFloat>?) -> Bool {
+        white?.pointee = 0.299 * light.red + 0.587 * light.green + 0.114 * light.blue
+        alpha?.pointee = light.alpha
+        return true
+    }
+
     /// The colour's hue, saturation and brightness in 0…1 (and its opacity).
     public func getHue(_ hue: UnsafeMutablePointer<CGFloat>?, saturation: UnsafeMutablePointer<CGFloat>?, brightness: UnsafeMutablePointer<CGFloat>?, alpha: UnsafeMutablePointer<CGFloat>?) -> Bool {
         let r = light.red, g = light.green, b = light.blue

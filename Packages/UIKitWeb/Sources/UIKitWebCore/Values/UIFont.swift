@@ -178,8 +178,14 @@ public final class UIFont: UIObjectBase, @unchecked Sendable {
     // MARK: Metrics (Docs/elements/UIKit/UIFont.md)
 
     public var pointSize: CGFloat { resolved.size }
-    public var familyName: String { resolved.family.hasPrefix("system") ? ".AppleSystemUIFont" : resolved.family }
-    public var fontName: String { familyName }
+    /// The family of a bundled font as its file names it ("Abel" for Abel-Regular), else the
+    /// name the font was made with.
+    public var familyName: String {
+        if resolved.family.hasPrefix("system") { return ".AppleSystemUIFont" }
+        return customResource?.family ?? resolved.family
+    }
+    /// The PostScript name of a bundled font ("Abel-Regular"), else the name it was made with.
+    public var fontName: String { resolved.family.hasPrefix("system") ? familyName : resolved.family }
 
     /// A text style's measured metrics (nil for a sized font or a style scaled to another category).
     private var styleMetrics: UIFontMetricsTable.TextStyleMetrics? {
