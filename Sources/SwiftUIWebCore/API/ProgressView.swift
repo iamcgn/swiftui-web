@@ -320,12 +320,17 @@ extension LinearProgressViewStyle: ProgressViewStyle {
 
 /// A progress view that visually indicates its progress using a circular gauge.
 public struct CircularProgressViewStyle {
-    public init() {}
+    let tint: Color?
+    public init() { tint = nil }
+    /// The deprecated tinted style: the spinner in `tint` (as `.tint(_:)` gives it).
+    public init(tint: Color) { self.tint = tint }
 }
 
 extension CircularProgressViewStyle: ProgressViewStyle {
     public func makeBody(configuration: Configuration) -> some View {
-        _CircularProgress(configuration: configuration)
+        _CircularProgress(configuration: configuration).transformEnvironment(\.self) { environment in
+            if let tint { environment._tint = tint }
+        }
     }
 }
 

@@ -122,9 +122,24 @@ public protocol UITextInput: UIKeyInput {
     var inputDelegate: (any UITextInputDelegate)? { get set }
     /// Finds word, line and paragraph boundaries for the input (a string tokenizer by default).
     var tokenizer: any UITextInputTokenizer { get }
+    /// The rectangles that cover a range (one per line); the range's first rectangle by default.
+    func selectionRects(for range: UITextRange) -> [UITextSelectionRect]
+}
+
+/// The selection rectangle `selectionRects(for:)` returns by default.
+final class _UITextSelectionRect: UITextSelectionRect {
+    private let _rect: CGRect
+    init(rect: CGRect) { _rect = rect; super.init() }
+    override var rect: CGRect { _rect }
+    override var containsStart: Bool { true }
+    override var containsEnd: Bool { true }
 }
 
 extension UITextInput {
+    public func selectionRects(for range: UITextRange) -> [UITextSelectionRect] {
+        let rect = firstRect(for: range)
+        return rect.isNull ? [] : [_UITextSelectionRect(rect: rect)]
+    }
     public var markedTextRange: UITextRange? { nil }
     public func setMarkedText(_ markedText: String?, selectedRange: NSRange) {}
     public func unmarkText() {}

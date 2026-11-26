@@ -130,6 +130,9 @@ public final class UIScreen {
     public var brightness: CGFloat = 1
     public var maximumFramesPerSecond: Int { 60 }
     lazy var screenCoordinateSpace = UIScreenCoordinateSpace(screen: self)
+
+    /// A screen with the main screen's defaults (the page has one screen).
+    public init() {}
 }
 
 /// The centralized point of control and coordination for apps.

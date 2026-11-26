@@ -95,6 +95,27 @@ public final class UIImage: UIObjectBase, @unchecked Sendable {
         self.init(name: file, isSystemSymbol: false, scale: scale, size: CGSize(width: pixels.width / scale, height: pixels.height / scale), data: data, pixelSize: pixels)
     }
 
+    /// An image from the file at `path` (PNG, JPEG, GIF or WebP), at the scale its name gives
+    /// ("icon@2x.png" is 2); nil when the file can't be read or isn't an image.
+    public convenience init?(contentsOfFile path: String) {
+        guard let data = FileManager.default.contents(atPath: path) else { return nil }
+        let stem = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
+        let scale: CGFloat = stem.hasSuffix("@3x") ? 3 : stem.hasSuffix("@2x") ? 2 : 1
+        self.init(data: data, scale: scale)
+    }
+
+    /// How a resizable image fills the area between its caps.
+    public enum ResizingMode: Int, Sendable {
+        case tile = 0
+        case stretch = 1
+    }
+
+    /// The image, to be stretched or tiled between caps. The painters scale the whole image
+    /// into the rectangle it's drawn in, so the caps stretch with the rest.
+    public func resizableImage(withCapInsets capInsets: UIEdgeInsets, resizingMode: ResizingMode) -> UIImage { self }
+    public func resizableImage(withCapInsets capInsets: UIEdgeInsets) -> UIImage { self }
+    public func stretchableImage(withLeftCapWidth leftCapWidth: Int, topCapHeight: Int) -> UIImage { self }
+
     /// The page file the image's pixels load from (SceneKit's textures): its bytes as a data
     /// URL, or the catalog's largest variant; nil for drawings and symbols.
     @preconcurrency @MainActor

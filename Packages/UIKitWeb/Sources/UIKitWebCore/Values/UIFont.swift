@@ -88,6 +88,9 @@ public final class UIFont: UIObjectBase, @unchecked Sendable {
 
     /// The font as the text engine measures and paints it.
     public let resolved: ResolvedFont
+    /// The family of the bundled font `init(name:size:)` found in the catalog, read there on the
+    /// main actor so that the name can be read from any thread.
+    private(set) var bundledFamily: String?
     public let weight: Weight
     /// The text style this font was made for, if any (`preferredFont(forTextStyle:)`).
     public let textStyle: TextStyle?
@@ -150,6 +153,7 @@ public final class UIFont: UIObjectBase, @unchecked Sendable {
     public convenience init?(name: String, size: CGFloat) {
         let resource = MainActor.assumeIsolated { UIKitScene.shared.assetCatalog.font(named: name) }
         self.init(resolved: ResolvedFont(family: resource?.postScriptName ?? name, size: size, weight: .regular, italic: false, textStyle: nil, profile: "iOS"), weight: .regular)
+        bundledFamily = resource?.family
     }
 
     /// The bundled font behind a custom family, if the catalog has it, else a font iOS ships
@@ -172,14 +176,30 @@ public final class UIFont: UIObjectBase, @unchecked Sendable {
         var font = resolved
         font.size = size
         font.textStyle = nil
-        return UIFont(resolved: font, weight: weight, textStyle: nil)
+        let sized = UIFont(resolved: font, weight: weight, textStyle: nil)
+        sized.bundledFamily = bundledFamily
+        return sized
     }
 
     // MARK: Metrics (Docs/elements/UIKit/UIFont.md)
 
     public var pointSize: CGFloat { resolved.size }
-    public var familyName: String { resolved.family.hasPrefix("system") ? ".AppleSystemUIFont" : resolved.family }
-    public var fontName: String { familyName }
+    /// The family of a bundled font as its file names it ("Abel" for Abel-Regular), else the
+    /// name the font was made with.
+    public var familyName: String {
+        if resolved.family.hasPrefix("system") { return ".AppleSystemUIFont" }
+        if let bundledFamily { return bundledFamily }
+        // The asset catalog is the main actor's, which a page's code always runs on; elsewhere,
+        // as in a test off the main actor, only the fonts iOS ships are known by their files.
+        #if os(WASI)
+        let bundled = customResource
+        #else
+        let bundled = Self.installedFonts[resolved.family]
+        #endif
+        return bundled?.family ?? resolved.family
+    }
+    /// The PostScript name of a bundled font ("Abel-Regular"), else the name it was made with.
+    public var fontName: String { resolved.family.hasPrefix("system") ? familyName : resolved.family }
 
     /// A text style's measured metrics (nil for a sized font or a style scaled to another category).
     private var styleMetrics: UIFontMetricsTable.TextStyleMetrics? {

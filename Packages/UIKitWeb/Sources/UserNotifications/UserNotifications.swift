@@ -116,6 +116,16 @@ public final class UNNotificationSound: @unchecked Sendable {
     public static let `default` = UNNotificationSound()
     public static let defaultCritical = UNNotificationSound()
     public static func named(_ name: String) -> UNNotificationSound { UNNotificationSound() }
+    init() {}
+    /// A sound file in the app bundle; the page plays no notification sounds.
+    public init(named name: UNNotificationSoundName) {}
+}
+
+/// The name of a sound file in the app bundle.
+public struct UNNotificationSoundName: Hashable, Sendable, RawRepresentable {
+    public let rawValue: String
+    public init(rawValue: String) { self.rawValue = rawValue }
+    public init(_ rawValue: String) { self.rawValue = rawValue }
 }
 
 /// When a notification fires.

@@ -112,6 +112,13 @@ public final class UIGraphicsRecordingContext {
     /// Accepted: the painters always antialias.
     public func setShouldAntialias(_ flag: Bool) {}
     public func setAllowsAntialiasing(_ flag: Bool) {}
+    /// Accepted: the browser smooths and subpixel-positions text as it does for the page.
+    public func setShouldSmoothFonts(_ flag: Bool) {}
+    public func setAllowsFontSmoothing(_ flag: Bool) {}
+    public func setShouldSubpixelPositionFonts(_ flag: Bool) {}
+    public func setAllowsFontSubpixelPositioning(_ flag: Bool) {}
+    public func setShouldSubpixelQuantizeFonts(_ flag: Bool) {}
+    public func setAllowsFontSubpixelQuantization(_ flag: Bool) {}
     public func interpolationQuality(_ quality: Int) {}
 
     static func blendMode(_ mode: CGBlendMode) -> BlendMode? {

@@ -181,6 +181,8 @@ extension UIApplication {
     public static let willEnterForegroundNotification = Notification.Name("UIApplicationWillEnterForegroundNotification")
     public static let willTerminateNotification = Notification.Name("UIApplicationWillTerminateNotification")
     public static let didReceiveMemoryWarningNotification = Notification.Name("UIApplicationDidReceiveMemoryWarningNotification")
+    /// Posted at midnight and when the clock or time zone changes; the page posts none.
+    public static let significantTimeChangeNotification = Notification.Name("UIApplicationSignificantTimeChangeNotification")
 
     /// The scenes connected to the app: the host's one window scene.
     public var connectedScenes: Set<UIScene> { [UIKitScene.shared.windowScene] }

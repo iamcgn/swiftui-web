@@ -38,6 +38,15 @@ public struct MKCoordinateRegion: Hashable, Sendable {
         let lonDelta = longitudinalMeters / (111_320 * max(0.01, _cosDegrees(center.latitude)))
         span = MKCoordinateSpan(latitudeDelta: latDelta, longitudeDelta: lonDelta)
     }
+    /// The region a map rectangle covers: its centre, and the latitudes and longitudes between
+    /// its corners.
+    public init(_ rect: MKMapRect) {
+        let topLeft = MKMapPoint(x: rect.origin.x, y: rect.origin.y).coordinate
+        let bottomRight = MKMapPoint(x: rect.origin.x + rect.size.width, y: rect.origin.y + rect.size.height).coordinate
+        center = MKMapPoint(x: rect.origin.x + rect.size.width / 2, y: rect.origin.y + rect.size.height / 2).coordinate
+        span = MKCoordinateSpan(latitudeDelta: abs(topLeft.latitude - bottomRight.latitude),
+                                longitudeDelta: abs(bottomRight.longitude - topLeft.longitude))
+    }
 }
 
 func _cosDegrees(_ degrees: Double) -> Double { _cos(degrees * .pi / 180) }
