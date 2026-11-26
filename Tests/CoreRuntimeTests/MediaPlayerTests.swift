@@ -107,6 +107,10 @@ private final class Song: MPMediaItem, @unchecked Sendable {
         formatter.locale = Locale(identifier: "de_DE")
         #expect(formatter.string(fromDistance: 500) == "500 m")
         #expect(formatter.string(fromDistance: 25_000) == "25 km")
+        #expect(formatter.string(fromDistance: 1_200) == "1,2 km")
+        #expect(formatter.string(fromDistance: 1_250_000) == "1.250 km")
+        #expect(formatter.distance(from: "1,2 km") == 1_200)
+        #expect(formatter.distance(from: "1.250 km") == 1_250_000)
         formatter.unitStyle = .full
         #expect(formatter.string(fromDistance: 1000) == "1 kilometer")
     }

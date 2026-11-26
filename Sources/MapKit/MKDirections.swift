@@ -6,6 +6,7 @@
 // distance formatter writes distances in the locale's units, as Maps' search results do.
 #if os(WASI)
 import WebFoundation
+import WebFoundationFormats   // Locale's decimal and grouping separators
 #else
 import Foundation
 #endif
@@ -257,13 +258,48 @@ open class MKDistanceFormatter: Formatter, @unchecked Sendable {
         }
     }
 
+    /// A rounded value in the locale's digits: its decimal separator before a tenth, its grouping
+    /// separator between thousands ("1,2" and "1.250" for de_DE). Unit names stay English.
+    private func written(_ value: Double) -> String {
+        let whole = Int(value.rounded(.down))
+        let tenth = Int(((value - Double(whole)) * 10).rounded())
+        var digits = String(whole)
+        if whole >= 1000 {
+            var grouped = ""
+            for (index, digit) in digits.reversed().enumerated() {
+                if index > 0, index % 3 == 0 { grouped = (locale.groupingSeparator ?? ",") + grouped }
+                grouped = String(digit) + grouped
+            }
+            digits = grouped
+        }
+        return tenth == 0 ? digits : digits + (locale.decimalSeparator ?? ".") + String(tenth)
+    }
+
+    /// A number written in the locale's digits, or in plain digits.
+    private func read(_ text: String) -> Double? {
+        let decimal = locale.decimalSeparator ?? ".", grouping = locale.groupingSeparator ?? ","
+        var plain = ""
+        var rest = Substring(text)
+        while let first = rest.first {
+            if rest.hasPrefix(grouping), grouping != decimal {
+                rest = rest.dropFirst(grouping.count)
+            } else if rest.hasPrefix(decimal) {
+                plain += "."
+                rest = rest.dropFirst(decimal.count)
+            } else {
+                plain.append(first)
+                rest = rest.dropFirst()
+            }
+        }
+        return Double(plain)
+    }
+
     /// The distance, in meters, written in the formatter's units.
     open func string(fromDistance distance: CLLocationDistance) -> String {
         let full = unitStyle == .full
         func write(_ value: Double, _ short: String, _ one: String, _ many: String) -> String {
             let rounded = value < 10 ? (value * 10).rounded() / 10 : value.rounded()
-            let number = rounded == rounded.rounded() ? String(Int(rounded)) : String(rounded)
-            return number + " " + (full ? (rounded == 1 ? one : many) : short)
+            return written(rounded) + " " + (full ? (rounded == 1 ? one : many) : short)
         }
         let meters = max(distance, 0)
         if usesImperial {
@@ -281,7 +317,7 @@ open class MKDistanceFormatter: Formatter, @unchecked Sendable {
     /// The distance, in meters, that a string the formatter writes stands for.
     open func distance(from distance: String) -> CLLocationDistance {
         let parts = distance.split(separator: " ")
-        guard parts.count == 2, let value = Double(parts[0]) else { return 0 }
+        guard parts.count == 2, let value = read(String(parts[0])) else { return 0 }
         switch parts[1] {
         case "mi", "mile", "miles": return value * 1609.344
         case "yd", "yard", "yards": return value * 0.9144

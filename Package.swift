@@ -114,7 +114,7 @@ let package = Package(
         // Map, VideoPlayer and WebView (sw-frameworks): painted tiles, host elements over the canvas.
         .target(name: "CoreLocationHost", swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "CoreLocation", dependencies: ["CoreLocationHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
-        .target(name: "MapKit", dependencies: ["SwiftUI", "CoreLocation"], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "MapKit", dependencies: ["SwiftUI", "CoreLocation", .product(name: "WebFoundationFormats", package: "WebGraphics", condition: .when(platforms: [.wasi]))], swiftSettings: [.treatAllWarnings(as: .error)]),
         // Scene graphs drawn by projecting their triangles on the CPU, far to near, with flat shading.
         .target(name: "SceneKit", dependencies: ["SwiftUI", .product(name: "UIKit", package: "UIKitWeb"), .product(name: "WebFoundation", package: "WebGraphics")],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
