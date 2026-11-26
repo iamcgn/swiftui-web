@@ -117,6 +117,17 @@ extension StringProtocol {
         return String(self[r])
     }
 
+    /// The characters in the range of the string's indices (Foundation's, as OldOS's App Store
+    /// reads an app's id out of its link), deprecated as Foundation's is.
+    @available(swift, deprecated: 4.0, message: "Please use String slicing subscript.")
+    public func substring(with aRange: Range<Index>) -> String { String(self[aRange]) }
+
+    @available(swift, deprecated: 4.0, message: "Please use String slicing subscript with a 'partial range from' operator.")
+    public func substring(from index: Index) -> String { String(self[index...]) }
+
+    @available(swift, deprecated: 4.0, message: "Please use String slicing subscript with a 'partial range upto' operator.")
+    public func substring(to index: Index) -> String { String(self[..<index]) }
+
     public func substring(from index: Int) -> String {
         let whole = String(self)
         let utf16 = whole.utf16

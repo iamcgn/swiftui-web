@@ -141,7 +141,7 @@ open class MKLocalSearchCompletion: NSObject, @unchecked Sendable {
 }
 
 /// Carries a value the compiler can't prove sendable into the main actor's callback.
-private final class _Carried<Value>: @unchecked Sendable {
+final class _Carried<Value>: @unchecked Sendable {
     let value: Value
     init(_ value: Value) { self.value = value }
 }

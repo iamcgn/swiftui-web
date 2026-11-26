@@ -13,7 +13,25 @@ private let english = Locale(identifier: "en_US")
 private protocol CurrencyNaming { var currencyCode: String? { get } }
 extension Locale: CurrencyNaming {}
 
+/// Reads String's index-range substrings without their deprecation (OldOS's App Store calls
+/// them, and warnings are errors here).
+private protocol IndexSubstrings {
+    func substring(with aRange: Range<String.Index>) -> String
+    func substring(from index: String.Index) -> String
+    func substring(to index: String.Index) -> String
+}
+extension String: IndexSubstrings {}
+
 @Suite struct FoundationFormatTests {
+    @Test func indexRangeSubstrings() {
+        let link = "https://apps.example/app/id12345?mt=8"
+        let text = link as any IndexSubstrings
+        let start = link.firstIndex(of: "d")!, end = link.firstIndex(of: "?")!
+        #expect(text.substring(with: start..<end) == "d12345")
+        #expect(text.substring(from: end) == "?mt=8")
+        #expect(text.substring(to: start) == "https://apps.example/app/i")
+    }
+
     @Test func currencies() {
         func code(_ identifier: String) -> String? { (Locale(identifier: identifier) as any CurrencyNaming).currencyCode }
         #expect(code("en_US") == "USD")
@@ -23,6 +41,21 @@ extension Locale: CurrencyNaming {}
         #expect(Locale(identifier: "en_US").currencySymbol == "$")
         #expect(Locale(identifier: "de_DE").currencySymbol == "€")
         #expect(Locale(identifier: "en_GB").currencySymbol == "£")
+    }
+
+    @Test func separators() {
+        func both(_ identifier: String) -> [String?] {
+            let locale = Locale(identifier: identifier)
+            return [locale.decimalSeparator, locale.groupingSeparator]
+        }
+        #expect(both("en_US") == [".", ","])
+        #expect(both("de_DE") == [",", "."])
+        #expect(both("fr_FR") == [",", "\u{202F}"])
+        #expect(both("de_CH") == [".", "\u{2019}"])
+        #expect(both("pt_BR") == [",", "."])
+        #expect(both("es_MX") == [".", ","])
+        #expect(both("ru_RU") == [",", "\u{00A0}"])
+        #expect(both("ja_JP") == [".", ","])
     }
 
     @Test func decimals() {
