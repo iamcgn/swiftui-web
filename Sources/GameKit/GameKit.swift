@@ -47,9 +47,6 @@ public struct GKError: Error, Hashable, Sendable, CustomStringConvertible {
     public static var notSupported: Code { .notSupported }
     public static var invalidParameter: Code { .invalidParameter }
 
-    /// `catch GKError.notAuthenticated` matches an error with that code.
-    public static func ~= (code: Code, error: any Error) -> Bool { (error as? GKError)?.code == code }
-
     public var errorCode: Int { code.rawValue }
     public var description: String {
         switch code {
@@ -62,6 +59,11 @@ public struct GKError: Error, Hashable, Sendable, CustomStringConvertible {
 }
 
 public let GKErrorDomain = GKError.errorDomain
+
+extension GKError.Code {
+    /// `catch GKError.notAuthenticated` matches an error with that code.
+    public static func ~= (code: Self, error: any Error) -> Bool { (error as? GKError)?.code == code }
+}
 
 /// Runs a completion handler on the main actor after the call returns, as Game Center does.
 private func _gkLater(_ body: @escaping @MainActor () -> Void) {
