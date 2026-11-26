@@ -6,7 +6,6 @@
 // distance formatter writes distances in the locale's units, as Maps' search results do.
 #if os(WASI)
 import WebFoundation
-import WebFoundationFormats   // Locale's decimal and grouping separators
 #else
 import Foundation
 #endif
