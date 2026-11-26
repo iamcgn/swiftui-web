@@ -105,6 +105,11 @@ public struct AreaMark: _RecordMark {
         var r = _MarkRecord(kind: .area); r.setX(x); r.setY(y); r.dodge = series.plotValue.label; _record = r
     }
 
+    /// A band between two values per x, one band per series (FoodTruck's weather card).
+    public init<X: Plottable, Y: Plottable, S: Plottable>(x: PlottableValue<X>, yStart: PlottableValue<Y>, yEnd: PlottableValue<Y>, series: PlottableValue<S>) {
+        var r = _MarkRecord(kind: .area); r.setX(x); r.setYRange(yStart, yEnd); r.dodge = series.plotValue.label; _record = r
+    }
+
     public init<X: Plottable, Y: Plottable>(xStart: PlottableValue<X>, xEnd: PlottableValue<X>, y: PlottableValue<Y>) {
         var r = _MarkRecord(kind: .area); r.setXRange(xStart, xEnd); r.setY(y); _record = r
     }

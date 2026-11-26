@@ -98,8 +98,8 @@ package struct _ChartModel {
         self.records = records
         resolveSeries(configuration)
         stack()
-        x = Self.makeScale(records: self.records, axis: .horizontal, configured: configuration.xDomain, marks: configuration.xAxis.marks)
-        y = Self.makeScale(records: self.records, axis: .vertical, configured: configuration.yDomain, marks: configuration.yAxis.marks)
+        x = Self.makeScale(records: self.records, axis: .horizontal, configured: configuration.xDomain, includesZero: configuration.xIncludesZero, marks: configuration.xAxis.marks)
+        y = Self.makeScale(records: self.records, axis: .vertical, configured: configuration.yDomain, includesZero: configuration.yIncludesZero, marks: configuration.yAxis.marks)
         y.reversed = y.isNominal
     }
 
@@ -187,7 +187,7 @@ package struct _ChartModel {
         }
     }
 
-    private static func makeScale(records: [_MarkRecord], axis: Axis, configured: _ScaleDomain?, marks: [AxisMarks]?) -> _Scale {
+    private static func makeScale(records: [_MarkRecord], axis: Axis, configured: _ScaleDomain?, includesZero wantsZero: Bool?, marks: [AxisMarks]?) -> _Scale {
         var scale = _Scale()
         var values: [_PlotValue] = []
         var unit: Calendar.Component?
@@ -197,8 +197,9 @@ package struct _ChartModel {
             values += own.compactMap { $0 }
             if axis == .horizontal, let u = r.xUnit { unit = u }
             if axis == .vertical, let u = r.yUnit { unit = u }
-            // A quantitative scale includes zero (Swift Charts' default for every mark).
-            includesZero = true
+            // A quantitative scale includes zero (Swift Charts' default for every mark), unless
+            // `chartYScale(domain: .automatic(includesZero: false))` says not to.
+            includesZero = wantsZero ?? true
         }
         scale.unit = unit
         switch configured {
@@ -240,6 +241,7 @@ package struct _ChartModel {
         case .quantitative:
             var lo = scale.domain.lowerBound, hi = scale.domain.upperBound
             var step: Double
+            var roundLower = true, roundUpper = true
             switch values {
             case .strideBy(let s): step = s
             case .values(let v):
@@ -249,15 +251,16 @@ package struct _ChartModel {
                 scale.ticks = numbers.map { n in _Tick(value: .number(n), label: _formatNumber(n), fraction: scale.fraction(of: .number(n)) ?? 0) }
                 return
             default:
-                var desiredCount: Int?
-                if case .automatic(let d) = values { desiredCount = d }
+                var desiredCount: Int?, minimumStride: Double?
+                if case .automatic(let d, let m, let rl, let ru) = values { desiredCount = d; minimumStride = m; roundLower = rl ?? true; roundUpper = ru ?? true }
                 let intervals = max(1, (desiredCount.map { $0 - 1 }) ?? min(max(Int(length / 60), 4), 10))
                 let span = hi - lo
                 step = span > 0 ? niceStep(span / Double(intervals)) : niceStep(max(abs(hi), 1) / Double(intervals))
+                if let m = minimumStride, m > 0 { step = max(step, niceStep(m)) }
             }
             if !fixedDomain {
-                lo = (lo / step).rounded(.down) * step
-                hi = (hi / step).rounded(.up) * step
+                if roundLower { lo = (lo / step).rounded(.down) * step }
+                if roundUpper { hi = (hi / step).rounded(.up) * step }
                 if hi == lo { hi = lo + step }
             }
             scale.domain = lo...hi

@@ -293,6 +293,48 @@ import Charts
         #expect(month == "Jan")
     }
 
+    @Test func automaticValuesKeepAMinimumStride() {
+        // FoodTruck's temperature axis: six marks wanted, no closer than 5 apart, the scale fitted
+        // to the data (51 to 62), and the lower bound left where the data starts.
+        func labels(_ values: AxisMarkValues) -> [String] {
+            let temperatures = [51.0, 55.0, 58.0, 62.0]
+            let (_, commands) = render(Chart(temperatures, id: \.self) { t in
+                LineMark(x: .value("X", "\(t)"), y: .value("Y", t))
+            }
+            .chartYScale(domain: .automatic(includesZero: false))
+            .chartYAxis { AxisMarks(values: values) { _ in AxisValueLabel() } }
+            .chartXAxis(.hidden)
+            .padding(16))
+            return drawn(commands)
+        }
+        #expect(labels(.automatic(minimumStride: 5, desiredCount: 6, roundLowerBound: false)) == ["55", "60", "65"])
+        #expect(labels(.automatic(minimumStride: 5, desiredCount: 6, roundLowerBound: true)) == ["50", "55", "60", "65"])
+        // A fractional stride (Swift Charts' BinaryFloatingPoint overload).
+        let stride: Double = 0.5
+        #expect(labels(.automatic(minimumStride: stride * 10, desiredCount: 6)) == ["50", "55", "60", "65"])
+    }
+
+    @Test func dateBinsStepByCalendarUnits() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        let start = Date(timeIntervalSinceReferenceDate: 5400)      // 01:30
+        let end = Date(timeIntervalSinceReferenceDate: 36000)       // 10:00
+        let bins = DateBins(unit: .hour, by: 3, calendar: calendar, range: start...end)
+        #expect(bins.thresholds.map(\.timeIntervalSinceReferenceDate) == [3600, 14400, 25200, 36000])
+        #expect(bins.count == 3 && bins[1].lowerBound.timeIntervalSinceReferenceDate == 14400)
+        #expect(bins.index(for: start) == 0 && bins.index(for: end) == 2)
+        #expect(DateBins(timeInterval: 3600, range: start...end).thresholds.count == 10)
+    }
+
+    @Test func areaRangesBySeries() {
+        // FoodTruck's weather card: one band per series between a low and each value.
+        let out = records {
+            AreaMark(x: .value("Hour", 1), yStart: .value("T", 50), yEnd: .value("T", 60), series: .value("S", "A"))
+            AreaMark(x: .value("Hour", 1), yStart: .value("T", 50), yEnd: .value("T", 70), series: .value("S", "B"))
+        }
+        #expect(out.map(\.dodge) == ["A", "B"] && out.map(\.kind) == [.area, .area])
+    }
+
     @Test func axisMarksCustomise() {
         let (_, commands) = render(Chart(Self.sales) { sale in
             BarMark(x: .value("Month", sale.month), y: .value("Sales", sale.amount))
