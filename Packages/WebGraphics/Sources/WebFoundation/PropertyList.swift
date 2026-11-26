@@ -50,6 +50,19 @@ public final class PropertyListSerialization {
         format?.pointee = found
         return value.object
     }
+
+    /// The property list read from the stream, which must be open: its remaining bytes, read to
+    /// the end (HTMLString decodes its entity table this way).
+    public class func propertyList(with stream: InputStream, options opt: ReadOptions = [], format: UnsafeMutablePointer<PropertyListFormat>?) throws -> Any {
+        var bytes: [UInt8] = []
+        var buffer = [UInt8](repeating: 0, count: 4096)
+        while true {
+            let count = stream.read(&buffer, maxLength: buffer.count)
+            if count <= 0 { break }
+            bytes += buffer[0..<count]
+        }
+        return try propertyList(from: Data(bytes), options: opt, format: format)
+    }
 }
 
 /// An error in NSCocoaErrorDomain with a property-list code (3840 corrupt input, 3851 a value

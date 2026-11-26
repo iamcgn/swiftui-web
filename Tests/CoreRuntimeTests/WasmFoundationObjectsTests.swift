@@ -104,5 +104,44 @@ import WebFoundation
         #expect(try Data(contentsOf: url) == Data("ahe".utf8))
         try FileManager.default.removeItem(at: url)
     }
+
+    /// Errors and streams are `Hashable` as `NSObject`s are, so values holding them can be
+    /// (composable-core-location's `LocationManager.Error`, Apollo's multipart body parts).
+    @Test func errorsAndStreamsAreHashable() {
+        struct Part: Hashable { let error: NSError; let stream: InputStream }
+        let stream = InputStream(data: Data())
+        let part = Part(error: NSError(domain: "d", code: 1), stream: stream)
+        #expect(part == Part(error: NSError(domain: "d", code: 1), stream: stream))
+        #expect(part != Part(error: NSError(domain: "d", code: 2), stream: stream))
+        #expect(part != Part(error: NSError(domain: "d", code: 1), stream: InputStream(data: Data())))
+        #expect(Set([part, Part(error: NSError(domain: "d", code: 1), stream: stream)]).count == 1)
+    }
+
+    @Test func propertyListReadsFromAStream() throws {
+        let table = try PropertyListSerialization.data(fromPropertyList: ["amp": "&", "lt": "<"], format: .binary, options: 0)
+        let stream = InputStream(data: table)
+        stream.open()
+        var format = PropertyListSerialization.PropertyListFormat.xml
+        let read = try PropertyListSerialization.propertyList(with: stream, options: [], format: &format) as? [String: String]
+        #expect(read == ["amp": "&", "lt": "<"] && format == .binary)
+    }
+
+    /// A substring's bytes are this module's `Data` with nothing to pick the type (Apollo hands
+    /// `dataString.prefix(upTo: index).data(using: .utf8)` to a `Data` parameter).
+    @Test func substringBytesAreThisModulesData() {
+        let text = "head--tail"
+        let head = text.prefix(4).data(using: .utf8)
+        let tail = text.suffix(4).data(using: .ascii, allowLossyConversion: true)
+        let both: [Data?] = [head, tail]
+        #expect(both.map { $0.map { Array($0) } } == [Array("head".utf8), Array("tail".utf8)])
+        #expect("héllo".prefix(3).data(using: .ascii) == nil)
+    }
+
+    @Test func aTaskMadeWithInitHasNothingToSend() {
+        let task = URLSessionTask()
+        #expect(task.originalRequest == nil && task.taskIdentifier == 0 && task.state == .suspended)
+        task.resume()
+        #expect(task.state == .running && task.response == nil)
+    }
 }
 #endif

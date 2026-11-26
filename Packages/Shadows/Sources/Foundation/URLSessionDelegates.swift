@@ -45,6 +45,7 @@ import WebFoundation
     @objc optional func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse,
                                    completionHandler: @escaping @Sendable (CachedURLResponse?) -> Void)
     @objc optional func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask)
+    @objc optional func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome streamTask: URLSessionStreamTask)
 }
 
 /// What a session tells its delegate about a download task.

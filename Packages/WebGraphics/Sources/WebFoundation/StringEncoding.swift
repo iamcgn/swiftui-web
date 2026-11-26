@@ -324,4 +324,19 @@ extension String {
         NSError(domain: NSCocoaErrorDomain, code: _MemoryFiles.exists(url) ? code : 260, userInfo: [NSFilePathErrorKey: url.path])
     }
 }
+
+extension Substring {
+    /// A substring's bytes as this module's `Data`, as `String`'s forms give them.
+    /// FoundationEssentials' `StringProtocol` form answers its own `Data`, which a `Data`
+    /// parameter here doesn't take (Apollo's `dataString.prefix(upTo: index).data(using: .utf8)`);
+    /// a context that wants that `Data` still gets it from that form.
+    public func data(using encoding: String.Encoding, allowLossyConversion: Bool = false) -> Data? {
+        guard let core = encoding._core, let bytes = _TextEncoding.encode(String(self), as: core, lossy: allowLossyConversion) else { return nil }
+        return Data(bytes)
+    }
+    /// The form without the lossy flag, which a call that leaves it out picks.
+    public func data(using encoding: String.Encoding) -> Data? {
+        data(using: encoding, allowLossyConversion: false)
+    }
+}
 #endif
