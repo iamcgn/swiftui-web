@@ -117,11 +117,29 @@ const loaded = async () => {
   await page.waitForTimeout(300);
 };
 // A story row: its rank, then a title, a host, points and an author (the texts between two ranks).
-const pixel = (x, y) => page.evaluate(([x, y]) => { const c = document.querySelector('canvas'); const s = c.width / c.clientWidth; const d = c.getContext('2d').getImageData(Math.round(x * s), Math.round(y * s), 1, 1).data; return [d[0], d[1], d[2]]; }, [x, y]);
 const dark = (p) => p[0] < 40 && p[1] < 40 && p[2] < 40;
-// Whether a region is dark: most of a grid of samples around (x, y) (a single pixel can land on
-// a title's white glyph — the live feed's titles differ run to run).
-const mostlyDark = async (x, y) => { let n = 0, total = 0; for (const dx of [-120, -60, 0, 60, 120]) for (const dy of [-30, 0, 30]) { total++; if (dark(await pixel(x + dx, y + dy))) n++; } return n * 2 > total; };
+// Whether the background of a region is dark: most of a grid of samples around (x, y) that fall
+// clear of every painted text and image. A sample on a glyph or a thumbnail says nothing about
+// the background (the live feed's titles differ run to run: white headline glyphs over a dark
+// feed once left 7 of 15 fixed samples dark, #341, and black glyphs over a light one could pass
+// it). Text spans are estimated from the display list: the baseline, the font size and a
+// generous 0.62 em per character.
+const sampleGrid = (x, y) => { const points = []; for (let dy = -30; dy <= 30; dy += 10) for (let dx = -120; dx <= 120; dx += 20) points.push([x + dx, y + dy]); return points; };
+const backgroundSamples = (x, y) => page.evaluate((points) => {
+  const covers = [];
+  for (const c of window.__swiftuiwebDebug.displayList()) {
+    let m = c.match(/^drawText\("((?:[^"\\]|\\.)*)" \S+ ([\d.]+) w\d+ at ([-\d.]+),([-\d.]+)/);
+    if (m) { const size = +m[2], left = +m[3], base = +m[4]; covers.push([left - 2, base - size * 1.05 - 2, left + [...m[1]].length * size * 0.62 + 2, base + size * 0.35 + 2]); continue; }
+    m = c.match(/^drawImage\(\S+ @[\d.]+x \(([-\d.]+), ([-\d.]+), ([-\d.]+), ([-\d.]+)\)/);
+    if (m) covers.push([+m[1] - 2, +m[2] - 2, +m[1] + +m[3] + 2, +m[2] + +m[4] + 2]);
+  }
+  const canvas = document.querySelector('canvas'); const scale = canvas.width / canvas.clientWidth; const ctx = canvas.getContext('2d');
+  return points.filter(([px, py]) => !covers.some(([l, t, r, b]) => px >= l && px <= r && py >= t && py <= b))
+    .map(([px, py]) => { const d = ctx.getImageData(Math.round(px * scale), Math.round(py * scale), 1, 1).data; return [px, py, d[0], d[1], d[2]]; });
+}, sampleGrid(x, y));
+// At least 10 background samples (of 91, over the same 240 by 60 pt region as the old 15) are
+// needed to judge; fewer reads as not dark, and the failure detail says how many there were.
+const mostlyDark = async (x, y) => { const s = await backgroundSamples(x, y); const n = s.filter(p => dark(p.slice(2))).length; return s.length >= 10 && n * 2 > s.length; };
 const frames = () => page.evaluate(() => Array.from(document.querySelectorAll('iframe')).map(f => ({ src: f.src, width: Math.round(f.getBoundingClientRect().width), height: Math.round(f.getBoundingClientRect().height), open: (f.parentElement.querySelector('a[target="_blank"]') || {}).href || null })));
 const idle = async () => { for (let i = 0; i < 40; i++) { const a = await page.evaluate(() => window.__swiftuiwebDebug.frameCount()); await page.waitForTimeout(300); if (a === await page.evaluate(() => window.__swiftuiwebDebug.frameCount())) return; } };
 const control = async (label) => { const box = await page.locator(`[aria-label="${label}"]`).first().boundingBox().catch(() => null); return box; };
@@ -206,8 +224,8 @@ if (feedDark && feedLooks > 1) report.notes.push(`the feed painted dark on look 
 let darkDetail = '';
 if (!feedDark) {
   await shot('2-feed-not-dark');
-  const samples = [];
-  for (const dy of [-30, 0, 30]) for (const dx of [-120, -60, 0, 60, 120]) samples.push((await pixel(195 + dx, 560 + dy)).join('.'));
+  const background = await backgroundSamples(195, 560);
+  const samples = [`${background.filter(p => dark(p.slice(2))).length}/${background.length} background samples dark:`, ...background.map(p => `${p[0]},${p[1]}=${p.slice(2).join('.')}`)];
   const fills = await page.evaluate(() => window.__swiftuiwebDebug.displayList().filter(c => /^fill(Rect|RRect|Path)/.test(c)).slice(0, 8).map(c => c.slice(0, 120)));
   darkDetail = `; rows when Dark was picked: ${rowsAtDark}; samples ${samples.join(' ')}; first fills ${JSON.stringify(fills)}`;
 }
