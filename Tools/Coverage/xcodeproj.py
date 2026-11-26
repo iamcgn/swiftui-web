@@ -165,6 +165,20 @@ class Project:
         words = [w.strip('"').upper() for w in words or []]
         return not words or words[-1] != "NO"
 
+    def concurrency(self, target):
+        """The concurrency defaults a Debug build of the target sets: whether its unannotated
+        declarations are main-actor isolated (`SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`) and
+        whether Approachable Concurrency is on (`SWIFT_APPROACHABLE_CONCURRENCY = YES`), each its
+        own setting, else the project's where it inherits or sets none, else off as Xcode has it."""
+        def last(key):
+            own = self.setting_in(target.get("buildConfigurationList"), key)
+            project = self.setting_in(self.project.get("buildConfigurationList"), key)
+            words = project if own is None else [w for x in own for w in ((project or []) if x == "$(inherited)" else [x])]
+            words = [w.strip('"').lower() for w in words or []]
+            return words[-1] if words else None
+        return {"main_actor": last("SWIFT_DEFAULT_ACTOR_ISOLATION") == "mainactor",
+                "approachable": last("SWIFT_APPROACHABLE_CONCURRENCY") == "yes"}
+
     def targets(self):
         return [(tid, self.obj(tid)) for tid in self.project.get("targets", [])
                 if self.obj(tid).get("isa") == "PBXNativeTarget"]
@@ -239,8 +253,8 @@ class Project:
 
 def app_target_files(root: Path, pbx_files, ios_only=False):
     """The iOS app target's name, its Swift files (and those of the frameworks it builds), the
-    folder holding its project, its Debug compilation conditions and whether its Debug build
-    parses bare-slash regex literals, from the project whose
+    folder holding its project, its Debug compilation conditions, whether its Debug build
+    parses bare-slash regex literals and its concurrency defaults, from the project whose
     application is likeliest the iOS app; None when no project says (or, with `ios_only`, when
     none builds an iOS application)."""
     candidates = []
@@ -278,4 +292,5 @@ def app_target_files(root: Path, pbx_files, ios_only=False):
     if not files:
         return None
     return (project.obj(tid).get("name", ""), {f.as_posix() for f in files}, project.base,
-            project.compilation_conditions(project.obj(tid)), project.regex_literals(project.obj(tid)))
+            project.compilation_conditions(project.obj(tid)), project.regex_literals(project.obj(tid)),
+            project.concurrency(project.obj(tid)))
