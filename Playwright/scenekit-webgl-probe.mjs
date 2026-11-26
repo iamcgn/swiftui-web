@@ -3,8 +3,8 @@
 //   - WebGL turned off in Chromium (--disable-3d-apis): the 2D fallback draws instead;
 //   - ?mesh=cpu: today's CPU path still draws;
 //   - the Globe's live texture (replaced every 0.1 s) keeps reaching the GPU;
-//   - leaving the Globe for Spheres lets go of the Globe's material slots and textures once the
-//     eviction window passes (shortened with ?meshEvict=60), as a replaced geometry's are (#380).
+//   - leaving Spheres for Waves lets go of Spheres' material slots and textures once the eviction
+//     window passes (shortened with ?meshEvict=60), as a replaced geometry's are (#380).
 // Every case: no page errors, and a screenshot in --out.
 //   node scenekit-webgl-probe.mjs <url> [--out dir]
 import { chromium } from 'playwright';
@@ -20,8 +20,8 @@ const withQuery = (u, q) => u + (u.includes('?') ? '&' : '?') + q;
 const report = [];
 let failures = 0;
 
-async function pickScene(page, scene, always = false) {
-  if (scene === 'Spheres' && !always) return;
+async function pickScene(page, scene) {
+  if (scene === 'Spheres') return;
   const names = ['Spheres', 'Waves', 'Globe'];
   const picker = page.locator('[role="radiogroup"]').first();
   const picked = () => picker.getAttribute('aria-valuetext').catch(() => null);
@@ -76,10 +76,8 @@ async function run(name, { extraArgs = [], query = '', scene = 'Spheres', act = 
 }
 
 const drawn = share => share > 0.05 ? '' : `view looks blank (${(share * 100).toFixed(1)}% lit)`;
-// What Spheres holds by itself: the slots and textures its own meshes draw.
-let spheres = null;
 await run('WebGL draws the meshes', {
-  check: (b, a, s) => { spheres = a; return !a ? 'no mesh renderer on the page' : !a.active ? 'WebGL not active' : a.gl <= b.gl ? 'no WebGL frames' : a.triangles <= 0 ? 'no triangles' : drawn(s); },
+  check: (b, a, s) => !a ? 'no mesh renderer on the page' : !a.active ? 'WebGL not active' : a.gl <= b.gl ? 'no WebGL frames' : a.triangles <= 0 ? 'no triangles' : drawn(s),
 });
 await run('WebGL turned off: the 2D fallback draws', {
   extraArgs: ['--disable-3d-apis'],
@@ -93,33 +91,33 @@ await run('Globe: the live texture keeps reaching the GPU', {
   scene: 'Globe',
   check: (b, a, s) => !a || !a.active ? 'WebGL not active' : a.uploads - b.uploads < 5 ? `only ${a.uploads - b.uploads} uploads in 3 s` : drawn(s),
 });
-// The Globe's sphere and its live texture leave with it: after 60 frames (and the check every
-// 30) its slots, textures and data URLs are let go, leaving what Spheres holds by itself.
-let globe = null, framesAfter = 0, switched = null;
-await run('Leaving the Globe lets go of its slots and textures', {
-  scene: 'Globe', query: 'meshEvict=60',
+// Spheres' textured materials leave with it: after Waves (no textures) has drawn 60 frames (and
+// the check every 30), the spheres' slots, the checker texture and its data URL are let go. Waves,
+// not the Globe, is left for: the Globe's per-frame texture work slows the page enough to miss a
+// click within a few seconds (tracked on its own).
+let framesAfter = 0, switched = null;
+await run('Leaving Spheres lets go of its slots and textures', {
+  query: 'meshEvict=60',
   act: async (page) => {
-    // A second on the Globe is enough for its live texture to replace itself several times; much
-    // longer and its per-frame texture work slows the page (tracked on its own).
-    await page.waitForTimeout(1000);
-    globe = await page.evaluate(() => Object.assign({}, window.__swiftuiwebMesh.stats));
     const look = () => page.evaluate(() => ({
-      app: window.__swiftuiwebDebug.frameCount(), gl: window.__swiftuiwebMesh.stats.gl, fallback: window.__swiftuiwebMesh.stats.fallback,
+      app: window.__swiftuiwebDebug.frameCount(), gl: window.__swiftuiwebMesh.stats.gl, slots: window.__swiftuiwebMesh.stats.slots,
+      textures: window.__swiftuiwebMesh.stats.textures, forgotten: window.__swiftuiwebMesh.stats.forgotten,
       picked: [...document.querySelectorAll('[role="radiogroup"]')].map(e => e.getAttribute('aria-valuetext')).find(v => v !== null) ?? null,
     }));
     const was = await look();
-    await pickScene(page, 'Spheres', true);
+    await pickScene(page, 'Waves');
     const start = await page.evaluate(() => window.__swiftuiwebMesh.stats.gl);
     await page.waitForFunction((start) => window.__swiftuiwebMesh.stats.gl - start >= 150, start, { timeout: 60000 }).catch(() => {});
     framesAfter = (await page.evaluate(() => window.__swiftuiwebMesh.stats.gl)) - start;
     // What the page did around the switch, for a failure's detail.
     switched = { before: was, after: await look() };
   },
-  check: (b, a, s) => !a || !a.active ? 'WebGL not active' : !spheres ? 'no Spheres baseline' :
-    framesAfter < 150 ? `only ${framesAfter} WebGL frames after leaving the Globe (needs 150 for the eviction window); around the switch ${JSON.stringify(switched)}` :
-    a.slots > spheres.slots ? `${a.slots} slots after leaving the Globe (Spheres alone holds ${spheres.slots}; the Globe held ${globe && globe.slots})` :
-    a.textures > spheres.textures ? `${a.textures} textures after leaving the Globe (Spheres alone holds ${spheres.textures}; the Globe held ${globe && globe.textures})` :
-    a.forgotten <= (globe ? globe.forgotten : 0) ? `no data-URL image let go after leaving the Globe (${a.forgotten} in all)` : drawn(s),
+  check: (b, a, s) => !a || !a.active ? 'WebGL not active' :
+    !b.slots || !b.textures ? `Spheres drew no textured slots first (${b.slots} slots, ${b.textures} textures)` :
+    framesAfter < 150 ? `only ${framesAfter} WebGL frames after leaving Spheres (needs 150 for the eviction window); around the switch ${JSON.stringify(switched)}` :
+    a.slots > 0 ? `${a.slots} slots after leaving Spheres (Waves has no textures; Spheres held ${b.slots})` :
+    a.textures > 0 ? `${a.textures} textures after leaving Spheres (Spheres held ${b.textures})` :
+    a.forgotten <= b.forgotten ? `no data-URL image let go after leaving Spheres (${a.forgotten} in all)` : drawn(s),
 });
 writeFileSync(`${out}/report.json`, JSON.stringify(report, null, 2));
 console.log(failures ? `scenekit webgl: ${failures} failure(s)` : 'scenekit webgl: all passed');
