@@ -164,6 +164,12 @@ jobs:
         with: { node-version: 20 }
       - name: Playwright
         run: cd Playwright && npm install && npx playwright install --with-deps chromium
+      - name: Software GL in Chromium on the laptop-sweep Mac, as on GitHub's macOS runners
+        # The Mac's GPU would turn the WebGL painter on; the probes and goldens expect Canvas2D.
+        if: runner.environment == 'self-hosted'
+        run: |
+          echo "SWIFTUI_WEB_SOFTWARE_GL=1" >> "$GITHUB_ENV"
+          echo "NODE_OPTIONS=--import=file://$PWD/Playwright/ci-software-gl.mjs" >> "$GITHUB_ENV"
       # Speech (decision 0022) runs in the runner's installed Google Chrome, sandbox on, from a
       # persistent profile; the on-device components (SODA and the en-US pack, 219 MB from
       # Google) are cached per Chrome version so the download happens once, not per run.
