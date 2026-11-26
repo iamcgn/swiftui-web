@@ -35,7 +35,7 @@ OURS = {
     "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices", "SystemConfiguration",
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit", "EventKitUI", "Contacts",
     "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit", "Symbols", "Compression", "zlib", "Translation", "_Translation_SwiftUI", "JavaScriptCore",
-    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "QuickLook", "LinkPresentation", "WeatherKit", "XCTest",
+    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "QuickLook", "LinkPresentation", "WeatherKit", "MediaPlayer", "XCTest",
     "SceneKit",
 }
 # `Builtin` is the compiler's own module (swift-collections imports it with the BuiltinModule
@@ -1323,6 +1323,7 @@ WEB_PRODUCTS = [
     ("QuickLook", "SwiftUIWeb"),
     ("LinkPresentation", "SwiftUIWeb"),
     ("WeatherKit", "SwiftUIWeb"),
+    ("MediaPlayer", "SwiftUIWeb"),
     ("SceneKit", "SwiftUIWeb"),
     ("UIKit", "UIKitWeb"),
     ("Foundation", "Shadows"),

@@ -36,6 +36,25 @@ public protocol NSObjectProtocol: AnyObject {
     func isEqual(_ object: Any?) -> Bool
     var hash: Int { get }
     var description: String { get }
+    func isKind(of aClass: AnyClass) -> Bool
+    func isMember(of aClass: AnyClass) -> Bool
+}
+
+extension NSObjectProtocol {
+    /// Whether the object is an instance of the class or of a class that inherits from it,
+    /// so `annotation.isKind(of: MKUserLocation.self)` asks of any annotation what it asks of
+    /// an `NSObject` (OldOS's map).
+    public func isKind(of aClass: AnyClass) -> Bool {
+        var current: AnyClass? = type(of: self)
+        while let cls = current {
+            if cls == aClass { return true }
+            current = _getSuperclass(cls)
+        }
+        return false
+    }
+
+    /// Whether the object is an instance of exactly the class.
+    public func isMember(of aClass: AnyClass) -> Bool { type(of: self) == aClass }
 }
 
 /// The root class of most Objective-C class hierarchies, without the runtime: identity
@@ -55,8 +74,6 @@ open class NSObject: NSObjectProtocol, Hashable, CustomStringConvertible {
     /// The class an archive records for objects of this class: the class itself
     /// (`UITableViewCell.classForCoder()`, which apps register cells with).
     open class func classForCoder() -> AnyClass { self }
-    public func isKind(of aClass: AnyClass) -> Bool { type(of: self) == aClass }
-    public func isMember(of aClass: AnyClass) -> Bool { type(of: self) == aClass }
 
     // Sending a message by selector. Without the runtime no method is registered under a
     // selector, so an object responds to none and a send returns nothing: code that checks

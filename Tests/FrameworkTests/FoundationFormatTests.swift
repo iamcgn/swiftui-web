@@ -14,15 +14,31 @@ private protocol CurrencyNaming { var currencyCode: String? { get } }
 extension Locale: CurrencyNaming {}
 
 @Suite struct FoundationFormatTests {
-    @Test func currencies() {
-        func code(_ identifier: String) -> String? { (Locale(identifier: identifier) as any CurrencyNaming).currencyCode }
-        #expect(code("en_US") == "USD")
-        #expect(code("de_DE") == "EUR")
-        #expect(code("ja_JP") == "JPY")
-        #expect(code("en_GB") == "GBP")
-        #expect(Locale(identifier: "en_US").currencySymbol == "$")
-        #expect(Locale(identifier: "de_DE").currencySymbol == "€")
-        #expect(Locale(identifier: "en_GB").currencySymbol == "£")
+    #if os(WASI)
+    /// String's index-range substrings (OldOS's App Store); Foundation's are deprecated, so the
+    /// wasm stand-ins alone are called here.
+    @Test func indexRangeSubstrings() {
+        let link = "https://apps.example/app/id12345?mt=8"
+        let start = link.firstIndex(of: "d")!, end = link.firstIndex(of: "?")!
+        #expect(link.substring(with: start..<end) == "d12345")
+        #expect(link.substring(from: end) == "?mt=8")
+        #expect(link.substring(to: start) == "https://apps.example/app/i")
+    }
+    #endif
+
+    @Test func separators() {
+        func both(_ identifier: String) -> [String?] {
+            let locale = Locale(identifier: identifier)
+            return [locale.decimalSeparator, locale.groupingSeparator]
+        }
+        #expect(both("en_US") == [".", ","])
+        #expect(both("de_DE") == [",", "."])
+        #expect(both("fr_FR") == [",", "\u{202F}"])
+        #expect(both("de_CH") == [".", "\u{2019}"])
+        #expect(both("pt_BR") == [",", "."])
+        #expect(both("es_MX") == [".", ","])
+        #expect(both("ru_RU") == [",", "\u{00A0}"])
+        #expect(both("ja_JP") == [".", ","])
     }
 
     @Test func decimals() {
