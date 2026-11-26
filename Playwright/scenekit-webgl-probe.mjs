@@ -2,7 +2,8 @@
 //   - WebGL available: the meshes are drawn by WebGL (stats.gl > 0) and the view is not blank;
 //   - WebGL turned off in Chromium (--disable-3d-apis): the 2D fallback draws instead;
 //   - ?mesh=cpu: today's CPU path still draws;
-//   - the Globe's live texture (replaced every 0.1 s) keeps reaching the GPU;
+//   - the Globe's live texture (replaced every 0.1 s) keeps reaching the GPU, and the images it
+//     replaces are let go (by whichever painter draws the page);
 //   - leaving Spheres for Waves lets go of Spheres' material slots and textures once the eviction
 //     window passes (shortened with ?meshEvict=60), as a replaced geometry's are (#380).
 // Every case: no page errors, and a screenshot in --out.
@@ -89,7 +90,8 @@ await run('?mesh=cpu: the CPU path draws', {
 });
 await run('Globe: the live texture keeps reaching the GPU', {
   scene: 'Globe',
-  check: (b, a, s) => !a || !a.active ? 'WebGL not active' : a.uploads - b.uploads < 5 ? `only ${a.uploads - b.uploads} uploads in 3 s` : drawn(s),
+  check: (b, a, s) => !a || !a.active ? 'WebGL not active' : a.uploads - b.uploads < 5 ? `only ${a.uploads - b.uploads} uploads in 3 s` :
+    a.forgotten <= b.forgotten ? `the live texture's replaced images are kept (${a.forgotten} let go in all)` : drawn(s),
 });
 // Spheres' textured materials leave with it: after Waves (no textures) has drawn 60 frames (and
 // the check every 30), the spheres' slots, the checker texture and its data URL are let go. Waves,
