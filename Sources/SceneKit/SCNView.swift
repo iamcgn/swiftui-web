@@ -282,6 +282,25 @@ struct _Projection {
     var focal: Double
     var size: CGSize
     var near: Double
+    var far: Double
+
+    /// The depth `projectPoint` reports for a distance in front of the camera: 0 on the near
+    /// plane and 1 on the far plane, as a depth buffer holds it (hyperbolic in distance for a
+    /// perspective camera, linear for an orthographic one).
+    func normalizedDepth(_ distance: Double) -> Double {
+        let range = far - near
+        if orthographic { return (distance - near) / range }
+        guard distance != 0 else { return -Double.infinity }
+        return far / range * (1 - near / distance)
+    }
+
+    /// The distance in front of the camera at a depth `normalizedDepth` gave.
+    func distance(atNormalizedDepth z: Double) -> Double {
+        let range = far - near
+        if orthographic { return near + z * range }
+        let denominator = far - z * range
+        return denominator > 0 ? near * far / denominator : .infinity
+    }
 
     /// A point in the scene's coordinates on the view, and its distance in front of the camera.
     func project(_ p: SCNVector3) -> (point: CGPoint, depth: Double)? {
@@ -507,10 +526,11 @@ open class SCNView: UIView, SCNSceneRenderer {
             focal = Double(size.height) / 2 / max(_sin(half) / _cos(half), 1e-6)
         }
         let eye = SCNVector3(world.m41, world.m42, world.m43)
+        let near = max(camera.zNear, 0.001)
         var forward = world.transformDirection(SCNVector3(0, 0, -1))
         if forward.length > 0 { forward = forward * (1 / forward.length) }
         return _Projection(view: SCNMatrix4Invert(world), eye: eye, forward: forward, orthographic: orthographic,
-                           focal: focal, size: size, near: max(camera.zNear, 0.001))
+                           focal: focal, size: size, near: near, far: max(camera.zFar, near * 1.001))
     }
 
     open func projectPoint(_ point: SCNVector3) -> SCNVector3 {
@@ -518,12 +538,15 @@ open class SCNView: UIView, SCNSceneRenderer {
         let c = projection.view.transformPoint(point)
         let depth = -Double(c.z)
         let p = projection.project(point)?.point ?? .zero
-        return SCNVector3(Float(p.x), Float(p.y), Float(depth))
+        return SCNVector3(Float(p.x), Float(p.y), Float(projection.normalizedDepth(depth)))
     }
 
+    /// The point in the scene under a view point, at a depth from 0 (the near plane) to 1 (the
+    /// far plane), as `projectPoint` reports it.
     open func unprojectPoint(_ point: SCNVector3) -> SCNVector3 {
         guard let projection = projection(at: nil) else { return point }
-        return projection.unproject(CGPoint(x: CGFloat(point.x), y: CGFloat(point.y)), depth: max(Double(point.z), projection.near))
+        let depth = projection.distance(atNormalizedDepth: Double(point.z))
+        return projection.unproject(CGPoint(x: CGFloat(point.x), y: CGFloat(point.y)), depth: depth.isFinite ? depth : projection.far * 1e6)
     }
 
     /// The nodes drawn under a point in the last frame, nearest first.
