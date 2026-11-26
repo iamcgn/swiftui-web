@@ -526,6 +526,8 @@ public final class URLSessionConfiguration: @unchecked Sendable {
     private var _credentialStorage: AnyObject?
     private var _credentialStorageIsShared = true
     public var identifier: String? { nil }
+    /// Recorded: the browser's `fetch` loads every request (URLProtocol.swift).
+    public var protocolClasses: [AnyClass]?
     public init() {}
 
     var core: _WebURLSession.Configuration {

@@ -162,7 +162,15 @@ public let NSOSStatusErrorDomain = "NSOSStatusErrorDomain"
 /// Cocoa's error codes apps raise themselves (the Countries app's `Loadable`, decision 0021).
 public let NSUserCancelledError = 3072
 public let NSFileNoSuchFileError = 4
+public let NSFileReadUnknownError = 256
+public let NSFileReadNoPermissionError = 257
+public let NSFileReadInvalidFileNameError = 258
+public let NSFileReadCorruptFileError = 259
 public let NSFileReadNoSuchFileError = 260
+public let NSFileWriteUnknownError = 512
+public let NSFileWriteNoPermissionError = 513
+public let NSFileWriteFileExistsError = 516
+public let NSFileWriteOutOfSpaceError = 640
 public let NSURLErrorCancelled = -999
 public let NSURLErrorNotConnectedToInternet = -1009
 public let NSURLErrorTimedOut = -1001

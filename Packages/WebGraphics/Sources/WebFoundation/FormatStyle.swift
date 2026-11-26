@@ -23,6 +23,10 @@ public struct _NumberFormatting: Hashable, Sendable {
     /// at least the minimum, at most the maximum (nil: no limit). Nil: fraction digits apply.
     public var minimumSignificantDigits: Int?
     public var maximumSignificantDigits: Int?
+    /// When a sign is shown (`sign(strategy:)`): a minus only (automatic), none, or a plus too,
+    /// on zero as well unless `includingZero` is false.
+    public enum SignDisplay: Hashable, Sendable { case automatic, never, always(includingZero: Bool) }
+    public var signDisplay: SignDisplay = .automatic
 
     public init(style: Style = .decimal) { self.style = style }
 
@@ -283,10 +287,22 @@ public struct _NumberFormatting: Hashable, Sendable {
     private func assemble(integer: String, fraction: String, negative: Bool) -> String {
         var body = integer
         if !fraction.isEmpty { body += "." + fraction }
+        let sign: String
+        switch signDisplay {
+        case .automatic: sign = negative ? "-" : ""
+        case .never: sign = ""
+        case .always(let includingZero):
+            if negative { sign = "-" } else {
+                // Zero is what is shown: every digit of it a 0 ("0.00" after rounding).
+                var zero = true
+                for character in body where character != "0" && character != "." && character != "," { zero = false; break }
+                sign = zero && !includingZero ? "" : "+"
+            }
+        }
         switch style {
-        case .decimal: return (negative ? "-" : "") + body
-        case .percent: return (negative ? "-" : "") + body + "%"
-        case .currency(let code): return (negative ? "-" : "") + Self.currencySymbol(code) + body
+        case .decimal: return sign + body
+        case .percent: return sign + body + "%"
+        case .currency(let code): return sign + Self.currencySymbol(code) + body
         }
     }
 
@@ -377,6 +393,19 @@ public enum NumberFormatStyleConfiguration {
         }
     }
 
+    /// When the sign is shown (`sign(strategy:)`).
+    public struct SignDisplayStrategy: Hashable, Sendable {
+        package let display: _NumberFormatting.SignDisplay
+        /// A minus sign on negative values only.
+        public static var automatic: SignDisplayStrategy { SignDisplayStrategy(display: .automatic) }
+        /// No sign, even on negative values.
+        public static var never: SignDisplayStrategy { SignDisplayStrategy(display: .never) }
+        /// A plus sign on positive values too, and on zero unless `includingZero` is false.
+        public static func always(includingZero: Bool = true) -> SignDisplayStrategy {
+            SignDisplayStrategy(display: .always(includingZero: includingZero))
+        }
+    }
+
     /// Whether thousands are grouped.
     public struct Grouping: Hashable, Sendable {
         package let groups: Bool
@@ -401,6 +430,12 @@ extension _NumberFormatting {
         return copy
     }
 
+    public func sign(strategy: NumberFormatStyleConfiguration.SignDisplayStrategy) -> _NumberFormatting {
+        var copy = self
+        copy.signDisplay = strategy.display
+        return copy
+    }
+
     public func rounded(rule: FloatingPointRoundingRule, increment: Double?) -> _NumberFormatting {
         var copy = self
         copy.roundingRule = rule
@@ -418,6 +453,7 @@ public struct IntegerFormatStyle<Value: BinaryInteger>: ParseableFormatStyle {
     public var parseStrategy: IntegerParseStrategy<Self> { IntegerParseStrategy(core: core) }
     public func precision(_ precision: NumberFormatStyleConfiguration.Precision) -> Self { var copy = self; copy.core = core.precision(precision); return copy }
     public func grouping(_ grouping: NumberFormatStyleConfiguration.Grouping) -> Self { var copy = self; copy.core = core.grouping(grouping); return copy }
+    public func sign(strategy: NumberFormatStyleConfiguration.SignDisplayStrategy) -> Self { var copy = self; copy.core = core.sign(strategy: strategy); return copy }
     public func rounded(rule: FloatingPointRoundingRule = .toNearestOrEven, increment: Int? = nil) -> Self { var copy = self; copy.core = core.rounded(rule: rule, increment: increment.map(Double.init)); return copy }
 
     /// The integer as a percentage (7 → "7%").
@@ -428,6 +464,7 @@ public struct IntegerFormatStyle<Value: BinaryInteger>: ParseableFormatStyle {
         public var parseStrategy: IntegerParseStrategy<Self> { IntegerParseStrategy(core: core) }
         public func precision(_ precision: NumberFormatStyleConfiguration.Precision) -> Self { var copy = self; copy.core = core.precision(precision); return copy }
         public func grouping(_ grouping: NumberFormatStyleConfiguration.Grouping) -> Self { var copy = self; copy.core = core.grouping(grouping); return copy }
+        public func sign(strategy: NumberFormatStyleConfiguration.SignDisplayStrategy) -> Self { var copy = self; copy.core = core.sign(strategy: strategy); return copy }
         public func rounded(rule: FloatingPointRoundingRule = .toNearestOrEven, increment: Int? = nil) -> Self { var copy = self; copy.core = core.rounded(rule: rule, increment: increment.map(Double.init)); return copy }
     }
 
@@ -452,6 +489,7 @@ public struct FloatingPointFormatStyle<Value: BinaryFloatingPoint>: ParseableFor
     public var parseStrategy: FloatingPointParseStrategy<Self> { FloatingPointParseStrategy(core: core) }
     public func precision(_ precision: NumberFormatStyleConfiguration.Precision) -> Self { var copy = self; copy.core = core.precision(precision); return copy }
     public func grouping(_ grouping: NumberFormatStyleConfiguration.Grouping) -> Self { var copy = self; copy.core = core.grouping(grouping); return copy }
+    public func sign(strategy: NumberFormatStyleConfiguration.SignDisplayStrategy) -> Self { var copy = self; copy.core = core.sign(strategy: strategy); return copy }
     public func rounded(rule: FloatingPointRoundingRule = .toNearestOrEven, increment: Double? = nil) -> Self { var copy = self; copy.core = core.rounded(rule: rule, increment: increment); return copy }
 
     /// The value as a percentage (0.25 → "25%").
@@ -462,6 +500,7 @@ public struct FloatingPointFormatStyle<Value: BinaryFloatingPoint>: ParseableFor
         public var parseStrategy: FloatingPointParseStrategy<Self> { FloatingPointParseStrategy(core: core) }
         public func precision(_ precision: NumberFormatStyleConfiguration.Precision) -> Self { var copy = self; copy.core = core.precision(precision); return copy }
         public func grouping(_ grouping: NumberFormatStyleConfiguration.Grouping) -> Self { var copy = self; copy.core = core.grouping(grouping); return copy }
+        public func sign(strategy: NumberFormatStyleConfiguration.SignDisplayStrategy) -> Self { var copy = self; copy.core = core.sign(strategy: strategy); return copy }
         public func rounded(rule: FloatingPointRoundingRule = .toNearestOrEven, increment: Double? = nil) -> Self { var copy = self; copy.core = core.rounded(rule: rule, increment: increment); return copy }
     }
 
