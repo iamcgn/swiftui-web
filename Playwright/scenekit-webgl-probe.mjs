@@ -88,19 +88,26 @@ await run('Globe: the live texture keeps reaching the GPU', {
 });
 // The Globe's sphere and its live texture leave with it: after 60 frames (and the check every
 // 30) its slots, textures and data URLs are let go, leaving what Spheres holds by itself.
-let globe = null, framesAfter = 0;
+let globe = null, framesAfter = 0, switched = null;
 await run('Leaving the Globe lets go of its slots and textures', {
   scene: 'Globe', query: 'meshEvict=60',
   act: async (page) => {
     await page.waitForTimeout(2000);
     globe = await page.evaluate(() => Object.assign({}, window.__swiftuiwebMesh.stats));
+    const look = () => page.evaluate(() => ({
+      app: window.__swiftuiwebDebug.frameCount(), gl: window.__swiftuiwebMesh.stats.gl, fallback: window.__swiftuiwebMesh.stats.fallback,
+      picked: [...document.querySelectorAll('[role="radiogroup"]')].map(e => e.getAttribute('aria-valuetext')).find(v => v !== null) ?? null,
+    }));
+    const was = await look();
     await pickScene(page, 'Spheres', true);
     const start = await page.evaluate(() => window.__swiftuiwebMesh.stats.gl);
     await page.waitForFunction((start) => window.__swiftuiwebMesh.stats.gl - start >= 150, start, { timeout: 60000 }).catch(() => {});
     framesAfter = (await page.evaluate(() => window.__swiftuiwebMesh.stats.gl)) - start;
+    // What the page did around the switch, for a failure's detail.
+    switched = { before: was, after: await look() };
   },
   check: (b, a, s) => !a || !a.active ? 'WebGL not active' : !spheres ? 'no Spheres baseline' :
-    framesAfter < 150 ? `only ${framesAfter} WebGL frames after leaving the Globe (needs 150 for the eviction window)` :
+    framesAfter < 150 ? `only ${framesAfter} WebGL frames after leaving the Globe (needs 150 for the eviction window); around the switch ${JSON.stringify(switched)}` :
     a.slots > spheres.slots ? `${a.slots} slots after leaving the Globe (Spheres alone holds ${spheres.slots}; the Globe held ${globe && globe.slots})` :
     a.textures > spheres.textures ? `${a.textures} textures after leaving the Globe (Spheres alone holds ${spheres.textures}; the Globe held ${globe && globe.textures})` :
     a.forgotten <= (globe ? globe.forgotten : 0) ? `no data-URL image let go after leaving the Globe (${a.forgotten} in all)` : drawn(s),
