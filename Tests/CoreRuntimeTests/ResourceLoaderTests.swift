@@ -1,7 +1,7 @@
 // An asset whose URL the browser cannot load, with a resource loader's delegate that answers with
-// the movie's bytes (Mlem's NukeVideo, which plays a downloaded clip from memory): the item, the
-// asset's metadata read and the image generator all load the bytes from a URL the host makes for
-// them, or a `data:` URL without a host. An asset at a web URL never asks its delegate, and a
+// the movie's bytes (Mlem's NukeVideo, which plays a downloaded clip from memory): the item loads
+// the bytes from a URL the host makes for them, or a `data:` URL without a host (the metadata read,
+// which shares the metadata host with AssetLoadingTests, is tested there). An asset at a web URL never asks its delegate, and a
 // delegate that declines leaves the asset its own URL.
 #if !os(WASI)
 import AVFoundation
@@ -76,17 +76,6 @@ private final class DataAsset: AVURLAsset, @unchecked Sendable {
         let asset = DataAsset(bytes)
         let url = AVPlayerItem(asset: asset).url.absoluteString
         #expect(url == "data:video/mp4;base64,\(bytes.base64EncodedString())")
-    }
-
-    @Test func theMetadataReadUsesTheAnsweredURL() async throws {
-        StandInHost.install("blob:https://app/2")
-        _AVFrameHost.info = { url, done in
-            StandInHost.read.append(url)
-            Task { @MainActor in done(_AVMovieInfo(duration: 3, width: 4, height: 3, hasAudio: false)) }
-        }
-        defer { _AVFrameHost.objectURL = nil; _AVFrameHost.info = nil }
-        let duration = try await DataAsset(bytes).load(.duration)
-        #expect(duration.seconds == 3 && StandInHost.read == ["blob:https://app/2"])
     }
 
     @Test func webURLsAndDecliningDelegatesKeepTheAssetsURL() {
