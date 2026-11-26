@@ -8,6 +8,8 @@ import CoreTelephony
 // The macOS and Linux builds of these modules import Foundation without passing it on.
 #if !os(WASI)
 import Foundation
+#else
+import SwiftUI   // NSValue is WebGraphics' on wasm, which SwiftUI passes on
 #endif
 
 @Suite @MainActor struct AudioRouteAndTelephonyTests {

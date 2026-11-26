@@ -4,6 +4,7 @@
 // times and durations are what the host reports back — nothing yet.
 #if os(WASI)
 @_exported import WebFoundation   // as Apple's AVFoundation re-exports Foundation
+import UIKitWebCore   // NSValue (WebGraphics, which it re-exports), for the item's time ranges
 #else
 import Foundation
 #endif
