@@ -113,5 +113,23 @@ import WebFoundation
         #expect(handler.presented == ["chad", "quiet"] && shown.count == 1 && center.pendingRequests.isEmpty)
         withoutHost()
     }
+
+    /// OldOS's alarms: a calendar trigger fires at the next matching time, and categories
+    /// keep their actions.
+    @Test func calendarTriggersAndActions() throws {
+        let calendar = Calendar.current
+        let now = Date()
+        let alarm = UNCalendarNotificationTrigger(dateMatching: DateComponents(hour: 7, minute: 30), repeats: true)
+        let next = try #require(alarm.nextTriggerDate())
+        let parts = calendar.dateComponents([.hour, .minute, .second], from: next)
+        #expect(next > now && next.timeIntervalSince(now) <= 86_400 && parts.hour == 7 && parts.minute == 30 && parts.second == 0)
+        let monday = try #require(UNCalendarNotificationTrigger(dateMatching: DateComponents(hour: 9, weekday: 2), repeats: false).nextTriggerDate())
+        #expect(calendar.component(.weekday, from: monday) == 2 && monday.timeIntervalSince(now) <= 7 * 86_400)
+        #expect(UNCalendarNotificationTrigger(dateMatching: DateComponents(month: 2, day: 30), repeats: false).nextTriggerDate() == nil)
+
+        let snooze = UNNotificationAction(identifier: "snooze", title: "Snooze", options: [])
+        let category = UNNotificationCategory(identifier: "alarm", actions: [snooze], intentIdentifiers: [], options: [.customDismissAction])
+        #expect(category.actions.map(\.identifier) == ["snooze"] && category.options == .customDismissAction)
+    }
 }
 #endif

@@ -143,6 +143,46 @@ public final class UNTimeIntervalNotificationTrigger: UNNotificationTrigger, @un
     }
 }
 
+/// At the next date that matches the components (an alarm's hour and minute, a weekday).
+public final class UNCalendarNotificationTrigger: UNNotificationTrigger, @unchecked Sendable {
+    public let dateComponents: DateComponents
+    public init(dateMatching dateComponents: DateComponents, repeats: Bool) {
+        self.dateComponents = dateComponents
+        super.init(repeats: repeats)
+    }
+
+    /// The first date after now whose year, month, day, weekday, hour, minute and second
+    /// match the components given; a unit smaller than the smallest given takes its lowest
+    /// value (`hour: 7` fires at 7:00:00), as Foundation's search does. Nil when none does
+    /// within eight years.
+    public func nextTriggerDate() -> Date? { nextDate(after: Date()) }
+
+    func nextDate(after now: Date) -> Date? {
+        var calendar = dateComponents.calendar ?? Calendar.current
+        if let zone = dateComponents.timeZone { calendar.timeZone = zone }
+        let c = dateComponents
+        let hours = c.hour.map { [$0] } ?? (c.minute != nil || c.second != nil ? Array(0..<24) : [0])
+        let minutes = c.minute.map { [$0] } ?? (c.second != nil ? Array(0..<60) : [0])
+        let second = c.second ?? 0
+        var day = calendar.startOfDay(for: now)
+        for _ in 0..<(366 * 8) {
+            let parts = calendar.dateComponents([.year, .month, .day, .weekday], from: day)
+            if (c.year == nil || c.year == parts.year) && (c.month == nil || c.month == parts.month)
+                && (c.day == nil || c.day == parts.day) && (c.weekday == nil || c.weekday == parts.weekday) {
+                for hour in hours {
+                    for minute in minutes {
+                        guard let candidate = calendar.date(bySettingHour: hour, minute: minute, second: second, of: day) else { continue }
+                        if candidate > now { return candidate }
+                    }
+                }
+            }
+            guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { return nil }
+            day = next
+        }
+        return nil
+    }
+}
+
 /// A notification the app asks to show (`add(_:)`).
 public final class UNNotificationRequest: @unchecked Sendable {
     public let identifier: String
@@ -191,7 +231,63 @@ public struct UNNotificationPresentationOptions: OptionSet, Hashable, Sendable {
 
 public final class UNNotificationCategory: @unchecked Sendable {
     public let identifier: String
-    public init(identifier: String, actions: [Any], intentIdentifiers: [String], options: UNNotificationCategoryOptions = []) { self.identifier = identifier }
+    /// The buttons a notification of the category offers; the page's notifications show none.
+    public let actions: [UNNotificationAction]
+    public let intentIdentifiers: [String]
+    public let options: UNNotificationCategoryOptions
+    public init(identifier: String, actions: [UNNotificationAction], intentIdentifiers: [String], options: UNNotificationCategoryOptions = []) {
+        self.identifier = identifier
+        self.actions = actions
+        self.intentIdentifiers = intentIdentifiers
+        self.options = options
+    }
+}
+
+/// A button on a notification of a category.
+open class UNNotificationAction: @unchecked Sendable {
+    public let identifier: String
+    public let title: String
+    public let options: UNNotificationActionOptions
+    public let icon: UNNotificationActionIcon?
+    public init(identifier: String, title: String, options: UNNotificationActionOptions = []) {
+        self.identifier = identifier
+        self.title = title
+        self.options = options
+        self.icon = nil
+    }
+    public init(identifier: String, title: String, options: UNNotificationActionOptions = [], icon: UNNotificationActionIcon?) {
+        self.identifier = identifier
+        self.title = title
+        self.options = options
+        self.icon = icon
+    }
+}
+
+/// An action that takes typed text.
+public final class UNTextInputNotificationAction: UNNotificationAction, @unchecked Sendable {
+    public let textInputButtonTitle: String
+    public let textInputPlaceholder: String
+    public init(identifier: String, title: String, options: UNNotificationActionOptions = [], textInputButtonTitle: String, textInputPlaceholder: String) {
+        self.textInputButtonTitle = textInputButtonTitle
+        self.textInputPlaceholder = textInputPlaceholder
+        super.init(identifier: identifier, title: title, options: options)
+    }
+}
+
+/// An action's icon: a system symbol or a template image.
+public final class UNNotificationActionIcon: @unchecked Sendable {
+    public let name: String
+    private init(name: String) { self.name = name }
+    public convenience init(systemImageName: String) { self.init(name: systemImageName) }
+    public convenience init(templateImageName: String) { self.init(name: templateImageName) }
+}
+
+public struct UNNotificationActionOptions: OptionSet, Hashable, Sendable {
+    public let rawValue: UInt
+    public init(rawValue: UInt) { self.rawValue = rawValue }
+    public static let authenticationRequired = UNNotificationActionOptions(rawValue: 1 << 0)
+    public static let destructive = UNNotificationActionOptions(rawValue: 1 << 1)
+    public static let foreground = UNNotificationActionOptions(rawValue: 1 << 2)
 }
 public struct UNNotificationCategoryOptions: OptionSet, Hashable, Sendable {
     public let rawValue: UInt
@@ -280,7 +376,16 @@ public final class UNUserNotificationCenter: @unchecked Sendable {
         }
         pendingRequests.append(request)
         // Delivery is asynchronous, on the main actor, as iOS delivers after `add` returns.
-        let interval = (request.trigger as? UNTimeIntervalNotificationTrigger)?.timeInterval ?? 0
+        let interval: TimeInterval
+        if let calendar = request.trigger as? UNCalendarNotificationTrigger {
+            interval = calendar.nextTriggerDate().map { max(0, $0.timeIntervalSinceNow) } ?? .infinity
+        } else {
+            interval = (request.trigger as? UNTimeIntervalNotificationTrigger)?.timeInterval ?? 0
+        }
+        guard interval.isFinite else {   // a date that never comes: pending, never delivered
+            completionHandler?(nil)
+            return
+        }
         Task { @MainActor [weak self] in
             if interval > 0 { try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000)) }
             self?.deliver(request)
