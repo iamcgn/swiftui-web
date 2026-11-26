@@ -12,16 +12,78 @@ concurrency:
 env:
   SWIFT_VERSION: "6.3.3"
 jobs:
+  pick:
+    # Where the macos and browser jobs run. A pull request from a claude/ branch of this
+    # repository runs them on the self-hosted Mac labelled laptop-sweep when that Mac is up and
+    # idle, so they skip the queue for GitHub's five macOS runners; everything else, a fork's
+    # pull request and main's push included, stays on GitHub's macos-15. The Mac is up when the
+    # laptop heartbeat's latest run passed within 45 minutes, and idle when no job is waiting for
+    # it or running on it (an Objective-C sweep's batches, another pull request's jobs). The label
+    # hosted-ci on a pull request keeps it on GitHub's Macs.
+    runs-on: ubuntu-24.04
+    permissions: { actions: read }
+    outputs:
+      mac: ${{ steps.pick.outputs.mac }}
+    steps:
+      - id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OURS: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.head_ref, 'claude/') }}
+          HOSTED: ${{ contains(github.event.pull_request.labels.*.name, 'hosted-ci') }}
+        run: |
+          mac=hosted
+          if [ "$OURS" != true ]; then why="not a claude/ branch of this repository"
+          elif [ "$HOSTED" = true ]; then why="labelled hosted-ci"
+          else
+            beat=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/laptop-heartbeat.yml/runs?per_page=1" \
+                     -q '.workflow_runs[0] | select(.conclusion == "success") | .updated_at | fromdate' 2>/dev/null || true)
+            if [ -z "$beat" ] || [ $(( $(date +%s) - beat )) -gt 2700 ]; then why="the laptop-sweep Mac has not answered its heartbeat in 45 minutes"
+            else
+              busy=0
+              for status in queued in_progress; do
+                for run in $(gh api "repos/$GITHUB_REPOSITORY/actions/runs?status=$status&per_page=100" -q '.workflow_runs[].id' 2>/dev/null); do
+                  [ "$run" = "$GITHUB_RUN_ID" ] && continue
+                  n=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run/jobs?per_page=100" \
+                        -q '[.jobs[] | select(.status != "completed" and (.labels | index("laptop-sweep")))] | length' 2>/dev/null || echo 1)
+                  busy=$(( busy + n ))
+                done
+              done
+              if [ "$busy" -gt 0 ]; then why="the laptop-sweep Mac has $busy job(s) running or waiting"
+              else mac=laptop; why="the laptop-sweep Mac is up and idle"; fi
+            fi
+          fi
+          echo "mac=$mac" >> "$GITHUB_OUTPUT"
+          echo "::notice::macos and browser run on ${mac/hosted/GitHub's macos-15}: $why"
   macos:
-    runs-on: macos-15
+    needs: pick
+    runs-on: ${{ needs.pick.outputs.mac == 'laptop' && fromJSON('["self-hosted", "laptop-sweep"]') || 'macos-15' }}
     steps:
       - uses: actions/checkout@v4
       - name: Install toolchain
         run: |
-          brew install swiftly binaryen cairo   # cairo: the Cairo painter's tests (pf-linux)
-          swiftly init --assume-yes --skip-install --no-modify-profile
+          # The laptop-sweep Mac has most of these already; a hosted runner installs them all.
+          export HOMEBREW_NO_AUTO_UPDATE=1
+          for f in swiftly binaryen cairo; do   # cairo: the Cairo painter's tests (pf-linux)
+            brew list --formula "$f" >/dev/null 2>&1 || brew install "$f"
+          done
+          [ -f ~/.swiftly/env.sh ] || swiftly init --assume-yes --skip-install --no-modify-profile
           . ~/.swiftly/env.sh
           swiftly install $SWIFT_VERSION --use --assume-yes
+      - name: A macOS SDK that Swift 6.3.3 reads (the laptop-sweep Mac)
+        # As in coverage.yml's sweep-objc: Swift 6.3.3 crashes compiling package manifests against
+        # Xcode 27's macOS 27 SDK, so on the laptop the swiftly builds use an older macOS SDK, with
+        # Xcode's toolchain bin first on PATH for its linker. GitHub's macos-15 needs neither.
+        if: runner.environment == 'self-hosted'
+        run: |
+          XT="$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+          if [ -x "$XT/ld" ]; then echo "$XT" >> "$GITHUB_PATH"; fi
+          for s in /Library/Developer/CommandLineTools/SDKs/MacOSX26*.sdk /Library/Developer/CommandLineTools/SDKs/MacOSX15*.sdk \
+                   /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26*.sdk \
+                   /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15*.sdk; do
+            if [ -d "$s" ]; then echo "SDKROOT=$s" >> "$GITHUB_ENV"; echo "Using $s"; exit 0; fi
+          done
+          echo "::error::No macOS 15 or 26 SDK on the laptop-sweep Mac; Swift 6.3.3 crashes on the macOS 27 SDK. Label the pull request hosted-ci to run on GitHub's Macs."
+          exit 1
       - name: Progress outputs are current (Docs/TODO.md from Docs/todo.json)
         run: python3 scripts/gen-progress.py --check
       - name: Native tests
@@ -31,9 +93,9 @@ jobs:
       - name: WebFoundation tests (the wasm stand-ins against Foundation)
         run: . ~/.swiftly/env.sh && cd Packages/WebGraphics && swift test
       - name: Harness builds (Apple toolchain, real SwiftUI)
-        run: cd Harness && /usr/bin/swift build
+        run: cd Harness && env -u SDKROOT /usr/bin/swift build
       - name: Host builds (Apple toolchain, WKWebView)
-        run: cd Tools/Host && /usr/bin/swift build
+        run: cd Tools/Host && env -u SDKROOT /usr/bin/swift build
   linux:
     runs-on: ubuntu-24.04
     container: swift:6.3.3
@@ -64,18 +126,35 @@ jobs:
       - name: wasm size report
         run: du -h .build/wasm/wasm32-unknown-wasip1/debug/*.wasm 2>/dev/null || true
   browser:
-    runs-on: macos-15
+    needs: pick
+    runs-on: ${{ needs.pick.outputs.mac == 'laptop' && fromJSON('["self-hosted", "laptop-sweep"]') || 'macos-15' }}
     steps:
       - uses: actions/checkout@v4
         with: { submodules: true }   # Apps/upstream: the apps of decision 0021 at their pins
       - name: Install toolchain and wasm SDK
         run: |
-          brew install swiftly binaryen brotli
-          swiftly init --assume-yes --skip-install --no-modify-profile
+          export HOMEBREW_NO_AUTO_UPDATE=1
+          for f in swiftly binaryen brotli; do brew list --formula "$f" >/dev/null 2>&1 || brew install "$f"; done
+          [ -f ~/.swiftly/env.sh ] || swiftly init --assume-yes --skip-install --no-modify-profile
           . ~/.swiftly/env.sh
           swiftly install $SWIFT_VERSION --use --assume-yes
           swift sdk install https://download.swift.org/swift-6.3.3-release/wasm-sdk/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE_wasm.artifactbundle.tar.gz \
             --checksum cabfa08b73bb8ac783927ecd15fa386e99d0c139c5f232445067bcf58379cae7
+      - name: A macOS SDK that Swift 6.3.3 reads (the laptop-sweep Mac)
+        # As in coverage.yml's sweep-objc: Swift 6.3.3 crashes compiling package manifests against
+        # Xcode 27's macOS 27 SDK, so on the laptop the swiftly builds use an older macOS SDK, with
+        # Xcode's toolchain bin first on PATH for its linker. GitHub's macos-15 needs neither.
+        if: runner.environment == 'self-hosted'
+        run: |
+          XT="$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+          if [ -x "$XT/ld" ]; then echo "$XT" >> "$GITHUB_PATH"; fi
+          for s in /Library/Developer/CommandLineTools/SDKs/MacOSX26*.sdk /Library/Developer/CommandLineTools/SDKs/MacOSX15*.sdk \
+                   /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26*.sdk \
+                   /Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15*.sdk; do
+            if [ -d "$s" ]; then echo "SDKROOT=$s" >> "$GITHUB_ENV"; echo "Using $s"; exit 0; fi
+          done
+          echo "::error::No macOS 15 or 26 SDK on the laptop-sweep Mac; Swift 6.3.3 crashes on the macOS 27 SDK. Label the pull request hosted-ci to run on GitHub's Macs."
+          exit 1
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - name: Playwright
