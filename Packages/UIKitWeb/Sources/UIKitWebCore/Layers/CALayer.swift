@@ -26,6 +26,9 @@ public struct CATransform3D: Equatable, Sendable {
 }
 
 public let CATransform3DIdentity = CATransform3D()
+
+/// What a layer's delegate is: a view is its layer's.
+public protocol CALayerDelegate: AnyObject {}
 public func CATransform3DMakeAffineTransform(_ m: CGAffineTransform) -> CATransform3D { CATransform3D(affine: m) }
 public func CATransform3DGetAffineTransform(_ t: CATransform3D) -> CGAffineTransform { t.affine }
 public func CATransform3DIsIdentity(_ t: CATransform3D) -> Bool { t.isIdentity }
@@ -332,6 +335,12 @@ open class CALayer: CALayerBase {
     public private(set) weak var superlayer: CALayer?
     /// The view this layer draws for, if it is a view's layer.
     weak var view: UIView?
+    private weak var assignedDelegate: (any CALayerDelegate)?
+    /// The layer's delegate: the view a view's layer belongs to, unless another is set.
+    open var delegate: (any CALayerDelegate)? {
+        get { assignedDelegate ?? view }
+        set { assignedDelegate = newValue }
+    }
     /// The explicit animations added by key (Layers/CAAnimation.swift).
     var explicitAnimations: [String: (animation: CAAnimation, group: UIViewAnimationGroup)] = [:]
 

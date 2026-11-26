@@ -3,7 +3,29 @@
 // shadow, its view's content, then its sublayers in order; opacity and shadows are groups;
 // `masksToBounds` clips. Frame edges are rounded to the pixel grid like SwiftUIWeb's.
 
+extension UIView: CALayerDelegate {}
+
 extension CALayer {
+    /// Draws the layer and its sublayers into `ctx` in the layer's own space (its bounds at the
+    /// context's origin), as a snapshot does: OldOS's magnifier renders the window's layer.
+    public func render(in ctx: UIGraphicsRecordingContext) {
+        var list = DisplayList()
+        let origin = ctx.paintOrigin
+        // The context's scale or rotation applies about its origin, as drawHierarchy's does.
+        let m = ctx.ctm
+        let linear = m.a != 1 || m.b != 0 || m.c != 0 || m.d != 1
+        if linear {
+            list.append(.save)
+            list.append(.concat(CGAffineTransform(a: m.a, b: m.b, c: m.c, d: m.d, tx: origin.x - (m.a * origin.x + m.c * origin.y),
+                                                  ty: origin.y - (m.b * origin.x + m.d * origin.y))))
+        }
+        let layerOrigin = CGPoint(x: position.x - bounds.width * anchorPoint.x, y: position.y - bounds.height * anchorPoint.y)
+        paint(into: &list, context: PaintContext(origin: CGPoint(x: origin.x - layerOrigin.x, y: origin.y - layerOrigin.y), scale: ctx.scale),
+              style: view?.traitCollection.userInterfaceStyle ?? .light)
+        if linear { list.append(.restore) }
+        ctx.append(painted: list)
+    }
+
     /// Paints this layer and its sublayers. `context.origin` is the absolute position of the
     /// superlayer's bounds origin; the layer's own transform, if any, is concatenated.
     func paint(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {

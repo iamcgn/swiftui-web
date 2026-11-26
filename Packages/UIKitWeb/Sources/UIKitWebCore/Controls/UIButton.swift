@@ -30,6 +30,10 @@ open class UIButton: UIControl {
     /// Whether a touch glows while the button is highlighted (deprecated in iOS 15; SwiftyFORM's
     /// precision slider sets it). Kept as set; the web draws no glow.
     open var showsTouchWhenHighlighted = false
+    /// Kept: whether a highlighted or disabled button darkens or fades its image (iOS's
+    /// legacy buttons do both by default).
+    open var adjustsImageWhenHighlighted = true
+    open var adjustsImageWhenDisabled = true
     open var role: Role = .normal
     /// The menu a long press opens, or a tap with `showsMenuAsPrimaryAction`; with
     /// `changesSelectionAsPrimaryAction` the chosen action becomes the button's title and state.
