@@ -1290,8 +1290,8 @@ public final class CanvasSceneHost {
     /// Writes what changed of an element's state: the source, play/pause, the attributes.
     private func applyHostElementState(_ element: JSObject, from previous: HostElement.Kind, to kind: HostElement.Kind, fresh: Bool) {
         switch (previous, kind) {
-        case (.video(let oldURL, let wasPlaying, let wasMuted, let didLoop, let hadControls, let oldRate, _, let oldSeeks),
-              .video(let url, let playing, let muted, let loops, let controls, let rate, let seek, let seeks)):
+        case (.video(let oldURL, let wasPlaying, let wasMuted, let didLoop, let hadControls, let oldRate, _, let oldSeeks, let oldGravity),
+              .video(let url, let playing, let muted, let loops, let controls, let rate, let seek, let seeks, let gravity)):
             if fresh || oldURL != url { element.src = .string(url) }
             // A seek moves the playhead (before the movie loads, where it starts).
             if seeks > 0, fresh || oldSeeks != seeks || oldURL != url { element.currentTime = .number(seek) }
@@ -1302,6 +1302,7 @@ public final class CanvasSceneHost {
             if fresh || wasPlaying != playing {
                 if playing { _ = element.play?() } else { _ = element.pause?() }
             }
+            if fresh || oldGravity != gravity { element.style.object!.objectFit = .string(Self.objectFit(gravity)) }
         case (.web(let oldURL, let oldHTML), .web(let url, let html)):
             if fresh || oldHTML != html, let html { element.srcdoc = .string(html) }
             else if fresh || oldURL != url, let url { element.src = .string(url) }
@@ -1323,17 +1324,18 @@ public final class CanvasSceneHost {
             if fresh || wasMirrored != mirrored {
                 element.style.object!.transform = .string(mirrored ? "scaleX(-1)" : "")
             }
-            if fresh || oldGravity != gravity {
-                let fit: String
-                switch gravity {
-                case "AVLayerVideoGravityResizeAspectFill": fit = "cover"
-                case "AVLayerVideoGravityResize": fit = "fill"
-                default: fit = "contain"
-                }
-                element.style.object!.objectFit = .string(fit)
-            }
+            if fresh || oldGravity != gravity { element.style.object!.objectFit = .string(Self.objectFit(gravity)) }
         default:
             break
+        }
+    }
+
+    /// The CSS `object-fit` for a layer's video gravity: fit the picture, fill the frame, or stretch.
+    private static func objectFit(_ gravity: String) -> String {
+        switch gravity {
+        case "AVLayerVideoGravityResizeAspectFill": return "cover"
+        case "AVLayerVideoGravityResize": return "fill"
+        default: return "contain"
         }
     }
 

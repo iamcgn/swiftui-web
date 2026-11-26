@@ -26,7 +26,7 @@ open class AVPlayerLayer: CALayer, _UIHostElementProviding {
             setNeedsDisplay()
         }
     }
-    /// How the picture fills the layer (the element fits the picture in its frame).
+    /// How the picture fills the layer (the element's `object-fit`).
     open var videoGravity: AVLayerVideoGravity = .resizeAspect { didSet { setNeedsDisplay() } }
     /// Whether there is a picture to show: the player has an item.
     open var isReadyForDisplay: Bool { shown?.currentItem != nil }
@@ -67,6 +67,7 @@ open class AVPlayerLayer: CALayer, _UIHostElementProviding {
     public var _hostElementKind: HostElement.Kind? {
         guard let player = shown, let item = player.currentItem else { return nil }
         return .video(url: item.url.absoluteString, playing: player.rate != 0, muted: player.isMuted, loops: player.loops,
-                      controls: false, rate: Double(player.rate), seek: item.currentTime().seconds, seeks: item.seeks)
+                      controls: false, rate: Double(player.rate), seek: item.currentTime().seconds, seeks: item.seeks,
+                      gravity: videoGravity.rawValue)
     }
 }

@@ -42,7 +42,7 @@ private final class Finished: @unchecked Sendable { var value: Bool? }
         let elements = runtime.hostElements()
         #expect(elements.count == 1)
         #expect(elements[0].frame == CGRect(x: 16, y: 16, width: 288, height: 208) && elements[0].visibleFrame == elements[0].frame)
-        if case .video(let url, let playing, let muted, let loops, let controls, let rate, _, let seeks) = elements[0].kind {
+        if case .video(let url, let playing, let muted, let loops, let controls, let rate, _, let seeks, _) = elements[0].kind {
             #expect(url.hasSuffix("/clip.mp4") && !playing && !muted && !loops && controls && rate == 0 && seeks == 0)
         } else {
             Issue.record("expected a video element")
@@ -55,7 +55,7 @@ private final class Finished: @unchecked Sendable { var value: Bool? }
         player.isMuted = true
         runtime.layout(in: CGSize(width: 320, height: 240))
         _ = runtime.render(scale: 2)
-        if case .video(_, let playing, let muted, _, _, let rate, _, _) = runtime.hostElements()[0].kind {
+        if case .video(_, let playing, let muted, _, _, let rate, _, _, _) = runtime.hostElements()[0].kind {
             #expect(playing && muted && rate == 1)
         }
         player.pause()
@@ -74,7 +74,7 @@ private final class Finished: @unchecked Sendable { var value: Bool? }
         #expect(finished.value == nil)
         runtime.layout(in: CGSize(width: 320, height: 240))
         _ = runtime.render(scale: 2)
-        if case .video(_, _, _, _, _, _, let seek, let seeks) = runtime.hostElements()[0].kind {
+        if case .video(_, _, _, _, _, _, let seek, let seeks, _) = runtime.hostElements()[0].kind {
             #expect(seek == 5 && seeks == 1)
         } else {
             Issue.record("expected a video element")
@@ -83,7 +83,7 @@ private final class Finished: @unchecked Sendable { var value: Bool? }
         player.seek(to: CMTime(seconds: 5, preferredTimescale: 600))
         runtime.layout(in: CGSize(width: 320, height: 240))
         _ = runtime.render(scale: 2)
-        if case .video(_, _, _, _, _, _, _, let seeks) = runtime.hostElements()[0].kind {
+        if case .video(_, _, _, _, _, _, _, let seeks, _) = runtime.hostElements()[0].kind {
             #expect(seeks == 2)
         }
         for _ in 0..<100 where finished.value == nil { await Task.yield() }

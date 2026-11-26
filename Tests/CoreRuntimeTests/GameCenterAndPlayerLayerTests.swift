@@ -65,11 +65,14 @@ import Foundation
         layer.videoGravity = .resizeAspectFill
         #expect(layer.isReadyForDisplay && layer.videoRect == layer.bounds)
         #expect(layer._hostElementKind == .video(url: url.absoluteString, playing: false, muted: false, loops: false, controls: false,
-                                                 rate: 0, seek: 0, seeks: 0))
+                                                 rate: 0, seek: 0, seeks: 0, gravity: "AVLayerVideoGravityResizeAspectFill"))
         player.play()
         player.isMuted = true
         #expect(layer._hostElementKind == .video(url: url.absoluteString, playing: true, muted: true, loops: false, controls: false,
-                                                 rate: 1, seek: 0, seeks: 0))
+                                                 rate: 1, seek: 0, seeks: 0, gravity: "AVLayerVideoGravityResizeAspectFill"))
+        layer.videoGravity = .resize
+        if case .video(_, _, _, _, _, _, _, _, let gravity) = layer._hostElementKind { #expect(gravity == "AVLayerVideoGravityResize") }
+        else { Issue.record("no video element") }
         layer.player = nil
         #expect(layer._hostElementKind == nil)
     }
