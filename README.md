@@ -139,7 +139,9 @@ products of this package. When the app's own files `import Foundation` or `impor
 Naming Foundation. On iOS a file that imports only UIKit or SwiftUI can still write
 `Foundation.Date`, because both re-export Foundation; here they cannot re-export the shadow
 (Packages/Shadows depends on them). A target whose files do that without importing Foundation
-themselves imports it implicitly on wasm, which the coverage sweep adds for such targets:
+themselves imports it implicitly on wasm, which the coverage sweep adds for such targets (and for
+a target that calls `pthread_` functions with C imports for Darwin and Glibc only, which the shadow's
+`WASILibc` re-export and single-threaded mutex functions then serve):
 
 ```swift
 swiftSettings: [.unsafeFlags(["-Xfrontend", "-import-module", "-Xfrontend", "Foundation"], .when(platforms: [.wasi]))]

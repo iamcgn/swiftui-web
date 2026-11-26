@@ -1413,8 +1413,18 @@ IMPLICIT_FOUNDATION = '.unsafeFlags(["-Xfrontend", "-import-module", "-Xfrontend
 MACRO_FOUNDATION = '.unsafeFlags(["-Xfrontend", "-import-module", "-Xfrontend", "Foundation"])'
 
 
+# A file that calls POSIX threads with a C library import for Darwin and Glibc only (an older
+# swift-openapi-urlsession's Lock.swift): on wasm it imports nothing, so it sees neither WASILibc's
+# pthread types nor the shadow's single-threaded mutex functions. The implicit Foundation import
+# brings both, as it does for a Foundation-qualified name.
+CALLS_PTHREAD = re.compile(r"(?<![\w.])pthread_[a-z_]+\s*\(")
+SEES_WASILIBC = re.compile(r"canImport\(\s*WASILibc\s*\)|^\s*(?:@\w+\s+)*import\s+WASILibc\b", re.M)
+
+
 def names_foundation_without_importing(text):
-    return bool(FOUNDATION_QUALIFIED.search(text)) and not IMPORTS_FOUNDATION.search(text)
+    if IMPORTS_FOUNDATION.search(text):
+        return False
+    return bool(FOUNDATION_QUALIFIED.search(text)) or (bool(CALLS_PTHREAD.search(text)) and not SEES_WASILIBC.search(text))
 
 
 def render_manifest(parts, drops=None):

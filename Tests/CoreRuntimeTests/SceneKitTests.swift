@@ -138,6 +138,30 @@ import SwiftUIWebHeadless
         #expect(close(back, SCNVector3(0.5, 0, 0.5), 1e-3))
     }
 
+    @Test func projectedDepthRunsFromTheNearPlaneToTheFarPlane() {
+        let (scene, _) = boxScene(color: .red)
+        let view = SCNView(frame: CGRect(x: 0, y: 0, width: 200, height: 100))
+        view.scene = scene
+        let cameraNode = SCNNode()
+        cameraNode.camera = SCNCamera()
+        cameraNode.camera?.zNear = 0.5
+        cameraNode.camera?.zFar = 10
+        scene.rootNode.addChildNode(cameraNode)
+        view.pointOfView = cameraNode
+        // The camera sits at the origin looking down -z.
+        #expect(close(view.projectPoint(SCNVector3(0, 0, -0.5)).z, 0, 1e-4))
+        #expect(close(view.projectPoint(SCNVector3(0, 0, -10)).z, 1, 1e-4))
+        let middle = view.projectPoint(SCNVector3(0, 0, -2)).z
+        #expect(middle > 0 && middle < 1)
+        #expect(close(view.unprojectPoint(SCNVector3(100, 50, 0)), SCNVector3(0, 0, -0.5), 1e-3))
+        #expect(close(view.unprojectPoint(SCNVector3(100, 50, 1)), SCNVector3(0, 0, -10), 1e-2))
+        #expect(close(view.unprojectPoint(SCNVector3(100, 50, middle)), SCNVector3(0, 0, -2), 1e-3))
+        // An orthographic camera's depth is linear between the planes.
+        cameraNode.camera?.usesOrthographicProjection = true
+        #expect(close(view.projectPoint(SCNVector3(0, 0, -5.25)).z, 0.5, 1e-4))
+        #expect(close(view.unprojectPoint(SCNVector3(100, 50, 1)), SCNVector3(0, 0, -10), 1e-3))
+    }
+
     @Test func aSceneViewPaintsItsFacesFarToNear() {
         let (scene, _) = boxScene(color: UIColor(red: 1, green: 0, blue: 0, alpha: 1))
         scene.background.contents = UIColor(red: 0, green: 0, blue: 1, alpha: 1)
