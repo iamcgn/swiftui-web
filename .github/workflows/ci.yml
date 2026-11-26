@@ -53,9 +53,12 @@ jobs:
             fi
           fi
           echo "mac=$mac" >> "$GITHUB_OUTPUT"
-          echo "::notice::macos and browser run on ${mac/hosted/GitHub's macos-15}: $why"
+          where="GitHub's macos-15"; [ "$mac" = laptop ] && where="the laptop-sweep Mac"
+          echo "::notice::macos and browser run on $where: $why"
   macos:
     needs: pick
+    # Even if the pick failed (then on GitHub's Mac): a skipped required check would pass.
+    if: ${{ !cancelled() }}
     runs-on: ${{ needs.pick.outputs.mac == 'laptop' && fromJSON('["self-hosted", "laptop-sweep"]') || 'macos-15' }}
     steps:
       - uses: actions/checkout@v4
@@ -127,6 +130,8 @@ jobs:
         run: du -h .build/wasm/wasm32-unknown-wasip1/debug/*.wasm 2>/dev/null || true
   browser:
     needs: pick
+    # Even if the pick failed (then on GitHub's Mac): a skipped required check would pass.
+    if: ${{ !cancelled() }}
     runs-on: ${{ needs.pick.outputs.mac == 'laptop' && fromJSON('["self-hosted", "laptop-sweep"]') || 'macos-15' }}
     steps:
       - uses: actions/checkout@v4
