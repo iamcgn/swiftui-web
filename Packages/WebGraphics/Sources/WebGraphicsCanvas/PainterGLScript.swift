@@ -650,6 +650,20 @@ enum PainterGLScript {
       img.src = absolute || file.startsWith('data:') || file.startsWith('/') ? file : base + file;
       return null;
     }
+    // A data-URL image its only user let go of (SceneKit's live textures): dropped with its
+    // textures, loaded or not, as the Canvas2D painter's `image.forget` does.
+    function forgetImage(file) {
+      const entry = images.get(file);
+      if (!entry) return;
+      if (!entry.ready && !entry.failed && !/^([a-z]+:)?\/\//i.test(file)) glPending--;
+      entry.img.onload = null; entry.img.onerror = null; entry.img.src = '';
+      if (entry.tex) gl.deleteTexture(entry.tex);
+      for (const v of entry.sized.values()) gl.deleteTexture(v.tex);
+      images.delete(file);
+    }
+    // What SceneKit's renderer loads its textures through: the image once loaded, and `forget`.
+    const meshImage = (f) => { const e = image(f); return e ? e.img : null; };
+    meshImage.forget = forgetImage;
     function imageTexture(entry, dw, dh) {
       if (!entry.svg) {
         if (!entry.tex) {
@@ -1789,7 +1803,7 @@ enum PainterGLScript {
               if (mesh && mesh.render) {
                 const s = scaleOf(layer.state.m);
                 const pw = Math.max(1, Math.min(4096, Math.round(mw * s))), ph = Math.max(1, Math.min(4096, Math.round(mh * s)));
-                const drawn = mesh.render(buf, i, nv, files, mw, mh, pw, ph, (f) => { const e = image(f); return e ? e.img : null; });
+                const drawn = mesh.render(buf, i, nv, files, mw, mh, pw, ph, meshImage);
                 if (drawn) {
                   flush();
                   const tex = gl.createTexture();
