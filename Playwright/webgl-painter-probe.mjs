@@ -1,5 +1,9 @@
 // The WebGL painter (decision 0026) on Examples/Counter, as CI's gate for it:
-//   - auto (the default) on a machine with only software WebGL leaves every frame to Canvas2D;
+//   - auto (the default) on a machine with only software WebGL leaves every frame to Canvas2D.
+//     When this launch's WebGL is software, that is checked as it is; when it is a GPU, the
+//     software-only case is reported as untested (#390) and both ways the painter recognises
+//     software are checked by simulation instead: a context refused for a major performance
+//     caveat, and a context whose renderer reports SwiftShader;
 //   - ?webgl=overlay forces WebGL: it paints, and its frame matches Canvas2D's (Tier B's test:
 //     under 3% of pixels differing by more than 32 in a channel);
 //   - auto switches to WebGL when Canvas2D is slow (switch threshold 0 ms, software allowed);
@@ -23,9 +27,10 @@ console.log(`WebGL probe launches Chromium as: ${launch.name} (${launch.renderer
 const report = [];
 let failures = 0;
 
-async function open(name, { extraArgs = [], query = '' }) {
+async function open(name, { extraArgs = [], query = '', init = null }) {
   const browser = await chromium.launch({ headless: launch.headless, args: [...launch.args, ...extraArgs] });
   const page = await browser.newPage({ viewport: { width: 600, height: 400 }, deviceScaleFactor: 2 });
+  if (init) await page.addInitScript(init);
   const errors = [];
   page.on('pageerror', e => errors.push(String(e).slice(0, 300)));
   page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text().slice(0, 300)); });
@@ -73,11 +78,38 @@ function record(name, r, why) {
 const base = await open('canvas2d', { query: 'webgl=off' });
 record('?webgl=off: Canvas2D only', base, !base.info ? 'painter not loaded' : base.info.glFrames > 0 ? 'WebGL painted with webgl=off' : '');
 
-const auto = await open('auto', {});
-record('auto: no WebGL frames with software WebGL only', auto,
-  !auto.info ? 'painter not loaded' :
-  auto.info.active ? (/swiftshader|llvmpipe|software/i.test(auto.info.renderer) ? `software renderer taken: ${auto.info.renderer}` : '') :
-  auto.info.glFrames > 0 ? 'WebGL frames while inactive' : '');
+// auto refuses software WebGL: it leaves every frame to Canvas2D, says why, and paints.
+const SOFTWARE = /swiftshader|llvmpipe|softpipe|software|basic render/i;
+const refusesSoftware = (r) => !r.info ? 'painter not loaded' :
+  r.info.active ? `WebGL taken: ${r.info.renderer}` :
+  r.info.glFrames > 0 ? 'WebGL frames while inactive' :
+  r.info.reason !== 'software WebGL only' ? `reason "${r.info.reason}", expected "software WebGL only"` : '';
+if (SOFTWARE.test(launch.renderer)) {
+  const auto = await open('auto', {});
+  record('auto: no WebGL frames with software WebGL only', auto, refusesSoftware(auto));
+} else {
+  // This launch's WebGL is a GPU, so the real software-only case can't run here.
+  report.push({ name: 'auto: no WebGL frames with software WebGL only', ok: null, why: `untested: this launch's WebGL is ${launch.renderer}, not software` });
+  console.log(`UNTESTED auto: no WebGL frames with software WebGL only (this launch's WebGL is ${launch.renderer})`);
+}
+// Simulated, whatever this launch's WebGL is: a browser that refuses the painter's context for
+// a major performance caveat (as Chrome does when only SwiftShader is there) but gives a plain one...
+const caveat = await open('auto-caveat', { init: () => {
+  const getContext = HTMLCanvasElement.prototype.getContext;
+  HTMLCanvasElement.prototype.getContext = function (type, options) {
+    if (type === 'webgl2' && options && options.failIfMajorPerformanceCaveat) return null;
+    return getContext.call(this, type, options);
+  };
+} });
+record('auto: refuses WebGL refused for a performance caveat (simulated software)', caveat, refusesSoftware(caveat));
+// ...and one that gives the context but names a software renderer.
+const named = await open('auto-swiftshader', { init: () => {
+  for (const proto of [WebGL2RenderingContext.prototype, WebGLRenderingContext.prototype]) {
+    const getParameter = proto.getParameter;
+    proto.getParameter = function (p) { return p === 0x9246 || p === 0x1F01 ? 'Google SwiftShader (simulated)' : getParameter.call(this, p); };
+  }
+} });
+record('auto: refuses a renderer named SwiftShader (simulated software)', named, refusesSoftware(named));
 
 const forced = await open('webgl', { query: 'webgl=overlay' });
 const diff = differing(base.shot, forced.shot);
