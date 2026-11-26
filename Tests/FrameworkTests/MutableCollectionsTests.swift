@@ -58,7 +58,11 @@ private final class Counter {
 
         let numbers = NSMutableArray(array: [3, 1, 2])
         #expect(numbers.sortedArray(comparator: { ($0 as! Int) < ($1 as! Int) ? .orderedAscending : .orderedDescending }) as? [Int] == [1, 2, 3])
-        numbers.remove(1)
+        // By index: Linux's Foundation does not find a boxed Int with remove(_:).
+        numbers.removeObject(at: 1)
+        let names = NSMutableArray(array: ["a", "b", "a"])
+        names.remove("a")
+        #expect(names.count == 1 && names.firstObject as? String == "b")
         numbers.addObjects(from: [4, 5])
         #expect(numbers.map { $0 as! Int } == [3, 2, 4, 5])
         var reversed: [Int] = []
