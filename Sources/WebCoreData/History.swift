@@ -144,10 +144,17 @@ extension NSPersistentStoreCoordinator {
         NSPersistentHistoryToken(generation: _generation)
     }
 
-    /// The metadata of the store at the URL: its type, and the identifier of the store there
-    /// that a coordinator has open (stores here keep no other metadata).
+    /// The metadata of the store at the URL: its type and identifier (stores here keep no other
+    /// metadata). With no store there, open in this page or kept by the host, it throws the
+    /// no-such-file error, as Core Data does for a missing store file.
     public class func metadataForPersistentStore(ofType storeType: String, at url: URL, options: [AnyHashable: Any]? = nil) throws -> [String: Any] {
-        [NSStoreTypeKey: storeType]
+        let description = NSPersistentStoreDescription(url: url)
+        description.type = storeType
+        guard let name = description._storeName, let data = try _CDStoreData.existing(name) else {
+            throw NSError(domain: NSCocoaErrorDomain, code: NSFileReadNoSuchFileError,
+                          userInfo: [NSLocalizedDescriptionKey: "No persistent store is at \(url.path)."])
+        }
+        return [NSStoreTypeKey: storeType, NSStoreUUIDKey: data.uuid]
     }
 
     /// Recorded: a store's metadata is its type and identifier.

@@ -65,6 +65,17 @@ final class _CDStoreData {
         return data
     }
 
+    /// The store with the name if one exists: open in this process, or kept by the host. Unlike
+    /// `named`, it never makes an empty one.
+    static func existing(_ name: String) throws -> _CDStoreData? {
+        if let data = open[name] { return data }
+        guard let text = try _host?.load(_hostKey(name)) else { return nil }
+        let data = _CDStoreData(name: name, persistent: true)
+        try data.load(from: text)
+        open[name] = data
+        return data
+    }
+
     /// Removes the store's rows, in memory and in the host's storage.
     static func destroy(_ name: String) throws {
         if let data = open[name] {

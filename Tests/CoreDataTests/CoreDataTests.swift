@@ -505,8 +505,25 @@ struct CoreDataTests {
         #expect((result?.result as? [NSPersistentHistoryTransaction])?.isEmpty == true)
         let deleted = try context.execute(NSPersistentHistoryChangeRequest.deleteHistory(before: token)) as? NSPersistentHistoryResult
         #expect(deleted != nil)
-        let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: URL(fileURLWithPath: "/tmp/Library.sqlite"))
+    }
+
+    // An app checks a store's metadata before it loads it (Dime's migration check): a store that
+    // exists answers its type and identifier, and a URL with no store there throws.
+    @Test func storeMetadataNeedsAStoreThere() throws {
+        let container = try container(store: uniqueName("Metadata"))
+        let store = try #require(container.persistentStoreCoordinator.persistentStores.first)
+        let url = try #require(store.url)
+        let metadata = try NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: url)
         #expect(metadata[NSStoreTypeKey] as? String == NSSQLiteStoreType)
+        #expect(metadata[NSStoreUUIDKey] as? String == store.identifier)
+        let missing = URL(fileURLWithPath: "/tmp/\(uniqueName("missing")).sqlite")
+        let error = #expect(throws: (any Error).self) {
+            try NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSSQLiteStoreType, at: missing)
+        }
+        #expect(code(of: error) == NSFileReadNoSuchFileError)
+        #expect(throws: (any Error).self) {
+            try NSPersistentStoreCoordinator.metadataForPersistentStore(ofType: NSInMemoryStoreType, at: URL(fileURLWithPath: "/dev/null"))
+        }
     }
 
     // MARK: SwiftUI
