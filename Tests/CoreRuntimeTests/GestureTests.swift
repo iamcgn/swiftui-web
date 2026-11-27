@@ -42,6 +42,15 @@ import SwiftUIWebHeadless
         #expect(global.events == ["90,50→100"])
     }
 
+    @Test func theOlderLongPressSpellingReportsThePress() {
+        let log = Log()
+        let runtime = runtime(Color.red.frame(width: 40, height: 20).onLongPressGesture(minimumDuration: 0.5, maximumDistance: 100, pressing: { log.events.append($0 ? "down" : "up") }) { log.events.append("pressed") })
+        runtime.pointerDown(at: CGPoint(x: 100, y: 50), time: 1)
+        runtime.advanceAnimations(elapsed: 0.6)
+        runtime.pointerUp(at: CGPoint(x: 100, y: 50), time: 2)
+        #expect(log.events == ["down", "pressed", "up"])
+    }
+
     @Test func longPressTicksOnTheAnimationClockAndCancelsOnMovement() {
         let log = Log()
         let runtime = runtime(Color.red.frame(width: 40, height: 20).onLongPressGesture(minimumDuration: 0.5) { log.events.append("pressed") } onPressingChanged: { log.events.append($0 ? "down" : "up") })

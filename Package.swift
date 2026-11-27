@@ -355,7 +355,7 @@ let package = Package(
         // see this SwiftUI.
         .target(
             name: "LanguageMode5Fixtures",
-            dependencies: ["SwiftUI"],
+            dependencies: ["SwiftUI", "AVFoundation", "WebKit"],
             path: "Tests/LanguageMode5Fixtures",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),

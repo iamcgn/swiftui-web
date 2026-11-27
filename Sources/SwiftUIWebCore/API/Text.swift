@@ -26,8 +26,9 @@ public struct LocalizedStringKey: Equatable, Sendable, ExpressibleByStringInterp
         public mutating func appendInterpolation<F: FormatStyle>(_ input: F.FormatInput, format: F) where F.FormatOutput == String {
             output += format.format(input)
         }
-        /// A value written by a formatter; nothing when the formatter cannot represent it.
-        public mutating func appendInterpolation<Subject: AnyObject>(_ subject: Subject, formatter: Formatter?) {
+        /// A value written by a formatter (a `Date` by a `DateFormatter`, an `NSNumber`); its
+        /// description when the formatter cannot represent it.
+        public mutating func appendInterpolation<Subject>(_ subject: Subject, formatter: Formatter?) {
             output += formatter?.string(for: subject) ?? String(describing: subject)
         }
     }
@@ -157,6 +158,12 @@ public struct Text: Equatable, Sendable {
     /// table yet: the key shows, its markdown interpreted).
     public init(_ key: LocalizedStringKey, tableName: String? = nil, bundle: Bundle? = nil, comment: StaticString? = nil) {
         storage = .localized(key)
+    }
+
+    /// Creates a text view that displays a value as a formatter writes it (a `Date` by a
+    /// `DateFormatter`); empty when the formatter cannot represent the value.
+    public init<Subject>(_ subject: Subject, formatter: Formatter) {
+        storage = .verbatim(formatter.string(for: subject) ?? "")
     }
 
     /// Creates a text view that displays a localized string resource: the string its table

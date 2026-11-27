@@ -373,7 +373,7 @@ public protocol WKHTTPCookieStoreObserver: AnyObject {
 // MARK: - The view
 
 /// An object that displays interactive web content, such as for an in-app browser.
-@MainActor
+@preconcurrency @MainActor
 open class WKWebView: UIView, _UIHostElementProviding {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
@@ -535,6 +535,20 @@ open class WKWebView: UIView, _UIHostElementProviding {
 
     open func callAsyncJavaScript(_ functionBody: String, arguments: [String: Any] = [:], in frame: WKFrameInfo? = nil, in contentWorld: WKContentWorld) async throws -> Any? {
         throw WKError(.javaScriptExceptionOccurred, message: "WKWebView: the page's origin is not the app's; a script cannot run in it")
+    }
+
+    // MARK: Media
+
+    /// The page's media is another origin's, which the app cannot pause or suspend (as it cannot
+    /// run a script there): these finish at once and leave the page playing.
+    open func pauseAllMediaPlayback(completionHandler: (@MainActor () -> Void)? = nil) {
+        DispatchQueue.main.async { completionHandler?() }
+    }
+    open func setAllMediaPlaybackSuspended(_ suspended: Bool, completionHandler: (@MainActor () -> Void)? = nil) {
+        DispatchQueue.main.async { completionHandler?() }
+    }
+    open func closeAllMediaPresentations(completionHandler: (@MainActor () -> Void)? = nil) {
+        DispatchQueue.main.async { completionHandler?() }
     }
 
     // MARK: Snapshots
