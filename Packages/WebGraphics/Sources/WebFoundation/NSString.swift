@@ -2,6 +2,19 @@
 // and the Speech stand-in). FoundationEssentials on wasm has neither; Apple's Foundation has both.
 #if os(WASI)
 
+#if canImport(ObjectiveC)
+// With the Objective-C runtime it is a C struct (WebNSRange's header), as Foundation's is, so an
+// `@objc` method or protocol requirement can take one (Highlightr's `HighlightDelegate`).
+@_exported import WebNSRange
+
+extension NSRange: @retroactive Equatable, @retroactive Hashable, @retroactive CustomStringConvertible {
+    public static func == (lhs: NSRange, rhs: NSRange) -> Bool { lhs.location == rhs.location && lhs.length == rhs.length }
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(location)
+        hasher.combine(length)
+    }
+}
+#else
 /// A structure used to describe a portion of a series, such as characters in a string.
 public struct NSRange: Hashable, Sendable, CustomStringConvertible {
     public var location: Int
@@ -11,19 +24,21 @@ public struct NSRange: Hashable, Sendable, CustomStringConvertible {
         self.location = location
         self.length = length
     }
+}
+#endif
 
+extension NSRange {
     public init<R: RangeExpression>(_ range: R) where R.Bound == Int {
         let r = range.relative(to: Int.min..<Int.max)
-        location = r.lowerBound
-        length = r.upperBound - r.lowerBound
+        self.init(location: r.lowerBound, length: r.upperBound - r.lowerBound)
     }
 
     /// The range of `range` in `string`, counted in UTF-16 units as NSString counts.
     public init<R: RangeExpression, S: StringProtocol>(_ range: R, in string: S) where R.Bound == String.Index {
         let r = range.relative(to: string)
         let utf16 = string.utf16
-        location = utf16.distance(from: utf16.startIndex, to: r.lowerBound)
-        length = utf16.distance(from: r.lowerBound, to: r.upperBound)
+        self.init(location: utf16.distance(from: utf16.startIndex, to: r.lowerBound),
+                  length: utf16.distance(from: r.lowerBound, to: r.upperBound))
     }
 
     public static let notFound = NSRange(location: NSNotFound, length: 0)

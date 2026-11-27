@@ -40,7 +40,7 @@ let package = Package(
     targets: [
         .target(
             name: "WebFoundation",
-            dependencies: ["WebDecimalDivision", .target(name: "WebObjCBlocks", condition: .when(platforms: [.wasi])),
+            dependencies: ["WebDecimalDivision", "WebNSRange", .target(name: "WebObjCBlocks", condition: .when(platforms: [.wasi])),
                            .target(name: "SwiftFoundation", condition: .when(platforms: [.wasi]))],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
@@ -149,6 +149,9 @@ let package = Package(
         // CGPoint, CGSize and CGRect as C structs, imported only on wasm with the Objective-C
         // runtime (Geometry/CGTypes.swift), so `@objc` methods and blocks can take them.
         .systemLibrary(name: "WebCGGeometry"),
+        // NSRange as a C struct, imported only on wasm with the Objective-C runtime
+        // (WebFoundation's NSString.swift), so `@objc` methods and protocols can take it.
+        .systemLibrary(name: "WebNSRange"),
         // Cairo through pkg-config (libcairo2-dev on Debian and Ubuntu, `brew install cairo`);
         // the painter paints the display list into an image surface or any cairo context.
         .systemLibrary(
