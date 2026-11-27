@@ -15,6 +15,11 @@ const frameBudget = option('--frame-ms', 40);
 const gzipBytes = option('--gzip-bytes', 0);
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+// What the page reports, kept so a page that never paints says why.
+const notes = [];
+page.on('pageerror', e => notes.push(`page error: ${e.message}`));
+page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') notes.push(`console ${m.type()}: ${m.text()}`); });
+page.on('requestfailed', r => notes.push(`request failed: ${r.url()} (${r.failure()?.errorText})`));
 let failures = 0;
 const check = (name, ok, detail) => { console.log(`${ok ? 'PASS' : 'FAIL'} ${name}${detail ? ` (${detail})` : ''}`); if (!ok) failures++; };
 
@@ -22,7 +27,19 @@ const navigationStart = Date.now();
 await page.goto(url);
 // The resources' arrival: the last response's end, from the navigation.
 const loaded = Date.now();
-await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
+try {
+  await page.waitForFunction(() => window.__swiftuiwebDebug && window.__swiftuiwebDebug.frameCount() > 0, null, { timeout: 120000 });
+} catch (error) {
+  const state = await page.evaluate(() => ({
+    status: document.querySelector('#loading .status')?.textContent ?? '(no loading screen)',
+    debug: !!window.__swiftuiwebDebug,
+    gl: (() => { const c = document.createElement('canvas'); const gl = c.getContext('webgl2'); const info = gl && gl.getExtension('WEBGL_debug_renderer_info'); return gl ? (info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : 'webgl2') : 'no webgl2'; })(),
+  })).catch(e => ({ status: `(page unreadable: ${e.message})` }));
+  console.log(`no first frame in 120 s: loading screen says "${state.status}", debug hook ${state.debug ? 'present' : 'missing'}, ${state.gl}`);
+  for (const note of notes.slice(0, 40)) console.log(`  ${note}`);
+  await browser.close();
+  process.exit(1);
+}
 const firstFrame = Date.now();
 const timing = await page.evaluate(() => {
   const entries = performance.getEntriesByType('resource');

@@ -52,7 +52,19 @@ check('cursor restored', await until(async () => ['auto', 'default'].includes(aw
 // Tooltip: the pixels below the pointer change once it has rested for a second.
 const help = centre(await box('Help me'));
 const region = { x: Math.round(help.x), y: Math.round(help.y + 18), width: 60, height: 24 };
-const before = await page.screenshot({ clip: region });
+// The baseline waits for the region to hold still: on a slow software-GL runner the frame for the
+// last hover change can still be landing, and a half-drawn baseline never matches again.
+const settled = async (clip) => {
+  let last = await page.screenshot({ clip });
+  for (const end = Date.now() + 3000; Date.now() < end;) {
+    await page.waitForTimeout(150);
+    const next = await page.screenshot({ clip });
+    if (Buffer.compare(last, next) === 0) return next;
+    last = next;
+  }
+  return last;
+};
+const before = await settled(region);
 await page.mouse.move(help.x, help.y);
 await page.waitForTimeout(300);
 const early = await page.screenshot({ clip: region });
