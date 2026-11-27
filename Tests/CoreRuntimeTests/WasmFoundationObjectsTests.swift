@@ -143,5 +143,15 @@ import WebFoundation
         task.resume()
         #expect(task.state == .running && task.response == nil)
     }
+
+    /// Alamofire keeps a request's metrics and skips a report it already holds
+    /// (`metrics.last != metrics`): metrics are equal only to themselves, as NSObjects are.
+    @Test func taskMetricsAreEqualOnlyToThemselves() {
+        let first = URLSessionTaskMetrics()
+        let second = URLSessionTaskMetrics()
+        let reports: [URLSessionTaskMetrics] = [first]
+        #expect(reports.last == first && reports.last != second && Set([first, first, second]).count == 2)
+        #expect(URLSessionTaskTransactionMetrics() != URLSessionTaskTransactionMetrics())
+    }
 }
 #endif

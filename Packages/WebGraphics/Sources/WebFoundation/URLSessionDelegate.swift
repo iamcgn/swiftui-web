@@ -234,6 +234,20 @@ open class URLSessionTaskTransactionMetrics: _WebObjectBase, @unchecked Sendable
     public override init() {}
 }
 
+#if !canImport(ObjectiveC)
+// Equal when the same object, as NSObject makes them on Apple platforms: Alamofire skips a
+// metrics report it already has (`metrics.last != metrics`).
+extension URLSessionTaskMetrics: Hashable {
+    public static func == (lhs: URLSessionTaskMetrics, rhs: URLSessionTaskMetrics) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+}
+
+extension URLSessionTaskTransactionMetrics: Hashable {
+    public static func == (lhs: URLSessionTaskTransactionMetrics, rhs: URLSessionTaskTransactionMetrics) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+}
+#endif
+
 // MARK: - Network status
 
 /// Whether the browser is online, for SystemConfiguration's reachability. The host sets
