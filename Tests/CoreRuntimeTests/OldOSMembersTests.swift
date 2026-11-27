@@ -14,7 +14,11 @@ import Foundation
 @Suite @MainActor struct OldOSMembersTests {
     @Test func timesAreInOrder() {
         let half = CMTime(value: 1, timescale: 2), one = CMTime(seconds: 1)
-        #expect(half < one && one > half && CMTime.invalid < half && !(half < CMTime.invalid))
+        #expect(half < one && one > half)
+        // CMTimeCompare puts an invalid time after every other, positive infinity included.
+        #expect(half < CMTime.invalid && CMTime.positiveInfinity < CMTime.invalid && !(CMTime.invalid < half))
+        #expect(CMTimeCompare(CMTime.invalid, CMTime.positiveInfinity) == 1 && CMTimeCompare(CMTime.invalid, CMTime.invalid) == 0)
+        #expect(CMTimeMinimum(CMTime.invalid, half) == half && CMTimeMaximum(CMTime.invalid, half) == CMTime.invalid)
         #expect(CMTimeCompare(half, one) == -1 && CMTimeCompare(one, CMTime(value: 600, timescale: 600)) == 0
                 && CMTimeCompare(one, half) == 1)
         #expect(CMTimeMaximum(half, one) == one && CMTimeMinimum(half, one) == half)

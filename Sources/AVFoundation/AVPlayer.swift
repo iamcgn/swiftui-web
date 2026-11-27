@@ -38,9 +38,10 @@ public struct CMTime: Hashable, Comparable, Sendable {
     public static func == (a: CMTime, b: CMTime) -> Bool {
         a.seconds == b.seconds || (a.seconds.isNaN && b.seconds.isNaN)
     }
-    /// Earlier first, as `CMTimeCompare` orders them; an invalid time comes before every valid one.
+    /// Earlier first, as `CMTimeCompare` orders them: an invalid (or indefinite) time comes after
+    /// every other, positive infinity included, and equals another invalid one.
     public static func < (a: CMTime, b: CMTime) -> Bool {
-        if a.seconds.isNaN || b.seconds.isNaN { return a.seconds.isNaN && !b.seconds.isNaN }
+        if a.seconds.isNaN || b.seconds.isNaN { return !a.seconds.isNaN && b.seconds.isNaN }
         return a.seconds < b.seconds
     }
     public func hash(into hasher: inout Hasher) {
