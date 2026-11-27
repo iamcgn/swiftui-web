@@ -839,6 +839,54 @@ def asset_catalogs(root: Path, base: Path):
     return found
 
 
+POD_MODULE = re.compile(r"^\s*framework\s+module\s+([A-Za-z_]\w*)", re.MULTILINE)
+
+
+def checked_in_pods(root: Path):
+    """The CocoaPods a repository keeps checked in (`Pods/<pod>` beside its `Target Support
+    Files`), as local targets: Xcode builds each pod's sources as a framework module named by its
+    module map (R.swift.Library is `Rswift`). Pods with no Swift sources (tools such as SwiftLint
+    or R.swift's generator, shipped as binaries) and Objective-C pods are left out."""
+    pods = []
+    for support in sorted(root.rglob("Target Support Files")):
+        rel = support.relative_to(root)
+        if support.parent.name != "Pods" or any(x in (".build", ".git") for x in rel.parts):
+            continue
+        for d in sorted(p for p in support.iterdir() if p.is_dir() and not p.name.startswith("Pods-")):
+            src = support.parent / d.name
+            if not src.is_dir():
+                continue
+            module = None
+            for mm in sorted(d.glob("*.modulemap")):
+                m = POD_MODULE.search(mm.read_text(errors="replace"))
+                if m:
+                    module = m.group(1)
+                    break
+            module = module or re.sub(r"\W", "_", d.name)
+            files = [str(f.relative_to(root)) for f in files_under(src, ".swift")
+                     if not any(EXCLUDE_DIR.match(x) and x.lower() != "pods" for x in f.relative_to(src).parts[:-1])]
+            if not files:
+                continue
+            version = None
+            for xc in sorted(d.glob("*.xcconfig")):
+                m = re.search(r"^SWIFT_VERSION\s*=\s*([\d.]+)", xc.read_text(errors="replace"), re.MULTILINE)
+                if m:
+                    version = m.group(1)
+            pods.append({"module": module, "source_root": str(src.relative_to(root)), "files": files,
+                         "mode": "v6" if (version or "5").startswith("6") else "v5"})
+    # A pod's dependencies are the other pods its files import.
+    names = {p["module"] for p in pods}
+    for p in pods:
+        imported = set()
+        for f in p["files"]:
+            for line in (root / f).read_text(errors="replace").splitlines():
+                m = IMPORT.match(line)
+                if m:
+                    imported.add(m.group(3))
+        p["deps"] = sorted((imported & names) - {p["module"]})
+    return pods
+
+
 def data_models(root: Path, base: Path):
     """The Core Data models (`.xcdatamodeld` bundles, bare `.xcdatamodel` folders) under a folder,
     as paths relative to the clone, for the CoreDataModel plugin."""
@@ -931,6 +979,36 @@ def describe_app(entry, root: Path, work: Path = None):
             })
     local_count = len(targets)
     targets.extend(remote)
+    # The CocoaPods the repository keeps checked in, each a module of its own, as Xcode builds
+    # them (Clendar's R.swift.Library and SwiftyChrono).
+    # Only the pods some file outside them imports: a pod the tests alone use stays out.
+    taken = {t["module"] for t in targets}
+    pods = checked_in_pods(root)
+    outside = set()
+    if pods:
+        for f in root.rglob("*.swift"):
+            if "Pods" in f.relative_to(root).parts or ".build" in f.relative_to(root).parts:
+                continue
+            for line in f.read_text(errors="replace").splitlines():
+                m = IMPORT.match(line)
+                if m:
+                    outside.add(m.group(3))
+    wanted, todo = set(), [p["module"] for p in pods if p["module"] in outside]
+    by_pod = {p["module"]: p for p in pods}
+    while todo:
+        n = todo.pop()
+        if n not in wanted:
+            wanted.add(n)
+            todo.extend(by_pod[n]["deps"])
+    for p in pods:
+        if p["module"] not in wanted or p["module"] in taken or excluded_by_entry(Path(p["source_root"]) / "x", extra):
+            continue
+        targets.append({
+            "module": p["module"], "source_root": p["source_root"], "files": p["files"], "deps": p["deps"],
+            "third_party": [], "mode": p["mode"], "settings": [], "resources": [], "models": [], "intents": [],
+            "executable": False, "pod": True,
+        })
+        notes.append(f"checked-in pod {p['source_root']}: module {p['module']}, {len(p['files'])} files")
     notes.extend(remote_notes)
     # The app target: every Swift file outside the local packages and the excluded folders.
     # `project_files` also holds the files in folders whose names only suggest another target
