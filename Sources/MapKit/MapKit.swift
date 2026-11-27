@@ -412,6 +412,60 @@ public struct Annotation<Label: View, Content: View>: MapContent {
     }
 }
 
+// MARK: - The older annotations (iOS 14)
+
+/// How the older map follows the user's location (not available here: always as set).
+public enum MapUserTrackingMode: Hashable, Sendable {
+    case none, follow
+}
+
+/// An annotation for the older `Map(coordinateRegion:annotationItems:annotationContent:)`.
+public protocol MapAnnotationProtocol {
+    @MainActor var _mapItem: _MapItem { get }
+}
+
+/// A pin at a coordinate (drawn as a marker; `tint` recolours it).
+public struct MapPin: MapAnnotationProtocol {
+    let coordinate: CLLocationCoordinate2D
+    let tint: Color?
+    public init(coordinate: CLLocationCoordinate2D, tint: Color? = nil) {
+        self.coordinate = coordinate; self.tint = tint
+    }
+    @MainActor public var _mapItem: _MapItem { _MapItem(coordinate: coordinate, tint: tint) }
+}
+
+/// A balloon marker at a coordinate (`tint` recolours it).
+public struct MapMarker: MapAnnotationProtocol {
+    let coordinate: CLLocationCoordinate2D
+    let tint: Color?
+    public init(coordinate: CLLocationCoordinate2D, tint: Color? = nil) {
+        self.coordinate = coordinate; self.tint = tint
+    }
+    @MainActor public var _mapItem: _MapItem { _MapItem(coordinate: coordinate, tint: tint) }
+}
+
+/// A view at a coordinate, placed by `anchorPoint` (the centre by default).
+public struct MapAnnotation<Content: View>: MapAnnotationProtocol {
+    let coordinate: CLLocationCoordinate2D
+    let anchorPoint: CGPoint
+    let content: Content
+    public init(coordinate: CLLocationCoordinate2D, anchorPoint: CGPoint = CGPoint(x: 0.5, y: 0.5), @ViewBuilder content: () -> Content) {
+        self.coordinate = coordinate; self.anchorPoint = anchorPoint; self.content = content()
+    }
+    @MainActor public var _mapItem: _MapItem {
+        _MapItem(coordinate: coordinate, content: AnyView(content), anchor: UnitPoint(x: anchorPoint.x, y: anchorPoint.y))
+    }
+}
+
+/// The older map's content: one annotation for each item.
+public struct _DefaultAnnotatedMapContent<Items: RandomAccessCollection>: MapContent {
+    let items: Items
+    let annotation: (Items.Element) -> any MapAnnotationProtocol
+    @MainActor public func _collect(into collected: inout [_MapItem]) {
+        for item in items { collected.append(annotation(item)._mapItem) }
+    }
+}
+
 /// The user's location (not available to the hosts: shows nothing).
 public struct UserAnnotation: MapContent {
     public init() {}
@@ -441,7 +495,8 @@ public struct MapCircle: MapContent {
 public struct Map<Content: MapContent>: View {
     let region: MKCoordinateRegion?
     let binding: Binding<MapCameraPosition>?
-    let content: Content
+    package var regionBinding: Binding<MKCoordinateRegion>? = nil
+    package let content: Content
 
     /// A map at an initial camera position.
     public init(initialPosition: MapCameraPosition = .automatic, bounds: MapCameraBounds? = nil, interactionModes: MapInteractionModes = .all, scope: Namespace.ID? = nil, @MapContentBuilder content: () -> Content) {
@@ -457,17 +512,28 @@ public struct Map<Content: MapContent>: View {
         self.content = content()
     }
 
-    /// The older region binding.
-    public init(coordinateRegion: Binding<MKCoordinateRegion>, interactionModes: MapInteractionModes = .all, showsUserLocation: Bool = false) where Content == EmptyMapContent {
-        region = coordinateRegion.wrappedValue
+    /// The older region binding: the map shows the bound region as it changes (the user's
+    /// location and tracking are not available here, so `userTrackingMode` is left as it is).
+    public init(coordinateRegion: Binding<MKCoordinateRegion>, interactionModes: MapInteractionModes = .all, showsUserLocation: Bool = false, userTrackingMode: Binding<MapUserTrackingMode>? = nil) where Content == EmptyMapContent {
+        region = nil
         binding = nil
+        regionBinding = coordinateRegion
         content = EmptyMapContent()
+    }
+
+    /// The older region binding with an annotation (`MapPin`, `MapMarker` or `MapAnnotation`)
+    /// for each item.
+    public init<Items: RandomAccessCollection, A: MapAnnotationProtocol>(coordinateRegion: Binding<MKCoordinateRegion>, interactionModes: MapInteractionModes = .all, showsUserLocation: Bool = false, userTrackingMode: Binding<MapUserTrackingMode>? = nil, annotationItems: Items, annotationContent: @escaping (Items.Element) -> A) where Content == _DefaultAnnotatedMapContent<Items>, Items.Element: Identifiable {
+        region = nil
+        binding = nil
+        regionBinding = coordinateRegion
+        content = _DefaultAnnotatedMapContent(items: annotationItems, annotation: { annotationContent($0) })
     }
 
     public var body: some View {
         var items: [_MapItem] = []
         content._collect(into: &items)
-        let region = binding?.wrappedValue.region ?? self.region ?? Self.automaticRegion(for: items)
+        let region = binding?.wrappedValue.region ?? regionBinding?.wrappedValue ?? self.region ?? Self.automaticRegion(for: items)
         return GeometryReader { geometry in
             _MapTiles(region: region, size: geometry.size, items: items)
         }
