@@ -87,6 +87,11 @@ public enum _AVFrameHost {
     /// `done` comes later, never from within the call: the movie's facts, or nil when it could not
     /// be loaded.
     nonisolated(unsafe) public static var info: ((_ url: String, _ done: @escaping @MainActor (_AVMovieInfo?) -> Void) -> Void)?
+    /// A URL the browser loads these bytes from, as this MIME type (an object URL for a `Blob`),
+    /// for a movie a resource loader's delegate answered with; nil when one cannot be made.
+    nonisolated(unsafe) public static var objectURL: ((_ bytes: [UInt8], _ mimeType: String) -> String?)?
+    /// Releases an object URL `objectURL` made, once the asset it was made for is gone.
+    nonisolated(unsafe) public static var revokeObjectURL: ((_ url: String) -> Void)?
 }
 
 /// What the host read of a movie: its length in seconds (NaN when the browser could not tell,

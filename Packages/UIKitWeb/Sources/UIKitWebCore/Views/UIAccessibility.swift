@@ -58,6 +58,8 @@ public enum UIAccessibility {
     public static var isInvertColorsEnabled: Bool { false }
     public static var isGrayscaleEnabled: Bool { false }
     public static var buttonShapesEnabled: Bool { false }
+    /// Posted when Button Shapes is switched; the page never switches it.
+    nonisolated public static let buttonShapesEnabledStatusDidChangeNotification = NSNotification.Name("UIAccessibilityButtonShapesEnabledStatusDidChangeNotification")
     public static var shouldDifferentiateWithoutColor: Bool { false }
     public static var isOnOffSwitchLabelsEnabled: Bool { false }
 }

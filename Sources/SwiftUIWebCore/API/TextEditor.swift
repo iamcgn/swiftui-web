@@ -2,6 +2,8 @@
 // proposal and paints its text 5 pt in with the text view's tight line pitch; editing happens
 // in the host's multi-line input (a `<textarea>` in the browser, typing in the native host).
 
+import WebFoundation
+
 /// The selected text of an editor (`TextEditor(text:selection:)`): a range of the text, or an
 /// insertion point (an empty range).
 public struct TextSelection: Equatable, Sendable {
@@ -41,6 +43,34 @@ public struct TextEditor: View {
     public init(text: Binding<String>) {
         self.text = text
         selection = nil
+    }
+
+    /// Creates an editor for rich text (iOS 26). The editor edits the string's characters: an
+    /// edit replaces only the characters that changed, so text that is not edited keeps its
+    /// attributes (a link stays on its words) and typed text comes in plain.
+    public init(text: Binding<AttributedString>) {
+        self.text = Binding(get: { String(text.wrappedValue.characters) },
+                            set: { value in
+                                guard value != String(text.wrappedValue.characters) else { return }
+                                text.wrappedValue = Self.editing(text.wrappedValue, to: value)
+                            })
+        selection = nil
+    }
+
+    /// `styled` with its characters changed to `value`: the characters the two share at the
+    /// start and at the end keep their runs, and the ones between become `value`'s, plain.
+    static func editing(_ styled: AttributedString, to value: String) -> AttributedString {
+        let old = Array(styled.characters), new = Array(value)
+        var prefix = 0
+        while prefix < old.count, prefix < new.count, old[prefix] == new[prefix] { prefix += 1 }
+        var suffix = 0
+        while suffix < old.count - prefix, suffix < new.count - prefix,
+              old[old.count - 1 - suffix] == new[new.count - 1 - suffix] { suffix += 1 }
+        var edited = styled
+        let lower = edited.index(edited.startIndex, offsetByCharacters: prefix)
+        let upper = edited.index(edited.startIndex, offsetByCharacters: old.count - suffix)
+        edited.replaceSubrange(lower..<upper, with: AttributedString(String(new[prefix..<(new.count - suffix)])))
+        return edited
     }
 
     /// Creates an editor whose selection follows (and sets) `selection`.

@@ -31,6 +31,13 @@ public struct UIActivityType: Hashable, RawRepresentable, Sendable {
 @preconcurrency @MainActor
 open class UIActivity {
     public typealias ActivityType = UIActivityType
+    /// Where the share sheet lists an activity: with the actions, or with the apps it shares to.
+    public enum Category: Int, Sendable {
+        case action = 0
+        case share = 1
+    }
+    /// The activity's category (actions, unless the subclass says otherwise).
+    open class var activityCategory: Category { .action }
     public init() {}
     open var activityType: UIActivityType? { nil }
     open var activityTitle: String? { nil }

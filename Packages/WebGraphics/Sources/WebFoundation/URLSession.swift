@@ -632,7 +632,8 @@ open class URLSessionTask: NSObject, @unchecked Sendable {
     public static let defaultPriority: Float = 0.5
     public static let lowPriority: Float = 0.25
     public static let highPriority: Float = 0.75
-    private let start: @Sendable () -> _WebURLSession.Task
+    /// What sends the request; nil for a task made with `init()`, which has nothing to send.
+    private let start: (@Sendable () -> _WebURLSession.Task)?
     var core: _WebURLSession.Task?
 
     init(identifier: Int, request: URLRequest, start: @escaping @Sendable () -> _WebURLSession.Task) {
@@ -643,12 +644,22 @@ open class URLSessionTask: NSObject, @unchecked Sendable {
         super.init()
     }
 
+    /// A task with no request, which resuming sends nothing for, as `URLSessionTask()` makes on
+    /// Apple's platforms (Apollo returns one from a session already invalidated).
+    public override init() {
+        taskIdentifier = 0
+        originalRequest = nil
+        currentRequest = nil
+        start = nil
+        super.init()
+    }
+
     /// Sends the request (a new task waits for this, as Foundation's does), or marks a
     /// suspended one running again.
     public func resume() {
         guard state == .suspended else { return }
         state = .running
-        if core == nil { core = start() }
+        if core == nil { core = start?() }
     }
 
     /// Marks the task suspended. A fetch the browser has started can't be paused, so its
@@ -673,6 +684,9 @@ open class URLSessionTask: NSObject, @unchecked Sendable {
 
 open class URLSessionDataTask: URLSessionTask, @unchecked Sendable {}
 open class URLSessionUploadTask: URLSessionDataTask, @unchecked Sendable {}
+/// A TCP stream task. A page can't open raw sockets, so no session makes one; the class is here
+/// for the data delegate's `urlSession(_:dataTask:didBecome:)` that takes it (Apollo's client).
+open class URLSessionStreamTask: URLSessionTask, @unchecked Sendable {}
 
 open class URLSessionDownloadTask: URLSessionTask, @unchecked Sendable {
     /// Cancels the download. The browser keeps no partial body to resume from, so the resume

@@ -171,6 +171,22 @@ extension StringProtocol {
         return _StringCompare.precomposed(String(String.UnicodeScalarView(_StringCompare.keys(text, options: options, turkic: turkic))))
     }
 
+    /// The longest start this string shares with `aString`, taken from this string; characters
+    /// match as `compare(_:options:)` with `mask` matches them (`.caseInsensitive` lets "Ab"
+    /// and "aB" share both).
+    public func commonPrefix<T: StringProtocol>(with aString: T, options mask: String.CompareOptions = []) -> String {
+        var result = ""
+        var other = String(aString).makeIterator()
+        for character in String(self) {
+            guard let next = other.next() else { break }
+            let same = mask.isEmpty ? character == next
+                : _StringCompare.compare(String(character), String(next), options: mask) == .orderedSame
+            guard same else { break }
+            result.append(character)
+        }
+        return result
+    }
+
     /// The string with the characters in `range` replaced.
     public func replacingCharacters<T: StringProtocol, R: RangeExpression>(in range: R, with replacement: T) -> String where R.Bound == String.Index {
         let bounds = range.relative(to: self)

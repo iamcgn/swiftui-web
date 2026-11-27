@@ -361,9 +361,57 @@ public final class AVAudioSessionChannelDescription: @unchecked Sendable {
 public final class AVAudioSessionDataSourceDescription: @unchecked Sendable {
     public let dataSourceID: NSNumber
     public let dataSourceName: String
-    init(dataSourceID: NSNumber, dataSourceName: String) {
+    /// Where the microphone is on the device (none known in a browser).
+    public let location: AVAudioSession.Location?
+    /// Which way the microphone faces (none known in a browser).
+    public let orientation: AVAudioSession.Orientation?
+    /// The pickup patterns the source can use (none here, so there is nothing to choose).
+    public let supportedPolarPatterns: [AVAudioSession.PolarPattern]?
+    public private(set) var preferredPolarPattern: AVAudioSession.PolarPattern?
+    public var selectedPolarPattern: AVAudioSession.PolarPattern? { preferredPolarPattern }
+    /// Asks for a pickup pattern; one the source does not support is ignored, as the
+    /// browser's microphone has a single fixed pattern.
+    public func setPreferredPolarPattern(_ pattern: AVAudioSession.PolarPattern?) throws {
+        if let pattern, !(supportedPolarPatterns ?? []).contains(pattern) { return }
+        preferredPolarPattern = pattern
+    }
+    init(dataSourceID: NSNumber, dataSourceName: String, location: AVAudioSession.Location? = nil,
+         orientation: AVAudioSession.Orientation? = nil, supportedPolarPatterns: [AVAudioSession.PolarPattern]? = nil) {
         self.dataSourceID = dataSourceID
         self.dataSourceName = dataSourceName
+        self.location = location
+        self.orientation = orientation
+        self.supportedPolarPatterns = supportedPolarPatterns
+    }
+}
+
+extension AVAudioSession {
+    /// Which way a data source faces.
+    public struct Orientation: Hashable, Sendable, RawRepresentable {
+        public let rawValue: String
+        public init(rawValue: String) { self.rawValue = rawValue }
+        public static let top = Orientation(rawValue: "Top")
+        public static let bottom = Orientation(rawValue: "Bottom")
+        public static let front = Orientation(rawValue: "Front")
+        public static let back = Orientation(rawValue: "Back")
+        public static let left = Orientation(rawValue: "Left")
+        public static let right = Orientation(rawValue: "Right")
+    }
+    /// Where on the device a data source is.
+    public struct Location: Hashable, Sendable, RawRepresentable {
+        public let rawValue: String
+        public init(rawValue: String) { self.rawValue = rawValue }
+        public static let lower = Location(rawValue: "Lower")
+        public static let upper = Location(rawValue: "Upper")
+    }
+    /// A microphone's pickup pattern.
+    public struct PolarPattern: Hashable, Sendable, RawRepresentable {
+        public let rawValue: String
+        public init(rawValue: String) { self.rawValue = rawValue }
+        public static let stereo = PolarPattern(rawValue: "Stereo")
+        public static let omnidirectional = PolarPattern(rawValue: "Omnidirectional")
+        public static let cardioid = PolarPattern(rawValue: "Cardioid")
+        public static let subcardioid = PolarPattern(rawValue: "Subcardioid")
     }
 }
 

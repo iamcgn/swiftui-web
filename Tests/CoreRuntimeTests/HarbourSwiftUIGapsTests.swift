@@ -142,7 +142,12 @@ private struct Token: Identifiable, Hashable { let id: String }
         configuration.allowsExpensiveNetworkAccess = false
         configuration.shouldUseExtendedBackgroundIdleMode = true
         #expect(!configuration.allowsConstrainedNetworkAccess && !configuration.allowsExpensiveNetworkAccess)
+        #if canImport(Darwin)
+        // An iOS setting: macOS 26's Foundation doesn't keep it, earlier releases did.
+        if #unavailable(macOS 26) { #expect(configuration.shouldUseExtendedBackgroundIdleMode) }
+        #else
         #expect(configuration.shouldUseExtendedBackgroundIdleMode)
+        #endif
     }
 
     @Test func aURLFormatsWithoutItsQueryOrHTTPPort() throws {

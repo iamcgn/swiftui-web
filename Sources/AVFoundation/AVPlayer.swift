@@ -17,7 +17,7 @@ import Observation
 /// A time in seconds (CoreMedia's `CMTime` reduced to what the hosts can seek to), with the
 /// timescale it was made in. Two times are equal when they are the same number of seconds, as
 /// `CMTimeCompare` has it, whatever their timescales.
-public struct CMTime: Hashable, Sendable {
+public struct CMTime: Hashable, Comparable, Sendable {
     public var seconds: Double
     /// The units of a second the time counts in (600 unless it was made with another).
     public var timescale: CMTimeScale
@@ -37,6 +37,12 @@ public struct CMTime: Hashable, Sendable {
     }
     public static func == (a: CMTime, b: CMTime) -> Bool {
         a.seconds == b.seconds || (a.seconds.isNaN && b.seconds.isNaN)
+    }
+    /// Earlier first, as `CMTimeCompare` orders them: an invalid (or indefinite) time comes after
+    /// every other, positive infinity included, and equals another invalid one.
+    public static func < (a: CMTime, b: CMTime) -> Bool {
+        if a.seconds.isNaN || b.seconds.isNaN { return !a.seconds.isNaN && b.seconds.isNaN }
+        return a.seconds < b.seconds
     }
     public func hash(into hasher: inout Hasher) {
         if seconds.isNaN { hasher.combine(0 as UInt8) } else { hasher.combine(seconds) }
@@ -75,6 +81,10 @@ public typealias CMTimeScale = Int32
 public func CMTimeMake(value: Int64, timescale: Int32) -> CMTime { CMTime(value: value, timescale: timescale) }
 public func CMTimeMakeWithSeconds(_ seconds: Double, preferredTimescale: Int32) -> CMTime { CMTime(seconds: seconds, preferredTimescale: preferredTimescale) }
 public func CMTimeGetSeconds(_ time: CMTime) -> Double { time.seconds }
+/// -1, 0 or 1 as `time1` is earlier than, the same as or later than `time2`.
+public func CMTimeCompare(_ time1: CMTime, _ time2: CMTime) -> Int32 { time1 < time2 ? -1 : time1 == time2 ? 0 : 1 }
+public func CMTimeMinimum(_ time1: CMTime, _ time2: CMTime) -> CMTime { min(time1, time2) }
+public func CMTimeMaximum(_ time1: CMTime, _ time2: CMTime) -> CMTime { max(time1, time2) }
 
 /// A stretch of time: where it starts and how long it lasts (CoreMedia's `CMTimeRange`).
 public struct CMTimeRange: Hashable, Sendable {
@@ -116,7 +126,7 @@ public final class AVPlayerItem: NSObject, @unchecked Sendable {
         asset = AVURLAsset(url: url)
     }
     public init(asset: AVAsset) {
-        url = asset.url
+        url = asset.playbackURL()
         self.asset = asset
     }
     public var duration: CMTime { .invalid }
@@ -181,7 +191,7 @@ extension Notification.Name {
 /// Plays one item: `play()`, `pause()`, the rate, muting, looping through `actionAtItemEnd`. An
 /// `NSObject`, as Apple's is, so `player.publisher(for: \.timeControlStatus)` reports its rate's
 /// changes (Observation carries them, WebFoundation's KeyValueObserving.swift).
-@MainActor @Observable
+@preconcurrency @MainActor @Observable
 public class AVPlayer: NSObject {
     public private(set) var currentItem: AVPlayerItem?
     /// 0 paused, 1 playing (other rates are passed to the host's element).
@@ -255,7 +265,7 @@ public class AVPlayer: NSObject {
 }
 
 /// A queue player plays its items in turn (the first one here).
-@MainActor
+@preconcurrency @MainActor
 public final class AVQueuePlayer: AVPlayer {
     public private(set) var items: [AVPlayerItem]
     public init(items: [AVPlayerItem]) {
@@ -280,7 +290,7 @@ public final class AVQueuePlayer: AVPlayer {
 }
 
 /// Loops a queue player's item (the host's element loops).
-@MainActor
+@preconcurrency @MainActor
 public final class AVPlayerLooper {
     public let player: AVQueuePlayer
     public init(player: AVQueuePlayer, templateItem: AVPlayerItem) {

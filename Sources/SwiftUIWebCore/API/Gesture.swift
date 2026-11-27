@@ -470,4 +470,13 @@ extension View {
         }
         return modifier(_GestureModifier(gesture: gesture, priority: .normal, mask: .all))
     }
+
+    /// The older spelling, `pressing` before `perform` (deprecated in iOS 16 for the one above).
+    /// `pressing` takes no default here, so a call without it reaches only the newer spelling.
+    nonisolated public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = 10,
+                                              pressing: ((Bool) -> Void)?,
+                                              perform action: @escaping () -> Void) -> some View {
+        onLongPressGesture(minimumDuration: minimumDuration, maximumDistance: maximumDistance,
+                           perform: action, onPressingChanged: pressing)
+    }
 }

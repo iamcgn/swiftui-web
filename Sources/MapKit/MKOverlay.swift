@@ -211,6 +211,9 @@ open class MKOverlayRenderer: NSObject {
     public let overlay: any MKOverlay
     open var alpha: CGFloat = 1
     public init(overlay: any MKOverlay) { self.overlay = overlay }
+    /// A renderer of no overlay (an empty line), which draws nothing: a map delegate's answer
+    /// for an overlay it doesn't draw (`return renderer ?? MKOverlayRenderer()`).
+    public convenience override init() { self.init(overlay: MKPolyline(points: [])) }
     open func setNeedsDisplay() {}
 }
 

@@ -64,6 +64,15 @@ public final class CIContext: @unchecked Sendable {
         createCGImage(image, from: fromRect)
     }
 
+    /// Writes the image's pixels in `bounds` to `data`, `rowBytes` a row. The filters run in
+    /// the browser's painter, so no pixels reach Swift: the rows are cleared to transparent black.
+    public func render(_ image: CIImage, toBitmap data: UnsafeMutableRawPointer, rowBytes: Int, bounds: CGRect, format: CIFormat,
+                       colorSpace: CGColorSpace?) {
+        let rows = max(0, Int(bounds.height.rounded(.up)))
+        guard rowBytes > 0, rows > 0 else { return }
+        data.initializeMemory(as: UInt8.self, repeating: 0, count: rowBytes * rows)
+    }
+
     /// Lets go of cached intermediates; there are none.
     public func clearCaches() {}
     public func reclaimResources() {}

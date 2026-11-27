@@ -224,6 +224,9 @@ extension Color {
         self.init(red: Double(rgba.red), green: Double(rgba.green), blue: Double(rgba.blue), opacity: Double(rgba.alpha))
     }
 
+    /// The iOS 14 spelling of `init(cgColor:)`.
+    public init(_ cgColor: CGColor) { self.init(cgColor: cgColor) }
+
     /// The colour as a Core Graphics colour when it was made from components; nil for the
     /// system, named and dynamic colours, which resolve per environment (as SwiftUI's).
     public var cgColor: CGColor? {

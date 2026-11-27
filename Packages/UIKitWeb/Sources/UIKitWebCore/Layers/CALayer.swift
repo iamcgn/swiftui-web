@@ -26,6 +26,9 @@ public struct CATransform3D: Equatable, Sendable {
 }
 
 public let CATransform3DIdentity = CATransform3D()
+
+/// What a layer's delegate is: a view is its layer's.
+public protocol CALayerDelegate: AnyObject {}
 public func CATransform3DMakeAffineTransform(_ m: CGAffineTransform) -> CATransform3D { CATransform3D(affine: m) }
 public func CATransform3DGetAffineTransform(_ t: CATransform3D) -> CGAffineTransform { t.affine }
 public func CATransform3DIsIdentity(_ t: CATransform3D) -> Bool { t.isIdentity }
@@ -205,6 +208,11 @@ open class CALayer: CALayerBase {
         didSet { if anchorPoint != oldValue { setNeedsDisplay() } }
     }
     open var zPosition: CGFloat = 0
+    /// Kept, not drawn: the painter is 2D, so a layer's back never faces the viewer.
+    open var isDoubleSided = true
+    /// Kept, not drawn: the transform CoreAnimation applies to the sublayers (a perspective
+    /// for a 3D flip); each sublayer's own transform is drawn.
+    open var sublayerTransform = CATransform3DIdentity
     open var transform = CATransform3DIdentity {
         didSet {
             if transform != oldValue {
@@ -332,6 +340,12 @@ open class CALayer: CALayerBase {
     public private(set) weak var superlayer: CALayer?
     /// The view this layer draws for, if it is a view's layer.
     weak var view: UIView?
+    private weak var assignedDelegate: (any CALayerDelegate)?
+    /// The layer's delegate: the view a view's layer belongs to, unless another is set.
+    open var delegate: (any CALayerDelegate)? {
+        get { assignedDelegate ?? view }
+        set { assignedDelegate = newValue }
+    }
     /// The explicit animations added by key (Layers/CAAnimation.swift).
     var explicitAnimations: [String: (animation: CAAnimation, group: UIViewAnimationGroup)] = [:]
 

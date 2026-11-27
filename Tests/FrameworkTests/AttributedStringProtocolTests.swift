@@ -23,6 +23,11 @@ extension AttributeDynamicLookup {
     subscript<T: AttributedStringKey>(dynamicMember keyPath: KeyPath<AttributeScopes.NoteAttributes, T>) -> T { self[T.self] }
 }
 
+// EmojiText extends the run type by this name.
+extension AttributedString.Runs.Element {
+    var noteColorOrNone: String { self.noteColor ?? "none" }
+}
+
 /// The characters of any attributed string, as generic code reads them.
 func plainCharacters<S: AttributedStringProtocol>(_ text: S) -> String { String(text.characters) }
 
@@ -32,6 +37,16 @@ func plainCharacters<S: AttributedStringProtocol>(_ text: S) -> String { String(
         text.noteColor = color
         text.languageIdentifier = language
         return text
+    }
+
+    @Test func runsAreACollectionOfTheirOwnRunType() {
+        let text = coloured("Hello", "red") + AttributedString(" world")
+        let runs: AttributedString.Runs = text.runs
+        let first: AttributedString.Runs.Run? = runs.first
+        #expect(runs.map(\.noteColorOrNone) == ["red", "none"])
+        #expect(first?.noteColor == "red" && runs.last?.noteColorOrNone == "none")
+        #expect(runs.reversed().map(\.noteColorOrNone) == ["none", "red"])
+        #expect(text[text.startIndex..<text.index(text.startIndex, offsetByCharacters: 2)].runs.count == 1)
     }
 
     @Test func attributesAreTheOnesEveryCharacterShares() throws {

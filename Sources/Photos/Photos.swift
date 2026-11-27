@@ -17,7 +17,9 @@ import ImageIO
 #endif
 import SwiftUI          // UIKit, and the running app's runtime (its download for a save)
 import CoreLocation
-import AVFoundation
+// Re-exported, as Apple's Photos makes AVFoundation visible (`PHImageManager` hands out
+// `AVAsset`s): Camera-SwiftUI names `AVCapturePhotoSettings` and `CMTime` with only Photos imported.
+@_exported import AVFoundation
 
 // MARK: - Authorization
 
