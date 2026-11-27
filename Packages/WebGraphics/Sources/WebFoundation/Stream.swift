@@ -73,6 +73,15 @@ open class Stream: _WebObjectBase, @unchecked Sendable {
     }
 }
 
+#if !canImport(ObjectiveC)
+/// Equal only to itself, as an `NSObject` is on Apple's platforms (with the runtime the base is
+/// `NSObject`), so a value that holds a stream can be `Hashable` (Apollo's multipart body parts).
+extension Stream: Hashable {
+    public static func == (lhs: Stream, rhs: Stream) -> Bool { lhs === rhs }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
+}
+#endif
+
 /// The bytes between a bound pair of streams.
 final class _StreamPipe: @unchecked Sendable {
     let capacity: Int

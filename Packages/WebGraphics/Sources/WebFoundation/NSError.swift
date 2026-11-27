@@ -56,7 +56,9 @@ open class NSError: NSObject, Error, @unchecked Sendable {
     open override var hash: Int { domain.hashValue ^ code }
 }
 #else
-open class NSError: Error, CustomStringConvertible, @unchecked Sendable {
+/// `Hashable` through `isEqual` and `hash`, as an `NSObject` is on Apple's platforms, so a value
+/// that holds one can be `Equatable` (composable-core-location's `LocationManager.Error`).
+open class NSError: Error, CustomStringConvertible, Hashable, @unchecked Sendable {
     public let domain: String
     public let code: Int
     public let userInfo: [String: Any]
@@ -85,6 +87,8 @@ open class NSError: Error, CustomStringConvertible, @unchecked Sendable {
         return other === self || (other.domain == domain && other.code == code && Set(other.userInfo.keys) == Set(userInfo.keys))
     }
     open var hash: Int { domain.hashValue ^ code }
+    public static func == (lhs: NSError, rhs: NSError) -> Bool { lhs.isEqual(rhs) }
+    public func hash(into hasher: inout Hasher) { hasher.combine(hash) }
 }
 #endif
 
