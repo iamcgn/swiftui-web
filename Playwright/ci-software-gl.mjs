@@ -16,7 +16,10 @@ if (process.env.SWIFTUI_WEB_SOFTWARE_GL === '1' && script.includes(`${path.sep}P
   try {
     const { chromium } = await import('playwright');
     const flags = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'];
-    const withFlags = (options = {}) => ({ ...options, args: [...(options.args ?? []), ...flags] });
+    // The WebGL probes pick their own launch through webgl-launch.mjs, which sets this: on a Mac
+    // SwiftShader gives no WebGL2 at all, so forcing it there leaves them nothing to probe.
+    const withFlags = (options = {}) => globalThis.__swiftuiwebOwnGL === true ? options
+      : ({ ...options, args: [...(options.args ?? []), ...flags] });
     const launch = chromium.launch.bind(chromium);
     const launchPersistentContext = chromium.launchPersistentContext.bind(chromium);
     chromium.launch = (options) => launch(withFlags(options));
