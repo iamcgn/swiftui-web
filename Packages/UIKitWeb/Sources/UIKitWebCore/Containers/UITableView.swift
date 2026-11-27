@@ -198,6 +198,8 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
 
     private var registeredCells: [String: () -> UITableViewCell] = [:]
     private var reusePool: [String: [UITableViewCell]] = [:]
+    private var registeredHeaderFooters: [String: () -> UITableViewHeaderFooterView] = [:]
+    private var headerFooterPool: [String: [UITableViewHeaderFooterView]] = [:]
     private var visibleCellsByPath: [IndexPath: UITableViewCell] = [:]
     private var headerViews: [Int: UIView] = [:]
     /// Each plain-style header's place in the content and the end of its section, for pinning.
@@ -232,13 +234,23 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
 
     // MARK: Cells
 
+    /// Registers a cell class for `identifier`; nil unregisters it.
     open func register(_ cellClass: AnyClass?, forCellReuseIdentifier identifier: String) {
+        guard let cellClass else { registeredCells[identifier] = nil; return }
         guard let type = cellClass as? UITableViewCell.Type else { return }
         #if canImport(ObjectiveC)
         registeredCells[identifier] = { _makeRegisteredCell(type, reuseIdentifier: identifier) }
         #else
         registeredCells[identifier] = { type.init(style: .default, reuseIdentifier: identifier) }
         #endif
+    }
+
+    /// Registers a nib whose one top-level object is the cell for `identifier`; nil unregisters
+    /// it. A nib here holds no objects (App/UIStoryboard.swift), so dequeuing a cell registered
+    /// this way stops the app with UIKit's message for a nib that doesn't hold exactly one cell.
+    open func register(_ nib: UINib?, forCellReuseIdentifier identifier: String) {
+        guard let nib else { registeredCells[identifier] = nil; return }
+        registeredCells[identifier] = { _registeredView(fromNib: nib, identifier: identifier, as: UITableViewCell.self) }
     }
 
     open func dequeueReusableCell(withIdentifier identifier: String) -> UITableViewCell? {
@@ -251,6 +263,32 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
 
     open func dequeueReusableCell(withIdentifier identifier: String, for indexPath: IndexPath) -> UITableViewCell {
         dequeueReusableCell(withIdentifier: identifier) ?? UITableViewCell(style: .default, reuseIdentifier: identifier)
+    }
+
+    // MARK: Header and footer views
+
+    /// Registers a header or footer view class for `identifier`; nil unregisters it.
+    open func register(_ aClass: AnyClass?, forHeaderFooterViewReuseIdentifier identifier: String) {
+        guard let aClass else { registeredHeaderFooters[identifier] = nil; return }
+        guard let type = aClass as? UITableViewHeaderFooterView.Type else { return }
+        registeredHeaderFooters[identifier] = { _makeRegisteredHeaderFooter(type, reuseIdentifier: identifier) }
+    }
+
+    /// Registers a nib whose one top-level object is the header or footer view for
+    /// `identifier`; nil unregisters it. A nib here holds no objects, as above.
+    open func register(_ nib: UINib?, forHeaderFooterViewReuseIdentifier identifier: String) {
+        guard let nib else { registeredHeaderFooters[identifier] = nil; return }
+        registeredHeaderFooters[identifier] = { _registeredView(fromNib: nib, identifier: identifier, as: UITableViewHeaderFooterView.self) }
+    }
+
+    /// A header or footer view for `identifier`: one the table put aside when it reloaded, or a
+    /// new one of the registered class; nil when nothing is registered under it.
+    open func dequeueReusableHeaderFooterView(withIdentifier identifier: String) -> UITableViewHeaderFooterView? {
+        if let view = headerFooterPool[identifier]?.popLast() {
+            view.prepareForReuse()
+            return view
+        }
+        return registeredHeaderFooters[identifier]?()
     }
 
     open var visibleCells: [UITableViewCell] { visibleCellsByPath.sorted { $0.key < $1.key }.map(\.value) }
@@ -671,8 +709,14 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
             if let identifier = cell.reuseIdentifier { reusePool[identifier, default: []].append(cell) }
         }
         visibleCellsByPath.removeAll()
-        for view in headerViews.values { view.removeFromSuperview() }
-        for view in footerViews.values { view.removeFromSuperview() }
+        // Header and footer views of a registered kind wait to be dequeued again.
+        for view in Array(headerViews.values) + Array(footerViews.values) {
+            view.removeFromSuperview()
+            if let reusable = view as? UITableViewHeaderFooterView, let identifier = reusable.reuseIdentifier,
+               registeredHeaderFooters[identifier] != nil {
+                headerFooterPool[identifier, default: []].append(reusable)
+            }
+        }
         headerViews.removeAll()
         footerViews.removeAll()
         headerNaturalFrames.removeAll()
@@ -753,7 +797,15 @@ open class UITableView: UIScrollView, UIGestureRecognizerDelegate {
                 }
                 y += height!
             }
-            if let footerTitle, isGrouped {
+            if let customFooter = tableDelegate?.tableView(self, viewForFooterInSection: section) {
+                // The delegate's own footer, at its height, or the height it fits.
+                var height = tableDelegate?.tableView(self, heightForFooterInSection: section) ?? Self.automaticDimension
+                if height == Self.automaticDimension { height = customFooter.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height }
+                customFooter.frame = CGRect(x: 0, y: y, width: width, height: height)
+                addSubview(customFooter)
+                footerViews[section] = customFooter
+                y += height
+            } else if let footerTitle, isGrouped {
                 let view = UITableViewHeaderFooterView(reuseIdentifier: nil)
                 view.textLabel?.text = footerTitle
                 view.isHeader = false
@@ -943,9 +995,24 @@ open class UITableViewHeaderFooterView: UIView {
     /// scrim, black at 15 % fading over 60 pt from its top, over the rows passing under it.
     var isPinned = false { didSet { if isPinned != oldValue { setNeedsDisplay() } } }
 
+    #if canImport(ObjectiveC)
+    /// Exposed to the runtime, so a registered subclass is made through its own override, as
+    /// UIKit makes one (`register(_:forHeaderFooterViewReuseIdentifier:)`).
+    @objc(initWithReuseIdentifier:)
     public init(reuseIdentifier: String?) {
         self.reuseIdentifier = reuseIdentifier
         super.init(frame: .zero)
+        setUpHeaderFooter()
+    }
+    #else
+    public init(reuseIdentifier: String?) {
+        self.reuseIdentifier = reuseIdentifier
+        super.init(frame: .zero)
+        setUpHeaderFooter()
+    }
+    #endif
+
+    private func setUpHeaderFooter() {
         let label = UILabel()
         label.numberOfLines = 0
         label.font = .systemFont(ofSize: 17, weight: .semibold)
@@ -1547,3 +1614,45 @@ func _makeRegisteredCell(_ type: UITableViewCell.Type, reuseIdentifier: String) 
     return Unmanaged<UITableViewCell>.fromOpaque(made).takeRetainedValue()
 }
 #endif
+
+/// A view registered by nib, made as UIKit makes one: the nib's one top-level object, which must
+/// be a `View`. A nib here holds no objects, so this stops the app with UIKit's message for a
+/// nib that doesn't hold exactly one.
+@MainActor
+func _registeredView<View: UIView>(fromNib nib: UINib, identifier: String, as type: View.Type) -> View {
+    let objects = nib.instantiate(withOwner: nil, options: nil)
+    guard objects.count == 1, let view = objects[0] as? View else {
+        fatalError("invalid nib registered for identifier (\(identifier)) - nib must contain exactly one top level object which must be a \(type) instance")
+    }
+    return view
+}
+
+/// A registered header or footer view made as UIKit makes one: with the Objective-C runtime,
+/// `+alloc` then `-initWithReuseIdentifier:` sent to the new object, so a subclass's own
+/// override runs. Without the runtime a subclass can't be made from its type (its initializer
+/// isn't `required`), so the view is the base class, which a cast to the subclass misses.
+@MainActor
+func _makeRegisteredHeaderFooter(_ type: UITableViewHeaderFooterView.Type, reuseIdentifier: String) -> UITableViewHeaderFooterView {
+    #if canImport(ObjectiveC)
+    typealias Alloc = @convention(c) (UnsafeRawPointer, Selector) -> UnsafeMutableRawPointer?
+    typealias Initialize = @convention(c) (UnsafeMutableRawPointer, Selector, UnsafeMutableRawPointer?) -> UnsafeMutableRawPointer?
+    let cls: AnyClass = type
+    let alloc = sel_registerName("alloc")   // Swift's `#selector` cannot name +alloc
+    let initialize = #selector(UITableViewHeaderFooterView.init(reuseIdentifier:))
+    guard let metaclass = object_getClass(unsafeBitCast(cls, to: AnyObject.self)),
+          let allocate = class_getMethodImplementation(metaclass, alloc),
+          let initializer = class_getMethodImplementation(cls, initialize),
+          let instance = unsafeBitCast(allocate, to: Alloc.self)(unsafeBitCast(cls, to: UnsafeRawPointer.self), alloc) else {
+        fatalError("UITableView: cannot make a \(type) header or footer view")
+    }
+    // `init` consumes the allocated object and returns the initialized one retained.
+    let identifier = reuseIdentifier._bridgeToObjectiveC()
+    let made = withExtendedLifetime(identifier) {
+        unsafeBitCast(initializer, to: Initialize.self)(instance, initialize, Unmanaged.passUnretained(identifier).toOpaque())
+    }
+    guard let made else { fatalError("UITableView: \(type).init(reuseIdentifier:) returned nil") }
+    return Unmanaged<UITableViewHeaderFooterView>.fromOpaque(made).takeRetainedValue()
+    #else
+    return UITableViewHeaderFooterView(reuseIdentifier: reuseIdentifier)
+    #endif
+}

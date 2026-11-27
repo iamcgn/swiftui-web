@@ -3,7 +3,9 @@
 // nib loads no objects, so code that builds its interface in code and only names an archive on
 // a path it never takes (SwiftyFORM's `storyboard(_:bundle:)` form item, its nib-loading
 // helper) compiles and runs; code that does take that path gets what UIKit gives for an
-// archive that holds nothing.
+// archive that holds nothing. A storyboard's segues come from its archive too, so a controller
+// here has none to perform by identifier; a segue made in code (`UIStoryboardSegue(identifier:
+// source:destination:performHandler:)`) performs as UIKit's does.
 #if os(WASI)
 import WebFoundation
 #else
@@ -38,6 +40,37 @@ open class UIStoryboard {
     open func instantiateViewController<ViewController: UIViewController>(identifier: String, creator block: ((NSCoder) -> ViewController?)? = nil) -> ViewController {
         fatalError("Storyboard (\(name)) doesn't contain a view controller with identifier '\(identifier)'")
     }
+}
+
+/// A transition between two view controllers, as a storyboard's segue is: made by UIKit when a
+/// controller performs one, or in code. The base class performs nothing unless it was made
+/// with a handler; a subclass overrides `perform()`.
+@preconcurrency @MainActor
+open class UIStoryboardSegue: UIObjectBase {
+    /// The segue's identifier in its storyboard, if it has one.
+    public let identifier: String?
+    /// The controller the segue starts from.
+    public let source: UIViewController
+    /// The controller the segue leads to.
+    public let destination: UIViewController
+    private var performHandler: (() -> Void)?
+
+    public init(identifier: String?, source: UIViewController, destination: UIViewController) {
+        self.identifier = identifier
+        self.source = source
+        self.destination = destination
+        super.init()
+    }
+
+    /// A segue whose `perform()` runs `performHandler`.
+    public convenience init(identifier: String?, source: UIViewController, destination: UIViewController,
+                            performHandler: @escaping () -> Void) {
+        self.init(identifier: identifier, source: source, destination: destination)
+        self.performHandler = performHandler
+    }
+
+    /// Makes the transition: the handler it was made with, if any.
+    open func perform() { performHandler?() }
 }
 
 /// A nib: the objects of an Interface Builder archive, which the web has none of.

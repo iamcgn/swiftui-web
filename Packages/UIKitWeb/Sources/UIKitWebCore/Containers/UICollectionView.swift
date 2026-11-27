@@ -605,9 +605,19 @@ open class UICollectionView: UIScrollView {
 
     // MARK: Cells
 
+    /// Registers a cell class for `identifier`; nil unregisters it.
     open func register(_ cellClass: AnyClass?, forCellWithReuseIdentifier identifier: String) {
+        guard let cellClass else { registeredCells[identifier] = nil; return }
         guard let type = cellClass as? UICollectionViewCell.Type else { return }
         registeredCells[identifier] = { _makeRegisteredView(type) }
+    }
+
+    /// Registers a nib whose one top-level object is the cell for `identifier`; nil unregisters
+    /// it. A nib here holds no objects (App/UIStoryboard.swift), so dequeuing a cell registered
+    /// this way stops the app with UIKit's message for a nib that doesn't hold exactly one cell.
+    open func register(_ nib: UINib?, forCellWithReuseIdentifier identifier: String) {
+        guard let nib else { registeredCells[identifier] = nil; return }
+        registeredCells[identifier] = { _registeredView(fromNib: nib, identifier: identifier, as: UICollectionViewCell.self) }
     }
 
     func hasRegisteredCell(withIdentifier identifier: String) -> Bool { registeredCells[identifier] != nil }
@@ -629,9 +639,20 @@ open class UICollectionView: UIScrollView {
         return cell
     }
 
+    /// Registers a supplementary view class for `kind` and `identifier`; nil unregisters it.
     open func register(_ viewClass: AnyClass?, forSupplementaryViewOfKind kind: String, withReuseIdentifier identifier: String) {
+        guard let viewClass else { registeredSupplementaries[kind + "|" + identifier] = nil; return }
         guard let type = viewClass as? UICollectionReusableView.Type else { return }
         registeredSupplementaries[kind + "|" + identifier] = { _makeRegisteredView(type) }
+    }
+
+    /// Registers a nib whose one top-level object is the supplementary view for `kind` and
+    /// `identifier`; nil unregisters it. A nib here holds no objects, as above.
+    open func register(_ nib: UINib?, forSupplementaryViewOfKind kind: String, withReuseIdentifier identifier: String) {
+        guard let nib else { registeredSupplementaries[kind + "|" + identifier] = nil; return }
+        registeredSupplementaries[kind + "|" + identifier] = {
+            _registeredView(fromNib: nib, identifier: identifier, as: UICollectionReusableView.self)
+        }
     }
 
     open func dequeueReusableSupplementaryView(ofKind kind: String, withReuseIdentifier identifier: String, for indexPath: IndexPath) -> UICollectionReusableView {
