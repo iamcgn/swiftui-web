@@ -435,6 +435,12 @@ public final class ModelContainer: @unchecked Sendable {
         mainContext.deleteAll()
         try? store.eraseAll()
     }
+
+    /// Erases the container's stored data (iOS 18), from any isolation. Models a context already
+    /// fetched stay in memory; the next fetch finds the store empty.
+    public func erase() throws {
+        try store.eraseAll()
+    }
 }
 
 // MARK: - Fetching

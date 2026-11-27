@@ -421,6 +421,27 @@ struct CoreDataTests {
         #expect(try books(try container().viewContext).isEmpty)
     }
 
+    @Test func replacingAStoreCopiesTheSourceRows() throws {
+        let backup = uniqueName("Backup")
+        let live = uniqueName("Live")
+        let source = try container(store: backup)
+        _ = book("Dune", pages: 412, author: author("Frank Herbert", in: source.viewContext), in: source.viewContext)
+        try source.viewContext.save()
+        let target = try container(store: live)
+        _ = book("Emma", pages: 474, author: nil, in: target.viewContext)
+        try target.viewContext.save()
+
+        let sourceURL = try #require(source.persistentStoreDescriptions.first?.url)
+        let targetURL = try #require(target.persistentStoreDescriptions.first?.url)
+        try target.persistentStoreCoordinator.replacePersistentStore(
+            at: targetURL, destinationOptions: nil, withPersistentStoreFrom: sourceURL, sourceOptions: nil, ofType: NSSQLiteStoreType)
+
+        // A container opened on the destination after the restore reads the backup's rows.
+        #expect(try books(try container(store: live).viewContext).map(\.title) == ["Dune"])
+        // The source keeps its own.
+        #expect(try books(source.viewContext).map(\.title) == ["Dune"])
+    }
+
     @Test func storeRowsRoundTripThroughJSON() throws {
         let isbn = UUID()
         let published = Date(timeIntervalSinceReferenceDate: 1_000_000)

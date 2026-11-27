@@ -166,7 +166,7 @@ let package = Package(
         .target(name: "CryptoKit", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "CoreHaptics", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // Its preview context conforms to SwiftUI's `PreviewContext`, as Apple's does.
-        .target(name: "WidgetKit", dependencies: ["SwiftUI", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
+        .target(name: "WidgetKit", dependencies: ["SwiftUI", "Intents", "AppIntents", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         // Siri's shortcut, interaction and preference types, and the Add to Siri button and sheets.
         .target(name: "Intents", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "IntentsUI", dependencies: ["Intents", .product(name: "UIKit", package: "UIKitWeb")], swiftSettings: [.treatAllWarnings(as: .error)]),

@@ -245,5 +245,19 @@ extension Locale: CurrencyNaming {}
         formatter.numberFormatter = oneDigit
         #expect(formatter.string(from: length) == "12.3 m")
     }
+
+    /// A formatter's currency symbols (Dime lists them to match search text).
+    @Test func numberFormatterNamesItsCurrency() {
+        let formatter = NumberFormatter()
+        formatter.locale = english
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "EUR"
+        #expect(formatter.currencySymbol == "€")
+        #expect(formatter.internationalCurrencySymbol == "EUR")
+        formatter.currencyCode = "USD"
+        #expect(formatter.currencySymbol == "$")
+        #expect(formatter.internationalCurrencySymbol == "USD")
+        formatter.currencyCode = "CHF"
+        #expect(formatter.currencySymbol == "CHF")
+    }
 }
-#endif

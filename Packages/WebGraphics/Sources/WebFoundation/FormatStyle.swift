@@ -607,6 +607,24 @@ open class NumberFormatter: Formatter, @unchecked Sendable {
     open var maximumFractionDigits = 0
     open var usesGroupingSeparator = false
     open var currencyCode = "USD"
+    private var _currencySymbol: String?
+    /// The symbol for `currencyCode`, as en_US writes it ("$", "€", "CA$"; a code with no symbol
+    /// of its own is the code). Setting it keeps the symbol given; currency strings still format
+    /// with the code's own symbol.
+    open var currencySymbol: String! {
+        get {
+            if let _currencySymbol { return _currencySymbol }
+            let symbol = _NumberFormatting.currencySymbol(currencyCode)
+            return symbol.last == "\u{00A0}" ? String(symbol.dropLast()) : symbol
+        }
+        set { _currencySymbol = newValue }
+    }
+    private var _internationalCurrencySymbol: String?
+    /// The ISO 4217 code for the currency ("USD").
+    open var internationalCurrencySymbol: String! {
+        get { _internationalCurrencySymbol ?? currencyCode.uppercased() }
+        set { _internationalCurrencySymbol = newValue }
+    }
     /// Whether a number with no fraction digits still shows its decimal point ("12.").
     open var alwaysShowsDecimalSeparator = false
     /// Whether `number(from:)` accepts a fraction; false reads only whole numbers.

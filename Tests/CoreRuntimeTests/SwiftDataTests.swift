@@ -539,6 +539,16 @@ private struct QueryView<T: PersistentModel>: View {
         let fourth = try container(inMemory: false, name: name)
         let fourthCount = try await MainActor.run { try fourth.mainContext.fetchCount(FetchDescriptor<DBModel.Country>()) }
         #expect(fourthCount == 0)
+        // `erase()` (iOS 18) empties it too, from any isolation (Gem's pins and favourites).
+        let chile = DBModel.Country(name: "Chile", translations: [:], population: 19_000_000, alpha3Code: "CHL")
+        await MainActor.run { fourth.mainContext.insert(chile); try? fourth.mainContext.save() }
+        let reread = try container(inMemory: false, name: name)
+        let rereadCount = try await MainActor.run { try reread.mainContext.fetchCount(FetchDescriptor<DBModel.Country>()) }
+        #expect(rereadCount == 1)
+        try fourth.erase()
+        let sixth = try container(inMemory: false, name: name)
+        let sixthCount = try await MainActor.run { try sixth.mainContext.fetchCount(FetchDescriptor<DBModel.Country>()) }
+        #expect(sixthCount == 0)
     }
 
     @Test @MainActor func persistentStorageThatIsMissingOrRefusesIsAnError() throws {

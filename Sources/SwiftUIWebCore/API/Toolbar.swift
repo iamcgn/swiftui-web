@@ -29,6 +29,11 @@ public struct ToolbarItemPlacement: Hashable, Sendable {
 
     public static let automatic = ToolbarItemPlacement(group: .trailing, name: "automatic")
     public static let principal = ToolbarItemPlacement(group: .principal, name: "principal")
+    /// The navigation title's place (iOS 26): the item stands in for the title, as a principal
+    /// item does.
+    public static let title = ToolbarItemPlacement(group: .principal, name: "title")
+    /// The navigation subtitle's place (iOS 26), shown with the title as a principal item.
+    public static let subtitle = ToolbarItemPlacement(group: .principal, name: "subtitle")
     public static let navigation = ToolbarItemPlacement(group: .leading, name: "navigation")
     public static let primaryAction = ToolbarItemPlacement(group: .trailing, name: "primaryAction")
     public static let secondaryAction = ToolbarItemPlacement(group: .trailing, name: "secondaryAction")
