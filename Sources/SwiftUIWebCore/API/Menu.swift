@@ -279,9 +279,11 @@ public struct ContextMenu<MenuItems: View> {
 }
 
 /// `contextMenu(_:)`'s modifier: the menu when there is one, the view alone otherwise.
-public struct _OptionalContextMenu: ViewModifier {
+public struct _OptionalContextMenu {
     package let content: AnyView?
+}
 
+extension _OptionalContextMenu: ViewModifier {
     public func body(content view: Content) -> some View {
         if let content {
             view.modifier(_ContextMenuModifier(content: content))
