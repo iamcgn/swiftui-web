@@ -43,8 +43,17 @@ open class UIBarButtonItem: UIBarItem {
     /// send them with, and `primaryAction` is the way to act on a tap.
     open weak var target: AnyObject?
     open var action: Any?
+    /// A view the bar shows in the item's place, at the view's own size and with no platter of
+    /// its own; it takes its own touches, so the item's action is not sent.
+    open var customView: UIView? { didSet { itemDidChange() } }
 
     public override init() { super.init() }
+
+    /// An item showing `customView` (KeyboardToolbar's tool buttons).
+    public convenience init(customView: UIView) {
+        self.init()
+        self.customView = customView
+    }
 
     public convenience init(title: String?, style: Style = .plain, target: AnyObject? = nil, action: Any? = nil) {
         self.init()

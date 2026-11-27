@@ -112,6 +112,13 @@ public final class UIFont: UIObjectBase, @unchecked Sendable {
 
     // MARK: Factories
 
+    /// The standard sizes iOS gives (in points): a label's 17, a button's 18, the system font's
+    /// 14 and the small system font's 12.
+    public static var labelFontSize: CGFloat { 17 }
+    public static var buttonFontSize: CGFloat { 18 }
+    public static var systemFontSize: CGFloat { 14 }
+    public static var smallSystemFontSize: CGFloat { 12 }
+
     public static func systemFont(ofSize size: CGFloat, weight: Weight = .regular) -> UIFont {
         UIFont(resolved: ResolvedFont(family: "system", size: size, weight: FontWeight(weight.css), italic: false, textStyle: nil, profile: "iOS"), weight: weight)
     }
@@ -262,13 +269,23 @@ public final class UIFont: UIObjectBase, @unchecked Sendable {
 
 /// A description of a font: here the font it was read from, so `withDesign(_:)` and
 /// `withSize(_:)` give back a font the text engine can draw (`UIFont(descriptor:size:)`).
-public final class UIFontDescriptor {
+/// Descriptors compare and hash by the font they describe, as UIKit's NSObject descriptors do
+/// (StyledTextKit keys its fonts by descriptor).
+public final class UIFontDescriptor: UIObjectBase {
     /// The font this descriptor describes.
     let font: UIFont
     /// The attributes it was made from, beyond the font (`fontAttributes`).
     private var attributes: [AttributeName: Any] = [:]
 
-    init(font: UIFont) { self.font = font }
+    init(font: UIFont) {
+        self.font = font
+        super.init()
+    }
+
+    #if canImport(ObjectiveC)
+    public override func isEqual(_ object: Any?) -> Bool { (object as? UIFontDescriptor)?.font == font }
+    public override var hash: Int { font.hash }
+    #endif
 
     /// A key in a descriptor's attributes.
     public struct AttributeName: Hashable, Sendable, RawRepresentable {
@@ -434,5 +451,12 @@ extension UIFont {
 extension UIFont: Hashable {
     public static func == (lhs: UIFont, rhs: UIFont) -> Bool { lhs.resolved == rhs.resolved }
     public func hash(into hasher: inout Hasher) { hasher.combine(resolved) }
+}
+#endif
+
+#if !canImport(ObjectiveC)
+extension UIFontDescriptor: Hashable {
+    public static func == (lhs: UIFontDescriptor, rhs: UIFontDescriptor) -> Bool { lhs.font == rhs.font }
+    public func hash(into hasher: inout Hasher) { hasher.combine(font) }
 }
 #endif

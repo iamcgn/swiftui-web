@@ -718,7 +718,7 @@ final class BarPlatterButton: UIControl {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     required init?(coder: NSCoder) { return nil }
 
-    enum Kind { case title(String), image(String), chevron }
+    enum Kind { case title(String), image(String), chevron, custom(UIView) }
     let kind: Kind
     weak var item: UIBarButtonItem?
     private let label = UILabel()
@@ -730,8 +730,10 @@ final class BarPlatterButton: UIControl {
     init(item: UIBarButtonItem, platterHeight: CGFloat = 44) {
         self.item = item
         self.platterHeight = platterHeight
-        isProminent = item.style == .done
-        if let name = item.image?.name, item.image?.isSystemSymbol == true {
+        isProminent = item.style == .done && item.customView == nil
+        if let view = item.customView {
+            kind = .custom(view)
+        } else if let name = item.image?.name, item.image?.isSystemSymbol == true {
             kind = .image(name)
         } else if let name = item.systemImageName {
             kind = .image(name)
@@ -741,6 +743,8 @@ final class BarPlatterButton: UIControl {
         super.init(frame: .zero)
         configure()
         isEnabled = item.isEnabled
+        // A custom view takes its own touches and speaks for itself.
+        if case .custom = kind { return }
         accessibilityLabel = item.title ?? item.systemTitle ?? item.systemImageName
         // A primary action replaces the button (the item rebuilds its bar when it changes); the
         // target, selector and menu are read when the tap lands, as UIKit reads them, so an item
@@ -784,6 +788,10 @@ final class BarPlatterButton: UIControl {
     }
 
     private func configure() {
+        if case .custom(let view) = kind {
+            addSubview(view)
+            return
+        }
         isAccessibilityElement = true
         accessibilityTraits = .button
         if case .title(let text) = kind {
@@ -809,11 +817,32 @@ final class BarPlatterButton: UIControl {
         switch kind {
         case .title: return label.intrinsicContentSize.width + 24
         case .image, .chevron: return platterHeight
+        case .custom(let view): return Self.customSize(of: view, height: platterHeight).width
         }
+    }
+
+    /// A custom view's size: its frame's when it has one, else its intrinsic size, else the size
+    /// its constraints (or `sizeThatFits`) give it, no taller than the bar.
+    static func customSize(of view: UIView, height: CGFloat) -> CGSize {
+        if view.bounds.width > 0, view.bounds.height > 0 { return view.bounds.size }
+        let intrinsic = view.intrinsicContentSize
+        if intrinsic.width > 0 {
+            return CGSize(width: intrinsic.width, height: intrinsic.height > 0 ? min(intrinsic.height, height) : height)
+        }
+        let fitted = view.translatesAutoresizingMaskIntoConstraints
+            ? view.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: height))
+            : view.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+        return CGSize(width: max(0, fitted.width), height: fitted.height > 0 ? min(fitted.height, height) : height)
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        if case .custom(let view) = kind {
+            // Centred down the bar, at its own size.
+            let size = Self.customSize(of: view, height: bounds.height)
+            view.frame = CGRect(x: 0, y: ((bounds.height - size.height) / 2 * 2).rounded() / 2, width: bounds.width, height: size.height)
+            return
+        }
         if case .title = kind {
             // The 24.5 pt label sits 9.5 down in a 44 pt platter, 12 down in a 48 pt one.
             let y = platterHeight == 44 ? 9.5 : ((platterHeight - 24.5) / 2 * 2).rounded() / 2
@@ -822,6 +851,8 @@ final class BarPlatterButton: UIControl {
     }
 
     override func drawContent(into list: inout DisplayList, context: PaintContext, style: UIUserInterfaceStyle) {
+        // A custom view draws itself, with no platter behind it.
+        if case .custom = kind { return }
         let rect = context.absoluteRect(CGRect(origin: .zero, size: bounds.size))
         if isProminent {
             list.append(.beginShadow(RGBA(red: 0, green: 0, blue: 0, alpha: 0.08), radius: 10, offset: CGSize(width: 0, height: 4)))
@@ -843,7 +874,7 @@ final class BarPlatterButton: UIControl {
             chevron.addLine(to: CGPoint(x: centre.x - 4.5, y: centre.y))
             chevron.addLine(to: CGPoint(x: centre.x + 4.5, y: centre.y + 9))
             list.append(.strokePath(chevron, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round), ink))
-        case .title:
+        case .title, .custom:
             break
         }
     }
@@ -852,4 +883,9 @@ final class BarPlatterButton: UIControl {
 /// The sizes a bar is drawn at, for its background images.
 public enum UIBarMetrics: Int, Sendable {
     case `default` = 0, compact = 1, defaultPrompt = 101, compactPrompt = 102
+}
+
+/// Where a bar sits, for its background and shadow images: `any` is the image for every place.
+public enum UIBarPosition: Int, Sendable {
+    case `any` = 0, bottom = 1, top = 2, topAttached = 3
 }

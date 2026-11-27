@@ -132,6 +132,21 @@ import WebGraphicsNative
         #expect(gradients[1].contains("FFFFFF") && gradients[1].contains("000000"))
     }
 
+    @Test func everyClipEndsWithItsState() {
+        let commands = render { context in
+            context.saveGState()
+            context.clip(to: CGRect(x: 0, y: 0, width: 50, height: 50))
+            context.clip(to: CGRect(x: 10, y: 10, width: 20, height: 20))
+            context.restoreGState()
+            context.fill(CGRect(x: 0, y: 0, width: 80, height: 80))
+        }
+        // Two clips, two saves, two restores, and the fill after them, unclipped.
+        let fill = commands.lastIndex { $0.hasPrefix("fillPath(") }!
+        let before = commands[..<fill]
+        #expect(before.filter { $0 == "save" }.count == before.filter { $0 == "restore" }.count, "\(commands)")
+        #expect(before.filter { $0.hasPrefix("clipPath(") }.count == 2)
+    }
+
     @Test func imageRenderersRecordAndReplay() throws {
         let renderer = UIGraphicsImageRenderer(size: CGSize(width: 20, height: 10))
         let badge = renderer.image { context in

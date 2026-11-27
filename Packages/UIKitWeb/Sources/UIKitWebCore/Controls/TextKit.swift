@@ -401,6 +401,8 @@ open class NSLayoutManager {
     open var showsControlCharacters = false
     open var usesFontLeading = true
     open var limitsLayoutForSuspiciousContents = true
+    /// How eagerly lines hyphenate (kept; lines here break between words).
+    open var hyphenationFactor: CGFloat = 0
     /// The text view these are the TextKit objects of: its text, fonts and insets are laid out.
     weak var textView: UITextView?
     private var lines: LaidOutText?
@@ -632,6 +634,49 @@ open class NSLayoutManager {
     open func defaultLineHeight(for theFont: UIFont) -> CGFloat { theFont.lineHeight + theFont.leading }
     /// A font's baseline below the top of its line.
     open func defaultBaselineOffset(for theFont: UIFont) -> CGFloat { theFont.ascender }
+
+    // MARK: Drawing
+
+    /// Draws the glyphs' text into the current graphics context, each line's part at its place
+    /// in the container offset by `origin` (StyledTextKit renders its text this way).
+    open func drawGlyphs(forGlyphRange glyphsToShow: NSRange, at origin: CGPoint) {
+        guard let storage = textStorage, UIGraphicsGetCurrentContext() != nil else { return }
+        let layout = laidOut()
+        let range = clamped(glyphsToShow)
+        let utf16 = Array(storage.string.utf16)
+        for index in layout.lineIndices(touching: range) {
+            let line = layout.lines[index]
+            let start = max(range.location, line.characters.location)
+            var end = min(range.location + range.length, line.characters.location + line.characters.length, storage.length)
+            // A line's final newline draws nothing.
+            if end > start, end <= utf16.count, utf16[end - 1] == 10 { end -= 1 }
+            guard end > start else { continue }
+            let x = layout.x(of: start, inLine: index)
+            storage.attributedSubstring(from: NSRange(location: start, length: end - start))
+                .draw(at: CGPoint(x: origin.x + x, y: origin.y + line.fragmentRect.minY))
+        }
+    }
+
+    /// Fills the glyphs' background colours (the `.backgroundColor` attribute) into the current
+    /// graphics context, across each line they are on, offset by `origin`.
+    open func drawBackground(forGlyphRange glyphsToShow: NSRange, at origin: CGPoint) {
+        guard let storage = textStorage, UIGraphicsGetCurrentContext() != nil else { return }
+        let layout = laidOut()
+        let range = clamped(glyphsToShow)
+        guard range.length > 0, range.location + range.length <= storage.length else { return }
+        storage.enumerateAttribute(.backgroundColor, in: range, options: []) { value, run, _ in
+            guard let color = value as? UIColor else { return }
+            for index in layout.lineIndices(touching: run) {
+                let line = layout.lines[index]
+                let start = max(run.location, line.characters.location)
+                let end = min(run.location + run.length, line.characters.location + line.characters.length)
+                let x0 = layout.x(of: start, inLine: index), x1 = layout.x(of: max(start, end), inLine: index)
+                guard x1 > x0 else { continue }
+                color.setFill()
+                UIRectFill(CGRect(x: origin.x + x0, y: origin.y + line.fragmentRect.minY, width: x1 - x0, height: line.fragmentRect.height))
+            }
+        }
+    }
 
     private func clamped(_ range: NSRange) -> NSRange {
         let length = laidOut().length

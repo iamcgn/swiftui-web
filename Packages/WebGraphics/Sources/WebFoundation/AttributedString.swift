@@ -31,6 +31,7 @@ public enum AttributeScopes {
         public let link: LinkAttribute
         public let inlinePresentationIntent: InlinePresentationIntentAttribute
         public let languageIdentifier: LanguageIdentifierAttribute
+        public let imageURL: ImageURLAttribute
 
         public enum LinkAttribute: AttributedStringKey {
             public typealias Value = URL
@@ -43,6 +44,11 @@ public enum AttributeScopes {
         public enum LanguageIdentifierAttribute: AttributedStringKey {
             public typealias Value = String
             public static let name = "NSLanguage"
+        }
+        /// The image a run stands for (Markdown's `![alt](url)`; EmojiText's custom emoji).
+        public enum ImageURLAttribute: AttributedStringKey {
+            public typealias Value = URL
+            public static let name = "NSImageURL"
         }
     }
 
@@ -596,7 +602,7 @@ extension AttributeScope {
 
 extension AttributeScopes.FoundationAttributes: AttributeScope {
     public static var _webKeys: [any AttributedStringKey.Type] {
-        [LinkAttribute.self, InlinePresentationIntentAttribute.self, LanguageIdentifierAttribute.self]
+        [LinkAttribute.self, InlinePresentationIntentAttribute.self, LanguageIdentifierAttribute.self, ImageURLAttribute.self]
     }
 }
 

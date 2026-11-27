@@ -62,6 +62,13 @@ public struct UIContentSizeCategory: Hashable, Sendable, RawRepresentable, Compa
     }
 }
 
+/// A view whose image can follow the accessibility content size categories (UIButton,
+/// UIImageView). The flag is kept; images draw at their own size whatever the category.
+@preconcurrency @MainActor
+public protocol UIAccessibilityContentSizeCategoryImageAdjusting: AnyObject {
+    var adjustsImageSizeForAccessibilityContentSizeCategory: Bool { get set }
+}
+
 /// The traits a view resolves against.
 public struct UITraitCollection: Hashable, Sendable {
     public var userInterfaceStyle: UIUserInterfaceStyle = .light

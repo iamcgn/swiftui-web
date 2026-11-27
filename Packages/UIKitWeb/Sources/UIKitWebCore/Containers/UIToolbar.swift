@@ -38,6 +38,27 @@ open class UIToolbar: UIView {
 
     open func setItems(_ items: [UIBarButtonItem]?, animated: Bool) { self.items = items }
 
+    private var backgroundImages: [Int: UIImage] = [:]
+    private var shadowImages: [UIBarPosition: UIImage] = [:]
+    private static func key(_ position: UIBarPosition, _ metrics: UIBarMetrics) -> Int { position.rawValue * 1000 + metrics.rawValue }
+
+    /// The background image for a position and metrics (kept; the iOS 26 bar draws no background
+    /// of its own, KeyboardToolbar's empty image included). A position with none set reads the
+    /// image set for `any`.
+    open func setBackgroundImage(_ backgroundImage: UIImage?, forToolbarPosition topOrBottom: UIBarPosition, barMetrics: UIBarMetrics) {
+        backgroundImages[Self.key(topOrBottom, barMetrics)] = backgroundImage
+    }
+    open func backgroundImage(forToolbarPosition topOrBottom: UIBarPosition, barMetrics: UIBarMetrics) -> UIImage? {
+        backgroundImages[Self.key(topOrBottom, barMetrics)] ?? backgroundImages[Self.key(.any, barMetrics)]
+    }
+    /// The shadow image for a position (kept, as the background images are).
+    open func setShadowImage(_ shadowImage: UIImage?, forToolbarPosition topOrBottom: UIBarPosition) {
+        shadowImages[topOrBottom] = shadowImage
+    }
+    open func shadowImage(forToolbarPosition topOrBottom: UIBarPosition) -> UIImage? {
+        shadowImages[topOrBottom] ?? shadowImages[.any]
+    }
+
     /// A toolbar is as wide as proposed and 48 tall (`sizeToFit` on a zero frame keeps 0 wide).
     override open func sizeThatFits(_ size: CGSize) -> CGSize {
         CGSize(width: size.width < CGFloat.greatestFiniteMagnitude ? size.width : bounds.width, height: isFloating ? Self.floatingHeight : Self.height)

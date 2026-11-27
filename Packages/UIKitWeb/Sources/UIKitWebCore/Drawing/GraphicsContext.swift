@@ -66,7 +66,7 @@ public final class UIGraphicsRecordingContext {
         for _ in 0..<groupsInState { commands.append(.endGroup) }
         groupsInState = openGroups.popLast() ?? 0
         // Clips made since the save end with it.
-        if clipsInState > 0 { commands.append(.restore); clipsInState = 0 }
+        commands += Array(repeating: DisplayCommand.restore, count: clipsInState)
         clipsInState = clipStack.popLast() ?? 0
         state = saved
     }
@@ -260,6 +260,20 @@ public final class UIGraphicsRecordingContext {
         clipsInState += 1
     }
 
+    /// Masks what follows, until the state is restored, by the alpha of what `mask` paints
+    /// (commands in the context's own coordinates) over `bounds` there; nothing outside
+    /// `bounds` shows (`clip(to:mask:)`).
+    func clip(toMask mask: [DisplayCommand], bounds: CGRect) {
+        let ctm = state.ctm
+        commands.append(.beginMask(bounds: bounds.applying(ctm)))
+        commands.append(.save)
+        commands.append(.concat(ctm))
+        commands.append(contentsOf: mask)
+        commands.append(.restore)
+        commands.append(.beginMasked)
+        groupsInState += 1
+    }
+
     // MARK: Transparency layers
 
     public func beginTransparencyLayer(auxiliaryInfo: [String: Any]?) {
@@ -358,7 +372,7 @@ public final class UIGraphicsRecordingContext {
         var savedGroups = openGroups, savedClips = clipStack
         while true {
             out += Array(repeating: DisplayCommand.endGroup, count: groups)
-            if clips > 0 { out.append(.restore) }
+            out += Array(repeating: DisplayCommand.restore, count: clips)
             guard let next = savedGroups.popLast() else { break }
             groups = next
             clips = savedClips.popLast() ?? 0
@@ -371,7 +385,8 @@ public final class UIGraphicsRecordingContext {
         while !stack.isEmpty { restoreGState() }
         for _ in 0..<groupsInState { commands.append(.endGroup) }
         groupsInState = 0
-        if clipsInState > 0 { commands.append(.restore); clipsInState = 0 }
+        commands += Array(repeating: DisplayCommand.restore, count: clipsInState)
+        clipsInState = 0
     }
 }
 
