@@ -1052,7 +1052,7 @@ def describe_app(entry, root: Path, work: Path = None):
         # resources for the app, so only the catalogs' folders and `Contents.json` are copied.
         # The app's intent definitions, for the classes Xcode generates from them.
         intents = [d for d in intent_definitions(root, Path("."), beside=app_files + [f for _, _, fs, _, _, _ in sub_apps for f in fs])
-                   if not excluded(Path(d), extra)
+                   if not excluded_by_entry(Path(d), extra)
                    and not any(Path(d).is_relative_to(p) for p in pkg_dirs if str(p) != ".")
                    and not any(Path(d).is_relative_to(Path(t["source_root"])) for t in targets if not t.get("remote"))]
         catalogs = [c for c in asset_catalogs(root, Path(".")) if not excluded(Path(c), extra)
