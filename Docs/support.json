@@ -387,9 +387,9 @@
           ]
         },
         {
-          "api": "Menu / MenuStyle / menuIndicator / contextMenu",
+          "api": "Menu / MenuStyle / menuIndicator / contextMenu / ContextMenu",
           "status": "partial",
-          "notes": "Pull-down and split buttons exact; menus, submenus and context menus through the presentation layer (rows, separators; no hover highlight, checked items, section headers or keyboard navigation); iOS profile: the label alone in the accent colour (ios/menu/basic); toggle and picker rows with check marks, section headers, hover highlight, menuActionDismissBehavior, the split button's open look and contextMenu(forSelectionType:) on lists (2026-10-04; the open menus stay unmeasured)",
+          "notes": "Pull-down and split buttons exact; menus, submenus and context menus through the presentation layer (rows, separators; no hover highlight, checked items, section headers or keyboard navigation); iOS profile: the label alone in the accent colour (ios/menu/basic); toggle and picker rows with check marks, section headers, hover highlight, menuActionDismissBehavior, the split button's open look and contextMenu(forSelectionType:) on lists (2026-10-04; the open menus stay unmeasured). The iOS 13 form, `contextMenu(ContextMenu { … })`, opens like the closure form, and a nil menu leaves the enclosing view's menu in charge (pf-everyday, 2026-11-27, Clendar)",
           "fixtures": [
             "menu/basic",
             "ios/menu/basic"
@@ -470,9 +470,9 @@
           "noFixture": "Protocol shape with nothing new on screen; ContentProtocolsTests checks a forwarding wrapper's conformance and that empty content makes no columns; TableTests checks a column's conformance and an opaque column property laid out in a table."
         },
         {
-          "api": "ColorPicker(_:selection:supportsOpacity:) / ColorPicker(selection:label:) (Color and CGColor selections)",
+          "api": "ColorPicker(_:selection:supportsOpacity:) / ColorPicker(selection:label:) (Color and CGColor selections) / Color(_: CGColor)",
           "status": "partial",
-          "notes": "The macOS colour well: 48 × 24 grey rounded rect with the colour in a concentric swatch over a black/white diagonal (translucent and clear colours show it), inner stroke, half opacity disabled; body label centred in stacks, on the well's baseline in forms; a press (or Space) opens the host's system colour chooser (the browser's <input type=color>, NSColorPanel natively; the preset popover without one) and the well's frame turns the focus blue while it targets the well (2026-10-11); dropped colours set it (Color: Transferable); no tint or controlSize",
+          "notes": "The macOS colour well: 48 × 24 grey rounded rect with the colour in a concentric swatch over a black/white diagonal (translucent and clear colours show it), inner stroke, half opacity disabled; body label centred in stacks, on the well's baseline in forms; a press (or Space) opens the host's system colour chooser (the browser's <input type=color>, NSColorPanel natively; the preset popover without one) and the well's frame turns the focus blue while it targets the well (2026-10-11); dropped colours set it (Color: Transferable); no tint or controlSize; `Color(_:)` takes a CGColor as `Color(cgColor:)` does (2026-11-27, Clendar)",
           "fixtures": [
             "colorpicker/basic",
             "colorpicker/labels",
@@ -2408,9 +2408,9 @@
           "noFixture": "Storage, not a screen; WasmFoundationTests round-trips a document through a host store."
         },
         {
-          "api": "compare(_:options:range:locale:) / caseInsensitiveCompare / localizedCompare / localizedStandardCompare / replacingCharacters(in:with:) / precomposedStringWithCanonicalMapping / components(separatedBy: CharacterSet)",
+          "api": "compare(_:options:range:locale:) / caseInsensitiveCompare / localizedCompare / localizedStandardCompare / replacingCharacters(in:with:) / precomposedStringWithCanonicalMapping / components(separatedBy: CharacterSet) / commonPrefix(with:options:)",
           "status": "partial",
-          "notes": "On wasm: literal or canonical comparison with case folding, diacritic folding and numeric runs, through the standard library's normalization and case-folding tables. The localized forms order as the root collation does (letters, then accents, then lowercase before uppercase), with no per-language tailoring.",
+          "notes": "On wasm: literal or canonical comparison with case folding, diacritic folding and numeric runs, through the standard library's normalization and case-folding tables. The localized forms order as the root collation does (letters, then accents, then lowercase before uppercase), with no per-language tailoring.. `commonPrefix(with:options:)` gives the receiver's start that matches character by character under the options (Clendar merges titles ignoring case, 2026-11-27).",
           "noFixture": "Foundation API with nothing on screen; FoundationGapsTests holds it to Foundation on macOS and Linux and checks the wasm forms."
         },
         {
@@ -2773,9 +2773,9 @@
           "noFixture": "Nothing new to draw: the painters already draw colour-matrix, blur and blend groups; FrameworkTests check the recordings"
         },
         {
-          "api": "WidgetCenter / WidgetFamily / TimelineEntry / Timeline (WidgetKit)",
+          "api": "WidgetCenter / WidgetFamily / TimelineEntry / Timeline (WidgetKit) / containerBackground(for: .widget)",
           "status": "stub",
-          "notes": "pf-small-frameworks (2026-10-31): an app's calls to its widgets (reloadAllTimelines, reloadTimelines(ofKind:), currentConfigurations) are accepted and report no configured widgets, since a page has no home screen; the timeline types are values, so code shared with a widget extension compiles. Widgets themselves (Widget, WidgetConfiguration) are not rendered. A widget view's `PreviewProvider` names its size with `.previewContext(WidgetPreviewContext(family:))`, which is kept (Clendar's widget previews, 2026-11-25)",
+          "notes": "pf-small-frameworks (2026-10-31): an app's calls to its widgets (reloadAllTimelines, reloadTimelines(ofKind:), currentConfigurations) are accepted and report no configured widgets, since a page has no home screen; the timeline types are values, so code shared with a widget extension compiles. Widgets themselves (Widget, WidgetConfiguration) are not rendered. A widget view's `PreviewProvider` names its size with `.previewContext(WidgetPreviewContext(family:))`, which is kept (Clendar's widget previews, 2026-11-25). `containerBackground(for: .widget)` is in SwiftUI here, so widget files that import only SwiftUI find it, and draws as a background (2026-11-27, Clendar).",
           "noFixture": "Nothing to draw: FrameworkTests call the center and build a timeline"
         },
         {
@@ -2973,9 +2973,9 @@
           ]
         },
         {
-          "api": "Map / Marker / Annotation / MapCameraPosition / MKCoordinateRegion / CLLocationCoordinate2D (MapKit, CoreLocation) / MKOverlay / MKPolyline / MKPolygon / MKCircle / MKOverlayRenderer / MKMapPoint / MKMapRect / MKUserTrackingMode / MKMapCamera / MKMapConfiguration / MKStandardMapConfiguration / MKImageryMapConfiguration / MKHybridMapConfiguration",
+          "api": "Map / Marker / Annotation / MapCameraPosition / MKCoordinateRegion / CLLocationCoordinate2D (MapKit, CoreLocation) / MKOverlay / MKPolyline / MKPolygon / MKCircle / MKOverlayRenderer / MKMapPoint / MKMapRect / MKUserTrackingMode / MKMapCamera / MKMapConfiguration / MKStandardMapConfiguration / MKImageryMapConfiguration / MKHybridMapConfiguration / MapPin / MapMarker / MapAnnotation / MapUserTrackingMode",
           "status": "approximate",
-          "notes": "Painted from OpenStreetMap raster tiles fetched by the host and placed by Web Mercator at the zoom fitting the region, markers as red balloons with titles, annotations as views; the look is OpenStreetMap's (frames-only in the pixel tiers); no gestures, camera changes, styles, overlays or user location MKMapView keeps the overlays added to it, at their levels, and asks its delegate once for each overlay's renderer; it does not paint them. MKMapPoint and MKMapRect use the Web Mercator projection, 2^28 points wide, as MapKit's do. MKMapView keeps its camera (MKMapCamera: centre, distance, pitch and heading; setting it moves the region, the distance spanning the map's height) and its preferred configuration (standard, imagery or hybrid, with elevation, emphasis and points of interest) as apps set them (pf-everyday, 2026-11-25, FoodTruck); the backdrop does not change with either.",
+          "notes": "Painted from OpenStreetMap raster tiles fetched by the host and placed by Web Mercator at the zoom fitting the region, markers as red balloons with titles, annotations as views; the look is OpenStreetMap's (frames-only in the pixel tiers); no gestures, camera changes, styles, overlays or user location MKMapView keeps the overlays added to it, at their levels, and asks its delegate once for each overlay's renderer; it does not paint them. MKMapPoint and MKMapRect use the Web Mercator projection, 2^28 points wide, as MapKit's do. MKMapView keeps its camera (MKMapCamera: centre, distance, pitch and heading; setting it moves the region, the distance spanning the map's height) and its preferred configuration (standard, imagery or hybrid, with elevation, emphasis and points of interest) as apps set them (pf-everyday, 2026-11-25, FoodTruck); the backdrop does not change with either. The older `Map(coordinateRegion:…annotationItems:annotationContent:)` draws a pin, marker or view for each item and follows its bound region as it changes; the user's location and tracking mode are not shown (2026-11-27, Clendar).",
           "fixtures": [
             "frameworks/map"
           ]
