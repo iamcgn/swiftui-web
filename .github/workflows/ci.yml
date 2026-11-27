@@ -123,6 +123,10 @@ jobs:
       - name: Stop local servers earlier jobs left
         if: runner.environment == 'self-hosted'
         run: scripts/ci-stop-local-servers.sh
+      # Servers outside CI on the runner (a local checkout's own) can hold the usual ports too:
+      # each step's server takes its usual port when it is free, else a free one ($PORT_<usual>).
+      - name: Pick this job's local ports
+        run: scripts/ci-pick-ports.sh 8765 8768 8769 8770 8771 8773 8775 8776 8777 8780 8781 8782 8783 8784 8785 8786
       - name: Install toolchain and wasm SDK
         run: |
           export HOMEBREW_NO_AUTO_UPDATE=1
@@ -183,9 +187,9 @@ jobs:
       - name: Host elements and the map in Chromium (sw-frameworks)
         run: |
           # Its own port: 8769 is the frame budget's, 8766 Tier B's.
-          python3 -m http.server 8770 --bind 127.0.0.1 --directory Examples/Gallery >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8770/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node frameworks-probe.mjs http://127.0.0.1:8770/index.html)
+          python3 -m http.server ${PORT_8770} --bind 127.0.0.1 --directory Examples/Gallery >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:${PORT_8770}/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node frameworks-probe.mjs http://127.0.0.1:${PORT_8770}/index.html)
       - name: Interaction suite in Chromium (the gallery, Tier B's build) — focus, typing, keys, menus, sheets, toolbar, gestures, hover, scrolling, selection, drag and drop, the colour well, accessibility, UIKit pickers, AsyncImage, animation, timelines
         run: |
           # 8767, the port the probes and the AsyncImage fixture's served URL name; the server
@@ -203,27 +207,27 @@ jobs:
         run: |
           . ~/.swiftly/env.sh
           scripts/build-wasm.sh Examples/Counter
-          python3 -m http.server 8765 --bind 127.0.0.1 --directory Examples/Counter >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8765/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node counter.mjs http://127.0.0.1:8765/index.html --shot ../.build/counter.png)
+          python3 -m http.server ${PORT_8765} --bind 127.0.0.1 --directory Examples/Counter >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:${PORT_8765}/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node counter.mjs http://127.0.0.1:${PORT_8765}/index.html --shot ../.build/counter.png)
           scripts/size-gate.sh Examples/Counter
           # The WebGL painter (decision 0026): auto leaves software WebGL alone, forced WebGL
           # matches Canvas2D, auto switches on a slow frame, and the fallbacks paint.
-          (cd Playwright && node webgl-painter-probe.mjs http://127.0.0.1:8765/index.html --out ../.build/apps/webgl-painter)
+          (cd Playwright && node webgl-painter-probe.mjs http://127.0.0.1:${PORT_8765}/index.html --out ../.build/apps/webgl-painter)
       - name: SceneKit through WebGL (Examples/SceneDemo) — meshes on the GPU, the 2D fallback with WebGL off, the CPU path, the Globe's live texture
         run: |
           . ~/.swiftly/env.sh
           scripts/build-wasm.sh Examples/SceneDemo
-          python3 -m http.server 8786 --bind 127.0.0.1 --directory Examples/SceneDemo >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8786/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node scenekit-webgl-probe.mjs http://127.0.0.1:8786/index.html --out ../.build/apps/scenekit-webgl)
+          python3 -m http.server ${PORT_8786} --bind 127.0.0.1 --directory Examples/SceneDemo >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:${PORT_8786}/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node scenekit-webgl-probe.mjs http://127.0.0.1:${PORT_8786}/index.html --out ../.build/apps/scenekit-webgl)
       - name: Core Data through SwiftUI's trait (decision 0024) — a view importing only SwiftUI, a predicate importing only Foundation, saves and a reload
         run: |
           . ~/.swiftly/env.sh
           scripts/build-wasm.sh Examples/CoreDataNotes
-          python3 -m http.server 8771 --bind 127.0.0.1 --directory Examples/CoreDataNotes >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8771/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node coredata-notes.mjs http://127.0.0.1:8771/index.html --shot ../.build/coredata-notes.png)
+          python3 -m http.server ${PORT_8771} --bind 127.0.0.1 --directory Examples/CoreDataNotes >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:${PORT_8771}/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node coredata-notes.mjs http://127.0.0.1:${PORT_8771}/index.html --shot ../.build/coredata-notes.png)
           # Not gated (Core Data is the app's choice): the size, for the record.
           scripts/size-gate.sh Examples/CoreDataNotes 99999999
       - name: UIKit counter smoke test and size gate
@@ -238,23 +242,23 @@ jobs:
         run: |
           . ~/.swiftly/env.sh
           scripts/build-wasm.sh Examples/UIKitSettings
-          python3 -m http.server 8768 --bind 127.0.0.1 --directory Examples/UIKitSettings >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8768/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node uikit-settings.mjs http://127.0.0.1:8768/index.html --shot ../.build/uikit-settings.png)
+          python3 -m http.server ${PORT_8768} --bind 127.0.0.1 --directory Examples/UIKitSettings >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:${PORT_8768}/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node uikit-settings.mjs http://127.0.0.1:${PORT_8768}/index.html --shot ../.build/uikit-settings.png)
           scripts/size-gate.sh Examples/UIKitSettings
       - name: Launches (an app importing Foundation and Combine; UIKit, Foundation and SwiftUI together; URLSession against local fixtures — decision 0021)
         run: |
           . ~/.swiftly/env.sh
           scripts/build-wasm.sh Examples/Launches --debug
-          python3 -m http.server 8769 --bind 127.0.0.1 --directory Examples/Launches >/dev/null 2>&1 &
+          python3 -m http.server ${PORT_8769} --bind 127.0.0.1 --directory Examples/Launches >/dev/null 2>&1 &
           # A second local server, no CORS headers: the URLSession check's refused cross-origin request (pf-urlsession).
-          python3 -m http.server 8776 --bind 127.0.0.1 --directory Examples/Launches >/dev/null 2>&1 &
+          python3 -m http.server ${PORT_8776} --bind 127.0.0.1 --directory Examples/Launches >/dev/null 2>&1 &
           # The slow fixture server (headers now, body later): the timeout-after-headers and in-flight cancellation cases.
-          (cd Playwright && node fixture-server.mjs 8777 >/dev/null 2>&1 &)
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8769/index.html >/dev/null && curl -sf http://127.0.0.1:8776/fixtures/country.json >/dev/null && curl -sf http://127.0.0.1:8777/fixtures/country.json >/dev/null && break; sleep 1; done
-          (cd Playwright && node launches-probe.mjs "http://127.0.0.1:8769/index.html?cross=http://127.0.0.1:8776&slow=http://127.0.0.1:8777")
+          (cd Playwright && node fixture-server.mjs ${PORT_8777} >/dev/null 2>&1 &)
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:${PORT_8769}/index.html >/dev/null && curl -sf http://127.0.0.1:${PORT_8776}/fixtures/country.json >/dev/null && curl -sf http://127.0.0.1:${PORT_8777}/fixtures/country.json >/dev/null && break; sleep 1; done
+          (cd Playwright && node launches-probe.mjs "http://127.0.0.1:${PORT_8769}/index.html?cross=http://127.0.0.1:${PORT_8776}&slow=http://127.0.0.1:${PORT_8777}")
       - name: Speech from the app's appended buffers (decision 0022) — SFSpeechRecognizer fed committed recordings through Launches' SpeechCheck, transcribed on the device by the installed Chrome
-        run: cd Playwright && node speech-probe.mjs http://127.0.0.1:8769/index.html
+        run: cd Playwright && node speech-probe.mjs http://127.0.0.1:${PORT_8769}/index.html
       # The apps of decision 0021, three claims kept apart: the upstream trees are exactly their
       # pins (integrity), an app compiles from them (compilation), the app does what a user does
       # with it (behaviour). Each step fails on its own.
@@ -267,9 +271,9 @@ jobs:
       - name: Apps — Scrumdinger in Chrome (the add sheet, an attendee, the scrum on file after a reload, the detail, the meeting — its timer, its transcription of the fake microphone's recording by the on-device recogniser, the history with the transcript)
         id: scrumdinger
         run: |
-          python3 -m http.server 8773 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8773/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node scrumdinger-probe.mjs "http://127.0.0.1:8773/index.html?platform=ios" --out ../.build/apps/scrumdinger)
+          python3 -m http.server ${PORT_8773} --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:${PORT_8773}/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node scrumdinger-probe.mjs "http://127.0.0.1:${PORT_8773}/index.html?platform=ios" --out ../.build/apps/scrumdinger)
       - name: Apps — Ember compiles for wasm from its unmodified sources (WebKit, SafariServices, Security over the stand-ins; a release build, as the comment thread's layout is seconds in debug)
         run: |
           . ~/.swiftly/env.sh
@@ -277,9 +281,9 @@ jobs:
       - name: Apps — Ember in Chromium (the onboarding, the live Top feed and chips, a discussion, save and Saved, search, Settings, a reload — against the live Hacker News API)
         id: ember
         run: |
-          python3 -m http.server 8780 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8780/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node ember-probe.mjs "http://127.0.0.1:8780/index.html?platform=ios" --out ../.build/apps/ember)
+          python3 -m http.server ${PORT_8780} --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:${PORT_8780}/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node ember-probe.mjs "http://127.0.0.1:${PORT_8780}/index.html?platform=ios" --out ../.build/apps/ember)
       - name: Apps — Swift Charts Examples compiles for wasm from its unmodified sources (Charts, ImageRenderer previews, accessibility chart descriptors; a release build, as the launch renders every chart into an image)
         run: |
           . ~/.swiftly/env.sh
@@ -287,9 +291,9 @@ jobs:
       - name: Apps — Swift Charts Examples in Chromium (the Charts list and its previews, scrolling, a chart pushed, its slider, Back, the Filter menu)
         id: charts
         run: |
-          python3 -m http.server 8781 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8781/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node charts-probe.mjs "http://127.0.0.1:8781/index.html?platform=ios" --out ../.build/apps/charts)
+          python3 -m http.server ${PORT_8781} --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:${PORT_8781}/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node charts-probe.mjs "http://127.0.0.1:${PORT_8781}/index.html?platform=ios" --out ../.build/apps/charts)
       - name: Apps — buttoncraft compiles for wasm from its unmodified sources (custom ButtonStyle, sliders, ColorPicker, SwitchToggleStyle(tint:), accentColor)
         run: |
           . ~/.swiftly/env.sh
@@ -297,9 +301,9 @@ jobs:
       - name: Apps — buttoncraft in Chromium (a held press on a styled button, the Scale Effect slider, reset, the Animation switch, the code panel and Copied)
         id: buttoncraft
         run: |
-          python3 -m http.server 8782 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8782/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node buttoncraft-probe.mjs "http://127.0.0.1:8782/index.html?platform=ios" --out ../.build/apps/buttoncraft)
+          python3 -m http.server ${PORT_8782} --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:${PORT_8782}/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node buttoncraft-probe.mjs "http://127.0.0.1:${PORT_8782}/index.html?platform=ios" --out ../.build/apps/buttoncraft)
       - name: Apps — SimpleScores compiles for wasm from its unmodified sources (a binding ForEach with onDelete, toolbar items, an alert, Combine's debounce, named asset colours)
         run: |
           . ~/.swiftly/env.sh
@@ -307,9 +311,9 @@ jobs:
       - name: Apps — SimpleScores in Chromium (players added, + and − change a score, a rename, the scores back after a reload, Reset Scores to 0, Remove All's alert)
         id: simplescores
         run: |
-          python3 -m http.server 8784 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8784/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node simplescores-probe.mjs "http://127.0.0.1:8784/index.html?platform=ios" --out ../.build/apps/simplescores)
+          python3 -m http.server ${PORT_8784} --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:${PORT_8784}/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node simplescores-probe.mjs "http://127.0.0.1:${PORT_8784}/index.html?platform=ios" --out ../.build/apps/simplescores)
       - name: Apps — SimpleToDo compiles for wasm from its unmodified sources (List selection, EditButton under an editMode set outside the toolbar, a bottom bar item, a segmented Picker, Combine's debounce)
         run: |
           . ~/.swiftly/env.sh
@@ -317,9 +321,9 @@ jobs:
       - name: Apps — SimpleToDo in Chromium (Edit disabled with no items, two items added, a detail renamed and set to High, one marked completed, the items back after a reload, Edit, a row selected, Delete selected)
         id: simpletodo
         run: |
-          python3 -m http.server 8785 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8785/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node simpletodo-probe.mjs "http://127.0.0.1:8785/index.html?platform=ios" --out ../.build/apps/simpletodo)
+          python3 -m http.server ${PORT_8785} --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:${PORT_8785}/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node simpletodo-probe.mjs "http://127.0.0.1:${PORT_8785}/index.html?platform=ios" --out ../.build/apps/simpletodo)
       # SwiftUI-2048 needs `@objc`/`#selector`, which the stock wasm SDK cannot compile: it is
       # built with the Objective-C runtime SDK of decision 0023 (swift-objc-wasm's v0.1.1
       # release, pinned by URL and checksum; its own patched compilers over the same swiftly
@@ -339,9 +343,9 @@ jobs:
       - name: Apps — SwiftUI-2048 in Chromium (the delegate launches, two starting tiles, swipes move them, ⌘N's selector key command starts a new game)
         id: swiftui2048
         run: |
-          python3 -m http.server 8775 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8775/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node 2048-probe.mjs "http://127.0.0.1:8775/index.html?platform=ios" --out ../.build/apps/2048)
+          python3 -m http.server ${PORT_8775} --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:${PORT_8775}/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node 2048-probe.mjs "http://127.0.0.1:${PORT_8775}/index.html?platform=ios" --out ../.build/apps/2048)
       # PomPadDo (SwiftData, a TabView of typed Tabs, a sheet, a focus timer) is built with the same
       # runtime SDK: it is an iOS app whose `#if os(iOS)` code is the app (decision 0025).
       - name: Apps — PomPadDo compiles for wasm from its unmodified sources (SwiftData models and queries, typed Tabs, #colorLiteral; the runtime SDK)
@@ -351,9 +355,9 @@ jobs:
       - name: Apps — PomPadDo in Chromium (the tab bar, a task added from the Add to Inbox tab, the Inbox lists it, the focus timer counts down, the task is still there after a reload)
         id: pompaddo
         run: |
-          python3 -m http.server 8783 --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
-          for i in $(seq 1 60); do curl -sf http://127.0.0.1:8783/index.html >/dev/null && break; sleep 1; done
-          (cd Playwright && node pompaddo-probe.mjs "http://127.0.0.1:8783/index.html?platform=ios" --out ../.build/apps/pompaddo)
+          python3 -m http.server ${PORT_8783} --bind 127.0.0.1 --directory Apps >/dev/null 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:${PORT_8783}/index.html >/dev/null && break; sleep 1; done
+          (cd Playwright && node pompaddo-probe.mjs "http://127.0.0.1:${PORT_8783}/index.html?platform=ios" --out ../.build/apps/pompaddo)
       - name: Apps — the evidence the probe must leave (report.json with full_app_pass, screenshots, trace)
         if: always() && steps.scrumdinger.outcome != 'skipped'
         env: { EMBER_PROBE: "${{ steps.ember.outcome }}", SWIFTUI2048_PROBE: "${{ steps.swiftui2048.outcome }}", CHARTS_PROBE: "${{ steps.charts.outcome }}", BUTTONCRAFT_PROBE: "${{ steps.buttoncraft.outcome }}", POMPADDO_PROBE: "${{ steps.pompaddo.outcome }}", SIMPLESCORES_PROBE: "${{ steps.simplescores.outcome }}", SIMPLETODO_PROBE: "${{ steps.simpletodo.outcome }}" }
