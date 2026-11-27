@@ -50,7 +50,8 @@ public enum WidgetBundleBuilder {
 
 /// The widgets a bundle lists (they are made again when asked for, as each is a value).
 public struct _WidgetBundleContent<each W: Widget>: Widget {
-    public init() {}
+    // The builders run outside the main actor, so the values they make are made outside it.
+    nonisolated public init() {}
     public var body: EmptyWidgetConfiguration { EmptyWidgetConfiguration() }
 }
 
@@ -69,7 +70,7 @@ extension Never: WidgetConfiguration {
 
 /// A configuration with nothing in it.
 public struct EmptyWidgetConfiguration: WidgetConfiguration {
-    public init() {}
+    nonisolated public init() {}
     public var body: Never { fatalError("EmptyWidgetConfiguration has no body") }
 }
 
@@ -91,6 +92,7 @@ public enum WidgetConfigurationBuilder {
 public struct _ConditionalWidgetConfiguration<T: WidgetConfiguration, F: WidgetConfiguration>: WidgetConfiguration {
     enum Content { case first(T), second(F) }
     let content: Content
+    nonisolated init(content: Content) { self.content = content }
     public var body: Never { fatalError("_ConditionalWidgetConfiguration has no body") }
 }
 
@@ -261,6 +263,11 @@ public struct TimelineProviderContext: Sendable {
         case .systemSmall: CGSize(width: 170, height: 170)
         case .systemMedium: CGSize(width: 364, height: 170)
         case .systemLarge: CGSize(width: 364, height: 382)
+        case .systemExtraLarge: CGSize(width: 715, height: 341)  // an iPad's
+        case .accessoryCircular: CGSize(width: 76, height: 76)
+        case .accessoryRectangular: CGSize(width: 172, height: 76)
+        case .accessoryInline: CGSize(width: 257, height: 26)
+        case .accessoryCorner: CGSize(width: 50, height: 50)  // a watch's
         }
     }
 }
