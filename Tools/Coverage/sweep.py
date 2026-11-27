@@ -913,6 +913,30 @@ def data_models(root: Path, base: Path):
     return [rel for rel in found if best[Path(rel).name][0] == rel]
 
 
+def intent_definitions(root: Path, base: Path, beside=None):
+    """The intent definition files (`.intentdefinition`, often in a `Base.lproj` folder) under a
+    folder, as paths relative to the clone, for the IntentDefinitions plugin. With `beside` (the
+    app target's files, which the project lists wherever they are, widget folders included),
+    the definitions in a folder holding some of those files, whatever the folder is called
+    (Dime's ExpenditureWidget/Base.lproj)."""
+    found = []
+    folders = {Path(f).parent for f in beside} if beside is not None else None
+    for f in sorted((root / base).rglob("*.intentdefinition")):
+        if not f.is_file():
+            continue
+        rel = f.relative_to(root)
+        if folders is None:
+            if any(EXCLUDE_DIR.match(x) for x in f.relative_to(root / base).parts[:-1]):
+                continue
+        else:
+            home = rel.parent.parent if rel.parent.suffix == ".lproj" else rel.parent
+            if any(x in (".build", ".git", "Pods", "Carthage") for x in rel.parts) or \
+                    not any(d == home or d.is_relative_to(home) for d in folders):
+                continue
+        found.append(str(rel))
+    return found
+
+
 def describe_app(entry, root: Path, work: Path = None):
     """The sweep's view of one clone: its local targets, its packages' targets, the app target's
     files, the imports."""
@@ -975,6 +999,7 @@ def describe_app(entry, root: Path, work: Path = None):
                 "mode": language_mode_of_package(dump, t), "settings": swift_settings(t, traits),
                 "resources": [r.get("path") for r in t.get("resources") or [] if r.get("path")],
                 "models": data_models(root, src),
+                "intents": intent_definitions(root, src),
                 "executable": t["type"] == "executable",
             })
     local_count = len(targets)
@@ -1103,6 +1128,11 @@ def describe_app(entry, root: Path, work: Path = None):
                   and not any(Path(m).is_relative_to(Path(t["source_root"])) for t in targets if not t.get("remote"))]
         # The app's asset catalogs, for their symbols (`Image(.logo)`); the sweep builds no
         # resources for the app, so only the catalogs' folders and `Contents.json` are copied.
+        # The app's intent definitions, for the classes Xcode generates from them.
+        intents = [d for d in intent_definitions(root, Path("."), beside=app_files + [f for _, _, fs, _, _, _ in sub_apps for f in fs])
+                   if not excluded_by_entry(Path(d), extra)
+                   and not any(Path(d).is_relative_to(p) for p in pkg_dirs if str(p) != ".")
+                   and not any(Path(d).is_relative_to(Path(t["source_root"])) for t in targets if not t.get("remote"))]
         catalogs = [c for c in asset_catalogs(root, Path(".")) if not excluded(Path(c), extra)
                     and not any(Path(c).is_relative_to(d) for d in pkg_dirs if str(d) != ".")
                     and not any(Path(c).is_relative_to(Path(t["source_root"])) for t in targets if not t.get("remote"))]
@@ -1110,7 +1140,7 @@ def describe_app(entry, root: Path, work: Path = None):
             "module": "Sweep" + re.sub(r"\W", "", entry["name"]), "source_root": ".", "files": app_files,
             "deps": sorted({t["module"] for t in targets if not t["executable"] and not t.get("macro")}), "third_party": [],
             "mode": xcode_language_mode(root), "settings": xcode_settings(root, conditions, regex, concurrency),
-            "resources": [], "models": models,
+            "resources": [], "models": models, "intents": intents,
             "catalogs": catalogs, "symbol_extensions": bool(catalogs) and xcode_asset_symbol_extensions(root),
             "executable": True, "app": True,
         })
@@ -1118,6 +1148,7 @@ def describe_app(entry, root: Path, work: Path = None):
         if sub_bases:
             main = targets[-1]
             main["models"] = [m for m in main["models"] if not any(Path(m).is_relative_to(b) for b in sub_bases)]
+            main["intents"] = [d for d in main["intents"] if not any(Path(d).is_relative_to(b) for b in sub_bases)]
             main["catalogs"] = [c for c in main["catalogs"] if not any(Path(c).is_relative_to(b) for b in sub_bases)]
             main["symbol_extensions"] = bool(main["catalogs"]) and main["symbol_extensions"]
         used = {t["module"] for t in targets}
@@ -1133,6 +1164,7 @@ def describe_app(entry, root: Path, work: Path = None):
                 "third_party": [], "mode": xcode_language_mode(root / sub_base),
                 "settings": xcode_settings(root / sub_base, sub_conditions, sub_regex, sub_concurrency), "resources": [],
                 "models": [m for m in models if Path(m).is_relative_to(sub_base)],
+                "intents": [d for d in intents if Path(d).is_relative_to(sub_base)],
                 "catalogs": sub_catalogs, "symbol_extensions": bool(sub_catalogs) and xcode_asset_symbol_extensions(root / sub_base),
                 "executable": True, "app": True,
             })
@@ -1756,6 +1788,15 @@ def cmd_prepare(args):
                         shutil.rmtree(dest_root / r / model_src.relative_to(r_src), ignore_errors=True)
                 shutil.copytree(clone_dir / m, dest_root / name, dirs_exist_ok=True)
                 models.append(name)
+            # Intent definitions go next to the sources, out of the target's files, and the
+            # IntentDefinitions plugin generates their classes (as Xcode's codegen does). One
+            # localised into several `.lproj` folders is generated once.
+            for i, d in enumerate(t.get("intents", [])):
+                out = dest_root / "_IntentDefinitions" / f"{i}-{Path(d).name}"
+                out.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(clone_dir / d, out)
+            if t.get("intents"):
+                models.append("_IntentDefinitions")
             # The app's catalogs (not its resources here): their folders and `Contents.json`, out
             # of the target's files, for the AssetSymbols plugin to read.
             for i, c in enumerate(t.get("catalogs", [])):
@@ -1774,7 +1815,8 @@ def cmd_prepare(args):
             # AssetSymbols plugin, as Xcode generates them.
             plugins = (['.plugin(name: "CoreDataModel", package: "SwiftUIWeb")'] if t.get("models") else []) + (
                 ['.plugin(name: "AssetSymbols", package: "SwiftUIWeb")']
-                if t.get("catalogs") or any(r.endswith('.xcassets")') for r in resources) else [])
+                if t.get("catalogs") or any(r.endswith('.xcassets")') for r in resources) else []) + (
+                ['.plugin(name: "IntentDefinitions", package: "SwiftUIWeb")'] if t.get("intents") else [])
             kind = "executableTarget" if t.get("app") else "target"
             settings = [f".swiftLanguageMode(.{t['mode']})"] + t["settings"] + [package_flag]
             if foundation_name:
