@@ -77,6 +77,7 @@ private struct DimeWidgets: WidgetBundle {
         #expect(configuration._view(for: OtherEntry(date: Date())) == nil)
         let view = try #require(configuration._placeholderView())
         let runtime = Runtime()
+        runtime.textEngine = MonospaceTextEngine()  // Linux has no font measuring of its own
         runtime.mount(view)
         runtime.layout(in: CGSize(width: 170, height: 170))
         let commands = runtime.render(scale: 2).commands.map(\.description)
