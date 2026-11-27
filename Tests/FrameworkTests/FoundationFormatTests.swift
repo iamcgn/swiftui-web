@@ -34,7 +34,17 @@ extension Locale: CurrencyNaming {}
         #expect(both("en_US") == [".", ","])
         #expect(both("de_DE") == [",", "."])
         #expect(both("fr_FR") == [",", "\u{202F}"])
+        #if canImport(Darwin)
+        // macOS 26's locale data groups Swiss German with an ASCII apostrophe; earlier releases,
+        // and the wasm table, with a right single quotation mark.
+        if #available(macOS 26, *) {
+            #expect(both("de_CH") == [".", "'"])
+        } else {
+            #expect(both("de_CH") == [".", "\u{2019}"])
+        }
+        #else
         #expect(both("de_CH") == [".", "\u{2019}"])
+        #endif
         #expect(both("pt_BR") == [",", "."])
         #expect(both("es_MX") == [".", ","])
         #expect(both("ru_RU") == [",", "\u{00A0}"])
