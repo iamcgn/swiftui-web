@@ -298,6 +298,13 @@ public struct URLResourceValues: Sendable {
     public var name: String?
     /// Kept for the URL it is set on; nothing is backed up from a page.
     public var isExcludedFromBackup: Bool?
+    /// The volume's capacity. A page learns its storage quota only asynchronously
+    /// (`navigator.storage.estimate()`), so these are nil: unknown, as for a volume that
+    /// doesn't report them.
+    public var volumeAvailableCapacity: Int?
+    public var volumeAvailableCapacityForImportantUsage: Int64?
+    public var volumeAvailableCapacityForOpportunisticUsage: Int64?
+    public var volumeTotalCapacity: Int?
     public var allValues: [URLResourceKey: Any] {
         var values: [URLResourceKey: Any] = [:]
         if let fileSize { values[.fileSizeKey] = fileSize }

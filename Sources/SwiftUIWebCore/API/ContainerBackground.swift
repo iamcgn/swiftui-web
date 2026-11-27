@@ -1,6 +1,11 @@
 // `containerBackground(_:for:)` (sw-modifiers): the background a container shows behind its
 // content (a navigation stack, a tab view, a widget, a subscription store). Here the background
 // is painted behind the view the modifier is on, which is the container's content area.
+#if os(WASI)
+import WebFoundation
+#else
+import Foundation
+#endif
 
 /// The kind of container a `containerBackground` modifier is for.
 public struct ContainerBackgroundPlacement: Sendable {
@@ -24,6 +29,12 @@ extension View {
     nonisolated public func containerBackground<V: View>(for container: ContainerBackgroundPlacement, alignment: Alignment = .center,
                                                          @ViewBuilder content: () -> V) -> some View {
         background(alignment: alignment, content: content)
+    }
+
+    /// The URL a widget opens in its app when tapped. A page shows no widgets, so a widget view
+    /// shown in the app itself keeps it and nothing opens it.
+    nonisolated public func widgetURL(_ url: URL?) -> some View {
+        self
     }
 
     /// Sets the container background of the enclosing container using a style.

@@ -271,6 +271,10 @@ public struct URLResourceKey: Hashable, Sendable, RawRepresentable {
     public static let nameKey = URLResourceKey(rawValue: "NSURLNameKey")
     public static let totalFileAllocatedSizeKey = URLResourceKey(rawValue: "NSURLTotalFileAllocatedSizeKey")
     public static let fileAllocatedSizeKey = URLResourceKey(rawValue: "NSURLFileAllocatedSizeKey")
+    public static let volumeAvailableCapacityKey = URLResourceKey(rawValue: "NSURLVolumeAvailableCapacityKey")
+    public static let volumeAvailableCapacityForImportantUsageKey = URLResourceKey(rawValue: "NSURLVolumeAvailableCapacityForImportantUsageKey")
+    public static let volumeAvailableCapacityForOpportunisticUsageKey = URLResourceKey(rawValue: "NSURLVolumeAvailableCapacityForOpportunisticUsageKey")
+    public static let volumeTotalCapacityKey = URLResourceKey(rawValue: "NSURLVolumeTotalCapacityKey")
 }
 
 public struct ObjCBool: Sendable, ExpressibleByBooleanLiteral {

@@ -427,6 +427,29 @@ open class NSPersistentStoreCoordinator: @unchecked Sendable {
         return new
     }
 
+    /// Replaces the store at `destinationURL` with a copy of the one at `sourceURL`, as a backup
+    /// restore does (here: the destination's rows become the source's; a source with no store
+    /// leaves the destination empty). Containers open on the destination see the copy at their
+    /// next fetch.
+    open func replacePersistentStore(at destinationURL: URL, destinationOptions: [AnyHashable: Any]? = nil, withPersistentStoreFrom sourceURL: URL, sourceOptions: [AnyHashable: Any]? = nil, ofType storeType: String) throws {
+        let destination = NSPersistentStoreDescription(url: destinationURL)
+        destination.type = storeType
+        let source = NSPersistentStoreDescription(url: sourceURL)
+        source.type = storeType
+        guard let to = destination._storeName, let from = source._storeName, to != from else { return }
+        let copy = try _CDStoreData.existing(from)
+        let target = try _CDStoreData.named(to)
+        target.rows = copy?.rows ?? [:]
+        target.counters = copy?.counters ?? [:]
+        target.generation += 1
+        try target.flush()
+        target.didChange(onMain: false)
+    }
+
+    open func replacePersistentStore(at destinationURL: URL, destinationOptions: [AnyHashable: Any]? = nil, withPersistentStoreFrom sourceURL: URL, sourceOptions: [AnyHashable: Any]? = nil, type storeType: NSPersistentStore.StoreType) throws {
+        try replacePersistentStore(at: destinationURL, destinationOptions: destinationOptions, withPersistentStoreFrom: sourceURL, sourceOptions: sourceOptions, ofType: storeType.rawValue)
+    }
+
     open func metadata(for store: NSPersistentStore) -> [String: Any] { store.metadata }
     open func setMetadata(_ metadata: [String: Any]?, for store: NSPersistentStore) {}
 

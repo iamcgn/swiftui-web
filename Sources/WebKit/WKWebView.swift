@@ -178,6 +178,9 @@ public final class WKProcessPool: NSObject {
 public final class WKPreferences: NSObject {
     public var minimumFontSize: CGFloat = 0
     public var javaScriptCanOpenWindowsAutomatically = false
+    /// Whether pages run JavaScript (deprecated for `WKWebpagePreferences.allowsContentJavaScript`).
+    /// Kept, as that one is: the frame the page loads in runs its scripts.
+    public var javaScriptEnabled = true
     public var isFraudulentWebsiteWarningEnabled = true
     public var isTextInteractionEnabled = true
     public var isElementFullscreenEnabled = false

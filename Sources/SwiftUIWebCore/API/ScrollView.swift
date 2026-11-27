@@ -197,6 +197,17 @@ extension View {
         }
     }
 
+    /// The effect a scroll view draws where its content passes under a bar (iOS 26's soft fade
+    /// or hard line). The scroll views here draw no edge effect, so this changes nothing.
+    nonisolated public func scrollEdgeEffectStyle(_ style: ScrollEdgeEffectStyle?, for edges: Edge.Set) -> some View {
+        self
+    }
+
+    /// Hides a scroll view's edge effect (iOS 26); there is none here to hide.
+    nonisolated public func scrollEdgeEffectHidden(_ hidden: Bool = true, for edges: Edge.Set = .all) -> some View {
+        self
+    }
+
     /// Sets whether a scroll view clips its content to its bounds.
     nonisolated public func scrollClipDisabled(_ disabled: Bool = true) -> some View {
         environment(\.isScrollClipDisabled, disabled)
@@ -207,4 +218,15 @@ extension View {
     nonisolated public func defaultScrollAnchor(_ anchor: UnitPoint?) -> some View {
         environment(\.defaultScrollAnchor, anchor)
     }
+}
+
+/// How a scroll view's edge looks where content passes under a bar (iOS 26).
+public struct ScrollEdgeEffectStyle: Hashable, Sendable {
+    let name: String
+    /// The system's choice for the platform.
+    public static let automatic = ScrollEdgeEffectStyle(name: "automatic")
+    /// A sharp line between the bar and the content.
+    public static let hard = ScrollEdgeEffectStyle(name: "hard")
+    /// Content fading out under the bar.
+    public static let soft = ScrollEdgeEffectStyle(name: "soft")
 }
