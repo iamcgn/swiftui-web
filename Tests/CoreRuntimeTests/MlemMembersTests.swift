@@ -18,7 +18,26 @@ import Charts
         editor.text.wrappedValue = "Hello"
         #expect(value == styled)   // unchanged text keeps its attributes
         editor.text.wrappedValue = "Hello there"
-        #expect(String(value.characters) == "Hello there" && value.runs.count == 1 && value.runs.first?.link == nil)
+        // The edit is only the new characters, so the link stays on "Hello" (#435).
+        #expect(String(value.characters) == "Hello there")
+        #expect(value.runs.map { String(value[$0.range].characters) } == ["Hello", " there"])
+        #expect(value.runs.map { $0.link } == [URL(string: "https://lemmy.world"), nil])
+        editor.text.wrappedValue = "Hey there"
+        #expect(value.runs.map { String(value[$0.range].characters) } == ["He", "y there"])
+        #expect(value.runs.map { $0.link } == [URL(string: "https://lemmy.world"), nil])
+    }
+
+    @Test func anEditInTheMiddleKeepsBothEnds() {
+        var styled = AttributedString("ab")
+        styled.link = URL(string: "https://a.example")
+        var tail = AttributedString("cd")
+        tail.link = URL(string: "https://c.example")
+        styled.append(tail)
+        let edited = TextEditor.editing(styled, to: "abXcd")
+        #expect(String(edited.characters) == "abXcd")
+        #expect(edited.runs.map { $0.link } == [URL(string: "https://a.example"), nil, URL(string: "https://c.example")])
+        #expect(TextEditor.editing(styled, to: "") == AttributedString(""))
+        #expect(String(TextEditor.editing(AttributedString(""), to: "new").characters) == "new")
     }
 
     @Test func typesettingAndToolbarAxesAreAccepted() {
