@@ -79,8 +79,9 @@ private struct DimeWidgets: WidgetBundle {
         let runtime = Runtime()
         runtime.mount(view)
         runtime.layout(in: CGSize(width: 170, height: 170))
-        let drawn = runtime.render(scale: 2).commands.map(\.description).filter { $0.hasPrefix("drawText(\"") }
-        #expect(drawn.count == 1 && drawn.first?.hasPrefix("drawText(\"120 left\"") == true)
+        let commands = runtime.render(scale: 2).commands.map(\.description)
+        let drawn = commands.filter { $0.hasPrefix("drawText(\"") }
+        #expect(drawn.count == 1 && drawn.first?.hasPrefix("drawText(\"120 left\"") == true, "\(commands)")
     }
 
     @Test func aPreviewContextIsASmallWidgetsUnlessToldOtherwise() {
