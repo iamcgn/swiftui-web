@@ -118,6 +118,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { submodules: true }   # Apps/upstream: the apps of decision 0021 at their pins
+      # A self-hosted runner keeps the machine between jobs: servers an earlier job left on this
+      # job's ports would answer in place of its own (scripts/ci-stop-local-servers.sh).
+      - name: Stop local servers earlier jobs left
+        if: runner.environment == 'self-hosted'
+        run: scripts/ci-stop-local-servers.sh
       - name: Install toolchain and wasm SDK
         run: |
           export HOMEBREW_NO_AUTO_UPDATE=1
@@ -381,4 +386,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: apps-evidence, path: .build/apps, if-no-files-found: error, include-hidden-files: true }
+      # And leave none of this job's own for the next one.
+      - name: Stop this job's local servers
+        if: always() && runner.environment == 'self-hosted'
+        run: scripts/ci-stop-local-servers.sh
 
