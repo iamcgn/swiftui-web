@@ -137,6 +137,27 @@ import SwiftUIWebHeadless
         press(r, at: CGPoint(x: panel.midX, y: panel.midY))
         #expect(box.last == "Action" && r.presentations.isEmpty)
     }
+
+    /// Clendar's event rows: the iOS 13 `contextMenu(ContextMenu { … })` form opens like the
+    /// closure form, and a nil menu leaves the enclosing view's menu in charge.
+    @Test func aContextMenuValueOpensAndNilLeavesTheOuterOne() {
+        let box = _MenuBox()
+        let r = runtime(Text("Hi").contextMenu(ContextMenu { Button("Action") { box.last = "Action" } })._probe("text"))
+        let text = r.probeFrames["text"]!
+        r.secondaryPointerDown(at: CGPoint(x: text.midX, y: text.midY))
+        r.layout(in: CGSize(width: 320, height: 200))
+        #expect(r.presentations.count == 1 && texts(r).contains("Action"))
+        press(r, at: CGPoint(x: r.presentations.first!.panel.midX, y: r.presentations.first!.panel.midY))
+        #expect(box.last == "Action" && r.presentations.isEmpty)
+
+        let none: ContextMenu<Button<Text>>? = nil
+        let outer = runtime(VStack { Text("Hi").contextMenu(none)._probe("text") }
+            .contextMenu { Button("Copy") { box.last = "Copy" } })
+        let inner = outer.probeFrames["text"]!
+        outer.secondaryPointerDown(at: CGPoint(x: inner.midX, y: inner.midY))
+        outer.layout(in: CGSize(width: 320, height: 200))
+        #expect(outer.presentations.count == 1 && texts(outer).contains("Copy"))
+    }
 }
 
 private final class _MenuBox: @unchecked Sendable {

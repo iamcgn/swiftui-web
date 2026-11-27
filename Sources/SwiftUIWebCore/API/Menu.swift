@@ -258,9 +258,36 @@ extension View {
         modifier(_ContextMenuModifier(content: AnyView(menuItems())))
     }
 
+    /// Adds the iOS 13 form of context menu; `nil` adds none, so an outer view's menu shows.
+    nonisolated public func contextMenu<MenuItems: View>(_ contextMenu: ContextMenu<MenuItems>?) -> some View {
+        modifier(_OptionalContextMenu(content: contextMenu?.content))
+    }
+
     /// Adds a context menu with a preview (the preview is not shown here).
     nonisolated public func contextMenu<M: View, P: View>(@ViewBuilder menuItems: () -> M, @ViewBuilder preview: () -> P) -> some View {
         modifier(_ContextMenuModifier(content: AnyView(menuItems())))
+    }
+}
+
+/// A context menu's items as a value, for `contextMenu(_:)` (SwiftUI's iOS 13 form).
+public struct ContextMenu<MenuItems: View> {
+    package let content: AnyView
+
+    public init(@ViewBuilder menuItems: () -> MenuItems) {
+        content = AnyView(menuItems())
+    }
+}
+
+/// `contextMenu(_:)`'s modifier: the menu when there is one, the view alone otherwise.
+public struct _OptionalContextMenu: ViewModifier {
+    package let content: AnyView?
+
+    public func body(content view: Content) -> some View {
+        if let content {
+            view.modifier(_ContextMenuModifier(content: content))
+        } else {
+            view
+        }
     }
 }
 

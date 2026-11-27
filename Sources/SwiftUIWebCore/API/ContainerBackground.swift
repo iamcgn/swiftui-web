@@ -13,6 +13,10 @@ public struct ContainerBackgroundPlacement: Sendable {
     public static let navigationSplitView = ContainerBackgroundPlacement("navigationSplitView")
     /// The background of a tab view's pages.
     public static let tabView = ContainerBackgroundPlacement("tabView")
+    /// A widget's background. WidgetKit declares it on Apple's platforms; it sits here so a
+    /// widget file that imports only SwiftUI (as many do) still finds it. A page shows no
+    /// widgets, so a widget view previewed in an app draws it as an ordinary background.
+    public static let widget = ContainerBackgroundPlacement("widget")
 }
 
 extension View {
