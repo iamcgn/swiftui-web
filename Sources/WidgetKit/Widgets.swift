@@ -89,10 +89,11 @@ public enum WidgetConfigurationBuilder {
 }
 
 /// One of two configurations, as an `if` in a widget's body chose.
-public struct _ConditionalWidgetConfiguration<T: WidgetConfiguration, F: WidgetConfiguration>: WidgetConfiguration {
+// Not on the main actor (nor its stored choice), since the builder makes it outside it.
+nonisolated public struct _ConditionalWidgetConfiguration<T: WidgetConfiguration, F: WidgetConfiguration>: WidgetConfiguration {
     enum Content { case first(T), second(F) }
     let content: Content
-    nonisolated init(content: Content) { self.content = content }
+    init(content: Content) { self.content = content }
     public var body: Never { fatalError("_ConditionalWidgetConfiguration has no body") }
 }
 
