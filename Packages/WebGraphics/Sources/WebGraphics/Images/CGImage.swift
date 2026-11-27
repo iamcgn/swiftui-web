@@ -208,7 +208,11 @@ public final class CGImage: Hashable, @unchecked Sendable {
         guard stride(from: 3, to: pixels.count, by: 4).allSatisfy({ pixels[$0] == 255 }) else { return nil }
         var mask = [UInt8](repeating: 0, count: pixels.count)
         for i in stride(from: 0, to: pixels.count, by: 4) {
-            mask[i + 3] = UInt8((Int(pixels[i]) * 299 + Int(pixels[i + 1]) * 587 + Int(pixels[i + 2]) * 114 + 500) / 1000)
+            let red: Int = Int(pixels[i]) * 299
+            let green: Int = Int(pixels[i + 1]) * 587
+            let blue: Int = Int(pixels[i + 2]) * 114
+            let level: Int = (red + green + blue + 500) / 1000
+            mask[i + 3] = UInt8(level)
         }
         return CGImage(_content: .bitmap(DisplayBitmap(width: bitmap.width, height: bitmap.height, pixels: mask)), crop: _crop,
                        shouldInterpolate: shouldInterpolate, intent: renderingIntent)
