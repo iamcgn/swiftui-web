@@ -6,7 +6,7 @@ import WebFoundation
 
 @Suite struct CommonPrefixTests {
     @Test func theSharedStartComesFromTheReceiver() {
-        #expect("Hello world".commonPrefix(with: "help") == "Hel")
+        #expect("Hello world".commonPrefix(with: "Help") == "Hel" && "Hello world".commonPrefix(with: "help") == "")
         #expect("Team sync".commonPrefix(with: "team SYNC notes", options: .caseInsensitive) == "Team sync")
         #expect("Team sync".commonPrefix(with: "team SYNC notes") == "")
         #expect("abc".commonPrefix(with: "") == "" && "".commonPrefix(with: "abc") == "")
