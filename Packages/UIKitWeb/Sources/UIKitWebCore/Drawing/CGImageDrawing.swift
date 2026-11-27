@@ -20,12 +20,13 @@ extension UIGraphicsRecordingContext {
     public func draw(_ image: CGImage, in rect: CGRect, byTiling: Bool) { draw(image, in: rect) }
 
     /// Clips what follows, until the state is restored, to `mask` scaled into `rect` (placed as
-    /// `draw(_:in:)` places an image): what is drawn shows through the mask's alpha, and nothing
-    /// shows outside `rect` (KeyboardToolbar's picker background). A mask without alpha, whose
-    /// grey levels CoreGraphics reads instead, masks as an opaque image.
+    /// `draw(_:in:)` places an image), and nothing shows outside `rect` (KeyboardToolbar's picker
+    /// background). An opaque bitmap, as CoreGraphics's grey masks are, masks by its grey levels
+    /// (white paints, black blocks); an image with transparency masks by its alpha.
     public func clip(to rect: CGRect, mask: CGImage) {
         let flip = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: rect.minY + rect.maxY)
-        clip(toMask: [.save, .concat(flip)] + mask._commands(in: rect) + [.restore], bounds: rect)
+        let levels = mask._greyLevelsAsAlpha() ?? mask
+        clip(toMask: [.save, .concat(flip)] + levels._commands(in: rect) + [.restore], bounds: rect)
     }
 
     /// What the image context has drawn so far as an image; nil for a view's context.

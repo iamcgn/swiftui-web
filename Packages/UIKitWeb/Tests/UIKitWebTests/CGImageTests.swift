@@ -173,6 +173,42 @@ import Foundation
         #expect(fills.count == 2 && fills[0] > masked && fills[0] < end && fills[1] > end)
     }
 
+    /// A grey mask, as CoreGraphics takes one (8 bits a pixel, no alpha): black blocks paint and
+    /// white lets it through, so the mask drawn is those levels as alpha. An alpha-only image
+    /// masks by its levels too.
+    @Test func aGreyMaskMasksByItsLevels() throws {
+        let levels = try #require(CGDataProvider(data: Data([0, 255])))
+        let grey = try #require(CGImage(width: 2, height: 1, bitsPerComponent: 8, bitsPerPixel: 8, bytesPerRow: 2,
+                                        space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGBitmapInfo(alphaInfo: .none),
+                                        provider: levels, decode: nil, shouldInterpolate: true, intent: .defaultIntent))
+        #expect(grey.width == 2 && grey.height == 1)
+        guard case .bitmap(let bitmap) = grey._content else { Issue.record("not a bitmap"); return }
+        #expect(bitmap.pixels == [0, 0, 0, 255, 255, 255, 255, 255])
+        let ctx = try #require(UIGraphicsRecordingContext(data: nil, width: 10, height: 10, bitsPerComponent: 8, bytesPerRow: 0,
+                                         space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        ctx.saveGState()
+        ctx.clip(to: CGRect(x: 0, y: 0, width: 2, height: 1), mask: grey)
+        ctx.fill(CGRect(x: 0, y: 0, width: 10, height: 10))
+        ctx.restoreGState()
+        let image = try #require(ctx.makeImage())
+        guard case .recording(let commands, _, _) = image._content else { Issue.record("not a recording"); return }
+        let masked = try #require(commands.firstIndex(of: .beginMasked))
+        let drawn = commands[..<masked].compactMap { command -> [UInt8]? in
+            if case .drawBitmap(let bitmap, _) = command { return bitmap.pixels } else { return nil }
+        }
+        #expect(drawn == [[0, 0, 0, 0, 0, 0, 0, 255]])
+        // An alpha-only image keeps its levels as alpha; an 8-bit colour image is not made.
+        let alphaOnly = try #require(CGImage(width: 2, height: 1, bitsPerComponent: 8, bitsPerPixel: 8, bytesPerRow: 2,
+                                             space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGBitmapInfo(alphaInfo: .alphaOnly),
+                                             provider: levels, decode: nil, shouldInterpolate: true, intent: .defaultIntent))
+        guard case .bitmap(let alphaBitmap) = alphaOnly._content else { Issue.record("not a bitmap"); return }
+        #expect(alphaBitmap.pixels == [0, 0, 0, 0, 0, 0, 0, 255])
+        #expect(alphaOnly._greyLevelsAsAlpha() == nil)
+        #expect(CGImage(width: 2, height: 1, bitsPerComponent: 8, bitsPerPixel: 8, bytesPerRow: 2,
+                        space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGBitmapInfo(alphaInfo: .none),
+                        provider: levels, decode: nil, shouldInterpolate: true, intent: .defaultIntent) == nil)
+    }
+
     @Test func aRecordedImageDrawsOnlyWithinItsBounds() throws {
         let ctx = try #require(UIGraphicsRecordingContext(data: nil, width: 2, height: 2, bitsPerComponent: 8, bytesPerRow: 0,
                                          space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
