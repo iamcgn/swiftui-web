@@ -9,8 +9,9 @@
 // MARK: - Intents and responses
 
 /// A request for the app to do something: Xcode generates its subclasses from an intent
-/// definition file.
-open class INIntent: NSObject, @unchecked Sendable {
+/// definition file. Like Apple's, it isn't `Sendable`: an app's subclasses (Xcode's generated
+/// intents, its handlers) would otherwise have to restate the conformance under Swift 6.
+open class INIntent: NSObject {
     /// The identifier the system gives the intent once it is donated or run.
     open internal(set) var identifier: String?
     /// The phrase the app suggests the user record for a voice shortcut.
@@ -22,7 +23,7 @@ open class INIntent: NSObject, @unchecked Sendable {
 }
 
 /// The app's answer to an intent.
-open class INIntentResponse: NSObject, @unchecked Sendable {
+open class INIntentResponse: NSObject {
     /// The activity the app continues when the user opens it from the response.
     open var userActivity: NSUserActivity?
 
@@ -257,7 +258,7 @@ open class INSpeakableString: NSObject, @unchecked Sendable {
 }
 
 /// A value of a custom type an intent definition declares: Xcode generates its subclasses.
-open class INObject: NSObject, @unchecked Sendable {
+open class INObject: NSObject {
     open var identifier: String?
     open var displayString: String
     open var pronunciationHint: String?
@@ -313,7 +314,7 @@ open class INObjectCollection<ObjectType>: NSObject, @unchecked Sendable {
 }
 
 /// An Intents extension's principal class: it hands each intent the object that handles it.
-open class INExtension: NSObject, @unchecked Sendable {
+open class INExtension: NSObject {
     public override init() { super.init() }
 
     /// The object that handles the intent (the extension itself unless overridden).
