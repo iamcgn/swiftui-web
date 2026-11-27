@@ -865,14 +865,27 @@ def data_models(root: Path, base: Path):
     return [rel for rel in found if best[Path(rel).name][0] == rel]
 
 
-def intent_definitions(root: Path, base: Path):
+def intent_definitions(root: Path, base: Path, beside=None):
     """The intent definition files (`.intentdefinition`, often in a `Base.lproj` folder) under a
-    folder, as paths relative to the clone, for the IntentDefinitions plugin."""
+    folder, as paths relative to the clone, for the IntentDefinitions plugin. With `beside` (the
+    app target's files, which the project lists wherever they are, widget folders included),
+    the definitions in a folder holding some of those files, whatever the folder is called
+    (Dime's ExpenditureWidget/Base.lproj)."""
     found = []
+    folders = {Path(f).parent for f in beside} if beside is not None else None
     for f in sorted((root / base).rglob("*.intentdefinition")):
-        if not f.is_file() or any(EXCLUDE_DIR.match(x) for x in f.relative_to(root / base).parts[:-1]):
+        if not f.is_file():
             continue
-        found.append(str(f.relative_to(root)))
+        rel = f.relative_to(root)
+        if folders is None:
+            if any(EXCLUDE_DIR.match(x) for x in f.relative_to(root / base).parts[:-1]):
+                continue
+        else:
+            home = rel.parent.parent if rel.parent.suffix == ".lproj" else rel.parent
+            if any(x in (".build", ".git", "Pods", "Carthage") for x in rel.parts) or \
+                    not any(d == home or d.is_relative_to(home) for d in folders):
+                continue
+        found.append(str(rel))
     return found
 
 
@@ -1038,7 +1051,8 @@ def describe_app(entry, root: Path, work: Path = None):
         # The app's asset catalogs, for their symbols (`Image(.logo)`); the sweep builds no
         # resources for the app, so only the catalogs' folders and `Contents.json` are copied.
         # The app's intent definitions, for the classes Xcode generates from them.
-        intents = [d for d in intent_definitions(root, Path(".")) if not excluded(Path(d), extra)
+        intents = [d for d in intent_definitions(root, Path("."), beside=app_files + [f for _, _, fs, _, _, _ in sub_apps for f in fs])
+                   if not excluded(Path(d), extra)
                    and not any(Path(d).is_relative_to(p) for p in pkg_dirs if str(p) != ".")
                    and not any(Path(d).is_relative_to(Path(t["source_root"])) for t in targets if not t.get("remote"))]
         catalogs = [c for c in asset_catalogs(root, Path(".")) if not excluded(Path(c), extra)
