@@ -53,6 +53,20 @@ public struct SCNetworkReachabilityContext {
     }
 }
 
+/// A description string kept alive for a context's `copyDescription`.
+public final class _SCDescription {
+    public let string: String
+    init(_ string: String) { self.string = string }
+}
+
+extension Unmanaged where Instance == AnyObject {
+    /// `Unmanaged.passRetained(description as CFString)`, what a `copyDescription` returns
+    /// (Alamofire's reachability): `CFString` is `String` here, a value, so the string is boxed.
+    public static func passRetained(_ string: String) -> Unmanaged<AnyObject> {
+        Unmanaged<AnyObject>.passRetained(_SCDescription(string))
+    }
+}
+
 /// A host name or address whose reachability is watched.
 public final class SCNetworkReachability: Hashable, @unchecked Sendable {
     let name: String?

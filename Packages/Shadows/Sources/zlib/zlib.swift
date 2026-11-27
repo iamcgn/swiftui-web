@@ -276,14 +276,19 @@ public func uncompress(_ dest: UnsafeMutablePointer<Bytef>!, _ destLen: UnsafeMu
     return Z_OK
 }
 
-public func crc32(_ crc: uLong, _ buf: UnsafePointer<Bytef>!, _ len: uInt) -> uLong {
+// The buffer is a raw pointer, as Swift lets a C function's `const Bytef *` take one (an
+// `UnsafeRawBufferPointer`'s base address, Alamofire's request compression); typed pointers,
+// arrays and nil convert to it as they would.
+public func crc32(_ crc: uLong, _ buf: UnsafeRawPointer?, _ len: uInt) -> uLong {
     guard let buf else { return 0 }
-    return uLong(_zlibCRC32(UInt32(truncatingIfNeeded: crc), UnsafeBufferPointer(start: buf, count: Int(len))))
+    let bytes = UnsafeRawBufferPointer(start: buf, count: Int(len))
+    return uLong(_zlibCRC32(UInt32(truncatingIfNeeded: crc), bytes))
 }
 
-public func adler32(_ adler: uLong, _ buf: UnsafePointer<Bytef>!, _ len: uInt) -> uLong {
+public func adler32(_ adler: uLong, _ buf: UnsafeRawPointer?, _ len: uInt) -> uLong {
     guard let buf else { return 1 }
-    return uLong(_zlibAdler32(UInt32(truncatingIfNeeded: adler), UnsafeBufferPointer(start: buf, count: Int(len))))
+    let bytes = UnsafeRawBufferPointer(start: buf, count: Int(len))
+    return uLong(_zlibAdler32(UInt32(truncatingIfNeeded: adler), bytes))
 }
 
 public func zlibVersion() -> UnsafePointer<CChar>! {
