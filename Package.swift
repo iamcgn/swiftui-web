@@ -36,6 +36,8 @@ let package = Package(
         // The build plugin that writes an app's asset symbols (`ImageResource.logo`,
         // `ColorResource.accent`) from its `.xcassets`, as Xcode does.
         .plugin(name: "AssetSymbols", targets: ["AssetSymbols"]),
+        // The build plugin that writes an app's intent classes from its `.intentdefinition` files, as Xcode does.
+        .plugin(name: "IntentDefinitions", targets: ["IntentDefinitions"]),
         .library(name: "CryptoKit", targets: ["CryptoKit"]),
         .library(name: "CoreHaptics", targets: ["CoreHaptics"]),
         .library(name: "WidgetKit", targets: ["WidgetKit"]),
@@ -159,6 +161,9 @@ let package = Package(
         // The AssetSymbols plugin's tool: `.xcassets` to `ImageResource` and `ColorResource` symbols (host only).
         .executableTarget(name: "AssetSymbolsGen", swiftSettings: [.treatAllWarnings(as: .error)]),
         .plugin(name: "AssetSymbols", capability: .buildTool(), dependencies: ["AssetSymbolsGen"]),
+        // The IntentDefinitions plugin's tool: `.intentdefinition` to Swift (host only).
+        .executableTarget(name: "IntentDefinitionsGen", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .plugin(name: "IntentDefinitions", capability: .buildTool(), dependencies: ["IntentDefinitionsGen"]),
         // UserNotifications and its host hook live in UIKitWeb, whose UIKit re-exports them as Apple's
         // does (Harbour's app delegate names UNUserNotificationCenter with only `import UIKit`).
         // Hashes, HMAC and symmetric keys; haptics on hardware without an engine; the app's calls
@@ -380,6 +385,15 @@ let package = Package(
             exclude: ["Library.xcdatamodeld"],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))],
             plugins: ["CoreDataModel"]
+        ),
+        // The intents, types and enums the IntentDefinitions plugin writes for
+        // Tests/IntentDefinitionsTests/Base.lproj/Widgets.intentdefinition, in a widget's configuration.
+        .testTarget(
+            name: "IntentDefinitionsTests",
+            dependencies: ["SwiftUI", "Intents", "WidgetKit", .product(name: "WebFoundation", package: "WebGraphics")],
+            exclude: ["Base.lproj"],
+            swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))],
+            plugins: ["IntentDefinitions"]
         ),
         // The symbols the AssetSymbols plugin writes for Tests/AssetSymbolsTests/Media.xcassets, with
         // the framework extensions its `AssetSymbolExtensions` file asks for.
