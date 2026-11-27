@@ -145,6 +145,70 @@ import Foundation
         #expect(commands.contains { if case .drawBitmap(_, let rect) = $0 { return rect == CGRect(x: 1, y: 1, width: 2, height: 1) } else { return false } })
     }
 
+    /// `clip(to:mask:)` (KeyboardToolbar): what follows draws through the mask image placed in
+    /// the rectangle, until the state is restored.
+    @Test func aMaskImageClipsWhatFollows() throws {
+        let ctx = try #require(UIGraphicsRecordingContext(data: nil, width: 10, height: 10, bitsPerComponent: 8, bytesPerRow: 0,
+                                         space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        let pixels = try #require(CGDataProvider(data: Data([0, 0, 0, 255])))
+        let mask = try #require(CGImage(width: 1, height: 1, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: 4,
+                                        space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGBitmapInfo(alphaInfo: .premultipliedLast),
+                                        provider: pixels, decode: nil, shouldInterpolate: true, intent: .defaultIntent))
+        ctx.saveGState()
+        ctx.clip(to: CGRect(x: 2, y: 2, width: 4, height: 4), mask: mask)
+        ctx.fill(CGRect(x: 0, y: 0, width: 10, height: 10))
+        ctx.restoreGState()
+        ctx.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
+        let image = try #require(ctx.makeImage())
+        guard case .recording(let commands, _, _) = image._content else { Issue.record("not a recording"); return }
+        let begin = try #require(commands.firstIndex { if case .beginMask = $0 { return true } else { return false } })
+        let masked = try #require(commands.firstIndex(of: .beginMasked))
+        let end = try #require(commands[masked...].firstIndex(of: .endGroup))
+        // The mask is the image, in the rectangle through the context's flip (y up from the bottom).
+        guard case .beginMask(let bounds) = commands[begin] else { return }
+        #expect(bounds == CGRect(x: 2, y: 4, width: 4, height: 4))
+        #expect(commands[begin..<masked].contains { if case .drawBitmap = $0 { return true } else { return false } })
+        // The big fill is inside the masked group; the small one comes after it.
+        let fills = commands.indices.filter { if case .fillPath = commands[$0] { return true } else { return false } }
+        #expect(fills.count == 2 && fills[0] > masked && fills[0] < end && fills[1] > end)
+    }
+
+    /// A grey mask, as CoreGraphics takes one (8 bits a pixel, no alpha): black blocks paint and
+    /// white lets it through, so the mask drawn is those levels as alpha. An alpha-only image
+    /// masks by its levels too.
+    @Test func aGreyMaskMasksByItsLevels() throws {
+        let levels = try #require(CGDataProvider(data: Data([0, 255])))
+        let grey = try #require(CGImage(width: 2, height: 1, bitsPerComponent: 8, bitsPerPixel: 8, bytesPerRow: 2,
+                                        space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGBitmapInfo(alphaInfo: .none),
+                                        provider: levels, decode: nil, shouldInterpolate: true, intent: .defaultIntent))
+        #expect(grey.width == 2 && grey.height == 1)
+        guard case .bitmap(let bitmap) = grey._content else { Issue.record("not a bitmap"); return }
+        #expect(bitmap.pixels == [0, 0, 0, 255, 255, 255, 255, 255])
+        let ctx = try #require(UIGraphicsRecordingContext(data: nil, width: 10, height: 10, bitsPerComponent: 8, bytesPerRow: 0,
+                                         space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        ctx.saveGState()
+        ctx.clip(to: CGRect(x: 0, y: 0, width: 2, height: 1), mask: grey)
+        ctx.fill(CGRect(x: 0, y: 0, width: 10, height: 10))
+        ctx.restoreGState()
+        let image = try #require(ctx.makeImage())
+        guard case .recording(let commands, _, _) = image._content else { Issue.record("not a recording"); return }
+        let masked = try #require(commands.firstIndex(of: .beginMasked))
+        let drawn = commands[..<masked].compactMap { command -> [UInt8]? in
+            if case .drawBitmap(let bitmap, _) = command { return bitmap.pixels } else { return nil }
+        }
+        #expect(drawn == [[0, 0, 0, 0, 0, 0, 0, 255]])
+        // An alpha-only image keeps its levels as alpha; an 8-bit colour image is not made.
+        let alphaOnly = try #require(CGImage(width: 2, height: 1, bitsPerComponent: 8, bitsPerPixel: 8, bytesPerRow: 2,
+                                             space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGBitmapInfo(alphaInfo: .alphaOnly),
+                                             provider: levels, decode: nil, shouldInterpolate: true, intent: .defaultIntent))
+        guard case .bitmap(let alphaBitmap) = alphaOnly._content else { Issue.record("not a bitmap"); return }
+        #expect(alphaBitmap.pixels == [0, 0, 0, 0, 0, 0, 0, 255])
+        #expect(alphaOnly._greyLevelsAsAlpha() == nil)
+        #expect(CGImage(width: 2, height: 1, bitsPerComponent: 8, bitsPerPixel: 8, bytesPerRow: 2,
+                        space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGBitmapInfo(alphaInfo: .none),
+                        provider: levels, decode: nil, shouldInterpolate: true, intent: .defaultIntent) == nil)
+    }
+
     @Test func aRecordedImageDrawsOnlyWithinItsBounds() throws {
         let ctx = try #require(UIGraphicsRecordingContext(data: nil, width: 2, height: 2, bitsPerComponent: 8, bytesPerRow: 0,
                                          space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))

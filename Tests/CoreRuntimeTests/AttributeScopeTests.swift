@@ -33,6 +33,19 @@ import UIKit
         #expect(text.uiKit.foregroundColor == red && text.runs.count == 1)
     }
 
+    /// EmojiText's custom emoji: a run's image URL, read by the Foundation key's type.
+    @Test func aRunsImageURL() throws {
+        let url = try #require(URL(string: "https://example.com/emoji.png"))
+        var text = AttributedString(":blob:")
+        text.imageURL = url
+        let attributes = try #require(text.runs.first?.attributes)
+        #expect(attributes[AttributeScopes.FoundationAttributes.ImageURLAttribute.self] == url)
+        #expect(AttributeScopes.FoundationAttributes.ImageURLAttribute.name == "NSImageURL")
+        // An NSAttributedString's image URL comes over with the Foundation keys.
+        let container = AttributeContainer([NSAttributedString.Key("NSImageURL"): url])
+        #expect(container.imageURL == url)
+    }
+
     @Test func keysAreNamedAsUIKitNamesThem() {
         #expect(NSAttributedString.Key.baselineOffset.rawValue == "NSBaselineOffset")
         #expect(NSAttributedString.Key.shadow.rawValue == "NSShadow")

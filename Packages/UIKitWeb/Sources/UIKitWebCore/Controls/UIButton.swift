@@ -5,7 +5,7 @@ import WebFoundation   // NSCoder, for init?(coder:)
 
 /// A control that executes your custom code in response to user interactions.
 @preconcurrency @MainActor
-open class UIButton: UIControl {
+open class UIButton: UIControl, UIAccessibilityContentSizeCategoryImageAdjusting {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
 
@@ -27,6 +27,8 @@ open class UIButton: UIControl {
     open var imageEdgeInsets = UIEdgeInsets.zero
     open var configuration: Configuration? { didSet { configurationDidChange() } }
     open var isPointerInteractionEnabled = false
+    /// Whether the image grows at the accessibility sizes (kept; the image draws at its own size).
+    open var adjustsImageSizeForAccessibilityContentSizeCategory = false
     /// Whether a touch glows while the button is highlighted (deprecated in iOS 15; SwiftyFORM's
     /// precision slider sets it). Kept as set; the web draws no glow.
     open var showsTouchWhenHighlighted = false

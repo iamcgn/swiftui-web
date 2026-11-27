@@ -19,6 +19,16 @@ extension UIGraphicsRecordingContext {
     /// Draws `image` into `rect`; tiling is drawn as one image scaled into the rectangle.
     public func draw(_ image: CGImage, in rect: CGRect, byTiling: Bool) { draw(image, in: rect) }
 
+    /// Clips what follows, until the state is restored, to `mask` scaled into `rect` (placed as
+    /// `draw(_:in:)` places an image), and nothing shows outside `rect` (KeyboardToolbar's picker
+    /// background). An opaque bitmap, as CoreGraphics's grey masks are, masks by its grey levels
+    /// (white paints, black blocks); an image with transparency masks by its alpha.
+    public func clip(to rect: CGRect, mask: CGImage) {
+        let flip = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: rect.minY + rect.maxY)
+        let levels = mask._greyLevelsAsAlpha() ?? mask
+        clip(toMask: [.save, .concat(flip)] + levels._commands(in: rect) + [.restore], bounds: rect)
+    }
+
     /// What the image context has drawn so far as an image; nil for a view's context.
     public func makeImage() -> CGImage? {
         guard let canvasSize, canvasSize.width > 0, canvasSize.height > 0 else { return nil }

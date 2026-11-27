@@ -192,10 +192,40 @@ public final class UIImage: UIObjectBase, @unchecked Sendable {
 
     public func withRenderingMode(_ mode: RenderingMode) -> UIImage {
         UIImage(name: name, isSystemSymbol: isSystemSymbol, renderingMode: mode, scale: scale, size: size, tint: tint, symbolConfiguration: symbolConfiguration, drawing: drawing, data: data, pixelSize: pixelSize, images: images, duration: duration, orientation: imageOrientation, cgImage: madeFromCGImage)
+            .keepingPlacement(of: self)
     }
 
     public func withTintColor(_ color: UIColor, renderingMode: RenderingMode = .alwaysOriginal) -> UIImage {
         UIImage(name: name, isSystemSymbol: isSystemSymbol, renderingMode: renderingMode, scale: scale, size: size, tint: color, symbolConfiguration: symbolConfiguration, drawing: drawing, data: data, pixelSize: pixelSize, images: images, duration: duration, orientation: imageOrientation, cgImage: madeFromCGImage)
+            .keepingPlacement(of: self)
+    }
+
+    /// The insets from the image's edges to the part Auto Layout aligns (zero: the whole image).
+    /// They travel with the image's copies; an image view here aligns its whole frame.
+    public private(set) var alignmentRectInsets = UIEdgeInsets.zero
+    /// Whether the image is to be drawn mirrored in a right-to-left layout (the bars and views
+    /// here lay out left to right, so it draws as it is).
+    public private(set) var flipsForRightToLeftLayoutDirection = false
+
+    /// The same image with these alignment insets.
+    public func withAlignmentRectInsets(_ alignmentInsets: UIEdgeInsets) -> UIImage {
+        let copy = withRenderingMode(renderingMode)
+        copy.alignmentRectInsets = alignmentInsets
+        return copy
+    }
+
+    /// The same image, marked to be mirrored in a right-to-left layout.
+    public func imageFlippedForRightToLeftLayoutDirection() -> UIImage {
+        let copy = withRenderingMode(renderingMode)
+        copy.flipsForRightToLeftLayoutDirection = true
+        return copy
+    }
+
+    /// This image with `source`'s alignment insets and mirroring (a copy made from it).
+    private func keepingPlacement(of source: UIImage) -> UIImage {
+        alignmentRectInsets = source.alignmentRectInsets
+        flipsForRightToLeftLayoutDirection = source.flipsForRightToLeftLayoutDirection
+        return self
     }
 
     /// The image as PNG data: the bytes an image made from PNG data holds, else a recorded
@@ -284,7 +314,7 @@ public final class UIImage: UIObjectBase, @unchecked Sendable {
 
 /// An object that displays a single image or a sequence of animated images in your interface.
 @preconcurrency @MainActor
-open class UIImageView: UIView, ClockAnimating {
+open class UIImageView: UIView, ClockAnimating, UIAccessibilityContentSizeCategoryImageAdjusting {
     /// No archive to decode on the web: nil, as for an archive this class cannot read.
     public required init?(coder: NSCoder) { return nil }
 
@@ -297,6 +327,8 @@ open class UIImageView: UIView, ClockAnimating {
         if let frames = image?.images, frames.count > 1, animationImages == nil { startAnimating() } else if animationImages == nil, isAnimating { stopAnimating() }
     }
     open var highlightedImage: UIImage?
+    /// Whether the image grows at the accessibility sizes (kept; the image draws at its own size).
+    open var adjustsImageSizeForAccessibilityContentSizeCategory = false
     open var isHighlighted = false { didSet { setNeedsDisplay() } }
     open var preferredSymbolConfiguration: UIImage.SymbolConfiguration?
 

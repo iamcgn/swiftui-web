@@ -159,19 +159,28 @@ public final class CGImage: Hashable, @unchecked Sendable {
     }
 
     /// An image from raw pixels: 8-bit components, 32 bits a pixel, alpha first or last (or
-    /// skipped), in either byte order. Other layouts give nil.
+    /// skipped), in either byte order; or 8 bits a pixel, a grey level (a grey space, no alpha)
+    /// or an alpha level alone (`alphaOnly`). Other layouts give nil.
     public convenience init?(width: Int, height: Int, bitsPerComponent: Int, bitsPerPixel: Int, bytesPerRow: Int,
                              space: CGColorSpace, bitmapInfo: CGBitmapInfo, provider: CGDataProvider,
                              decode: UnsafePointer<CGFloat>?, shouldInterpolate: Bool, intent: CGColorRenderingIntent) {
-        guard width > 0, height > 0, bitsPerComponent == 8, bitsPerPixel == 32, bytesPerRow >= width * 4,
-              let data = provider.data, data.count >= bytesPerRow * (height - 1) + width * 4,
-              let alpha = CGImageAlphaInfo(rawValue: bitmapInfo.rawValue & CGBitmapInfo.alphaInfoMask.rawValue) else { return nil }
+        guard let alpha = CGImageAlphaInfo(rawValue: bitmapInfo.rawValue & CGBitmapInfo.alphaInfoMask.rawValue) else { return nil }
+        let oneByte = bitsPerPixel == 8 && (alpha == .alphaOnly || (space.numberOfComponents == 1 && alpha == .none))
+        let size = oneByte ? 1 : 4
+        guard width > 0, height > 0, bitsPerComponent == 8, bitsPerPixel == 32 || oneByte, bytesPerRow >= width * size,
+              let data = provider.data, data.count >= bytesPerRow * (height - 1) + width * size else { return nil }
         let bytes = [UInt8](data)
         let little = bitmapInfo.rawValue & CGBitmapInfo.byteOrderMask.rawValue == CGBitmapInfo.byteOrder32Little.rawValue
         let alphaFirst = alpha == .premultipliedFirst || alpha == .first || alpha == .noneSkipFirst
         var rgba = [UInt8](repeating: 0, count: width * height * 4)
         for y in 0..<height {
             for x in 0..<width {
+                let d = (y * width + x) * 4
+                if oneByte {
+                    let v = bytes[y * bytesPerRow + x]
+                    if alpha == .alphaOnly { rgba[d + 3] = v } else { rgba[d] = v; rgba[d + 1] = v; rgba[d + 2] = v; rgba[d + 3] = 255 }
+                    continue
+                }
                 let s = y * bytesPerRow + x * 4
                 var p = [bytes[s], bytes[s + 1], bytes[s + 2], bytes[s + 3]]
                 if little { p.reverse() }
@@ -183,11 +192,30 @@ public final class CGImage: Hashable, @unchecked Sendable {
                 case .alphaOnly: (r, g, b) = (0, 0, 0)
                 case .premultipliedLast, .premultipliedFirst: break
                 }
-                let d = (y * width + x) * 4
                 rgba[d] = r; rgba[d + 1] = g; rgba[d + 2] = b; rgba[d + 3] = a
             }
         }
         self.init(_content: .bitmap(DisplayBitmap(width: width, height: height, pixels: rgba)), shouldInterpolate: shouldInterpolate, intent: intent)
+    }
+
+    /// An opaque bitmap (a grey mask, as `clip(to:mask:)` takes one) as an alpha mask: each
+    /// pixel's grey level, white letting paint through and black blocking it, as its alpha. Nil
+    /// for an image with transparency, which masks by its own alpha, and for an image whose
+    /// pixels only a painter makes (a file or a recording).
+    public func _greyLevelsAsAlpha() -> CGImage? {
+        guard case .bitmap(let bitmap) = _content else { return nil }
+        let pixels = bitmap.pixels
+        guard stride(from: 3, to: pixels.count, by: 4).allSatisfy({ pixels[$0] == 255 }) else { return nil }
+        var mask = [UInt8](repeating: 0, count: pixels.count)
+        for i in stride(from: 0, to: pixels.count, by: 4) {
+            let red: Int = Int(pixels[i]) * 299
+            let green: Int = Int(pixels[i + 1]) * 587
+            let blue: Int = Int(pixels[i + 2]) * 114
+            let level: Int = (red + green + blue + 500) / 1000
+            mask[i + 3] = UInt8(level)
+        }
+        return CGImage(_content: .bitmap(DisplayBitmap(width: bitmap.width, height: bitmap.height, pixels: mask)), crop: _crop,
+                       shouldInterpolate: shouldInterpolate, intent: renderingIntent)
     }
 
     /// An image from a provider of PNG bytes.

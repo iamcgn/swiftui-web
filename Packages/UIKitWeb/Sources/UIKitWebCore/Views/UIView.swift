@@ -319,7 +319,48 @@ open class UIView: UIResponder, UITraitEnvironment, UITraitChangeObservable {
         owningViewController?.traitOverrides.apply(to: &traits)
         traitOverrides.apply(to: &traits)
         if overrideUserInterfaceStyle != .unspecified { traits.userInterfaceStyle = overrideUserInterfaceStyle }
+        // The content size limits hold the category this view and its subtree see between them.
+        if traits.preferredContentSizeCategory != .unspecified {
+            if let maximum = maximumContentSizeCategory, maximum != .unspecified, traits.preferredContentSizeCategory > maximum {
+                traits.preferredContentSizeCategory = maximum
+            }
+            if let minimum = minimumContentSizeCategory, minimum != .unspecified, traits.preferredContentSizeCategory < minimum {
+                traits.preferredContentSizeCategory = minimum
+            }
+        }
         return traits
+    }
+
+    /// The largest content size category this view and its subtree see (nil, or unspecified,
+    /// sets no limit): a larger one in the inherited traits is read as this one.
+    open var maximumContentSizeCategory: UIContentSizeCategory? {
+        willSet { traitsBeforeOverrides = traitCollection }
+        didSet { if maximumContentSizeCategory != oldValue { contentSizeLimitsDidChange() } }
+    }
+
+    /// The smallest content size category this view and its subtree see (nil, or unspecified,
+    /// sets no limit).
+    open var minimumContentSizeCategory: UIContentSizeCategory? {
+        willSet { traitsBeforeOverrides = traitCollection }
+        didSet { if minimumContentSizeCategory != oldValue { contentSizeLimitsDidChange() } }
+    }
+
+    /// The limits this view and its ancestors set, for debugging ("" when there are none).
+    open var appliedContentSizeCategoryLimitsDescription: String {
+        var parts: [String] = []
+        var view: UIView? = self
+        while let current = view {
+            if let minimum = current.minimumContentSizeCategory, minimum != .unspecified { parts.append("\(type(of: current)): minimum \(minimum.rawValue)") }
+            if let maximum = current.maximumContentSizeCategory, maximum != .unspecified { parts.append("\(type(of: current)): maximum \(maximum.rawValue)") }
+            view = current.superview
+        }
+        return parts.joined(separator: "\n")
+    }
+
+    private func contentSizeLimitsDidChange() {
+        propagateTraitChange(from: traitsBeforeOverrides)
+        setNeedsLayout()
+        setNeedsDisplay()
     }
 
     /// Traits this view and its subtree see instead of the inherited ones (a hosted tree takes
