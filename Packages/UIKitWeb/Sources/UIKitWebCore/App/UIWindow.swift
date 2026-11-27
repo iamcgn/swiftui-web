@@ -118,7 +118,7 @@ open class UIWindow: UIView {
 /// `UIScreen.main.bounds` from a nonisolated helper).
 @preconcurrency @MainActor
 public final class UIScreen {
-    public static let main = UIScreen()
+    public static let main = UIScreen(main: ())
 
     /// The screen's size in points, set by the host before the app launches and on resize.
     public internal(set) var bounds = CGRect(x: 0, y: 0, width: 390, height: 844)
@@ -131,8 +131,18 @@ public final class UIScreen {
     public var maximumFramesPerSecond: Int { 60 }
     lazy var screenCoordinateSpace = UIScreenCoordinateSpace(screen: self)
 
-    /// A screen with the main screen's defaults (the page has one screen).
-    public init() {}
+    private init(main: Void) {}
+
+    /// A screen that reads as the main screen does now: its bounds, scale, traits, safe area and
+    /// brightness (the page has one screen).
+    public init() {
+        let main = UIScreen.main
+        bounds = main.bounds
+        scale = main.scale
+        traitCollection = main.traitCollection
+        safeAreaInsets = main.safeAreaInsets
+        brightness = main.brightness
+    }
 }
 
 /// The centralized point of control and coordination for apps.
