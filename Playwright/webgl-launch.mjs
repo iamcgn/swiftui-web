@@ -4,6 +4,10 @@
 // log what each gave. Returns { headless, args, renderer }, or throws with the table.
 import { chromium } from 'playwright';
 
+// Tells ci-software-gl.mjs (CI's preload on the laptop-sweep Mac) to leave these launches as
+// they are: the WebGL probes need whatever WebGL this machine has, not forced SwiftShader.
+globalThis.__swiftuiwebOwnGL = true;
+
 const SWIFTSHADER = ['--enable-unsafe-swiftshader', '--use-angle=swiftshader'];
 const CANDIDATES = [
   { name: 'headless, SwiftShader', headless: true, args: SWIFTSHADER },
