@@ -2977,6 +2977,12 @@
           "noFixture": "Nothing to draw: CoreRuntimeTests (IntentsUITests) check the denied authorization, donations and suggestions"
         },
         {
+          "api": "Intent definition files (.intentdefinition) and their generated classes: INObject / INObjectCollection / INObjectSection / INSpeakableString / INExtension (Intents, the IntentDefinitions build plugin)",
+          "status": "partial",
+          "notes": "2026-11-27: the IntentDefinitions build plugin reads a target's .intentdefinition files and writes what Xcode generates: each intent's INIntent subclass (Name + Intent) with its parameters (objects, enums, numbers and Booleans as NSNumber, strings, date components, URLs, several values as arrays; an enum parameter starts at its unknown case), its response with Siri's codes and the definition's own from 100, and its handling protocol with the options providers of the parameters whose options the app lists (completion and async forms), handle and confirm, which have default implementations as the Objective-C protocol's optional methods; each custom type's INObject subclass with its own properties; each enum, numbered as the file numbers it. The declarations are nonisolated. Dime's and Clendar's widget configuration intents; the sweep runs the plugin for an app's definitions. Not done: the resolution result classes (resolveX), localised titles and prompts, and running an intent (a page has no Siri or widget gallery).",
+          "noFixture": "Nothing to draw: IntentDefinitionsTests check the generated intent, enum, type, response and handling protocol, and the intent in an IntentConfiguration"
+        },
+        {
           "api": "INUIAddVoiceShortcutButton / INUIAddVoiceShortcutViewController / INUIEditVoiceShortcutViewController and their delegates (IntentsUI)",
           "status": "partial",
           "notes": "2026-11-25: the Add to Siri button in its six styles, showing \"Add to Siri\" or the recorded phrase; pressing it hands its delegate the add sheet (no phrase yet) or the edit sheet. The sheets are UIKit controllers with a navigation bar: the add sheet has the phrase prefilled with the app's suggestion, a line saying Siri isn't available in the browser, Cancel and Add; the edit sheet has Cancel, Done and Delete Phrase. Add and Done keep the phrase with INVoiceShortcutCenter and report it to the delegate, so the app's flow finishes; Siri never hears it. The module re-exports Intents and UIKit",

@@ -9,8 +9,9 @@
 // MARK: - Intents and responses
 
 /// A request for the app to do something: Xcode generates its subclasses from an intent
-/// definition file.
-open class INIntent: NSObject, @unchecked Sendable {
+/// definition file. Like Apple's, it isn't `Sendable`: an app's subclasses (Xcode's generated
+/// intents, its handlers) would otherwise have to restate the conformance under Swift 6.
+open class INIntent: NSObject {
     /// The identifier the system gives the intent once it is donated or run.
     open internal(set) var identifier: String?
     /// The phrase the app suggests the user record for a voice shortcut.
@@ -22,7 +23,7 @@ open class INIntent: NSObject, @unchecked Sendable {
 }
 
 /// The app's answer to an intent.
-open class INIntentResponse: NSObject, @unchecked Sendable {
+open class INIntentResponse: NSObject {
     /// The activity the app continues when the user opens it from the response.
     open var userActivity: NSUserActivity?
 
@@ -233,4 +234,89 @@ open class INPreferences: NSObject, @unchecked Sendable {
 
     /// The language Siri speaks (the page's).
     open class func siriLanguageCode() -> String { Locale.current.identifier.replacingOccurrences(of: "_", with: "-") }
+}
+
+// MARK: - Custom types and their options
+
+/// A string with how to say it, as a custom type's display and an intent's spoken values.
+open class INSpeakableString: NSObject, @unchecked Sendable {
+    open var vocabularyIdentifier: String?
+    open var spokenPhrase: String
+    open var pronunciationHint: String?
+
+    public init(vocabularyIdentifier: String, spokenPhrase: String, pronunciationHint: String?) {
+        self.vocabularyIdentifier = vocabularyIdentifier
+        self.spokenPhrase = spokenPhrase
+        self.pronunciationHint = pronunciationHint
+        super.init()
+    }
+
+    public init(spokenPhrase: String) {
+        self.spokenPhrase = spokenPhrase
+        super.init()
+    }
+}
+
+/// A value of a custom type an intent definition declares: Xcode generates its subclasses.
+open class INObject: NSObject {
+    open var identifier: String?
+    open var displayString: String
+    open var pronunciationHint: String?
+    open var subtitleString: String?
+    open var alternativeSpeakableMatches: [INSpeakableString]?
+
+    public init(identifier: String?, display displayString: String, pronunciationHint: String?) {
+        self.identifier = identifier
+        self.displayString = displayString
+        self.pronunciationHint = pronunciationHint
+        super.init()
+    }
+
+    public convenience init(identifier: String?, display displayString: String) {
+        self.init(identifier: identifier, display: displayString, pronunciationHint: nil)
+    }
+
+    public convenience init(identifier: String?, display displayString: String, subtitle subtitleString: String?) {
+        self.init(identifier: identifier, display: displayString, pronunciationHint: nil)
+        self.subtitleString = subtitleString
+    }
+}
+
+/// A titled group of the options a parameter offers.
+open class INObjectSection<ObjectType>: NSObject, @unchecked Sendable {
+    public let title: String?
+    public let items: [ObjectType]
+
+    public init(title: String?, items: [ObjectType]) {
+        self.title = title
+        self.items = items
+        super.init()
+    }
+}
+
+/// The options an app gives for a parameter whose values it lists (a widget's configuration).
+open class INObjectCollection<ObjectType>: NSObject, @unchecked Sendable {
+    public let sections: [INObjectSection<ObjectType>]
+    /// Whether the system may filter the options by what the user types.
+    open var usesIndexedCollation = false
+
+    public init(sections: [INObjectSection<ObjectType>]) {
+        self.sections = sections
+        super.init()
+    }
+
+    public convenience init(items: [ObjectType]) {
+        self.init(sections: [INObjectSection(title: nil, items: items)])
+    }
+
+    /// Every section's options, in order.
+    public var allItems: [ObjectType] { sections.flatMap(\.items) }
+}
+
+/// An Intents extension's principal class: it hands each intent the object that handles it.
+open class INExtension: NSObject {
+    public override init() { super.init() }
+
+    /// The object that handles the intent (the extension itself unless overridden).
+    open func handler(for intent: INIntent) -> Any? { self }
 }
