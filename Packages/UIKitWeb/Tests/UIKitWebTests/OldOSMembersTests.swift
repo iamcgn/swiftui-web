@@ -44,6 +44,8 @@ import UIKit
         perspective.m34 = -1 / 500
         layer.sublayerTransform = perspective
         #expect(!layer.isDoubleSided && layer.sublayerTransform.m34 == -1 / 500)
-        #expect(UIScreen().scale == UIScreen.main.scale)
+        // A new screen reads as the main screen does now, whatever scale the host gave it.
+        let screen = UIScreen()
+        #expect(screen.scale == UIScreen.main.scale && screen.bounds == UIScreen.main.bounds && screen !== UIScreen.main)
     }
 }
