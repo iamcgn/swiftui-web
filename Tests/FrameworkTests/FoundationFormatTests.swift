@@ -261,3 +261,4 @@ extension Locale: CurrencyNaming {}
         #expect(formatter.currencySymbol == "CHF")
     }
 }
+#endif
