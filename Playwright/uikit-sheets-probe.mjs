@@ -34,8 +34,11 @@ const tap = async (f) => { const p = centre(f); await page.mouse.click(p.x, p.y)
 await check('the status starts empty', async () => (await status()) === 'Nothing yet');
 // 1. Share through Web Share.
 await tap(frames.share);
-const shares = await page.evaluate(() => window.__shares);
-await check('Web Share was called with the text and the link', async () => shares.length === 1 && shares[0].text === 'Shared text' && shares[0].url === 'https://example.com');
+// Read inside the poll: the share call lands after the tap's frame, later than 150 ms on a slow runner.
+await check('Web Share was called with the text and the link', async () => {
+  const shares = await page.evaluate(() => window.__shares);
+  return shares.length === 1 && shares[0].text === 'Shared text' && shares[0].url === 'https://example.com';
+});
 await check('the sheet completed', async () => (await status()) === 'Shared');
 // 2. The document picker through the file input.
 await tap(frames.document);
