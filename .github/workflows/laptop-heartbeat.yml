@@ -1,0 +1,22 @@
+name: Laptop heartbeat
+# A few seconds on the self-hosted Mac labelled laptop-sweep every 20 minutes, so CI's pick job
+# can tell the Mac is up before it sends a pull request's macos and browser jobs there. While the
+# Mac is off or busy the beat waits, and the next one replaces it, so a stale or missing pass
+# reads as "not available" and the jobs stay on GitHub's runners. No pull request triggers it.
+on:
+  schedule:
+    - cron: "*/20 * * * *"
+  workflow_dispatch:
+  # A push that changes this file beats at once (a push needs write access, so no fork's code).
+  push:
+    paths: [.github/workflows/laptop-heartbeat.yml]
+concurrency:
+  group: laptop-heartbeat
+  cancel-in-progress: true
+permissions: {}
+jobs:
+  beat:
+    runs-on: [self-hosted, laptop-sweep]
+    timeout-minutes: 2
+    steps:
+      - run: echo "up"
