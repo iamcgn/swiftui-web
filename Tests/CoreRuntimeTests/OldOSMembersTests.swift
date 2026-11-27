@@ -1,5 +1,6 @@
 // Members OldOS calls: times in order, text a formatter writes, a map delegate's renderer of no
-// overlay, and the microphone data sources its voice memos look through.
+// overlay, the microphone data sources its voice memos look through, and a camera frame as a
+// Core Image image.
 import Testing
 import SwiftUI
 import SwiftUIWebCore
@@ -9,6 +10,10 @@ import MapKit
 import WebFoundation
 #else
 import Foundation
+#endif
+#if !canImport(CoreGraphics) || os(WASI)
+import WebGraphics
+import WebCoreImage
 #endif
 
 @Suite @MainActor struct OldOSMembersTests {
@@ -49,4 +54,21 @@ import Foundation
         #expect(AVAudioSession.Orientation.back.rawValue == "Back" && AVAudioSession.PolarPattern.cardioid != .omnidirectional)
         try session.setCategory(.playback)
     }
+
+    #if !canImport(CoreGraphics) || os(WASI)
+    @Test func aCameraFrameBecomesAnImageInItsColors() throws {
+        // One red and one blue pixel, stored blue-green-red-alpha as the web camera delivers them.
+        let frame = CVPixelBuffer(width: 2, height: 1, bytes: [0, 0, 255, 255, 255, 0, 0, 255])
+        let image = CIImage(cvPixelBuffer: frame)
+        #expect(image.extent.size == CGSize(width: 2, height: 1))
+        let content = try #require(image.cgImage?._content)
+        guard case .bitmap(let bitmap) = content else { Issue.record("not a bitmap"); return }
+        #expect(bitmap.pixels == [255, 0, 0, 255, 0, 0, 255, 255])
+        let argb = CVPixelBuffer(width: 1, height: 1, pixelFormatType: kCVPixelFormatType_32ARGB, bytes: [255, 10, 20, 30])
+        guard case .bitmap(let other)? = CIImage(cvImageBuffer: argb, options: nil).cgImage?._content else {
+            Issue.record("not a bitmap"); return
+        }
+        #expect(other.pixels == [10, 20, 30, 255])
+    }
+    #endif
 }
