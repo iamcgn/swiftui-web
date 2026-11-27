@@ -664,8 +664,8 @@ open class NSLayoutManager {
         let layout = laidOut()
         let range = clamped(glyphsToShow)
         guard range.length > 0, range.location + range.length <= storage.length else { return }
-        storage.enumerateAttribute(.backgroundColor, in: range, options: []) { value, run, _ in
-            guard let color = value as? UIColor else { return }
+        storage.enumerateAttributes(in: range, options: []) { attributes, run, _ in
+            guard let color = attributes[.backgroundColor] as? UIColor else { return }
             for index in layout.lineIndices(touching: run) {
                 let line = layout.lines[index]
                 let start = max(run.location, line.characters.location)
