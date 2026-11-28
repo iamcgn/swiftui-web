@@ -78,11 +78,24 @@ open class UIButton: UIControl, UIAccessibilityContentSizeCategoryImageAdjusting
         if let imageView { imageView.isAccessibilityElement = false; addSubview(imageView) }
     }
 
+    #if canImport(ObjectiveC)
+    /// `-initWithFrame:` to the runtime, so the class factories below reach it on any subclass.
+    @objc(initWithFrame:)
     public convenience override init(frame: CGRect) {
-        let type = UIButton.pendingButtonType ?? .custom
-        UIButton.pendingButtonType = nil   // only the button the factory makes, not one it makes
-        self.init(type: type)
+        self.init(type: UIButton.takePendingButtonType())
         self.frame = frame
+    }
+    #else
+    public convenience override init(frame: CGRect) {
+        self.init(type: UIButton.takePendingButtonType())
+        self.frame = frame
+    }
+    #endif
+
+    /// The factory's type for the one button it is making (not for one that button makes).
+    private static func takePendingButtonType() -> ButtonType {
+        defer { pendingButtonType = nil }
+        return pendingButtonType ?? .custom
     }
 
     /// The type `init(frame:)` gives the button that a class factory is making, as UIKit's
@@ -566,7 +579,7 @@ func _makeButton<Button: UIButton>(_ type: Button.Type, type buttonType: UIButto
     typealias Initialize = @convention(c) (UnsafeMutableRawPointer, Selector, CGRect) -> UnsafeMutableRawPointer?
     let cls: AnyClass = type
     let alloc = sel_registerName("alloc")   // Swift's `#selector` cannot name +alloc
-    let initialize = #selector(UIView.init(frame:))
+    let initialize = #selector(UIButton.init(frame:))
     // The class object as an object (no bridging): its class is the metaclass, which holds `+alloc`.
     guard let metaclass = object_getClass(unsafeBitCast(cls, to: AnyObject.self)),
           let allocate = class_getMethodImplementation(metaclass, alloc),
