@@ -17,6 +17,7 @@ import PackageDescription
 //   WebGraphicsNative    macOS CoreText engine, CoreGraphics painter, AppKit host
 //   WebGraphicsHeadless  recorded text metrics and the asset manifest reader for tests
 //   WebGraphicsCairo     the Cairo painter for Linux (and anywhere cairo is installed; pf-linux)
+//   WebSIMD              simd's vector names and functions; the `simd` shadow re-exports it on wasm
 let package = Package(
     name: "WebGraphics",
     platforms: [.macOS(.v14)],
@@ -29,6 +30,7 @@ let package = Package(
         .library(name: "WebImageIO", targets: ["WebImageIO"]),
         .library(name: "WebImageDestination", targets: ["WebImageDestination"]),
         .library(name: "WebCoreImage", targets: ["WebCoreImage"]),
+        .library(name: "WebSIMD", targets: ["WebSIMD"]),
         .library(name: "WebGraphicsCanvas", targets: ["WebGraphicsCanvas"]),
         .library(name: "WebGraphicsNative", targets: ["WebGraphicsNative"]),
         .library(name: "WebGraphicsHeadless", targets: ["WebGraphicsHeadless"]),
@@ -124,6 +126,14 @@ let package = Package(
         .target(
             name: "WebGraphicsNative",
             dependencies: ["WebGraphics", "WebGraphicsHeadless"],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        // The vector part of Apple's `simd` module over the standard library's SIMD types, which
+        // the `simd` shadow re-exports on wasm; WebSIMDTests hold it to Apple's on macOS.
+        .target(name: "WebSIMD", swiftSettings: [.treatAllWarnings(as: .error)]),
+        .testTarget(
+            name: "WebSIMDTests",
+            dependencies: ["WebSIMD"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .testTarget(

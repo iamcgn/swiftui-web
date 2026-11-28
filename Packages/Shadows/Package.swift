@@ -15,7 +15,7 @@
 // where Linux's Foundation keeps them), `FoundationXML` (XMLParser, likewise) and
 // `UniformTypeIdentifiers` (`UTType`), `CommonCrypto` (the C digest and HMAC functions over
 // SwiftUIWeb's CryptoKit), `Compression` and `zlib` (the coders over WebFoundationFormats' formats),
-// `CoreText` (the font manager's registration calls, `CTFont` as UIKitWeb's `UIFont`, and the typesetter, lines and runs over WebGraphics' `TextTypesetter`), `Symbols` (the symbol effect types), `Accelerate` (vImage's buffers and box filter),
+// `CoreText` (the font manager's registration calls, `CTFont` as UIKitWeb's `UIFont`, and the typesetter, lines and runs over WebGraphics' `TextTypesetter`), `Symbols` (the symbol effect types), `Accelerate` (vImage's buffers and box filter), `simd` (the vector names and functions over the standard library's SIMD types),
 // `XCTest` (`XCTFail` and the test observation names that libraries use outside tests)
 // are here for the same reason as the rest, and so is
 // `CoreData` (WebCoreData; the app's models go through SwiftUIWeb's CoreDataModel plugin). With
@@ -61,6 +61,7 @@ let package = Package(
         .library(name: "Compression", targets: ["Compression"]),
         .library(name: "zlib", targets: ["zlib"]),
         .library(name: "Accelerate", targets: ["Accelerate"]),
+        .library(name: "simd", targets: ["simd"]),
         .library(name: "CoreText", targets: ["CoreText"]),
         .library(name: "Symbols", targets: ["Symbols"]),
         .library(name: "XCTest", targets: ["XCTest"]),
@@ -190,6 +191,11 @@ let package = Package(
         .target(
             name: "Accelerate",
             dependencies: [.product(name: "WebFoundationFormats", package: "WebGraphics")],
+            swiftSettings: [.treatAllWarnings(as: .error)]
+        ),
+        .target(
+            name: "simd",
+            dependencies: [.product(name: "WebSIMD", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
         .target(
