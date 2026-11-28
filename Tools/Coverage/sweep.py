@@ -35,7 +35,7 @@ OURS = {
     "Dispatch", "CoreFoundation", "ImageIO", "MobileCoreServices", "SystemConfiguration",
     "LocalAuthentication", "FoundationNetworking", "FoundationXML", "CommonCrypto", "AudioToolbox", "EventKit", "EventKitUI", "Contacts",
     "Network", "Photos", "PhotosUI", "AuthenticationServices", "CoreMotion", "ActivityKit", "BackgroundTasks", "TipKit", "Symbols", "Compression", "zlib", "Translation", "_Translation_SwiftUI", "JavaScriptCore",
-    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "QuickLook", "LinkPresentation", "WeatherKit", "MediaPlayer", "CoreTelephony", "WatchConnectivity", "GameKit", "SQLite3", "XCTest",
+    "CoreText", "CloudKit", "Accelerate", "PDFKit", "CoreSpotlight", "NaturalLanguage", "QuickLook", "LinkPresentation", "WeatherKit", "MediaPlayer", "CoreTelephony", "WatchConnectivity", "GameKit", "XCTest",
     "SceneKit",
 }
 # `Builtin` is the compiler's own module (swift-collections imports it with the BuiltinModule
@@ -305,42 +305,6 @@ C_HEADERS = {".h", ".hh", ".hpp", ".inc", ".def", ".modulemap"}
 # An Objective-C target this small is a shim (swift-navigation's UIKitNavigationShim): its headers
 # stand in for it so the Swift targets above it still build. A bigger one (Firebase) is left out.
 SHIM_LIMIT = 4
-
-
-def links_system_sqlite(folder: Path):
-    """Whether a system library target's module map links SQLite (GRDB's `GRDBSQLite`, the
-    `CSQLite` of older SQLite.swift): Apple's SDK has it, and SwiftUIWeb's SQLite3 stands in."""
-    mm = folder / "module.modulemap"
-    try:
-        text = mm.read_text(errors="replace")
-    except OSError:
-        return False
-    return re.search(r'\blink\s+"sqlite3"', text) is not None
-
-
-def sqlite_stand_in(src: Path, dest_root: Path):
-    """A system SQLite target's folder as a C target over SwiftUIWeb's SQLite3: its module map and
-    headers under include/ (the map without `[system]` and `link`, a header it names by an absolute
-    path, `/usr/include/sqlite3.h`, as a local one that includes `<sqlite3.h>`), and an empty
-    source so SwiftPM builds the target."""
-    include = dest_root / "include"
-    include.mkdir(parents=True, exist_ok=True)
-    for f in src.iterdir():
-        if f.is_file() and f.suffix in C_HEADERS:
-            shutil.copy2(f, include / f.name)
-    text = (src / "module.modulemap").read_text(errors="replace")
-    text = re.sub(r"\s*\[system\]", "", text)
-    text = re.sub(r'^\s*link\s+"[^"]*"\s*$\n?', "", text, flags=re.M)
-
-    def local(m):
-        if not m.group(1).startswith("/"):
-            return m.group(0)
-        name = "_sweep_" + Path(m.group(1)).name
-        (include / name).write_text(f"#include <{Path(m.group(1)).name}>\n")
-        return f'header "{name}"'
-    text = re.sub(r'header\s+"([^"]+)"', local, text)
-    (include / "module.modulemap").write_text(text)
-    (dest_root / "_sweep_shim.c").write_text("/* The sweep builds this system SQLite module over SwiftUIWeb's SQLite3. */\n")
 
 
 def c_settings(target):
@@ -802,7 +766,13 @@ def describe_remote_packages(work: Path, keys, notes):
         dumps[identity] = dump
     products = {}  # product name -> (identity, target names)
     for identity, dump in dumps.items():
+        kinds = {t["name"]: t["type"] for t in dump.get("targets", [])}
         for prod in dump.get("products", []):
+            # A product of system library targets alone (CSQLite 0.0.3's `/usr/include/sqlite3.h`)
+            # vends nothing the wasm build has: a target that asks for it is built without it, as
+            # before the plan resolved it, so its own errors still count.
+            if prod.get("targets") and all(kinds.get(n) == "system" for n in prod["targets"]):
+                continue
             if "library" in json.dumps(prod.get("type") or {}):
                 products.setdefault(prod["name"], (identity, prod.get("targets", [])))
     targets, left_out = [], set()
@@ -813,19 +783,6 @@ def describe_remote_packages(work: Path, keys, notes):
         traits = default_traits(dump)
         for t in dump["targets"]:
             kind = t["type"]
-            # A system library package from before targets (tools 4.0, as CSQLite 0.0.3) keeps its
-            # module map at its root.
-            system_path = t.get("path") or (f"Sources/{t['name']}" if (root / "Sources" / t["name"]).is_dir() else ".")
-            if kind == "system" and links_system_sqlite(root / system_path):
-                # The system library is SQLite: its module stands in over SwiftUIWeb's SQLite3.
-                notes.append(f"package {identity}: system target {t['name']} built over SwiftUIWeb's SQLite3")
-                targets.append({
-                    "module": t["name"], "source_root": system_path, "files": [],
-                    "base": f"{PACKAGES_DIR}/{key}", "remote": key, "deps": [], "syntax": [], "third_party": [],
-                    "mode": "v5", "settings": [], "resources": [], "models": [], "executable": False, "macro": False,
-                    "c": "sqlite", "public_headers": "include", "c_settings": [], "exclude": [],
-                })
-                continue
             if kind not in ("regular", "macro"):
                 if kind in ("binary", "system", "plugin"):
                     left_out.add(t["name"])
@@ -1600,7 +1557,6 @@ WEB_PRODUCTS = [
     ("MediaPlayer", "SwiftUIWeb"),
     ("CoreTelephony", "SwiftUIWeb"),
     ("WatchConnectivity", "SwiftUIWeb"),
-    ("SQLite3", "SwiftUIWeb"),
     ("GameKit", "SwiftUIWeb"),
     ("SceneKit", "SwiftUIWeb"),
     ("UIKit", "UIKitWeb"),
@@ -1785,14 +1741,6 @@ def cmd_prepare(args):
             declared.add(t["module"])
             clone_dir = work / (t.get("base") or app["name"])
             dest_root = pkg / "Sources" / t["module"]
-            if t.get("c") == "sqlite":
-                sqlite_stand_in(clone_dir / t["source_root"], dest_root)
-                decls.append(
-                    f'        .target(\n            name: "{t["module"]}",\n'
-                    f'            dependencies: [.product(name: "SQLite3", package: "SwiftUIWeb")],\n'
-                    f'            path: "Sources/{t["module"]}",\n            publicHeadersPath: "include"\n        ),'
-                )
-                continue
             if t.get("c"):
                 # A C target: its folder as it is (an Objective-C shim: without its .m files, plus
                 # an empty source so the target has one), built by the SDK's clang.

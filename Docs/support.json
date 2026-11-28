@@ -3037,12 +3037,6 @@
           "noFixture": "Nothing to draw; CoreRuntimeTests OscarWeatherAPIsTests checks the session's answers"
         },
         {
-          "api": "sqlite3_open / sqlite3_prepare_v2 / sqlite3_step / sqlite3_bind_* / sqlite3_column_* / sqlite3_exec (SQLite3)",
-          "status": "partial",
-          "notes": "pf-everyday (2026-11-28, IceCubes' SQLite.swift cache, GRDB in BreadBuddy, Dime's store): SQLite 3.53.4's own amalgamation, built for WASI as SQLite builds itself there (no loadable extensions, no threads, no shared-memory WAL), with FTS3/4/5, R*Tree, dbstat, column metadata and snapshots on as in Apple's build. The tests check in-memory databases; a file database goes through the page's WASI file system, which this has not been checked against.",
-          "noFixture": "Nothing to draw; SQLite3Tests runs the same calls against SwiftUIWeb's SQLite on Linux and WASI and against Apple's on macOS"
-        },
-        {
           "api": "GKLocalPlayer / GKPlayer / GKAchievement / GKAchievementDescription / GKLeaderboard / GKGameCenterViewController / GKAccessPoint / GKError (GameKit)",
           "status": "stub",
           "notes": "pf-everyday (2026-11-26, OldOS's Game Center app): a page has no Game Center account, so the local player never authenticates. Setting authenticateHandler calls it once with no view controller and a notSupported error; loading friends, achievements, descriptions and leaderboards, reporting achievements and submitting scores fail with notAuthenticated. Players and achievements an app makes keep what they are given; the dashboard is one screen saying Game Center isn't available, with a Done button that tells its delegate. The error codes and notification names are Apple's.",

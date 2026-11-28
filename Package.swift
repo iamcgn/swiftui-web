@@ -66,7 +66,6 @@ let package = Package(
         .library(name: "MediaPlayer", targets: ["MediaPlayer"]),
         .library(name: "CoreTelephony", targets: ["CoreTelephony"]),
         .library(name: "WatchConnectivity", targets: ["WatchConnectivity"]),
-        .library(name: "SQLite3", targets: ["SQLite3"]),
         .library(name: "GameKit", targets: ["GameKit"]),
         .library(name: "StoreKit", targets: ["StoreKit"]),
         .library(name: "AppIntents", targets: ["AppIntents"]),
@@ -269,12 +268,6 @@ let package = Package(
         // A paired Apple Watch: none, as a page has no watch to talk to.
         .target(name: "WatchConnectivity", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
-        // Apple's SQLite3 module: SQLite's amalgamation (Sources/SQLite3/README.md), with what Apple's
-        // build turns on. Depend on it on Linux and WASI only; Apple's SDK has its own.
-        .target(name: "SQLite3",
-                cSettings: [.define("SQLITE_ENABLE_FTS3"), .define("SQLITE_ENABLE_FTS3_PARENTHESIS"), .define("SQLITE_ENABLE_FTS4"),
-                            .define("SQLITE_ENABLE_FTS5"), .define("SQLITE_ENABLE_RTREE"), .define("SQLITE_ENABLE_COLUMN_METADATA"),
-                            .define("SQLITE_ENABLE_SNAPSHOT"), .define("SQLITE_ENABLE_DBSTAT_VTAB")]),
         // Game Center: no one is signed in, as a page has no Game Center account.
         .target(name: "GameKit", dependencies: [.product(name: "UIKit", package: "UIKitWeb"), .product(name: "WebFoundation", package: "WebGraphics")],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -379,12 +372,6 @@ let package = Package(
         ),
         // JavaScriptCore on its own: under Node (the wasm tests) against its real engine; natively,
         // where there is no engine, that no context is made.
-        // SQLite3 on its own: SwiftUIWeb's on Linux and WASI (under Node), Apple's on macOS.
-        .testTarget(
-            name: "SQLite3Tests",
-            dependencies: [.target(name: "SQLite3", condition: .when(platforms: [.linux, .wasi]))],
-            swiftSettings: [.treatAllWarnings(as: .error)]
-        ),
         .testTarget(
             name: "JavaScriptCoreTests",
             dependencies: ["JavaScriptCore", .product(name: "WebFoundation", package: "WebGraphics")],
