@@ -216,6 +216,9 @@ extension ShapeStyle {
             }
             return Color(storage: .system(.windowBackground)).resolve(in: environment)
         }
+        if self is Shader {
+            return .clear   // a Metal shader can't run in a browser, so its fill draws nothing
+        }
         if self is TintShapeStyle {
             return (environment._tint ?? .accentColor).resolve(in: environment)
         }
