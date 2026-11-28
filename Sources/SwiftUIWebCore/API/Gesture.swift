@@ -471,6 +471,22 @@ extension View {
         return modifier(_GestureModifier(gesture: gesture, priority: .normal, mask: .all))
     }
 
+    /// Runs `action` with where the tap landed, in `coordinateSpace`, after `count` taps.
+    nonisolated public func onTapGesture(count: Int = 1, coordinateSpace: some CoordinateSpaceProtocol = .local,
+                                         perform action: @escaping (CGPoint) -> Void) -> some View {
+        onTapGesture(count: count, coordinateSpace: coordinateSpace.coordinateSpace, perform: action)
+    }
+
+    /// The iOS 16 spelling, with a `CoordinateSpace` value.
+    nonisolated public func onTapGesture(count: Int = 1, coordinateSpace: CoordinateSpace = .local,
+                                         perform action: @escaping (CGPoint) -> Void) -> some View {
+        nonisolated(unsafe) let action = action
+        let gesture = MainActor.assumeIsolated {
+            SpatialTapGesture(count: count, coordinateSpace: coordinateSpace).onEnded { value in action(value.location) }
+        }
+        return modifier(_GestureModifier(gesture: gesture, priority: .normal, mask: .all))
+    }
+
     /// The older spelling, `pressing` before `perform` (deprecated in iOS 16 for the one above).
     /// `pressing` takes no default here, so a call without it reaches only the newer spelling.
     nonisolated public func onLongPressGesture(minimumDuration: Double = 0.5, maximumDistance: CGFloat = 10,

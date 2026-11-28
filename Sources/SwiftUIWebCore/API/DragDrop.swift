@@ -41,6 +41,9 @@ public struct _TransferExporter<Item> {
     package let exportedType: Any.Type
     package let export: (Item) -> Any?
     package let importer: ((Any) -> Item?)?
+    /// An export that waits (a `DataRepresentation` with an `async` closure), where `export`
+    /// has nothing at once.
+    package var asyncExport: ((Item) async -> Any?)? = nil
 }
 
 /// Exports the item as another transferable value (and imports it back).
@@ -93,29 +96,52 @@ public struct CodableRepresentation<Item: Codable>: TransferRepresentation {
     }
 }
 
-/// Exports the item as data through closures.
+/// Exports the item as data through closures. An `async` exporter (Apple's closures are all
+/// `async`; a synchronous one is what a drag, a copy or a share link can hand on at once) runs
+/// only where the export can wait: `_TransferExporter.asyncExport`. The rest skip it.
 public struct DataRepresentation<Item>: TransferRepresentation {
     package let contentType: UTType
-    package let exporting: (Item) throws -> Data
+    package let exporting: ((Item) throws -> Data)?
+    package let asyncExporting: (@Sendable (Item) async throws -> Data)?
     package let importing: ((Data) throws -> Item)?
 
     public init(contentType: UTType, exporting: @escaping (Item) throws -> Data, importing: @escaping (Data) throws -> Item) {
         self.contentType = contentType
         self.exporting = exporting
+        asyncExporting = nil
         self.importing = importing
     }
 
     public init(exportedContentType: UTType, exporting: @escaping (Item) throws -> Data) {
         self.contentType = exportedContentType
         self.exporting = exporting
+        asyncExporting = nil
         self.importing = nil
     }
 
+    /// An exporter that waits (fetching the bytes first, as IceCubes' image transferable does).
+    @_disfavoredOverload
+    public init(exportedContentType: UTType, exporting: @escaping @Sendable (Item) async throws -> Data) {
+        self.contentType = exportedContentType
+        self.exporting = nil
+        asyncExporting = exporting
+        self.importing = nil
+    }
+
+    /// Imports the item from data and exports nothing.
+    public init(importedContentType: UTType, importing: @escaping (Data) throws -> Item) {
+        self.contentType = importedContentType
+        exporting = nil
+        asyncExporting = nil
+        self.importing = importing
+    }
+
     public var _exporters: [_TransferExporter<Item>] {
-        let exporting = exporting, importing = importing
+        let exporting = exporting, asyncExporting = asyncExporting, importing = importing
         return [_TransferExporter(contentType: contentType, exportedType: Data.self,
-                                  export: { try? exporting($0) },
-                                  importer: importing.map { imp in { ($0 as? Data).flatMap { try? imp($0) } } })]
+                                  export: { item in exporting.flatMap { try? $0(item) } },
+                                  importer: importing.map { imp in { ($0 as? Data).flatMap { try? imp($0) } } },
+                                  asyncExport: asyncExporting.map { exp in { item -> Any? in try? await exp(item) } })]
     }
 }
 
