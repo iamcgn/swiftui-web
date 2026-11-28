@@ -361,6 +361,21 @@ open class UIViewController: UIResponder, UITraitEnvironment, UITraitChangeObser
         if let parent { parent.showDetailViewController(vc, sender: sender) } else { show(vc, sender: sender) }
     }
 
+    // MARK: Segues (App/UIStoryboard.swift)
+
+    /// Performs the storyboard segue named `identifier`. A controller here comes from no
+    /// storyboard, so it has no segue by that name, which UIKit reports by stopping the app, as
+    /// this does.
+    open func performSegue(withIdentifier identifier: String, sender: Any?) {
+        fatalError("Receiver (\(self)) has no segue with identifier '\(identifier)'")
+    }
+
+    /// Whether the segue named `identifier` should go ahead: yes, unless a subclass says no.
+    open func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool { true }
+
+    /// Called before a segue from this controller runs, to set up its destination.
+    open func prepare(for segue: UIStoryboardSegue, sender: Any?) {}
+
     // MARK: Presentation (Phase 3: sheets; the API is accepted so sources compile)
 
     public private(set) var presentedViewController: UIViewController?
