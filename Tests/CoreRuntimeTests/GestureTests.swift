@@ -143,6 +143,30 @@ import SwiftUIWebHeadless
         #expect(global.events == ["101,51"])
     }
 
+    @Test func tapActionsReceiveWhereTheTapLanded() {
+        // IceCubes' zoomable media: `.onTapGesture(count: 2, perform: doubleTapAction)` with a
+        // `(CGPoint) -> Void`; the location is in the view's own space unless another is named.
+        let log = Log()
+        let runtime = runtime(Color.red.frame(width: 40, height: 20).onTapGesture(count: 2) { point in
+            log.events.append("double \(Int(point.x)),\(Int(point.y))")
+        })
+        runtime.pointerDown(at: CGPoint(x: 90, y: 45), time: 0); runtime.pointerUp(at: CGPoint(x: 90, y: 45), time: 0.05)
+        #expect(log.events.isEmpty)
+        runtime.pointerDown(at: CGPoint(x: 91, y: 46), time: 0.2); runtime.pointerUp(at: CGPoint(x: 91, y: 46), time: 0.25)
+        #expect(log.events == ["double 11,6"])
+        let global = Log()
+        let g = self.runtime(Color.red.frame(width: 40, height: 20).onTapGesture(coordinateSpace: .global) { point in
+            global.events.append("\(Int(point.x)),\(Int(point.y))")
+        })
+        g.pointerDown(at: CGPoint(x: 100, y: 50), time: 0); g.pointerUp(at: CGPoint(x: 100, y: 50), time: 0.05)
+        #expect(global.events == ["100,50"])
+        // A closure that takes no location still reaches the plain tap action.
+        let plain = Log()
+        let p = self.runtime(Color.red.frame(width: 40, height: 20).onTapGesture { plain.events.append("tap") })
+        p.pointerDown(at: CGPoint(x: 100, y: 50), time: 0); p.pointerUp(at: CGPoint(x: 100, y: 50), time: 0.05)
+        #expect(plain.events == ["tap"])
+    }
+
     @Test func sequencedSimultaneousAndExclusive() {
         let log = Log()
         let sequence = LongPressGesture(minimumDuration: 0.1).sequenced(before: DragGesture(minimumDistance: 0))
