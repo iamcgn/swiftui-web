@@ -70,7 +70,8 @@ private final class Database {
         #expect(db.exec("CREATE TABLE t (k TEXT UNIQUE)") == SQLITE_OK)
         #expect(db.exec("INSERT INTO t VALUES ('a')") == SQLITE_OK)
         #expect(db.exec("INSERT INTO t VALUES ('a')") == SQLITE_CONSTRAINT)
-        #expect(sqlite3_extended_errcode(db.handle) == SQLITE_CONSTRAINT_UNIQUE)
+        // SQLITE_CONSTRAINT_UNIQUE is `(SQLITE_CONSTRAINT | (8<<8))`, a macro Swift does not import.
+        #expect(sqlite3_extended_errcode(db.handle) == SQLITE_CONSTRAINT | (8 << 8))
     }
 
     @Test func rollsBackATransaction() throws {
