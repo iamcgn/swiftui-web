@@ -43,6 +43,8 @@ private final class SyncDelegate: NSObject, WCSessionDelegate, @unchecked Sendab
         let url = try #require(URL(string: "oscar://place/1"))
         let intent = OpenURLIntent(url)
         #expect(intent.url == url && OpenURLIntent.openAppWhenRun)
+        // The intent opens on the main actor without suspending first, so no other test's
+        // opener (LinkTests sets its own) can take the URL.
         _ = try await intent.perform()
         #expect(opened.urls == [url])
         _ = try await OpenRadarIntent().perform()

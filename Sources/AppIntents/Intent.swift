@@ -145,9 +145,10 @@ public struct OpenURLIntent: SystemIntent {
         self.url = url
     }
 
+    /// Opens the URL on the main actor, where the page's opener lives.
+    @MainActor
     public func perform() async throws -> IntentResultContainer<Never, Never, Never, Never> {
-        let url = url
-        await MainActor.run { OpenURLAction.systemHandler?(url) }
+        OpenURLAction.systemHandler?(url)
         return .result()
     }
 }
