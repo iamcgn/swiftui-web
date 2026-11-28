@@ -550,6 +550,21 @@ def manifest_dependencies(dump):
     return out
 
 
+def used_dependencies(dump):
+    """manifest_dependencies of a package, only the ones a target's iOS dependency names under
+    the package's default traits: a package an Apple-only or off trait asks for is not built."""
+    traits = default_traits(dump or {})
+    used = set()
+    for t in (dump or {}).get("targets") or []:
+        if t.get("type") not in ("regular", "executable", "macro"):
+            continue  # a test target's packages are not built
+        for d in t.get("dependencies") or []:
+            kind, _, package = dependency_names(d)
+            if kind == "product" and package and condition_allows_ios(d, traits):
+                used.add(package.lower())
+    return [d for d in manifest_dependencies(dump) if d[0] in used]
+
+
 def project_requirement(req):
     """An Xcode XCRemoteSwiftPackageReference requirement in resolve_requirement's form."""
     kind = req.get("kind")
@@ -635,6 +650,13 @@ def declared_pins(work: Path, root: Path, extra, packages, pins, notes, passes=2
             entry["by"].setdefault(source, []).append(req)
 
     want("", [d for p in packages for d in manifest_dependencies(p["dump"])] + project_dependencies(root, extra))
+    # A pinned package's own dependencies: Package.resolved leaves out what a trait the Apple
+    # build doesn't enable uses (SQLite.swift's embedded SQLite, which the sweep's Linux-hosted
+    # manifest turns on), so the ones its enabled targets use are resolved like the root's.
+    pinned = fetch_packages(work, pins)
+    for identity, key in sorted(pinned.items()):
+        dump, _ = dump_package(work / PACKAGES_DIR / key)
+        want(f"pin:{identity}", used_dependencies(dump))
     picked = {}  # repo (lower) -> commit or None
     excluded = {}  # repo (lower) -> commits a conflict ruled out
 
