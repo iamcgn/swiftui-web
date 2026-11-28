@@ -5,7 +5,7 @@
 // Apple's module isn't; WebSIMDTests hold it to Apple's on macOS. The definitions follow Apple's
 // simd headers' documentation: mix is x + t(y − x), smoothstep is t²(3 − 2t) of the clamped
 // ratio, step is 0 below the edge and 1 from it, fract stays below 1, sign is 0 at 0 and NaN.
-// Not here yet: the matrix and quaternion types.
+// The matrices and quaternions are in SIMDMatrices.swift.
 
 // MARK: - Type names
 
@@ -104,13 +104,13 @@ public func simd_refract<V: SIMD>(_ x: V, _ n: V, _ eta: V.Scalar) -> V where V.
 /// Elementwise `x + t(y − x)`.
 public func simd_mix<V: SIMD>(_ x: V, _ y: V, _ t: V) -> V where V.Scalar: BinaryFloatingPoint { x + t * (y - x) }
 /// `x` held elementwise between `min` and `max`.
-public func simd_clamp<V: SIMD>(_ x: V, _ min: V, _ max: V) -> V where V.Scalar: BinaryFloatingPoint {
+public func simd_clamp<V: SIMD>(_ x: V, _ min: V, _ max: V) -> V where V.Scalar: Comparable {
     pointwiseMin(pointwiseMax(x, min), max)
 }
 /// The elementwise smaller.
-public func simd_min<V: SIMD>(_ x: V, _ y: V) -> V where V.Scalar: BinaryFloatingPoint { pointwiseMin(x, y) }
+public func simd_min<V: SIMD>(_ x: V, _ y: V) -> V where V.Scalar: Comparable { pointwiseMin(x, y) }
 /// The elementwise larger.
-public func simd_max<V: SIMD>(_ x: V, _ y: V) -> V where V.Scalar: BinaryFloatingPoint { pointwiseMax(x, y) }
+public func simd_max<V: SIMD>(_ x: V, _ y: V) -> V where V.Scalar: Comparable { pointwiseMax(x, y) }
 /// The elementwise absolute value.
 public func simd_abs<V: SIMD>(_ x: V) -> V where V.Scalar: BinaryFloatingPoint { V(x.indices.map { x[$0].magnitude }) }
 /// The sum of the elements.

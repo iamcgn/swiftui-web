@@ -128,9 +128,10 @@ let package = Package(
             dependencies: ["WebGraphics", "WebGraphicsHeadless"],
             swiftSettings: [.treatAllWarnings(as: .error)]
         ),
-        // The vector part of Apple's `simd` module over the standard library's SIMD types, which
-        // the `simd` shadow re-exports on wasm; WebSIMDTests hold it to Apple's on macOS.
-        .target(name: "WebSIMD", swiftSettings: [.treatAllWarnings(as: .error)]),
+        // Apple's `simd` module over the standard library's SIMD types (vectors, 3x3 and 4x4 float
+        // matrices, quaternions), which the `simd` shadow re-exports on wasm and SceneKit on Linux;
+        // WebSIMDTests hold the vector functions to Apple's on macOS.
+        .target(name: "WebSIMD", dependencies: ["WebGraphics"], swiftSettings: [.treatAllWarnings(as: .error)]),
         .testTarget(
             name: "WebSIMDTests",
             dependencies: ["WebSIMD"],

@@ -121,7 +121,7 @@ let package = Package(
         .target(name: "CoreLocation", dependencies: ["CoreLocationHost", .product(name: "WebFoundation", package: "WebGraphics")], swiftSettings: [.treatAllWarnings(as: .error)]),
         .target(name: "MapKit", dependencies: ["SwiftUI", "CoreLocation"], swiftSettings: [.treatAllWarnings(as: .error)]),
         // Scene graphs drawn by projecting their triangles on the CPU, far to near, with flat shading.
-        .target(name: "SceneKit", dependencies: ["SwiftUI", .product(name: "UIKit", package: "UIKitWeb"), .product(name: "WebFoundation", package: "WebGraphics")],
+        .target(name: "SceneKit", dependencies: ["SwiftUI", .product(name: "UIKit", package: "UIKitWeb"), .product(name: "WebFoundation", package: "WebGraphics"), .product(name: "WebSIMD", package: "WebGraphics")],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
         // Audio (AVFAudio, which the browser host links), and the player and the camera (AVFoundation,
         // which re-exports AVFAudio as Apple's does). The camera's preview is a CALayer (UIKitWebCore's);
