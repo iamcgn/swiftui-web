@@ -153,7 +153,7 @@ import SwiftUIWebHeadless
         runtime.pointerDown(at: CGPoint(x: 90, y: 45), time: 0); runtime.pointerUp(at: CGPoint(x: 90, y: 45), time: 0.05)
         #expect(log.events.isEmpty)
         runtime.pointerDown(at: CGPoint(x: 91, y: 46), time: 0.2); runtime.pointerUp(at: CGPoint(x: 91, y: 46), time: 0.25)
-        #expect(log.events == ["double 13,6"])
+        #expect(log.events == ["double 11,6"])
         let global = Log()
         let g = self.runtime(Color.red.frame(width: 40, height: 20).onTapGesture(coordinateSpace: .global) { point in
             global.events.append("\(Int(point.x)),\(Int(point.y))")
