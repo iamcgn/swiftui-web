@@ -267,7 +267,28 @@ public enum AnnotationPosition: Hashable, Sendable {
 
 /// What an annotation does past the plot's edge (accepted; annotations are not moved).
 public struct AnnotationOverflowResolution: Sendable {
-    public enum Strategy: Sendable { case automatic, fit, disabled, padScale }
+    /// How an annotation that overflows is resolved along one axis.
+    public struct Strategy: Equatable, Sendable {
+        enum Kind: Equatable, Sendable { case automatic, fit(Boundary), disabled, padScale }
+        let kind: Kind
+        public static var automatic: Strategy { Strategy(kind: .automatic) }
+        /// Moves the annotation back inside the automatic boundary.
+        public static var fit: Strategy { Strategy(kind: .fit(.automatic)) }
+        /// Moves the annotation back inside `boundary`.
+        public static func fit(to boundary: Boundary) -> Strategy { Strategy(kind: .fit(boundary)) }
+        public static var disabled: Strategy { Strategy(kind: .disabled) }
+        public static var padScale: Strategy { Strategy(kind: .padScale) }
+    }
+
+    /// The edge an annotation is fitted inside: the plot area or the whole chart.
+    public struct Boundary: Equatable, Sendable {
+        enum Kind: Equatable, Sendable { case automatic, plot, chart }
+        let kind: Kind
+        public static var automatic: Boundary { Boundary(kind: .automatic) }
+        public static var plot: Boundary { Boundary(kind: .plot) }
+        public static var chart: Boundary { Boundary(kind: .chart) }
+    }
+
     public var x: Strategy
     public var y: Strategy
     public init(x: Strategy = .automatic, y: Strategy = .automatic) { self.x = x; self.y = y }

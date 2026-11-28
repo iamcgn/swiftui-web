@@ -128,6 +128,30 @@ extension OpenIntent {
     public static var openAppWhenRun: Bool { true }
 }
 
+/// The system's intent that opens a URL: a universal link into the app, its own scheme, or a web
+/// page. An app returns it from `perform()` with `.result(opensIntent:)`; run on the web, it
+/// hands the URL to the page's opener, as `openURL` does.
+public struct OpenURLIntent: SystemIntent {
+    public static var title: LocalizedStringResource { "Open URL" }
+    public static var openAppWhenRun: Bool { true }
+
+    /// The URL to open.
+    @Parameter(title: "URL")
+    public var url: URL
+
+    public init() {}
+
+    public init(_ url: URL) {
+        self.url = url
+    }
+
+    public func perform() async throws -> IntentResultContainer<Never, Never, Never, Never> {
+        let url = url
+        await MainActor.run { OpenURLAction.systemHandler?(url) }
+        return .result()
+    }
+}
+
 /// An intent that shows a snippet view.
 public protocol SnippetIntent: AppIntent where Self.PerformResult: ShowsSnippetView {}
 
