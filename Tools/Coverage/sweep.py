@@ -937,6 +937,37 @@ def intent_definitions(root: Path, base: Path, beside=None):
     return found
 
 
+# An app target that runs swift-openapi-generator's build plugin (`plugin:OpenAPIGenerator` in
+# its project) gets its `Client` and `Components` from the OpenAPI document beside its files, as
+# Xcode generates them. The sweep target gets the same plugin, from the generator at the app's
+# own pinned revision, and the document and its config are copied next to its sources.
+OPENAPI_PLUGIN = "plugin:OpenAPIGenerator"
+OPENAPI_DOC = re.compile(r"^openapi\.(ya?ml|json)$")
+OPENAPI_CONFIG = re.compile(r"^openapi-generator-config\.ya?ml$")
+
+
+def openapi_inputs(root: Path, extra, beside):
+    """[document, config] (paths relative to the clone) for the app target's OpenAPIGenerator
+    plugin, or [] when its project runs none. The pair beside the most of the target's files is
+    the one Xcode feeds the plugin."""
+    projects = [f for f in root.rglob("project.pbxproj")
+                if not excluded(f.relative_to(root), extra) and ".build" not in f.relative_to(root).parts]
+    if not any(OPENAPI_PLUGIN in f.read_text(errors="replace") for f in projects):
+        return []
+    homes = {}
+    for f in beside:
+        for d in Path(f).parents:
+            homes[d] = homes.get(d, 0) + 1
+    def found(pattern):
+        hits = [f.relative_to(root) for f in root.rglob("*") if pattern.match(f.name) and f.is_file()
+                and not any(part in (".build", ".git", "Pods", "Carthage", PACKAGES_DIR) for part in f.relative_to(root).parts)
+                and not excluded(f.relative_to(root), extra)]
+        hits = [h for h in hits if homes.get(h.parent)]
+        return str(max(hits, key=lambda h: (homes[h.parent], -len(h.parts)))) if hits else None
+    doc, config = found(OPENAPI_DOC), found(OPENAPI_CONFIG)
+    return [doc, config] if doc and config else []
+
+
 def describe_app(entry, root: Path, work: Path = None):
     """The sweep's view of one clone: its local targets, its packages' targets, the app target's
     files, the imports."""
@@ -1136,11 +1167,19 @@ def describe_app(entry, root: Path, work: Path = None):
         catalogs = [c for c in asset_catalogs(root, Path(".")) if not excluded(Path(c), extra)
                     and not any(Path(c).is_relative_to(d) for d in pkg_dirs if str(d) != ".")
                     and not any(Path(c).is_relative_to(Path(t["source_root"])) for t in targets if not t.get("remote"))]
+        openapi = openapi_inputs(root, extra, app_files)
+        if openapi:
+            if "swift-openapi-generator" in pins:
+                notes.append(f"app target: OpenAPIGenerator plugin generates from {openapi[0]}")
+            else:
+                notes.append("app target: its project runs the OpenAPIGenerator plugin, but no pin names swift-openapi-generator")
+                openapi = []
         targets.append({
             "module": "Sweep" + re.sub(r"\W", "", entry["name"]), "source_root": ".", "files": app_files,
             "deps": sorted({t["module"] for t in targets if not t["executable"] and not t.get("macro")}), "third_party": [],
             "mode": xcode_language_mode(root), "settings": xcode_settings(root, conditions, regex, concurrency),
             "resources": [], "models": models, "intents": intents,
+            "openapi": openapi, "openapi_pin": pins.get("swift-openapi-generator") if openapi else None,
             "catalogs": catalogs, "symbol_extensions": bool(catalogs) and xcode_asset_symbol_extensions(root),
             "executable": True, "app": True,
         })
@@ -1636,7 +1675,7 @@ def cmd_prepare(args):
     # The package traits this batch's apps need (decision 0024), as each app's own manifest would
     # enable them; --all-traits turns every one on (the surface build, which has no apps).
     traits_needed = set(app_traits.TRAITS) if args.all_traits else set()
-    declared, uses_syntax = set(), False
+    declared, uses_syntax, openapi_pin = set(), False, None
     batch_apps = [app for app in plan["apps"] if app.get("batch") == args.batch]
     # The targets a macro uses, directly or through others, in any app of the batch: they build
     # for the host too. A package two apps share is declared once, so whether it builds for the
@@ -1797,6 +1836,12 @@ def cmd_prepare(args):
                 shutil.copy2(clone_dir / d, out)
             if t.get("intents"):
                 models.append("_IntentDefinitions")
+            # The OpenAPI document and the generator's config go next to the sources, where the
+            # OpenAPIGenerator plugin looks for them (SwiftPM leaves them out of the build).
+            for f in t.get("openapi", []):
+                shutil.copy2(clone_dir / f, dest_root / Path(f).name)
+            if t.get("openapi"):
+                openapi_pin = openapi_pin or t["openapi_pin"]
             # The app's catalogs (not its resources here): their folders and `Contents.json`, out
             # of the target's files, for the AssetSymbols plugin to read.
             for i, c in enumerate(t.get("catalogs", [])):
@@ -1816,7 +1861,8 @@ def cmd_prepare(args):
             plugins = (['.plugin(name: "CoreDataModel", package: "SwiftUIWeb")'] if t.get("models") else []) + (
                 ['.plugin(name: "AssetSymbols", package: "SwiftUIWeb")']
                 if t.get("catalogs") or any(r.endswith('.xcassets")') for r in resources) else []) + (
-                ['.plugin(name: "IntentDefinitions", package: "SwiftUIWeb")'] if t.get("intents") else [])
+                ['.plugin(name: "IntentDefinitions", package: "SwiftUIWeb")'] if t.get("intents") else []) + (
+                ['.plugin(name: "OpenAPIGenerator", package: "swift-openapi-generator")'] if t.get("openapi") else [])
             kind = "executableTarget" if t.get("app") else "target"
             settings = [f".swiftLanguageMode(.{t['mode']})"] + t["settings"] + [package_flag]
             if foundation_name:
@@ -1845,6 +1891,9 @@ def cmd_prepare(args):
         return f', traits: [{", ".join(json.dumps(t) for t in names)}]' if names else ""
     # The packages' macros build against the swift-syntax SwiftUIWeb already resolves.
     syntax_dependency = f'\n        .package(url: "{SYNTAX_PACKAGE}", from: "601.0.1"),' if uses_syntax else ""
+    # The app's own pin of swift-openapi-generator, for its build plugin.
+    if openapi_pin:
+        syntax_dependency += f'\n        .package(url: {json.dumps(openapi_pin["url"])}, revision: {json.dumps(openapi_pin["revision"])}),'
     # Each target is its own statement: one `targets: [...]` literal holding every package's
     # targets is more than the manifest's type checker will take in reasonable time.
     head = MANIFEST_HEAD + """
