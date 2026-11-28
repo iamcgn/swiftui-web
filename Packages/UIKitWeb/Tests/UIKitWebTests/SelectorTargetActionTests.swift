@@ -76,6 +76,12 @@ extension ExtensionLoadedController {
     }
 }
 
+/// A button subclass with a stored property and no initializers of its own, as an app's
+/// themed button is: a class factory called on it makes one of it.
+@MainActor final class SymbolButton: UIButton {
+    var badge = "new"
+}
+
 @Suite @MainActor struct SelectorTargetActionTests {
     @Test func aControlSendsItsSelectorsInOrderAndLetsThemGo() {
         let button = UIButton(type: .system)
@@ -257,6 +263,34 @@ extension ExtensionLoadedController {
             #expect(Set([a, b, .zero]).count == 2 && Set([CGPoint(x: 1, y: 1), CGPoint(x: 1, y: 1)]).count == 1)
         }
         #expect(a.maxX == 4 && a.midY == 4 && a.contains(CGPoint(x: 2, y: 3)))
+    }
+
+    @Test func aSystemButtonFactoryMakesTheClassItIsCalledOnWithItsImageAndAction() {
+        let target = ActionTarget()
+        let image = UIImage(systemName: "star")
+        // SFSafeSymbols' `UIButton.systemButton(with: UIImage(systemSymbol:), target:, action:)`.
+        let button = UIButton.systemButton(with: image, target: target, action: #selector(ActionTarget.tapped(_:)))
+        #expect(button.buttonType == .system)
+        #expect(button.image(for: .normal) === image)
+        button.sendActions(for: .primaryActionTriggered)
+        #expect(target.calls == ["tapped button"])
+
+        // Called on a subclass, it makes the subclass, with its own stored properties set up.
+        let symbol = SymbolButton.systemButton(with: image, target: nil, action: nil)
+        #expect(type(of: symbol) == SymbolButton.self)
+        #expect(symbol.buttonType == .system && symbol.badge == "new")
+        #expect(symbol.actions(forTarget: nil, forControlEvent: .primaryActionTriggered) == nil)
+
+        // The primary-action form takes the action's title and image and performs it.
+        var performed = 0
+        let titled = UIButton.systemButton(with: UIAction(title: "Add", image: image) { _ in performed += 1 })
+        #expect(titled.buttonType == .system && titled.title(for: .normal) == "Add" && titled.image(for: .normal) === image)
+        titled.sendActions(for: .primaryActionTriggered)
+        #expect(performed == 1)
+
+        // A plain `init(frame:)` afterwards still makes a custom button.
+        #expect(UIButton(frame: .zero).buttonType == .custom)
+        #expect(SymbolButton(frame: .zero).buttonType == .custom)
     }
 }
 #endif

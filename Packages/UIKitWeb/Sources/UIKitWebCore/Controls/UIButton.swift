@@ -79,9 +79,39 @@ open class UIButton: UIControl, UIAccessibilityContentSizeCategoryImageAdjusting
     }
 
     public convenience override init(frame: CGRect) {
-        self.init(type: .custom)
+        let type = UIButton.pendingButtonType ?? .custom
+        UIButton.pendingButtonType = nil   // only the button the factory makes, not one it makes
+        self.init(type: type)
         self.frame = frame
     }
+
+    /// The type `init(frame:)` gives the button that a class factory is making, as UIKit's
+    /// `+buttonWithType:` does: the factory sends `-initWithFrame:` to the class it was called on,
+    /// so a subclass's own `init(frame:)` runs, and the button still gets the factory's type.
+    static var pendingButtonType: ButtonType?
+
+    #if canImport(ObjectiveC)
+    /// A system button that shows `image` and sends `action` to `target` when tapped (its
+    /// primary action), as SFSafeSymbols' `UIButton.systemButton(with:target:action:)` makes one.
+    /// Called on a subclass, it makes that subclass.
+    public class func systemButton(with image: UIImage?, target: Any?, action: Selector?) -> Self {
+        let button = _makeButton(self, type: .system)
+        button.setImage(image, for: .normal)
+        if let action { button.addTarget(target, action: action, for: .primaryActionTriggered) }
+        return button
+    }
+
+    /// A system button with `primaryAction`'s title and image that performs it when tapped.
+    public class func systemButton(with primaryAction: UIAction?) -> Self {
+        let button = _makeButton(self, type: .system)
+        if let primaryAction {
+            button.setTitle(primaryAction.title, for: .normal)
+            if let image = primaryAction.image { button.setImage(image, for: .normal) }
+            button.addAction(primaryAction, for: .primaryActionTriggered)
+        }
+        return button
+    }
+    #endif
 
     public convenience init(type: ButtonType = .system, primaryAction: UIAction?) {
         self.init(type: type)
@@ -524,3 +554,33 @@ open class UIButton: UIControl, UIAccessibilityContentSizeCategoryImageAdjusting
         public static func borderedProminent() -> Configuration { Configuration(style: .filled) }
     }
 }
+
+#if canImport(ObjectiveC)
+/// A button of `buttonType` made as UIKit's class factories make one: the Objective-C runtime's
+/// `+alloc`, then `-initWithFrame:` sent to the new object, so `type`'s own `init(frame:)` runs
+/// though it isn't `required`. Each method is looked up and called with its own signature
+/// (WebAssembly checks the type of every indirect call).
+@MainActor
+func _makeButton<Button: UIButton>(_ type: Button.Type, type buttonType: UIButton.ButtonType) -> Button {
+    typealias Alloc = @convention(c) (UnsafeRawPointer, Selector) -> UnsafeMutableRawPointer?
+    typealias Initialize = @convention(c) (UnsafeMutableRawPointer, Selector, CGRect) -> UnsafeMutableRawPointer?
+    let cls: AnyClass = type
+    let alloc = sel_registerName("alloc")   // Swift's `#selector` cannot name +alloc
+    let initialize = #selector(UIView.init(frame:))
+    // The class object as an object (no bridging): its class is the metaclass, which holds `+alloc`.
+    guard let metaclass = object_getClass(unsafeBitCast(cls, to: AnyObject.self)),
+          let allocate = class_getMethodImplementation(metaclass, alloc),
+          let initializer = class_getMethodImplementation(cls, initialize),
+          let instance = unsafeBitCast(allocate, to: Alloc.self)(unsafeBitCast(cls, to: UnsafeRawPointer.self), alloc) else {
+        fatalError("UIButton: cannot make a \(type) button")
+    }
+    let outer = UIButton.pendingButtonType
+    UIButton.pendingButtonType = buttonType
+    defer { UIButton.pendingButtonType = outer }
+    // `init` consumes the allocated object and returns the initialized one retained.
+    guard let made = unsafeBitCast(initializer, to: Initialize.self)(instance, initialize, .zero) else {
+        fatalError("UIButton: \(type).init(frame:) returned nil")
+    }
+    return Unmanaged<Button>.fromOpaque(made).takeRetainedValue()
+}
+#endif
