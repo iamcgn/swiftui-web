@@ -304,3 +304,66 @@ public protocol AppIntentTimelineProvider {
     func snapshot(for configuration: Intent, in context: Context) async -> Entry
     func timeline(for configuration: Intent, in context: Context) async -> Timeline<Entry>
 }
+
+// MARK: - The environment a widget's view reads
+
+/// How the system draws a widget: in its own colors, tinted with an accent group, or desaturated
+/// on a vibrant background (the Lock Screen). A page draws widget views in full color.
+public struct WidgetRenderingMode: Hashable, Sendable, CustomStringConvertible {
+    let name: String
+    public static let fullColor = WidgetRenderingMode(name: "fullColor")
+    public static let accented = WidgetRenderingMode(name: "accented")
+    public static let vibrant = WidgetRenderingMode(name: "vibrant")
+    public var description: String { name }
+}
+
+struct _WidgetFamilyKey: EnvironmentKey {
+    static let defaultValue = WidgetFamily.systemSmall
+}
+
+struct _WidgetRenderingModeKey: EnvironmentKey {
+    static let defaultValue = WidgetRenderingMode.fullColor
+}
+
+struct _ShowsWidgetContainerBackgroundKey: EnvironmentKey {
+    static let defaultValue = true
+}
+
+struct _WidgetContentMarginsKey: EnvironmentKey {
+    static let defaultValue = EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+}
+
+extension EnvironmentValues {
+    /// The size of widget the view is drawn in. A widget view the app draws itself (a preview)
+    /// reads the small family unless it sets another.
+    public var widgetFamily: WidgetFamily {
+        get { self[_WidgetFamilyKey.self] }
+        set { self[_WidgetFamilyKey.self] = newValue }
+    }
+
+    /// How the system draws the widget; a page draws it in full color.
+    public var widgetRenderingMode: WidgetRenderingMode {
+        get { self[_WidgetRenderingModeKey.self] }
+        set { self[_WidgetRenderingModeKey.self] = newValue }
+    }
+
+    /// Whether the widget's container background shows (true, as on the Home Screen).
+    public var showsWidgetContainerBackground: Bool {
+        get { self[_ShowsWidgetContainerBackgroundKey.self] }
+        set { self[_ShowsWidgetContainerBackgroundKey.self] = newValue }
+    }
+
+    /// The margins the system puts around a widget's content (16 points, a small widget's).
+    public var widgetContentMargins: EdgeInsets {
+        get { self[_WidgetContentMarginsKey.self] }
+        set { self[_WidgetContentMarginsKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Puts the view in the accent group the system tints in the accented rendering mode. A page
+    /// draws widgets in full color, so the view keeps its own colors.
+    nonisolated public func widgetAccentable(_ accentable: Bool = true) -> some View {
+        self
+    }
+}

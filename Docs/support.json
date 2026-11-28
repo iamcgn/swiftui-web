@@ -2704,7 +2704,7 @@
         {
           "api": "foregroundStyle(by:) / foregroundStyle / opacity / cornerRadius / lineStyle / interpolationMethod / symbol / symbolSize / position(by:) / offset / zIndex / annotation",
           "status": "partial",
-          "notes": "The palette in Swift Charts' order with a legend; gradients through the canvas; annotations as canvas symbols 4 pt from the mark's frame; monotone and cardinal interpolation drawn as Catmull-Rom; clipShape, shadow and blur accepted",
+          "notes": "The palette in Swift Charts' order with a legend; gradients through the canvas; annotations as canvas symbols 4 pt from the mark's frame; monotone and cardinal interpolation drawn as Catmull-Rom; clipShape, shadow and blur accepted; an annotation's overflowResolution takes Apple's strategies (fit, fit(to: .chart / .plot), padScale, disabled), accepted as before (2026-11-28, OscarWeather)",
           "fixtures": [
             "charts/line",
             "charts/area",
@@ -2791,9 +2791,9 @@
           "noFixture": "Nothing to draw: FrameworkTests call the center and build a timeline"
         },
         {
-          "api": "Widget / WidgetBundle / WidgetConfiguration / StaticConfiguration / IntentConfiguration / AppIntentConfiguration / TimelineProvider / IntentTimelineProvider / AppIntentTimelineProvider / TimelineProviderContext / configurationDisplayName / description / supportedFamilies / contentMarginsDisabled / widgetURL",
+          "api": "Widget / WidgetBundle / WidgetConfiguration / StaticConfiguration / IntentConfiguration / AppIntentConfiguration / TimelineProvider / IntentTimelineProvider / AppIntentTimelineProvider / TimelineProviderContext / configurationDisplayName / description / supportedFamilies / contentMarginsDisabled / widgetURL / widgetFamily / widgetRenderingMode / showsWidgetContainerBackground / widgetContentMargins / widgetAccentable",
           "status": "partial",
-          "notes": "A widget extension's own types (Dime's widgets, which share the app's target), so its files compile with the app. A page has no home screen, so nothing asks a provider for a timeline and @main on a widget or bundle starts nothing; a configuration keeps its kind, its modifiers' values (gallery name, description, sizes, margins) and its entry view, which draws for an entry of its provider's kind as a preview shows it. widgetURL is kept by nothing (no widget to tap). Tests/CoreRuntimeTests/WidgetConfigurationTests.swift.",
+          "notes": "A widget extension's own types (Dime's widgets, which share the app's target), so its files compile with the app. A page has no home screen, so nothing asks a provider for a timeline and @main on a widget or bundle starts nothing; a configuration keeps its kind, its modifiers' values (gallery name, description, sizes, margins) and its entry view, which draws for an entry of its provider's kind as a preview shows it. widgetURL is kept by nothing (no widget to tap). Tests/CoreRuntimeTests/WidgetConfigurationTests.swift. The environment a widget view reads is a small widget's in full color, with its container background and 16 pt margins; widgetAccentable keeps the view's colors (2026-11-28, OscarWeather).",
           "noFixture": "No widget shows on a page: WidgetConfigurationTests draws a configuration's entry view and checks its modifiers' values."
         },
         {
@@ -2965,9 +2965,9 @@
           "noFixture": "Nothing to draw beyond text: StoreKitTests check the empty store, the refused payments and the views' unavailable state"
         },
         {
-          "api": "AppIntent / @Parameter / AppEntity / AppEnum / EntityQuery / AppShortcutsProvider / Button(intent:) (AppIntents)",
+          "api": "AppIntent / @Parameter / AppEntity / AppEnum / EntityQuery / AppShortcutsProvider / Button(intent:) / OpenURLIntent (AppIntents)",
           "status": "partial",
-          "notes": "pf-small-frameworks (2026-11-01): intents run when the app runs them. A parameter holds what the app set, else its default, else nil when optional; perform() and calling the intent return its result; entities, their @Property values, their queries and app enums show themselves as declared. A button or toggle made with an intent runs perform() when pressed. Parameter summaries (When, Switch, Case) and shortcut phrases keep their text. Asking the user for a value, a choice or a confirmation throws, since a web page has no Siri or Shortcuts to ask; donations and shortcuts are kept but nothing reads them, and SiriTipView and ShortcutsLink show nothing. DisplayRepresentation.Image(systemName:isTemplate:) takes an optional, nil drawing a template (SFSafeSymbols, 2026-11-15)",
+          "notes": "pf-small-frameworks (2026-11-01): intents run when the app runs them. A parameter holds what the app set, else its default, else nil when optional; perform() and calling the intent return its result; entities, their @Property values, their queries and app enums show themselves as declared. A button or toggle made with an intent runs perform() when pressed. Parameter summaries (When, Switch, Case) and shortcut phrases keep their text. Asking the user for a value, a choice or a confirmation throws, since a web page has no Siri or Shortcuts to ask; donations and shortcuts are kept but nothing reads them, and SiriTipView and ShortcutsLink show nothing. DisplayRepresentation.Image(systemName:isTemplate:) takes an optional, nil drawing a template (SFSafeSymbols, 2026-11-15) OpenURLIntent hands its URL to the page's opener when it runs, as openURL does (2026-11-28, OscarWeather).",
           "noFixture": "Nothing to draw: AppIntentsTests run intents, read parameters, entities and summaries, and press intent buttons and toggles"
         },
         {
@@ -3029,6 +3029,12 @@
           "status": "stub",
           "notes": "pf-everyday (2026-11-26, OldOS's status bar): a page has no cellular radio, so the network info names no carrier and no radio technology, the notifiers never fire, and cellular data reads not restricted. The radio technology constants and change notifications are Apple's names.",
           "noFixture": "Nothing to draw; CoreRuntimeTests AudioRouteAndTelephonyTests checks the empty answers"
+        },
+        {
+          "api": "WCSession / WCSessionDelegate / WCSessionActivationState / WCError (WatchConnectivity)",
+          "status": "stub",
+          "notes": "pf-everyday (2026-11-28, OscarWeather's unit sync): a page has no paired Apple Watch, so isSupported() answers false; the default session is never activated (activate() tells the delegate it finished not activated, with a not-supported error), messages fail as unreachable, the application context can't be updated and transfers stay queued.",
+          "noFixture": "Nothing to draw; CoreRuntimeTests OscarWeatherAPIsTests checks the session's answers"
         },
         {
           "api": "GKLocalPlayer / GKPlayer / GKAchievement / GKAchievementDescription / GKLeaderboard / GKGameCenterViewController / GKAccessPoint / GKError (GameKit)",

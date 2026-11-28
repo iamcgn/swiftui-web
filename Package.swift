@@ -65,6 +65,7 @@ let package = Package(
         .library(name: "WeatherKit", targets: ["WeatherKit"]),
         .library(name: "MediaPlayer", targets: ["MediaPlayer"]),
         .library(name: "CoreTelephony", targets: ["CoreTelephony"]),
+        .library(name: "WatchConnectivity", targets: ["WatchConnectivity"]),
         .library(name: "GameKit", targets: ["GameKit"]),
         .library(name: "StoreKit", targets: ["StoreKit"]),
         .library(name: "AppIntents", targets: ["AppIntents"]),
@@ -264,6 +265,9 @@ let package = Package(
         // Cellular services: none, as a page has no radio.
         .target(name: "CoreTelephony", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
+        // A paired Apple Watch: none, as a page has no watch to talk to.
+        .target(name: "WatchConnectivity", dependencies: [.product(name: "WebFoundation", package: "WebGraphics")],
+                swiftSettings: [.treatAllWarnings(as: .error)]),
         // Game Center: no one is signed in, as a page has no Game Center account.
         .target(name: "GameKit", dependencies: [.product(name: "UIKit", package: "UIKitWeb"), .product(name: "WebFoundation", package: "WebGraphics")],
                 swiftSettings: [.treatAllWarnings(as: .error)]),
@@ -354,7 +358,7 @@ let package = Package(
         // to load it. Disable overlay lookup for those test builds.
         .testTarget(
             name: "CoreRuntimeTests",
-            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", .product(name: "UserNotifications", package: "UIKitWeb"), "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "QuickLook", "SceneKit", "EventKitUI", "IntentsUI", "WidgetKit", "MediaPlayer", "CoreTelephony", "GameKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", "LanguageMode5Fixtures", .product(name: "WebFoundation", package: "WebGraphics"),
+            dependencies: ["SwiftUI", "Charts", "MapKit", "CoreLocation", "AVKit", "Speech", "SwiftData", .product(name: "UserNotifications", package: "UIKitWeb"), "WebKit", "StoreKit", "AppIntents", "Photos", "PhotosUI", "PDFKit", "CoreSpotlight", "AuthenticationServices", "AuthenticationServicesHost", "CoreMotion", "CoreMotionHost", "AVFoundation", "AVCaptureHost", "ActivityKit", "BackgroundTasks", "BackgroundTasksHost", "TipKit", "Translation", "TranslationHost", "QuickLook", "SceneKit", "EventKitUI", "IntentsUI", "WidgetKit", "MediaPlayer", "CoreTelephony", "WatchConnectivity", "GameKit", "SwiftUIWebTestSupport", "FixtureKit", "SwiftUIWebFixtures", "LanguageMode5Fixtures", .product(name: "WebFoundation", package: "WebGraphics"),
                            .product(name: "WebCoreImage", package: "WebGraphics")],
             swiftSettings: [.treatAllWarnings(as: .error), .unsafeFlags(["-disable-cross-import-overlays"], .when(platforms: [.wasi, .linux]))]
         ),
