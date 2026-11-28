@@ -461,14 +461,20 @@ def fetch_packages(work: Path, pins):
             continue  # the sweep package's own swift-syntax builds the macros
         key = package_key(identity, pin)
         dest = work / PACKAGES_DIR / key
+        if key in _FAILED_CLONES:
+            continue  # a clone that failed leaves a folder behind; it is still not there
         if not (dest / ".git").exists():
             try:
                 clone(pin["repo"], dest, pin["revision"])
             except Exception as e:
+                _FAILED_CLONES.add(key)
                 print(f"package {identity}: {str(e).splitlines()[0][:200]}", file=sys.stderr)
                 continue
         keys[identity] = key
     return keys
+
+
+_FAILED_CLONES = set()
 
 
 # An app that keeps no Package.resolved (Thunderbird's local package asks for swift-nio's `main`;
@@ -548,6 +554,21 @@ def manifest_dependencies(dump):
             if url and req:
                 out.append(((entry.get("identity") or "").lower(), url, req))
     return out
+
+
+def used_dependencies(dump):
+    """manifest_dependencies of a package, only the ones a target's iOS dependency names under
+    the package's default traits: a package an Apple-only or off trait asks for is not built."""
+    traits = default_traits(dump or {})
+    used = set()
+    for t in (dump or {}).get("targets") or []:
+        if t.get("type") not in ("regular", "executable", "macro"):
+            continue  # a test target's packages are not built
+        for d in t.get("dependencies") or []:
+            kind, _, package = dependency_names(d)
+            if kind == "product" and package and condition_allows_ios(d, traits):
+                used.add(package.lower())
+    return [d for d in manifest_dependencies(dump) if d[0] in used]
 
 
 def project_requirement(req):
@@ -635,6 +656,13 @@ def declared_pins(work: Path, root: Path, extra, packages, pins, notes, passes=2
             entry["by"].setdefault(source, []).append(req)
 
     want("", [d for p in packages for d in manifest_dependencies(p["dump"])] + project_dependencies(root, extra))
+    # A pinned package's own dependencies: Package.resolved leaves out what a trait the Apple
+    # build doesn't enable uses (SQLite.swift's embedded SQLite, which the sweep's Linux-hosted
+    # manifest turns on), so the ones its enabled targets use are resolved like the root's.
+    pinned = fetch_packages(work, pins)
+    for identity, key in sorted(pinned.items()):
+        dump, _ = dump_package(work / PACKAGES_DIR / key)
+        want(f"pin:{identity}", used_dependencies(dump))
     picked = {}  # repo (lower) -> commit or None
     excluded = {}  # repo (lower) -> commits a conflict ruled out
 
@@ -738,7 +766,13 @@ def describe_remote_packages(work: Path, keys, notes):
         dumps[identity] = dump
     products = {}  # product name -> (identity, target names)
     for identity, dump in dumps.items():
+        kinds = {t["name"]: t["type"] for t in dump.get("targets", [])}
         for prod in dump.get("products", []):
+            # A product of system library targets alone (CSQLite 0.0.3's `/usr/include/sqlite3.h`)
+            # vends nothing the wasm build has: a target that asks for it is built without it, as
+            # before the plan resolved it, so its own errors still count.
+            if prod.get("targets") and all(kinds.get(n) == "system" for n in prod["targets"]):
+                continue
             if "library" in json.dumps(prod.get("type") or {}):
                 products.setdefault(prod["name"], (identity, prod.get("targets", [])))
     targets, left_out = [], set()
