@@ -34,4 +34,36 @@ import WebFoundation
         #expect(kCFBundleIdentifierKey as String == "CFBundleIdentifier")
     }
     #endif
+
+    #if os(WASI) || canImport(Darwin)
+    // SwiftyChrono's Japanese parser folds full-width text to half-width this way before it
+    // reads the numbers. Linux's Foundation keeps Core Foundation to itself, so this runs on
+    // macOS and wasm.
+    private func transformed(_ text: String, reverse: Bool = false) -> (String, Bool) {
+        let str = NSMutableString(string: text) as CFMutableString
+        let known = CFStringTransform(str, nil, kCFStringTransformFullwidthHalfwidth, reverse)
+        return (str as String, known)
+    }
+
+    @Test func theWidthTransformFoldsFullwidthFormsToHalfwidth() {
+        #expect(transformed("２０２６年１１月２８日") == ("2026年11月28日", true))
+        #expect(transformed("ＡＢＣ\u{3000}ｘｙｚ！") == ("ABC xyz!", true))
+        #expect(transformed("アイウ").0 == "\u{FF71}\u{FF72}\u{FF73}")
+        #expect(transformed("ガパ").0 == "\u{FF76}\u{FF9E}\u{FF8A}\u{FF9F}")
+        #expect(transformed("漢字 abc").0 == "漢字 abc")
+    }
+
+    @Test func reversedItWidensHalfwidthFormsAndVoicesKana() {
+        #expect(transformed("2026", reverse: true).0 == "２０２６")
+        #expect(transformed("\u{FF76}\u{FF9E}\u{FF8A}\u{FF9F}\u{FF71}", reverse: true).0 == "ガパア")
+    }
+
+    @Test func aRangeLimitsTheTransformAndTakesTheNewLength() {
+        let str = NSMutableString(string: "１２ガ３") as CFMutableString
+        var range = CFRangeMake(1, 2)
+        #expect(CFStringTransform(str, &range, kCFStringTransformFullwidthHalfwidth, false))
+        #expect(str as String == "１2\u{FF76}\u{FF9E}３")
+        #expect(range.location == 1 && range.length == 3)
+    }
+    #endif
 }
